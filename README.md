@@ -1,2 +1,3 @@
 # presqt
-IMLS grant funded project to build Tools and RESTful Services to Improve Preservation and Re-use of Research Data &amp; Software
+IMLS grant funded project(PresQT) to build Tools and RESTful Services to Improve Preservation and Re-use of Research Data &amp; Software. More info at https://presqt.crc.nd.edu/ and https://osf.io/d3jx7/
+
