@@ -1,0 +1,87 @@
+# Docker Compose File for Development / Single Machine Deployments
+# Creates an Nginx, Django, and Postgres container that work
+# together.
+
+version: "3"
+services:
+  presqt_nginx:
+    depends_on:
+      - presqt_django
+    image: nginx:1.15
+    networks:
+      - frontend
+    ports:
+      # This ties host port 8000 to nginx container port 80
+      # Inside of the nginx config, it's port 80 it forwarded to Django 8000
+      # It is a little confusing.
+      - 127.0.0.1:8000:80
+    volumes:
+      - ./config/nginx/conf.d:/etc/nginx/conf.d
+      - presqt_static_volume:/usr/src/app/staticfiles
+      - presqt_media_volume:/usr/src/app/mediafiles
+
+  # Create a Django container. Note that no secrets should
+  # be stored within the container, but passed in via
+  # environment variables.
+  presqt_django:
+    build:
+      context: .
+      dockerfile: django.dockerfile
+
+      # "Build Args" don't persist into the running
+      # container, so we prefix them with BUILD to
+      # make this clear.
+      args:
+        BUILD_ENVIRONMENT: ${ENVIRONMENT:-production}
+    depends_on:
+      - presqt_postgres
+    environment:
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_DB: $POSTGRES_DB
+      SECRET_KEY: $SECRET_KEY
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      DJANGO_SETTINGS_MODULE: config.settings.${ENVIRONMENT:-production}
+    volumes:
+      - .:/usr/src/app
+      - presqt_static_volume:/usr/src/app/staticfiles
+      - presqt_media_volume:/usr/src/app/mediafiles
+    networks:
+      - frontend
+      - backend
+
+  # This will create a Postgres container with persistent
+  # storage on the host. It's important to note that unless
+  # you delete the persistant storage volume, the password
+  # set via environment variable at the first run of docker-compose
+  # will also persist, even if you change the environment
+  # variable value in between docker-compose invocations.
+  presqt_postgres:
+    image: postgres:11-alpine
+    environment:
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_DB: $POSTGRES_DB
+    networks:
+      - backend
+    ports:
+      # Expose Postgres to the host for connections via IDE
+      # This may be something you want to avoid in deployment
+      # environments. We will have to see.
+      - 127.0.0.1:5432:5432
+    restart: always
+    volumes:
+      - presqt_postgres_volume:/var/lib/postgresql/data
+
+# We create two top-level networks to provide some isolation
+# of concerns / greater security. In our case, we use this to
+# disallow direct connections between the NGINX container and
+# the Postgres container.
+networks:
+  frontend:
+  backend:
+
+volumes:
+  presqt_postgres_volume:
+  presqt_static_volume:
+  presqt_media_volume:
