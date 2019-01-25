@@ -15,7 +15,7 @@ python manage.py collectstatic --no-input
 if [ "$ENVIRONMENT" = "development" ]
 then
 python manage.py runserver 0.0.0.0:8000
-else if [ "$ENVIRONMENT" = "ci" ]
+elif [ "$ENVIRONMENT" = "ci" ]
 then
 python manage.py test
 else
