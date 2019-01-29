@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'presqt',
     'presqt.upload'
 ]
 
@@ -130,4 +131,4 @@ MEDIA_URL = '/mediafiles/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'mediafiles')
 
 # extending Django user class via AbstractUser
-AUTH_USER_MODEL = 'core.User'  # not sure of path may need use something like 'preqt.User' instead
+AUTH_USER_MODEL = 'presqt.User'
