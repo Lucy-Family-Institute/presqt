@@ -6,4 +6,3 @@ class User(AbstractUser):
     """extending Django user class"""
 
     title = models.CharField(max_length=30, blank=True)
-    test_field = models.CharField(max_length=3, blank=True)
