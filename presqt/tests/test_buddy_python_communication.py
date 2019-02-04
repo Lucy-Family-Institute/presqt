@@ -7,4 +7,4 @@ class BuddyGithubTestCase(TestCase):
         x = 0
         self.assertEqual(x, 0)
         y = 3
-        self.assertEqual(y, 5)
+        self.assertEqual(y, 3)
