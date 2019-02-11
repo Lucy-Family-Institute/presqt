@@ -1,3 +1,10 @@
 .vscode
 .python-version
 *.pyc
+
+# Pycharm/VSCode configuration
+.idea/
+.vscode
+
+# Local Settings file for passwords & secret keys #
+config/settings/local.py
