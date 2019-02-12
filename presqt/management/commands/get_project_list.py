@@ -2,7 +2,7 @@ from django.core.management import BaseCommand
 
 import requests
 
-from config.settings.local import OSF_TOKEN
+from config.settings.development import OSF_TOKEN
 
 
 class Command(BaseCommand):
