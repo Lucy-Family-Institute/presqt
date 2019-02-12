@@ -50,8 +50,6 @@ class Command(BaseCommand):
                 ...
             ]
         }
-        
-        
         '''
 
         node_id = options['node_id']
@@ -73,8 +71,7 @@ class Command(BaseCommand):
         # https://api.osf.io/v2/nodes/{node_id}/files/
         url = r_data['relationships']['files']['links']['related']['href']
         r = requests.get(url, headers=headers)
-        r_data = r.json()['data']
-        for provider in r_data:
+        for provider in r.json()['data']:
             provider_obj = {
                 'name': provider['attributes']['name'],
                 'files': [],
@@ -84,13 +81,14 @@ class Command(BaseCommand):
             # https://api.osf.io/v2/nodes/{node_id}/files/{provider}/
             file_url = provider['relationships']['files']['links']['related']['href']
             file_r = requests.get(file_url, headers=headers)
-            file_datas = file_r.json()['data']
-            provider_obj = build_obj(file_datas, provider_obj, headers)
+            provider_obj = build_obj(
+                file_r.json()['data'], provider_obj, headers, file_r.json()['links']
+            )
             data_obj['storage_providers'].append(provider_obj)
+
         print(json.dumps(data_obj))
 
-
-def build_obj(file_datas, obj, headers):
+def build_obj(file_datas, obj, headers, file_links):
     for file_data in file_datas:
         if file_data['attributes']['kind'] == 'file':
             file_obj = {
@@ -99,6 +97,7 @@ def build_obj(file_datas, obj, headers):
             }
             obj['files'].append(file_obj)
         elif file_data['attributes']['kind'] == 'folder':
+            # https://api.osf.io/v2/nodes/{node_id}/files/{provider}/{path}/
             folder_url = file_data['relationships']['files']['links']['related']['href']
             folder_r = requests.get(folder_url, headers=headers)
             folder_datas = folder_r.json()['data']
@@ -107,6 +106,11 @@ def build_obj(file_datas, obj, headers):
                     'files': [],
                     'folders': []
             }
-            build_obj(folder_datas, new_obj, headers)
+            build_obj(folder_datas, new_obj, headers, folder_r.json()['links'])
             obj['folders'].append(new_obj)
+    if file_links['next']:
+            # https://api.osf.io/v2/nodes/{node_id}/files/{provider}/?page={page_number}
+            next_url = file_links['next']
+            next_r = requests.get(next_url, headers=headers)
+            build_obj(next_r.json()['data'], obj, headers, next_r.json()['links'])
     return obj
