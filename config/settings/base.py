@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'presqt',
-    'presqt.upload'
+    'presqt.upload',
+    'presqt.osf',
 ]
 
 MIDDLEWARE = [
