@@ -38,7 +38,7 @@ class OSFFile(OSFCore):
     def get_object(self):
         return {
             'id': self.id,
-            'title':self,
+            'title':self.title,
             'download_link': self.download_link,
             'sha256': self.sha256,
             'md5': self.md5,
