@@ -129,5 +129,3 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL = '/mediafiles/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'mediafiles')
 
-# extending Django user class via AbstractUser
-AUTH_USER_MODEL = 'presqt.User'
