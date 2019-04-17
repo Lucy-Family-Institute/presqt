@@ -4,6 +4,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from presqt.api_v1.serializers.target import TargetsSerializer, TargetSerializer
+
 
 class TargetsList(APIView):
     """
@@ -14,8 +16,9 @@ class TargetsList(APIView):
     def get(self, request):
         with open('presqt/targets.json') as json_file:
             json_data = json.load(json_file)
+        serializer = TargetsSerializer(instance=json_data, many=True, context={'request': request})
 
-        return Response(json_data)
+        return Response(serializer.data)
 
 class TargetDetails(APIView):
     """
@@ -29,8 +32,8 @@ class TargetDetails(APIView):
 
         for data in json_data:
             if data['name'] == target_name:
-                target_data = data
-                return Response(target_data)
+                serializer = TargetSerializer(instance=data)
+                return Response(serializer.data)
         else:
             return Response(
                 data={'error': "Invalid Target Name '{}'".format(target_name)},

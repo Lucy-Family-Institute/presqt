@@ -5,6 +5,6 @@ from presqt.api_v1.views.target import TargetsList, TargetDetails
 
 api_v1_endpoints = [
     path('', api_root),
-    path('targets/', TargetsList.as_view()),
-    path('target/<str:target_name>/', TargetDetails.as_view())
+    path('targets/', TargetsList.as_view(), name="targets_list"),
+    path('target/<str:target_name>/', TargetDetails.as_view(), name="target_detail")
 ]

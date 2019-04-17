@@ -5,7 +5,7 @@
     "write": true
   },
   {
-    "name": "osf",
+    "name": "curate_nd",
     "read": false,
     "write": false
   }
