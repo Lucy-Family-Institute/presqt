@@ -1,0 +1,12 @@
+[
+  {
+    "name": "osf",
+    "read": true,
+    "write": true
+  },
+  {
+    "name": "osf",
+    "read": false,
+    "write": false
+  }
+]
