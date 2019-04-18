@@ -6,7 +6,6 @@ from presqt.json_schemas.schema_handlers import schema_validator # pragma: no co
 
 
 class Command(BaseCommand): # pragma: no cover
-
     def handle(self, *args, **options):
         validation = schema_validator(
             'presqt/targets.json',

@@ -4,6 +4,23 @@ from jsonschema import validate, ValidationError
 
 
 def schema_validator(json_file_path, json_schema_path):
+    """
+    Uses JSONSchema validator to validated JSON file against JSONSchema provided.
+
+    Parameters
+    ----------
+    json_file_path : str
+        Path of the JSON file we are validating
+
+    json_schema_path : str
+        Path of the JSON file we are validating against
+
+    Returns
+    -------
+        True if the validation passes
+        ValidationError object if the validation fails
+    """
+
     with open(json_file_path) as json_file:
         json_data = json.load(json_file)
 
