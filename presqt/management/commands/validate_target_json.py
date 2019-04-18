@@ -1,9 +1,12 @@
-from django.core.management import BaseCommand
-
-from presqt.json_schemas.schema_handlers import schema_validator
+from django.core.management import BaseCommand # pragma: no cover
 
 
-class Command(BaseCommand):
+from presqt.json_schemas.schema_handlers import schema_validator # pragma: no cover
+
+
+
+class Command(BaseCommand): # pragma: no cover
+
     def handle(self, *args, **options):
         validation = schema_validator(
             'presqt/targets.json',

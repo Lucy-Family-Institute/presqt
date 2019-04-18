@@ -1,3 +1,4 @@
+from rest_framework.reverse import reverse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -8,5 +9,5 @@ def api_root(request, format=None):
     Overview of available resources in this API.
     """
     return Response({
-        'presqt': "PresQT",
+        'targets': reverse('targets_list', request=request, format=format),
     })

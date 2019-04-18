@@ -8,3 +8,7 @@
 
  # Local Settings file for passwords & secret keys #
 config/settings/local.py
+
+# Coverage
+.coverage
+coverage_html/
