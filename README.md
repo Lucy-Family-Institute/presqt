@@ -24,4 +24,4 @@ To bring up a local version of PresQT, take the following steps:
    - ENVIRONMENT: Should be either `production` or `development`
    - SECRET_KEY: A Django "secret key" value.
 3. Execute `docker-compose up` within the repo's base folder.
-4. Navigate to http://127.0.0.1:8000 or http://localhost:8000 in your browser.
+4. Navigate to http://127.0.0.1/api_v1/ or http://localhost/api_v1/ in your browser.
