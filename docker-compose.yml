@@ -18,6 +18,7 @@ services:
     volumes:
       - ./config/nginx/conf.d:/etc/nginx/conf.d
       - presqt_static_volume:/usr/src/app/staticfiles
+      - presqt_media_volume:/usr/src/app/mediafiles
 
   # Create a Django container. Note that no secrets should
   # be stored within the container, but passed in via

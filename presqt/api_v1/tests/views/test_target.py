@@ -22,7 +22,9 @@ class TestTargetsList(TestCase):
         # Verify the Status Code
         self.assertEqual(response.status_code, 200)
         # Verify that the first dictionary in the payload's array has the correct keys
-        self.assertListEqual(list(response.data[0].keys()), ['name', 'read', 'write', 'detail'])
+        expected_keys = ['name', 'read', 'write', 'detail']
+        for dict_item in response.data:
+            self.assertListEqual(list(dict_item.keys()), expected_keys)
 
         with open('presqt/targets.json') as json_file:
             json_data = json.load(json_file)
@@ -57,9 +59,9 @@ class TestTargetDetails(TestCase):
 
     def test_get_failure(self):
         """
-        Return a 400 if an invalid target_name was provided in the URL
+        Return a 404 if an invalid target_name was provided in the URL
         """
         request = self.factory.get('/target/{}'.format('Failure!!!'))
         response = self.view(request, 'Failure!!!')
         # Verify the Status Code
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 404)

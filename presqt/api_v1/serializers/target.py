@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 class TargetsSerializer(serializers.Serializer):
     """
-    Serializer for GET operation on multiple Target objects.
+    Serializer multiple Target objects.
     """
     name = serializers.CharField(max_length=256)
     read = serializers.BooleanField()
@@ -30,7 +30,7 @@ class TargetsSerializer(serializers.Serializer):
 
 class TargetSerializer(serializers.Serializer):
     """
-    Serializer for GET operation on a Target object.
+    Serializer for a Target object.
     """
     name = serializers.CharField(max_length=256)
     read = serializers.BooleanField()

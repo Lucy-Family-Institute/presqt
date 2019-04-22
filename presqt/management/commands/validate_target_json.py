@@ -1,13 +1,13 @@
-import json # pragma: no cover
+import json
 
-from django.core.management import BaseCommand # pragma: no cover
-
-
-from presqt.json_schemas.schema_handlers import schema_validator # pragma: no cover
+from django.core.management import BaseCommand
 
 
+from presqt.json_schemas.schema_handlers import schema_validator
 
-class Command(BaseCommand): # pragma: no cover
+
+
+class Command(BaseCommand):
     def handle(self, *args, **options):
         """
         Verify that the Target JSON file is valid against our JSON Schema
@@ -31,6 +31,8 @@ class Command(BaseCommand): # pragma: no cover
             for data in json_data:
                 if data['name'] in name_list:
                     print("There are duplicate objects with the 'name': {}".format(data['name']))
+                    print("You've modified the targets.json in such a way that it is incorrectly formatted.\n"
+                          "Please refer to the project documentation.")
                     print("Target JSON Schema Validation Failed!")
                     exit(1)
                     break

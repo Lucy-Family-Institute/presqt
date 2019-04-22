@@ -22,27 +22,28 @@ class TargetsList(APIView):
 
         Returns
         -------
-            Response
-                A list-like JSON representation of all Targets.
-                [
-                    {
-                        "name": "osf",
-                        "read": true,
-                        "write": true,
-                        "detail": "http://localhost/api_v1/target/osf/"
-                    },
-                    {
-                        "name": "curate_nd",
-                        "read": false,
-                        "write": false,
-                        "detail": "http://localhost/api_v1/target/curate_nd/"
-                    },
-                    ...
-                ]
+        Response
+            A list-like JSON representation of all Targets.
+            [
+                {
+                    "name": "osf",
+                    "read": true,
+                    "write": true,
+                    "detail": "http://localhost/api_v1/target/osf/"
+                },
+                {
+                    "name": "curate_nd",
+                    "read": false,
+                    "write": false,
+                    "detail": "http://localhost/api_v1/target/curate_nd/"
+                },
+                ...
+            ]
         """
         with open('presqt/targets.json') as json_file:
-            json_data = json.load(json_file)
-        serializer = TargetsSerializer(instance=json_data, many=True, context={'request': request})
+            serializer = TargetsSerializer(instance=json.load(json_file),
+                                           many=True,
+                                           context={'request': request})
 
         return Response(serializer.data)
 
@@ -64,15 +65,15 @@ class TargetDetails(APIView):
 
         Returns
         -------
-            A dictionary like JSON representation of the requested Target resource.
+        A dictionary like JSON representation of the requested Target resource.
 
         Raises
         ------
-            400: Bad Request
+        404: Not Found
 
-            {
-                "error": "Invalid Target Name 'bad_target'"
-            }
+        {
+            "error": "Invalid Target Name 'bad_target'"
+        }
 
         """
         with open('presqt/targets.json') as json_file:
@@ -87,4 +88,4 @@ class TargetDetails(APIView):
         else:
             return Response(
                 data={'error': "Invalid Target Name '{}'".format(target_name)},
-                status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_404_NOT_FOUND)

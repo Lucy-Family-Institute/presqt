@@ -6,7 +6,7 @@
   },
   {
     "name": "curate_nd",
-    "read": false,
+    "read": true,
     "write": false
   }
 ]

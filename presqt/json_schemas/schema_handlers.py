@@ -5,7 +5,7 @@ from jsonschema import validate, ValidationError
 
 def schema_validator(json_file_path, json_schema_path):
     """
-    Uses JSONSchema validator to validated JSON file against JSONSchema provided.
+    Uses JSONSchema validator to validate JSON file against JSONSchema provided.
 
     Parameters
     ----------

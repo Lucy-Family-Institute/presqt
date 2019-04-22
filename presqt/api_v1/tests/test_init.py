@@ -1,5 +1,7 @@
-from django.test import TestCase, Client
-from rest_framework.reverse import reverse
+from django.test import TestCase
+from rest_framework.test import APIRequestFactory
+
+from presqt.api_v1 import api_root
 
 
 class TestApiRoot(TestCase):
@@ -10,6 +12,8 @@ class TestApiRoot(TestCase):
         """
         Return a 200 if successful
         """
-        client = Client()
-        response = client.get(reverse('api_root'))
+        self.factory = APIRequestFactory()
+        view = api_root
+        request = self.factory.get('api_root')
+        response = view(request)
         self.assertEqual(response.status_code, 200)
