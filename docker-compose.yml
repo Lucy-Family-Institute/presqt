@@ -14,7 +14,7 @@ services:
       # This ties host port 8000 to nginx container port 80
       # Inside of the nginx config, it's port 80 it forwarded to Django 8000
       # It is a little confusing.
-      - 127.0.0.1:8000:80
+      - 127.0.0.1:80:80
     volumes:
       - ./config/nginx/conf.d:/etc/nginx/conf.d
       - presqt_static_volume:/usr/src/app/staticfiles
@@ -45,7 +45,6 @@ services:
     volumes:
       - .:/usr/src/app
       - presqt_static_volume:/usr/src/app/staticfiles
-      - presqt_media_volume:/usr/src/app/mediafiles
     networks:
       - frontend
       - backend

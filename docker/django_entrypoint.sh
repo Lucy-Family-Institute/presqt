@@ -12,6 +12,8 @@ done
 python manage.py migrate
 python manage.py collectstatic --no-input
 
+python manage.py validate_target_json
+
 if [ "$ENVIRONMENT" = "development" ]
 then
 python manage.py runserver 0.0.0.0:8000
