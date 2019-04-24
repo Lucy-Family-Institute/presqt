@@ -28,14 +28,14 @@ class ResourcesList(APIView):
 
         [
             {
-                "kind": "folder",
-                "kind_name": "google_drive",
+                "kind": "container",
+                "kind_name": "folder",
                 "id": "a02d7b96-a4a9-4521-9913-e3cc68f4d9dc",
                 "container": "None"
             },
             {
-                "kind": "file",
-                "kind_name": "name!",
+                "kind": "item",
+                "kind_name": "file",
                 "id": "5b305f1b-0da6-4a1a-9861-3bb159d94c96",
                 "container": "a02d7b96-a4a9-4521-9913-e3cc68f4d9dc"
             }
@@ -49,7 +49,7 @@ class ResourcesList(APIView):
             "error": "'presqt-source-token' missing in the request header."
         }
 
-        400: Bad Request
+        404: Not Found
         {
             "error": "'bad_target' is not a valid Target name."
         }
@@ -66,7 +66,7 @@ class ResourcesList(APIView):
         except AttributeError:
             return Response(
                 data={'error': "'{}' is not a valid Target name.".format(target_name)},
-                status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_404_NOT_FOUND)
 
         resources = func(token)
         serializer = ResourcesSerializer(instance=resources, many=True)

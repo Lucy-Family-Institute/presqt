@@ -33,7 +33,7 @@ class TestResourcesList(TestCase):
         """
         url = reverse('resources_list', kwargs={'target_name': 'bad_name'})
         response = self.client.get(url, **self.header)
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 404)
         self.assertEqual(response.data, {'error': "'bad_name' is not a valid Target name."})
 
     def test_get_error_400_missing_token(self):

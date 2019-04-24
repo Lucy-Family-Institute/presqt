@@ -3,8 +3,8 @@ def get_osf_list(token):
     PLACEHOLDER FUNCTION. WILL BE REMOVED WHEN OSF INTEGRATION OCCURS.
     """
     resources = [
-        {'kind': 'folder', 'container': 'someid', 'id': '3', 'kind_name': 'da name'},
-        {'kind': 'file', 'container': 'someid2', 'id': '34', 'kind_name': 'name!'},
+        {'kind': 'container', 'container': 'someid', 'id': '3', 'kind_name': 'folder'},
+        {'kind': 'item', 'container': 'someid2', 'id': '34', 'kind_name': 'file'},
     ]
 
     return resources
