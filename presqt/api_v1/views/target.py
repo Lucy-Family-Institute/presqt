@@ -19,26 +19,24 @@ class TargetsList(APIView):
         """
         Retrieve all Targets.
 
-
         Returns
         -------
-        Response
-            A list-like JSON representation of all Targets.
-            [
-                {
-                    "name": "osf",
-                    "read": true,
-                    "write": true,
-                    "detail": "http://localhost/api_v1/target/osf/"
-                },
-                {
-                    "name": "curate_nd",
-                    "read": false,
-                    "write": false,
-                    "detail": "http://localhost/api_v1/target/curate_nd/"
-                },
-                ...
-            ]
+        A list-like JSON representation of all Targets.
+        [
+            {
+                "name": "osf",
+                "read": true,
+                "write": true,
+                "detail": "http://localhost/api_v1/target/osf/"
+            },
+            {
+                "name": "curate_nd",
+                "read": false,
+                "write": false,
+                "detail": "http://localhost/api_v1/target/curate_nd/"
+            },
+            ...
+        ]
         """
         with open('presqt/targets.json') as json_file:
             serializer = TargetsSerializer(instance=json.load(json_file),
@@ -57,6 +55,7 @@ class TargetDetails(APIView):
 
     def get(self, request, target_name):
         """
+        Retrieve details about a specific Target.
 
         Path Parameters
         ---------------

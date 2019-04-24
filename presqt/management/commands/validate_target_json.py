@@ -20,6 +20,9 @@ class Command(BaseCommand):
         # If JSON Schema validation has failed
         if validation is not True:
             print(validation)
+            print(
+                "You've modified the targets.json in such a way that it is incorrectly formatted.\n"
+                "Please refer to the project documentation.")
             print("Target JSON Schema Validation Failed!")
             exit(1)
         else:
@@ -31,8 +34,8 @@ class Command(BaseCommand):
             for data in json_data:
                 if data['name'] in name_list:
                     print("There are duplicate objects with the 'name': {}".format(data['name']))
-                    print("You've modified the targets.json in such a way that it is incorrectly formatted.\n"
-                          "Please refer to the project documentation.")
+                    print("You've modified the targets.json in such a way that it is "
+                          "incorrectly formatted.\nPlease refer to the project documentation.")
                     print("Target JSON Schema Validation Failed!")
                     exit(1)
                     break
