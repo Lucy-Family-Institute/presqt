@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from presqt.api_v1.serializers.target import TargetsSerializer, TargetSerializer
 
 
-class TargetsList(APIView):
+class TargetCollection(APIView):
     """
     **Supported HTTP Methods**
 
@@ -45,7 +45,7 @@ class TargetsList(APIView):
 
         return Response(serializer.data)
 
-class TargetDetails(APIView):
+class Target(APIView):
     """
     **Supported HTTP Methods**
 

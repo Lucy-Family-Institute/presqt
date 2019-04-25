@@ -17,13 +17,15 @@ class Command(BaseCommand):
             'presqt/json_schemas/target_schema.json'
         )
 
+        failure_string = "Target JSON Schema Validation Failed!\n" \
+                         "You've modified the targets.json in such a way that it is incorrectly " \
+                         "formatted.\nPlease refer to the project documentation."
+
+
         # If JSON Schema validation has failed
         if validation is not True:
             print(validation)
-            print(
-                "You've modified the targets.json in such a way that it is incorrectly formatted.\n"
-                "Please refer to the project documentation.")
-            print("Target JSON Schema Validation Failed!")
+            print(failure_string)
             exit(1)
         else:
             # Verify that there are no duplicate name values
@@ -33,10 +35,7 @@ class Command(BaseCommand):
             name_list = []
             for data in json_data:
                 if data['name'] in name_list:
-                    print("There are duplicate objects with the 'name': {}".format(data['name']))
-                    print("You've modified the targets.json in such a way that it is "
-                          "incorrectly formatted.\nPlease refer to the project documentation.")
-                    print("Target JSON Schema Validation Failed!")
+                    print(failure_string)
                     exit(1)
                     break
                 else:
