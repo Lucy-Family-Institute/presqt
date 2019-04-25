@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from presqt.api_v1.serializers.target import TargetsSerializer, TargetSerializer
 
 
-class TargetsList(APIView):
+class TargetCollection(APIView):
     """
     **Supported HTTP Methods**
 
@@ -19,26 +19,24 @@ class TargetsList(APIView):
         """
         Retrieve all Targets.
 
-
         Returns
         -------
-        Response
-            A list-like JSON representation of all Targets.
-            [
-                {
-                    "name": "osf",
-                    "read": true,
-                    "write": true,
-                    "detail": "http://localhost/api_v1/target/osf/"
-                },
-                {
-                    "name": "curate_nd",
-                    "read": false,
-                    "write": false,
-                    "detail": "http://localhost/api_v1/target/curate_nd/"
-                },
-                ...
-            ]
+        A list-like JSON representation of all Targets.
+        [
+            {
+                "name": "osf",
+                "read": true,
+                "write": true,
+                "detail": "http://localhost/api_v1/target/osf/"
+            },
+            {
+                "name": "curate_nd",
+                "read": false,
+                "write": false,
+                "detail": "http://localhost/api_v1/target/curate_nd/"
+            },
+            ...
+        ]
         """
         with open('presqt/targets.json') as json_file:
             serializer = TargetsSerializer(instance=json.load(json_file),
@@ -47,7 +45,7 @@ class TargetsList(APIView):
 
         return Response(serializer.data)
 
-class TargetDetails(APIView):
+class Target(APIView):
     """
     **Supported HTTP Methods**
 
@@ -57,6 +55,7 @@ class TargetDetails(APIView):
 
     def get(self, request, target_name):
         """
+        Retrieve details about a specific Target.
 
         Path Parameters
         ---------------

@@ -23,7 +23,7 @@ class TargetsSerializer(serializers.Serializer):
         -------
         Hyperlink url for Target detail API endpoint
         """
-        reversed_url = reverse('target_detail', kwargs={'target_name': instance['name']})
+        reversed_url = reverse('target', kwargs={'target_name': instance['name']})
         hyperlink = self.context['request'].build_absolute_uri(reversed_url)
         return hyperlink
 
