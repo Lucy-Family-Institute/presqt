@@ -9,5 +9,5 @@ def api_root(request, format=None):
     Overview of available resources in this API.
     """
     return Response({
-        'targets': reverse('targets_list', request=request, format=format),
+        'targets': reverse('target_collection', request=request, format=format),
     })

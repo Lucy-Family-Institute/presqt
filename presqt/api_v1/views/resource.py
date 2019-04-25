@@ -6,11 +6,11 @@ from presqt.api_v1.helpers.function_router import FunctionRouter
 from presqt.api_v1.serializers.resource import ResourcesSerializer
 
 
-class ResourcesList(APIView):
+class ResourceCollection(APIView):
     """
     **Supported HTTP Methods**
 
-    * Get: Retrieve a summary of all resources for the given Target.
+    * Get: Retrieve a summary of all resources for the given Target that a user has access to.
     """
     required_scopes = ['read']
 

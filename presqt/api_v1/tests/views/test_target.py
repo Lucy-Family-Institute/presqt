@@ -3,10 +3,10 @@ import json
 from django.test import TestCase
 from rest_framework.test import APIRequestFactory
 
-from presqt.api_v1.views.target import TargetsList, TargetDetails
+from presqt.api_v1.views.target import TargetCollection, Target
 
 
-class TestTargetsList(TestCase):
+class TestTargetCollection(TestCase):
     """
     Test the `api_v1/targets/` endpoint's GET method.
     """
@@ -15,7 +15,7 @@ class TestTargetsList(TestCase):
         Return a 200 if the GET method is successful
         """
         self.factory = APIRequestFactory()
-        view = TargetsList.as_view()
+        view = TargetCollection.as_view()
         request = self.factory.get('api_v1/targets/')
         response = view(request)
 
@@ -33,13 +33,13 @@ class TestTargetsList(TestCase):
         self.assertEqual(len(json_data), len(response.data))
 
 
-class TestTargetDetails(TestCase):
+class TestTarget(TestCase):
     """
     Test the `api_v1/target/{target_name}/` endpoint's GET method.
     """
     def setUp(self):
         self.factory = APIRequestFactory()
-        self.view = TargetDetails.as_view()
+        self.view = Target.as_view()
 
     def test_get_success(self):
         """
