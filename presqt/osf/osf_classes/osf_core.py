@@ -45,27 +45,6 @@ class OSFCore(object):
         """
         pass
 
-    def get_attribute(self, json, *keys):
-        """
-        Get a value out of a nested dictionary/JSON.
-
-        Parameters
-        ----------
-        json : dict
-            The json dict we want to traverse
-
-        keys : list
-            The list of keys that will make up the dict traversal
-
-        Returns
-        -------
-        Value found in the nested dictionary/json
-        """
-        value = json
-        for key in keys:
-            value = value[key]
-        return value
-
     def follow_next(self, url):
         """
         For provider/folder endpoints that have data lists, follow the
@@ -87,11 +66,11 @@ class OSFCore(object):
         response_json = self.get_request_json(url, self.token)
 
         data = response_json['data']
-        next_url = self.get_attribute(response_json, 'links', 'next')
+        next_url = response_json['links']['next']
         while next_url is not None:
             response = (self.get_request_json(next_url, self.token))
             data.extend(response['data'])
-            next_url = self.get_attribute(response, 'links', 'next')
+            next_url = response['links']['next']
 
         return data
 
@@ -101,8 +80,6 @@ class ContainerMixin:
     Mixin class for OSF classes that need to traverse containers (project/folder)
     to create a list of all assets while maintaining their hierarchy.
     """
-    file_keys = ('relationships', 'files', 'links', 'related', 'href')
-
     def get_assets_objects(self, file_klass, folder_klass, container):
         """
         For the container get all folders/files within it. Create and send back objects for each
@@ -128,25 +105,29 @@ class ContainerMixin:
 
         """
         asset_list = []
-        children = self.follow_next(self.get_attribute(self.json['data'], *self.file_keys))
+        children = self.follow_next(
+            self.json['data']['relationships']['files']['links']['related']['href'])
         while children:
             child = children.pop()
             kind = child['attributes']['kind']
+
             if kind == 'file':
-                file_object = file_klass(self.get_attribute(child, 'links', 'self'), self.token)
+                file_object = file_klass(child['links']['self'], self.token)
                 asset_list.append({
                     'kind': 'item',
                     'kind_name': 'file',
                     'id': file_object.id,
                     'container': container,
+                    'title': file_object.title
                 })
             else:
-                folder_object = folder_klass(self.get_attribute(child, 'links', 'self'), self.token)
+                folder_object = folder_klass(child['links']['self'], self.token)
                 asset_list.append({
                     'kind': 'container',
                     'kind_name': 'folder',
                     'id': folder_object.id,
                     'container': container,
+                    'title': folder_object.title
                 })
                 for folder in folder_object.get_assets_objects(file_klass, folder_klass, folder_object.id):
                     asset_list.append(folder)

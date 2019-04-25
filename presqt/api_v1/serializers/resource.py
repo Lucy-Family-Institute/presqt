@@ -8,3 +8,4 @@ class ResourcesSerializer(serializers.Serializer):
     kind_name = serializers.CharField(max_length=256)
     id = serializers.CharField(max_length=256)
     container = serializers.CharField(max_length=256)
+    title = serializers.CharField(max_length=256)

@@ -27,13 +27,12 @@ class OSFNode(OSFCore):
         Add attributes to the class based on the JSON provided in the API call
         """
         project_data = self.json['data']
-        self.id = self.get_attribute(project_data, 'id')
-        self.title = self.get_attribute(project_data, 'attributes', 'title')
+        self.id = project_data['id']
+        self.title = project_data['attributes']['title']
 
         # If the node doesn't have a parent then the key "parent" won't exist in the JSON
         try:
-            self.parent_id = self.get_attribute(project_data,
-                                                'relationships', 'parent', 'data', 'id')
+            self.parent_id = project_data['relationships']['parent']['data']['id']
         except KeyError as e:
             # Check if the correct 'error' was raised otherwise it's an actual error.
             if e.args[0] == 'parent':
@@ -54,13 +53,12 @@ class OSFNode(OSFCore):
         List of OSFStorage classes
         """
 
-        storages_keys = ['relationships', 'files', 'links', 'related', 'href']
-        storages_url = self.get_attribute(self.json['data'], *storages_keys)
+        storages_url = self.json['data']['relationships']['files']['links']['related']['href']
         # https://api.osf.io/v2/nodes/{node_id}/files/
         storages = self.get_request_json(storages_url, token=self.token)
         storage_list = []
         for store in storages['data']:
-            provider_name = self.get_attribute(store, 'attributes', 'name')
+            provider_name = store['attributes']['name']
             storage_list.append(OSFStorage(storages_url + 'providers/{}/'.format(provider_name),
                                            token=self.token))
         return storage_list

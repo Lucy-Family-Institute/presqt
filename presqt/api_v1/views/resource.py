@@ -31,13 +31,15 @@ class ResourcesList(APIView):
                 "kind": "container",
                 "kind_name": "folder",
                 "id": "a02d7b96-a4a9-4521-9913-e3cc68f4d9dc",
-                "container": "None"
+                "container": "None",
+                "title": "Folder Name"
             },
             {
                 "kind": "item",
                 "kind_name": "file",
                 "id": "5b305f1b-0da6-4a1a-9861-3bb159d94c96",
-                "container": "a02d7b96-a4a9-4521-9913-e3cc68f4d9dc"
+                "container": "a02d7b96-a4a9-4521-9913-e3cc68f4d9dc",
+                "title": "file.jpg"
             }
         ]
 

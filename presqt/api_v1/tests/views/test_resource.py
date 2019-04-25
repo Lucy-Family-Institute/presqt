@@ -22,7 +22,7 @@ class TestResourcesList(TestCase):
         response = self.client.get(url, **self.header)
         self.assertEqual(response.status_code, 200)
 
-        keys = ['kind', 'kind_name', 'id', 'container']
+        keys = ['kind', 'kind_name', 'id', 'container', 'title']
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
 

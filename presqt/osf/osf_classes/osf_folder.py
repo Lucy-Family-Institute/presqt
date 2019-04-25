@@ -26,8 +26,8 @@ class OSFFolder(OSFCore, ContainerMixin):
         Add attributes to the class based on the JSON provided in the API call
         """
         folder_data = self.json['data']
-        self.id = self.get_attribute(folder_data, 'id')
-        self.title = self.get_attribute(folder_data, 'attributes', 'name')
+        self.id = folder_data['id']
+        self.title = folder_data['attributes']['name']
 
     def __str__(self):
         return '<Folder [{} - {}]>'.format(self.id, self.title)

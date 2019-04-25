@@ -26,11 +26,11 @@ class OSFFile(OSFCore):
         Add attributes to the class based on the JSON provided in the API call
         """
         file_data = self.json['data']
-        self.id = self.get_attribute(file_data, 'id')
-        self.title = self.get_attribute(file_data, 'attributes', 'name')
-        self.download_link = self.get_attribute(file_data, 'links', 'download')
-        self.sha256 = self.get_attribute(file_data, 'attributes', 'extra', 'hashes', 'sha256')
-        self.md5 = self.get_attribute(file_data, 'attributes', 'extra', 'hashes', 'md5')
+        self.id = file_data['id']
+        self.title = file_data['attributes']['name']
+        self.download_link = file_data['links']['download']
+        self.sha256 = file_data['attributes']['extra']['hashes']['sha256']
+        self.md5 = file_data['attributes']['extra']['hashes']['md5']
 
     def __str__(self):
         return '<File [{} - {}]>'.format(self.id, self.title)

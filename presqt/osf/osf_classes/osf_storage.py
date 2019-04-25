@@ -5,8 +5,6 @@ class OSFStorage(OSFCore, ContainerMixin):
     """
     Class that represents a Folder in the OSF API
     """
-    files_keys = ('relationships', 'files', 'links', 'related', 'href')
-
     def __init__(self, storage_url, token):
         """
         Set the url and token attributes before the parent class __init__() gets called.
@@ -28,9 +26,9 @@ class OSFStorage(OSFCore, ContainerMixin):
         Add attributes to the class based on the JSON provided in the API call
         """
         storage_data = self.json['data']
-        self.id = self.get_attribute(storage_data, 'id')
-        self.title = self.get_attribute(storage_data, 'attributes', 'name')
-        self.files_url = self.get_attribute(storage_data, *self.files_keys)
+        self.id = storage_data['id']
+        self.title = storage_data['attributes']['name']
+        self.files_url = storage_data['relationships']['files']['links']['related']['href']
 
     def __str__(self):
         return '<Storage [{} - {}]>'.format(self.id, self.title)

@@ -34,7 +34,8 @@ def fetch_resources(token):
             'kind': 'container',
             'kind_name': 'project',
             'id': osf_node.id,
-            'container': None
+            'container': None,
+            'title': osf_node.title
         }
         assets.append(node_obj)
 
