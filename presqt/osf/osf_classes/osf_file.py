@@ -36,6 +36,9 @@ class OSFFile(OSFCore):
         return '<File [{} - {}]>'.format(self.id, self.title)
 
     def get_object(self):
+        """
+        Get an object representation of the class
+        """
         return {
             'id': self.id,
             'title':self.title,

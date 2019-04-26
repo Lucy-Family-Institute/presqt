@@ -23,7 +23,7 @@ class OSFStorage(OSFCore, ContainerMixin):
 
     def update_attributes(self):
         """
-        Add attributes to the class based on the JSON provided in the API call
+        Add attributes to the class based on the JSON provided in the API call.
         """
         storage_data = self.json['data']
         self.id = storage_data['id']

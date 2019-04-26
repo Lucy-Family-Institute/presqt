@@ -4,7 +4,7 @@ from presqt.osf.osf_classes.osf_storage import OSFStorage
 
 class OSFNode(OSFCore):
     """
-    Class that represents a Node in the OSF API
+    Class that represents a Node in the OSF API.
     """
     def __init__(self, node_url, token):
         """
@@ -50,7 +50,7 @@ class OSFNode(OSFCore):
 
         Returns
         -------
-        List of OSFStorage classes
+        List of OSFStorage objects
         """
 
         storages_url = self.json['data']['relationships']['files']['links']['related']['href']
@@ -64,6 +64,9 @@ class OSFNode(OSFCore):
         return storage_list
 
     def get_object(self):
+        """
+        Get an object representation of the class.
+        """
         return {
             'id': self.id,
             'title': self.title,

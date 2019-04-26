@@ -5,23 +5,23 @@ class OSFCore(object):
     """
     Base class for all OSF classes.
 
-    'json' will get assigned in the __init__
-    'url' and 'token' will get assigned in the subclass __init__ before they are used here
+    'json' will get assigned in the __init__().
+    'url' and 'token' will get assigned in the subclass __init__() before they are used here.
     """
     json = None
     url = None
     token = None
 
     def __init__(self):
-        # Get the response JSON from an OSF API call provided by the subclass
+        # Get the response JSON from an OSF API call provided by the subclass.
         self.json = self.get_request_json(self.url, self.token)
 
-        # Add attributes to the class from the JSON gathered from the response
+        # Add attributes to the class from the JSON gathered from the response.
         self.update_attributes()
 
     def get_request_json(self, url, token):
         """
-        Make a GET request to the provided URL with the provided token
+        Make a GET request to the provided URL with the provided token.
 
         Parameters
         ----------
@@ -129,6 +129,11 @@ class ContainerMixin:
                     'container': container,
                     'title': folder_object.title
                 })
-                for folder in folder_object.get_assets_objects(file_klass, folder_klass, folder_object.id):
+
+                folder_asset_objects = folder_object.get_assets_objects(
+                    file_klass, folder_klass, folder_object.id)
+
+                for folder in folder_asset_objects:
                     asset_list.append(folder)
+
         return asset_list

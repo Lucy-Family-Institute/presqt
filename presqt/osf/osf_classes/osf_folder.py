@@ -33,6 +33,9 @@ class OSFFolder(OSFCore, ContainerMixin):
         return '<Folder [{} - {}]>'.format(self.id, self.title)
 
     def get_object(self):
+        """
+        Get an object representation of the class
+        """
         return {
             'id': self.id,
             'title': self.title,
