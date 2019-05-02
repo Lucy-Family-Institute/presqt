@@ -1,49 +1,38 @@
 from presqt.osf.osf_classes.osf_core import OSFCore
 
 
-class OSFFile(OSFCore):
+class File(OSFCore):
     """
-    Class that represents a File in the OSF API
+    Class that represents a File in the OSF API.
     """
-    def __init__(self, file_url, token):
+    def _update_attributes(self, file):
         """
-        Set the url and token attributes before the parent class __init__() gets called.
+        Add attributes to the class based on the JSON provided in the API call.
 
         Parameters
         ----------
-        file_url: str
-            URL to OSF API representing the file
-        token: str
-            User's OSF Token
+        file : dict
+            Data dictionary returned from the json response to create the File class instance.
         """
-        # https://api.osf.io/v2/files/{file_id}/
-        self.url = file_url
-        self.token = token
-        super(OSFFile, self).__init__()
+        if not file:
+            return
 
-    def update_attributes(self):
-        """
-        Add attributes to the class based on the JSON provided in the API call
-        """
-        file_data = self.json['data']
-        self.id = file_data['id']
-        self.title = file_data['attributes']['name']
-        self.download_link = file_data['links']['download']
-        self.sha256 = file_data['attributes']['extra']['hashes']['sha256']
-        self.md5 = file_data['attributes']['extra']['hashes']['md5']
+        self.id = file['id']
+        self._endpoint = file['links']['self']
+        self._download_url = file['links']['download']
+        self._upload_url = file['links']['upload']
+        self._delete_url = file['links']['delete']
+        self.osf_path = file['attributes']['path']
+        self.path = file['attributes']['materialized_path']
+        self.name = file['attributes']['name']
+        self.date_created = file['attributes']['date_created']
+        self.date_modified = file['attributes']['date_modified']
+        self.hashes = file['attributes']['extra']['hashes']
 
     def __str__(self):
-        return '<File [{} - {}]>'.format(self.id, self.title)
+        return '<File [{}, {}]>'.format(self.id, self.path)
 
-    def get_object(self):
-        """
-        Get an object representation of the class
-        """
-        return {
-            'id': self.id,
-            'title':self.title,
-            'download_link': self.download_link,
-            'sha256': self.sha256,
-            'md5': self.md5,
-            'url': self.url
-        }
+
+
+
+

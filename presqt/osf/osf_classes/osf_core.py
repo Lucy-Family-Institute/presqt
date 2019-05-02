@@ -1,139 +1,61 @@
-import requests
-
+from presqt.osf.osf_classes.osf_session import OSFSession
 
 class OSFCore(object):
     """
-    Base class for all OSF classes.
-
-    'json' will get assigned in the __init__().
-    'url' and 'token' will get assigned in the subclass __init__() before they are used here.
+    Base class for all OSF classes and the main OSF object.
     """
-    json = None
-    url = None
-    token = None
+    def __init__(self, json, session=None):
+        # Set the session attribute with the existing session or a new one if one doesn't exist.
+        if session is None:
+            self.session = OSFSession()
+        else:
+            self.session = session
 
-    def __init__(self):
-        # Get the response JSON from an OSF API call provided by the subclass.
-        self.json = self.get_request_json(self.url, self.token)
+        # Set the class attributes
+        self._update_attributes(json)
 
-        # Add attributes to the class from the JSON gathered from the response.
-        self.update_attributes()
-
-    def get_request_json(self, url, token):
-        """
-        Make a GET request to the provided URL with the provided token.
-
-        Parameters
-        ----------
-        url : str
-            URL string for the request
-        token : str
-            User's OSF Token
-
-        Returns
-        -------
-        JSON decoded response
-        """
-        headers = {'Authorization': 'Bearer {}'.format(token)}
-        response = requests.get(url, headers=headers)
-        return response.json()
-
-    def update_attributes(self):
+    def _update_attributes(self, json):
         """
         Empty method expected to be overwritten in the subclass to add individual attributes
         to the class.
         """
         pass
 
-    def follow_next(self, url):
+    def _build_url(self, *args):
         """
-        For provider/folder endpoints that have data lists, follow the
-        'next' link on paginated results.
+        Takes in a list of arguments and uses them to build a
+        url that gets appended to the base url.
 
-        It effectively constructs a 'data' obj based on all of the paginated data sets.
-
-        Parameters
-        ----------
-        url: str
-            URL to the provider/folder endpoint that has paginated data to be traversed
-
-        Returns
-        -------
-        Obj that holds all of the paginated data
+        *args = ['me', 'nodes'] will build 'https://api.osf.io/v2/me/nodes/'
         """
-        # https://api.osf.io/v2/nodes/{node_id}/files/{provider}/
-        # https://api.osf.io/v2/nodes/{node_id}/files/{provider}/{path}
-        response_json = self.get_request_json(url, self.token)
+        return self.session.build_url(*args)
 
+    def _get(self, url, *args, **kwargs):
+        """
+        Performs a get request based on the base session get method.
+        """
+        return self.session.get(url, *args, **kwargs)
+
+    def _json(self, response):
+        """
+        Extract JSON from response if `status_code` is 200.
+        """
+        if response.status_code == 200:
+            return response.json()
+        else:
+            raise RuntimeError("Response has status code {} not 200".format(response.status_code))
+
+    def _follow_next(self, url):
+        """
+        Follow the 'next' link on paginated results.
+        """
+        response_json = self._json(self._get(url))
         data = response_json['data']
+
         next_url = response_json['links']['next']
         while next_url is not None:
-            response = (self.get_request_json(next_url, self.token))
-            data.extend(response['data'])
-            next_url = response['links']['next']
+            response_json = self._json(self._get(next_url))
+            data.extend(response_json['data'])
+            next_url = response_json['links']['next']
 
         return data
-
-
-class ContainerMixin:
-    """
-    Mixin class for OSF classes that need to traverse containers (project/folder)
-    to create a list of all assets while maintaining their hierarchy.
-    """
-    def get_assets_objects(self, file_klass, folder_klass, container):
-        """
-        For the container get all folders/files within it. Create and send back objects for each
-        asset. We create the objects here so we can keep track of parent containers for each asset.
-
-        The general idea is to yield all files within the highest level of the container first.
-        Then traverse each subcontainer. For each subcontainer do the exact same process.
-
-        Parameters
-        ----------
-        file_klass: OSFFile class instance
-            In instance of an OSFFile. This has to be passed as a parameter for import reasons.
-
-        folder_klass : OSFFolder class instance
-            In instance of an OSFFolder. This has to be passed as a parameter for import reasons.
-
-        container : str
-            Parent container UUID.
-
-        Returns
-        -------
-        List of file and folder objects.
-
-        """
-        asset_list = []
-        children = self.follow_next(
-            self.json['data']['relationships']['files']['links']['related']['href'])
-        while children:
-            child = children.pop()
-            kind = child['attributes']['kind']
-
-            if kind == 'file':
-                file_object = file_klass(child['links']['self'], self.token)
-                asset_list.append({
-                    'kind': 'item',
-                    'kind_name': 'file',
-                    'id': file_object.id,
-                    'container': container,
-                    'title': file_object.title
-                })
-            else:
-                folder_object = folder_klass(child['links']['self'], self.token)
-                asset_list.append({
-                    'kind': 'container',
-                    'kind_name': 'folder',
-                    'id': folder_object.id,
-                    'container': container,
-                    'title': folder_object.title
-                })
-
-                folder_asset_objects = folder_object.get_assets_objects(
-                    file_klass, folder_klass, folder_object.id)
-
-                for folder in folder_asset_objects:
-                    asset_list.append(folder)
-
-        return asset_list

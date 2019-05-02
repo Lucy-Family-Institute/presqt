@@ -51,11 +51,18 @@ class ResourceCollection(APIView):
             "error": "'presqt-source-token' missing in the request header."
         }
 
+        401: Runtime Error
+        {
+            "error": "The Token provided is not authorized to access this asset."
+        }
+
         404: Not Found
         {
             "error": "'bad_target' is not a valid Target name."
         }
+
         """
+        # Retrieve the token from the header
         try:
             token = request.META['HTTP_PRESQT_SOURCE_TOKEN']
         except KeyError:
@@ -63,6 +70,7 @@ class ResourceCollection(APIView):
                 data={'error': "'presqt-source-token' missing in the request header."},
                 status=status.HTTP_400_BAD_REQUEST)
 
+        # Retrieve the appropriate function for the given Target Name
         try:
             func = getattr(FunctionRouter, '{}_list'.format(target_name))
         except AttributeError:
@@ -70,7 +78,19 @@ class ResourceCollection(APIView):
                 data={'error': "'{}' is not a valid Target name.".format(target_name)},
                 status=status.HTTP_404_NOT_FOUND)
 
-        resources = func(token)
+        # Call the function that retrieves resources for the given Target.
+        try:
+            resources = func(token)
+        except RuntimeError:
+            return Response(
+                data={'error': "The Token provided is not authorized to access this asset."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        except Exception as e:
+            return Response(
+                data={'error': e}, status=status.HTTP_400_BAD_REQUEST
+            )
+
         serializer = ResourcesSerializer(instance=resources, many=True)
 
         return Response(serializer.data)
