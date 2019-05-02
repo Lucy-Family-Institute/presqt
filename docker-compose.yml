@@ -16,7 +16,9 @@ services:
       # It is a little confusing.
       - 127.0.0.1:80:80
     volumes:
+      - ./config/ssl:/etc/ssl
       - ./config/nginx/conf.d:/etc/nginx/conf.d
+      - ./config/nginx/snippets:/etc/nginx/snippets
       - presqt_static_volume:/usr/src/app/staticfiles
       - presqt_media_volume:/usr/src/app/mediafiles
 
