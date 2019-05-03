@@ -4,13 +4,11 @@
       "type": "object",
       "properties": {
         "name": {"type": "string"},
-        "read": {"type": "boolean"},
-        "write": {"type": "boolean"}
+        "resource_collection": {"type": "boolean"}
       },
       "required": [
         "name",
-        "read",
-        "write"
+        "resource_collection"
       ]
     }
 }

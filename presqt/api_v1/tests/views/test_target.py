@@ -22,7 +22,7 @@ class TestTargetCollection(TestCase):
         # Verify the Status Code
         self.assertEqual(response.status_code, 200)
         # Verify that the first dictionary in the payload's array has the correct keys
-        expected_keys = ['name', 'read', 'write', 'detail']
+        expected_keys = ['name', 'resource_collection', 'detail']
         for dict_item in response.data:
             self.assertListEqual(list(dict_item.keys()), expected_keys)
 
@@ -35,7 +35,7 @@ class TestTargetCollection(TestCase):
 
 class TestTarget(TestCase):
     """
-    Test the `api_v1/target/{target_name}/` endpoint's GET method.
+    Test the `api_v1/targets/{target_name}/` endpoint's GET method.
     """
     def setUp(self):
         self.factory = APIRequestFactory()
@@ -49,7 +49,7 @@ class TestTarget(TestCase):
             json_data = json.load(json_file)
         target_name = json_data[0]['name']
 
-        request = self.factory.get('/target/{}'.format(target_name))
+        request = self.factory.get('/targets/{}'.format(target_name))
         response = self.view(request, target_name)
 
         # Verify the Status Code
@@ -61,7 +61,7 @@ class TestTarget(TestCase):
         """
         Return a 404 if an invalid target_name was provided in the URL
         """
-        request = self.factory.get('/target/{}'.format('Failure!!!'))
+        request = self.factory.get('/targets/{}'.format('Failure!!!'))
         response = self.view(request, 'Failure!!!')
         # Verify the Status Code
         self.assertEqual(response.status_code, 404)

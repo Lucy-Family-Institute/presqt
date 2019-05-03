@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from presqt.api_v1.helpers.function_router import FunctionRouter
+from presqt.api_v1.helpers.target_validation import target_validation
 from presqt.api_v1.serializers.resource import ResourcesSerializer
 
 
@@ -10,7 +11,7 @@ class ResourceCollection(APIView):
     """
     **Supported HTTP Methods**
 
-    * Get: Retrieve a summary of all resources for the given Target that a user has access to.
+    * GET: Retrieve a summary of all resources for the given Target that a user has access to.
     """
     required_scopes = ['read']
 
@@ -41,7 +42,7 @@ class ResourceCollection(APIView):
             }
         ]
 
-        Resources
+        Raises
         ---------
         400: Bad Request
 
@@ -53,7 +54,14 @@ class ResourceCollection(APIView):
         {
             "error": "'bad_target' is not a valid Target name."
         }
+
+        400: Bad Request
+        {
+            "error": "'new_target' does not support the action 'resource_collection'."
+        }
         """
+        action = 'resource_collection'
+
         try:
             token = request.META['HTTP_PRESQT_SOURCE_TOKEN']
         except KeyError:
@@ -61,13 +69,11 @@ class ResourceCollection(APIView):
                 data={'error': "'presqt-source-token' missing in the request header."},
                 status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            func = getattr(FunctionRouter, '{}_list'.format(target_name))
-        except AttributeError:
-            return Response(
-                data={'error': "'{}' is not a valid Target name.".format(target_name)},
-                status=status.HTTP_404_NOT_FOUND)
+        validation = target_validation(target_name, action)
+        if validation is not True:
+            return validation
 
+        func = getattr(FunctionRouter, '{}_{}'.format(target_name, action))
         resources = func(token)
         serializer = ResourcesSerializer(instance=resources, many=True)
 
