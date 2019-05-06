@@ -1,14 +1,19 @@
 from django.urls import reverse
 from rest_framework import serializers
 
+class SupportedActions(serializers.Serializer):
+    """
+    Serializer for supported_actions objects inside the Target JSON.
+    """
+    resource_collection = serializers.BooleanField()
+
 
 class TargetsSerializer(serializers.Serializer):
     """
-    Serializer multiple Target objects.
+    Serializer for multiple Target objects.
     """
     name = serializers.CharField(max_length=256)
-    read = serializers.BooleanField()
-    write = serializers.BooleanField()
+    supported_actions = SupportedActions()
     detail = serializers.SerializerMethodField()
 
     def get_detail(self, instance):
@@ -33,5 +38,4 @@ class TargetSerializer(serializers.Serializer):
     Serializer for a Target object.
     """
     name = serializers.CharField(max_length=256)
-    read = serializers.BooleanField()
-    write = serializers.BooleanField()
+    supported_actions = SupportedActions()

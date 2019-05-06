@@ -4,13 +4,16 @@
       "type": "object",
       "properties": {
         "name": {"type": "string"},
-        "read": {"type": "boolean"},
-        "write": {"type": "boolean"}
+        "supported_actions": {
+            "type": "object",
+            "properties": {
+                "resource_collection": {"type": "boolean"}
+            }
+        }
       },
       "required": [
         "name",
-        "read",
-        "write"
+        "supported_actions"
       ]
     }
 }

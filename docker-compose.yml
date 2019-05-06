@@ -15,8 +15,11 @@ services:
       # Inside of the nginx config, it's port 80 it forwarded to Django 8000
       # It is a little confusing.
       - 127.0.0.1:80:80
+    restart: always
     volumes:
+      - ./config/ssl:/etc/ssl
       - ./config/nginx/conf.d:/etc/nginx/conf.d
+      - ./config/nginx/snippets:/etc/nginx/snippets
       - presqt_static_volume:/usr/src/app/staticfiles
       - presqt_media_volume:/usr/src/app/mediafiles
 
@@ -42,6 +45,7 @@ services:
       SECRET_KEY: $SECRET_KEY
       ENVIRONMENT: ${ENVIRONMENT:-production}
       DJANGO_SETTINGS_MODULE: config.settings.${ENVIRONMENT:-production}
+    restart: always
     volumes:
       - .:/usr/src/app
       - presqt_static_volume:/usr/src/app/staticfiles

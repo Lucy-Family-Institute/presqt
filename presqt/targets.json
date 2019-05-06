@@ -1,12 +1,8 @@
 [
   {
     "name": "osf",
-    "read": true,
-    "write": true
-  },
-  {
-    "name": "curate_nd",
-    "read": true,
-    "write": false
+    "supported_actions": {
+          "resource_collection": true
+    }
   }
 ]

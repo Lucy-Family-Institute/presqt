@@ -5,10 +5,11 @@ class FunctionRouter(object):
     """
     This class acts as a router to allow dynamic function calls based on a given variable.
 
-    Each attribute links to a function. Naming conventions are important. They are as follows:
+    Each attribute links to a function. Naming conventions are important. They must match the keys
+    we keep in the target.json config file. They are as follows:
 
-    Target Resources List:
-        {target_name}_list
+    Target Resources Collection:
+        {target_name}_resource_collection
 
     """
-    osf_list = fetch_resources
+    osf_resource_collection = fetch_resources

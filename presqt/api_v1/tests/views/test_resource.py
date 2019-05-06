@@ -5,7 +5,7 @@ from rest_framework.test import APIClient
 
 class TestResourceCollection(TestCase):
     """
-    Test the 'api_v1/target/{target_name}/resources/' endpoint's GET method.
+    Test the 'api_v1/targets/{target_name}/resources/' endpoint's GET method.
     """
 
     def setUp(self):
@@ -26,9 +26,9 @@ class TestResourceCollection(TestCase):
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
 
-    def test_get_error_400_bad_target_name(self):
+    def test_get_error_404_bad_target_name(self):
         """
-        Return a 400 if the GET method fails because a bad target_name was given.
+        Return a 404 if the GET method fails because a bad target_name was given.
 
         """
         url = reverse('resource_collection', kwargs={'target_name': 'bad_name'})

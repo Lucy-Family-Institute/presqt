@@ -25,14 +25,16 @@ class TargetCollection(APIView):
         [
             {
                 "name": "osf",
-                "read": true,
-                "write": true,
+                "supported_actions": {
+                    "resource_collection": true
+                },
                 "detail": "http://localhost/api_v1/target/osf/"
             },
             {
                 "name": "curate_nd",
-                "read": false,
-                "write": false,
+                "supported_actions": {
+                    "resource_collection": true
+                },
                 "detail": "http://localhost/api_v1/target/curate_nd/"
             },
             ...
@@ -65,6 +67,12 @@ class Target(APIView):
         Returns
         -------
         A dictionary like JSON representation of the requested Target resource.
+        {
+            "name": "osf",
+            "supported_actions": {
+                "resource_collection": true
+            }
+        }
 
         Raises
         ------
