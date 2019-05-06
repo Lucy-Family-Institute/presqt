@@ -1,3 +1,5 @@
+import json
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -80,9 +82,8 @@ class ResourceCollection(APIView):
             resources = func(token)
         except Exception as e:
             # Catch any errors that happen within the target fetch
-            return Response(
-                data={'error': e}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response(data={'error': e.__str__()}, status=status.HTTP_400_BAD_REQUEST)
+
         serializer = ResourcesSerializer(instance=resources, many=True)
 
         return Response(serializer.data)

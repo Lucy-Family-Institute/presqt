@@ -46,14 +46,13 @@ class TestResourceCollection(TestCase):
         self.assertEqual(response.data,
                          {'error': "'presqt-source-token' missing in the request header."})
 
-    def test_get_error_401_unauthorized(self):
+    def test_get_error_400_bad_fetch_request(self):
         """
-`       Return a 401 if the token provided is not a valid token.
+`       Return a 400 if the token provided is not a valid token.
         """
         client = APIClient()
         header = {'HTTP_PRESQT_SOURCE_TOKEN': 'bad_token'}
         url = reverse('resource_collection', kwargs={'target_name': 'osf'})
         response = client.get(url, **header)
-        self.assertEqual(response.status_code, 401)
-        self.assertEqual(response.data,
-                         {'error': "The Token provided is not authorized to access this asset."})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data, {'error': "Response returned with 401 status."})

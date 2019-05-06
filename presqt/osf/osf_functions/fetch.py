@@ -1,7 +1,7 @@
 from presqt.osf.osf_classes.osf_main import OSF
 
 
-def fetch_resources(token):
+def osf_fetch_resources(token):
     """
     Fetch all OSF assets (projects/nodes, folders, files) for the user connected
     to the given 'token'.
