@@ -1,7 +1,7 @@
 from django.urls import path
 
 from presqt.api_v1 import api_root
-from presqt.api_v1.views.resource import ResourceCollection
+from presqt.api_v1.views.resource import ResourceCollection, Resource
 from presqt.api_v1.views.target import TargetCollection, Target
 
 api_v1_endpoints = [
@@ -13,5 +13,6 @@ api_v1_endpoints = [
 
     # Resources
     path('targets/<str:target_name>/resources/',
-         ResourceCollection.as_view(), name="resource_collection")
+         ResourceCollection.as_view(), name="resource_collection"),
+    path('targets/<str:target_name>/resources/<str:resource_id>/', Resource.as_view(), name="resource")
 ]

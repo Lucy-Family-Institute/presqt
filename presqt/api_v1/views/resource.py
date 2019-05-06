@@ -17,6 +17,7 @@ class ResourceCollection(APIView):
 
     def get(self, request, target_name):
         """
+        Retrieve all Resources.
 
         Parameters
         ----------
@@ -69,7 +70,7 @@ class ResourceCollection(APIView):
                 data={'error': "'presqt-source-token' missing in the request header."},
                 status=status.HTTP_400_BAD_REQUEST)
 
-        validation = target_validation(target_name, action)
+        validation = target_validation(request, target_name, action)
         if validation is not True:
             return validation
 
@@ -78,3 +79,35 @@ class ResourceCollection(APIView):
         serializer = ResourcesSerializer(instance=resources, many=True)
 
         return Response(serializer.data)
+
+class Resource(APIView):
+    """
+    **Supported HTTP Methods**
+
+    * GET: Retrieve a summary of the resource for the given Target that has been requested.
+    """
+    required_scopes = ['read']
+
+    def get(self, request, target_name, resource_id):
+        """
+        Retrieve details about a specific Resource.
+
+        Parameters
+        ----------
+        target_name : str
+            The name of the Target resource to retrieve.
+        resource_id : str
+            The id of the Resource to retrieve.
+
+        Returns
+        -------
+        A dictionary like JSON representation of the requested Target resource.
+        {
+        }
+
+        Raises
+        ------
+
+
+        """
+        pass
