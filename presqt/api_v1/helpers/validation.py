@@ -2,7 +2,7 @@ import json
 
 from rest_framework import status
 
-from presqt.exceptions import ValidationException, AuthorizationException
+from presqt.exceptions import PresQTValidationError, PresQTAuthorizationError
 
 
 def target_validation(target_name, action):
@@ -28,12 +28,12 @@ def target_validation(target_name, action):
     for data in json_data:
         if data['name'] == target_name:
             if data["supported_actions"][action] is False:
-                raise ValidationException(
+                raise PresQTValidationError(
                     "'{}' does not support the action '{}'.".format(target_name,action),
                     status.HTTP_400_BAD_REQUEST)
             return True
     else:
-        raise ValidationException(
+        raise PresQTValidationError(
             "'{}' is not a valid Target name.".format(target_name),
             status.HTTP_404_NOT_FOUND)
 
@@ -55,6 +55,6 @@ def token_validation(request):
     try:
         return request.META['HTTP_PRESQT_SOURCE_TOKEN']
     except KeyError:
-        raise AuthorizationException(
+        raise PresQTAuthorizationError(
             "'presqt-source-token' missing in the request headers.",
             status.HTTP_400_BAD_REQUEST)

@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from presqt.api_v1.helpers.function_router import FunctionRouter
 from presqt.api_v1.helpers.validation import target_validation, token_validation
 from presqt.api_v1.serializers.resource import ResourcesSerializer
-from presqt.exceptions import ValidationException, AuthorizationException
+from presqt.exceptions import PresQTValidationError, PresQTAuthorizationError
 
 
 class ResourceCollection(APIView):
@@ -65,13 +65,13 @@ class ResourceCollection(APIView):
         # Perform token validation
         try:
             token = token_validation(request)
-        except AuthorizationException as e:
+        except PresQTAuthorizationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Perform target_name and action validation
         try:
             target_validation(target_name, action)
-        except ValidationException as e:
+        except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Fetch the proper function to call

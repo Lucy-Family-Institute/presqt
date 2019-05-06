@@ -1,4 +1,8 @@
-class PresQTException(Exception):
+class PresQTError(Exception):
+    pass
+
+
+class PresQTResponseException(PresQTError):
     """
     Custom exception that adds 'data' and 'status_code' to the exception so when the exception is
     raised we can dynamically return the proper Response object.
@@ -7,9 +11,9 @@ class PresQTException(Exception):
         self.data = data
         self.status_code = status_code
 
-class ValidationException(PresQTException):
+class PresQTValidationError(PresQTResponseException):
     pass
 
 
-class AuthorizationException(PresQTException):
+class PresQTAuthorizationError(PresQTResponseException):
     pass
