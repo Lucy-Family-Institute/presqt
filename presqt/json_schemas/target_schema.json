@@ -4,11 +4,16 @@
       "type": "object",
       "properties": {
         "name": {"type": "string"},
-        "resource_collection": {"type": "boolean"}
+        "supported_actions": {
+            "type": "object",
+            "properties": {
+                "resource_collection": {"type": "boolean"}
+            }
+        }
       },
       "required": [
         "name",
-        "resource_collection"
+        "supported_actions"
       ]
     }
 }

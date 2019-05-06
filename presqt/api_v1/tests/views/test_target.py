@@ -21,10 +21,14 @@ class TestTargetCollection(TestCase):
 
         # Verify the Status Code
         self.assertEqual(response.status_code, 200)
+
         # Verify that the first dictionary in the payload's array has the correct keys
-        expected_keys = ['name', 'resource_collection', 'detail']
+        expected_keys = ['name', 'supported_actions', 'detail']
+        expected_supported_keys = ['resource_collection']
         for dict_item in response.data:
             self.assertListEqual(list(dict_item.keys()), expected_keys)
+            self.assertListEqual(list(dict_item['supported_actions'].keys()),
+                                 expected_supported_keys)
 
         with open('presqt/targets.json') as json_file:
             json_data = json.load(json_file)
@@ -56,6 +60,9 @@ class TestTarget(TestCase):
         self.assertEqual(response.status_code, 200)
         # Verify that the payload keys are the same as the original target's json keys
         self.assertListEqual(list(response.data.keys()), list(json_data[0].keys()))
+        self.assertListEqual(list(response.data['supported_actions'].keys()),
+                             list(json_data[0]['supported_actions'].keys()))
+
 
     def test_get_failure(self):
         """

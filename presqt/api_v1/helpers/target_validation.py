@@ -26,7 +26,7 @@ def target_validation(target_name, action):
 
     for data in json_data:
         if data['name'] == target_name:
-            if data[action] is False:
+            if data["supported_actions"][action] is False:
                 return Response(
                     data={'error': "'{}' does not support the action '{}'.".format(target_name,
                                                                                    action)},
