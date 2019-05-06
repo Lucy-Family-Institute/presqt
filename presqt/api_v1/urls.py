@@ -9,9 +9,9 @@ api_v1_endpoints = [
 
     # Targets
     path('targets/', TargetCollection.as_view(), name="target_collection"),
-    path('target/<str:target_name>/', Target.as_view(), name="target"),
+    path('targets/<str:target_name>/', Target.as_view(), name="target"),
 
     # Resources
-    path('target/<str:target_name>/resources/',
+    path('targets/<str:target_name>/resources/',
          ResourceCollection.as_view(), name="resource_collection")
 ]
