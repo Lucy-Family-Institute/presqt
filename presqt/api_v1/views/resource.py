@@ -1,11 +1,10 @@
-from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from presqt.api_v1.helpers.function_router import FunctionRouter
 from presqt.api_v1.helpers.validation import target_validation, token_validation
 from presqt.api_v1.serializers.resource import ResourcesSerializer
-from presqt.exceptions.exceptions import ValidationException, AuthorizationException
+from presqt.exceptions import ValidationException, AuthorizationException
 
 
 class ResourceCollection(APIView):
@@ -48,7 +47,7 @@ class ResourceCollection(APIView):
         400: Bad Request
 
         {
-            "error": "'presqt-source-token' missing in the request header."
+            "error": "'presqt-source-token' missing in the request headers."
         }
 
         404: Not Found

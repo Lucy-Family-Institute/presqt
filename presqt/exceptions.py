@@ -11,5 +11,5 @@ class ValidationException(PresQTException):
     pass
 
 
-class AuthorizationException(ValidationException):
+class AuthorizationException(PresQTException):
     pass

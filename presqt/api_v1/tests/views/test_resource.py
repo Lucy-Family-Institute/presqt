@@ -44,4 +44,4 @@ class TestResourceCollection(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data,
-                         {'error': "'presqt-source-token' missing in the request header."})
+                         {'error': "'presqt-source-token' missing in the request headers."})

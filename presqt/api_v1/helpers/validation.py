@@ -2,7 +2,7 @@ import json
 
 from rest_framework import status
 
-from presqt.exceptions.exceptions import ValidationException, AuthorizationException
+from presqt.exceptions import ValidationException, AuthorizationException
 
 
 def target_validation(target_name, action):
@@ -51,10 +51,10 @@ def token_validation(request):
     Returns the token if the validation is successful.
     Raises a custom AuthorizationException error if the validation fails.
     """
-    # Validate that the proper token exists in the request
+    # Validate that the proper token exists in the request.
     try:
         return request.META['HTTP_PRESQT_SOURCE_TOKEN']
     except KeyError:
         raise AuthorizationException(
-            "'presqt-source-token' missing in the request header.",
+            "'presqt-source-token' missing in the request headers.",
             status.HTTP_400_BAD_REQUEST)
