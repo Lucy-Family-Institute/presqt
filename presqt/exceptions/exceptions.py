@@ -1,0 +1,15 @@
+class PresQTException(Exception):
+    """
+    Custom exception that adds 'data' and 'status_code' to the exception so when the exception is
+    raised we can dynamically return the proper Response object.
+    """
+    def __init__(self, data, status_code):
+        self.data = data
+        self.status_code = status_code
+
+class ValidationException(PresQTException):
+    pass
+
+
+class AuthorizationException(ValidationException):
+    pass
