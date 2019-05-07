@@ -44,7 +44,7 @@ class TestResourceCollection(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data,
-                         {'error': "'presqt-source-token' missing in the request header."})
+                         {'error': "'presqt-source-token' missing in the request headers."})
 
     def test_get_error_400_bad_fetch_request(self):
         """

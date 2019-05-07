@@ -1,12 +1,12 @@
-import json
+from rest_framework.response import Response
 
 from rest_framework import status
-from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from presqt.api_v1.helpers.function_router import FunctionRouter
-from presqt.api_v1.helpers.target_validation import target_validation
+from presqt.api_v1.helpers.validation import target_validation, token_validation
 from presqt.api_v1.serializers.resource import ResourcesSerializer
+from presqt.exceptions import PresQTValidationError, PresQTAuthorizationError
 
 
 class ResourceCollection(APIView):
@@ -50,7 +50,7 @@ class ResourceCollection(APIView):
         ---------
         400: Bad Request
         {
-            "error": "'presqt-source-token' missing in the request header."
+            "error": "'presqt-source-token' missing in the request headers."
         }
 
         401: Unauthorized
@@ -65,19 +65,22 @@ class ResourceCollection(APIView):
         """
         action = 'resource_collection'
 
-        # Retrieve the token from the header
+        # Perform token validation
         try:
-            token = request.META['HTTP_PRESQT_SOURCE_TOKEN']
-        except KeyError:
-            return Response(
-                data={'error': "'presqt-source-token' missing in the request header."},
-                status=status.HTTP_400_BAD_REQUEST)
+            token = token_validation(request)
+        except PresQTAuthorizationError as e:
+            return Response(data={'error': e.data}, status=e.status_code)
 
-        validation = target_validation(target_name, action)
-        if validation is not True:
-            return validation
+        # Perform target_name and action validation
+        try:
+            target_validation(target_name, action)
+        except PresQTValidationError as e:
+            return Response(data={'error': e.data}, status=e.status_code)
 
+        # Fetch the proper function to call
         func = getattr(FunctionRouter, '{}_{}'.format(target_name, action))
+
+        # Fetch the target's resources
         try:
             resources = func(token)
         except Exception as e:
@@ -85,5 +88,4 @@ class ResourceCollection(APIView):
             return Response(data={'error': e.__str__()}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = ResourcesSerializer(instance=resources, many=True)
-
         return Response(serializer.data)
