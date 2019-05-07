@@ -57,4 +57,4 @@ def token_validation(request):
     except KeyError:
         raise PresQTAuthorizationError(
             "'presqt-source-token' missing in the request headers.",
-            status.HTTP_400_BAD_REQUEST)
+            status.HTTP_401_UNAUTHORIZED)

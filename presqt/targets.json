@@ -2,7 +2,8 @@
   {
     "name": "osf",
     "supported_actions": {
-          "resource_collection": true
+          "resource_collection": true,
+          "resource_detail": true
     }
   }
 ]

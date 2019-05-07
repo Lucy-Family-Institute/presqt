@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 
 from presqt.api_v1.helpers.function_router import FunctionRouter
 from presqt.api_v1.helpers.validation import target_validation, token_validation
-from presqt.api_v1.serializers.resource import ResourcesSerializer
+from presqt.api_v1.serializers.resource import ResourcesSerializer, ResourceSerializer
 from presqt.exceptions import PresQTValidationError, PresQTAuthorizationError
 
 
@@ -45,8 +45,7 @@ class ResourceCollection(APIView):
 
         Raises
         ---------
-        400: Bad Request
-
+        401: Unauthorized
         {
             "error": "'presqt-source-token' missing in the request headers."
         }
@@ -83,6 +82,7 @@ class ResourceCollection(APIView):
         serializer = ResourcesSerializer(instance=resources, many=True)
         return Response(serializer.data)
 
+
 class Resource(APIView):
     """
     **Supported HTTP Methods**
@@ -110,7 +110,40 @@ class Resource(APIView):
 
         Raises
         ------
+        401: Unauthorized
+        {
+            "error": "'presqt-source-token' missing in the request headers."
+        }
 
+        404: Not Found
+        {
+            "error": "'bad_target' is not a valid Target name."
+        }
+
+        400: Bad Request
+        {
+            "error": "'new_target' does not support the action 'resource_collection'."
+        }
 
         """
-        pass
+        action = 'resource_detail'
+
+        # Perform token validation
+        try:
+            token = token_validation(request)
+        except PresQTAuthorizationError as e:
+            return Response(data={'error': e.data}, status=e.status_code)
+
+        # Perform target_name and action validation
+        try:
+            target_validation(target_name, action)
+        except PresQTValidationError as e:
+            return Response(data={'error': e.data}, status=e.status_code)
+
+        # Fetch the proper function to call
+        func = getattr(FunctionRouter, '{}_{}'.format(target_name, action))
+        # Fetch the resource
+        resource = func(token, resource_id)
+
+        serializer = ResourceSerializer(instance=resource)
+        return Response(serializer.data)

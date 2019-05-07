@@ -9,6 +9,15 @@ def get_osf_list(token):
 
     return resources
 
+def get_osf_detail(token, resource_id):
+    """
+    PLACEHOLDER FUNCTION. WILL BE REMOVED WHEN OSF INTEGRATION OCCURS.
+    """
+    resource = {'title': 'hehehe', 'id': '3'}
+
+
+    return resource
+
 class FunctionRouter(object):
     """
     This class acts as a router to allow dynamic function calls based on a given variable.
@@ -19,5 +28,9 @@ class FunctionRouter(object):
     Target Resources Collection:
         {target_name}_resource_collection
 
+    Target Resource Detail:
+        {target_name}_detail
+
     """
     osf_resource_collection = get_osf_list
+    osf_resource_detail = get_osf_detail

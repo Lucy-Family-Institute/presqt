@@ -6,6 +6,7 @@ class SupportedActions(serializers.Serializer):
     Serializer for supported_actions objects inside the Target JSON.
     """
     resource_collection = serializers.BooleanField()
+    resource_detail = serializers.BooleanField()
 
 
 class TargetsSerializer(serializers.Serializer):
