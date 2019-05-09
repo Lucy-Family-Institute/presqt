@@ -22,7 +22,7 @@ class TestResourceCollection(TestCase):
         response = self.client.get(url, **self.header)
         self.assertEqual(response.status_code, 200)
 
-        keys = ['kind', 'kind_name', 'id', 'container']
+        keys = ['kind', 'kind_name', 'id', 'container', 'title']
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
 
@@ -45,3 +45,14 @@ class TestResourceCollection(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data,
                          {'error': "'presqt-source-token' missing in the request headers."})
+
+    def test_get_error_400_bad_fetch_request(self):
+        """
+`       Return a 400 if the token provided is not a valid token.
+        """
+        client = APIClient()
+        header = {'HTTP_PRESQT_SOURCE_TOKEN': 'bad_token'}
+        url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        response = client.get(url, **header)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data, {'error': "Token is invalid. Response returned a 401 status code."})

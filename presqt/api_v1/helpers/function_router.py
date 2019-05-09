@@ -1,13 +1,5 @@
-def get_osf_list(token):
-    """
-    PLACEHOLDER FUNCTION. WILL BE REMOVED WHEN OSF INTEGRATION OCCURS.
-    """
-    resources = [
-        {'kind': 'container', 'container': 'someid', 'id': '3', 'kind_name': 'folder'},
-        {'kind': 'item', 'container': 'someid2', 'id': '34', 'kind_name': 'file'},
-    ]
+from presqt.osf.functions.fetch import osf_fetch_resources
 
-    return resources
 
 class FunctionRouter(object):
     """
@@ -20,4 +12,4 @@ class FunctionRouter(object):
         {target_name}_resource_collection
 
     """
-    osf_resource_collection = get_osf_list
+    osf_resource_collection = osf_fetch_resources

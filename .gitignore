@@ -12,3 +12,6 @@ config/settings/local.py
 # Coverage
 .coverage
 coverage_html/
+
+# OSF API JSON
+presqt/osf/osf_api.json

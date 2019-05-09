@@ -1,4 +1,6 @@
 from rest_framework.response import Response
+
+from rest_framework import status
 from rest_framework.views import APIView
 
 from presqt.api_v1.helpers.function_router import FunctionRouter
@@ -32,32 +34,33 @@ class ResourceCollection(APIView):
                 "kind": "container",
                 "kind_name": "folder",
                 "id": "a02d7b96-a4a9-4521-9913-e3cc68f4d9dc",
-                "container": "None"
+                "container": "None",
+                "title": "Folder Name"
             },
             {
                 "kind": "item",
                 "kind_name": "file",
                 "id": "5b305f1b-0da6-4a1a-9861-3bb159d94c96",
-                "container": "a02d7b96-a4a9-4521-9913-e3cc68f4d9dc"
+                "container": "a02d7b96-a4a9-4521-9913-e3cc68f4d9dc",
+                "title": "file.jpg"
             }
         ]
 
         Raises
         ---------
         400: Bad Request
-
         {
             "error": "'presqt-source-token' missing in the request headers."
+        }
+
+        401: Unauthorized
+        {
+            "error": "'new_target' does not support the action 'resource_collection'."
         }
 
         404: Not Found
         {
             "error": "'bad_target' is not a valid Target name."
-        }
-
-        400: Bad Request
-        {
-            "error": "'new_target' does not support the action 'resource_collection'."
         }
         """
         action = 'resource_collection'
@@ -76,8 +79,13 @@ class ResourceCollection(APIView):
 
         # Fetch the proper function to call
         func = getattr(FunctionRouter, '{}_{}'.format(target_name, action))
+
         # Fetch the target's resources
-        resources = func(token)
+        try:
+            resources = func(token)
+        except Exception as e:
+            # Catch any errors that happen within the target fetch
+            return Response(data={'error': e.__str__()}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = ResourcesSerializer(instance=resources, many=True)
         return Response(serializer.data)
