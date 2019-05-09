@@ -1,14 +1,12 @@
-from presqt.osf.osf_classes.osf_core import OSFCore
-from presqt.osf.osf_classes.osf_storage_folder import Storage
+from presqt.osf.classes.base import OSFBase
+from presqt.osf.classes.storage_folder import Storage
 
 
-class Project(OSFCore):
+class Project(OSFBase):
     """
     Class that represents a project in the OSF API.
     """
-    _types = ['nodes', 'registrations']
-
-    def _update_attributes(self, project):
+    def _populate_attributes(self, project):
         """
         Add attributes to the class based on the JSON provided in the API call
 
@@ -35,24 +33,11 @@ class Project(OSFCore):
     def __str__(self):
         return '<project [{}]>'.format(self.id)
 
-    def storage(self, provider='osfstorage'):
-        """
-        Return storage `provider` object.
-        """
-        stores_json = self._json(self._get(self._storages_url))
-
-        for store in stores_json['data']:
-            provides = store['attributes']['provider']
-            if provides == provider:
-                return Storage(store, self.session)
-
-        raise RuntimeError("Project has no storage provider '{}'".format(provider))
-
     def storages(self):
         """
         Iterate over all storages for this project.
         """
-        stores_json = self._json(self._get(self._storages_url))
+        stores_json = self._json(self.session.get(self._storages_url))
         for store in stores_json['data']:
             yield Storage(store, self.session)
 

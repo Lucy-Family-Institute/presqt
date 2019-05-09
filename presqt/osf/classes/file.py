@@ -1,11 +1,11 @@
-from presqt.osf.osf_classes.osf_core import OSFCore
+from presqt.osf.classes.base import OSFBase
 
 
-class File(OSFCore):
+class File(OSFBase):
     """
     Class that represents a File in the OSF API.
     """
-    def _update_attributes(self, file):
+    def _populate_attributes(self, file):
         """
         Add attributes to the class based on the JSON provided in the API call.
 
@@ -31,8 +31,3 @@ class File(OSFCore):
 
     def __str__(self):
         return '<File [{}, {}]>'.format(self.id, self.path)
-
-
-
-
-

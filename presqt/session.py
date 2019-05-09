@@ -1,29 +1,37 @@
 import requests
 
+from presqt.exceptions import PresQTInvalidTokenError
 
-class OSFSession(requests.Session):
+
+class PresQTSession(requests.Session):
     """
-    Class that represents a session used to make repeated calls to the OSF API.
+    Class that represents a session used to make repeated calls to an API.
     Subclasses Request Session class.
     """
     auth = None
     __attrs__ = requests.Session.__attrs__ + ['base_url']
 
-    def __init__(self):
+    def __init__(self, base_url):
         """
         Handle HTTP session related work.
+
+        Parameters
+        ----------
+        base_url : str
+            Base URL for the API
+
         """
-        super(OSFSession, self).__init__()
-        self.base_url = 'https://api.osf.io/v2'
+        super(PresQTSession, self).__init__()
+        self.base_url = base_url
 
     def token_auth(self, token):
         """
-        Add the user's OSF API token to the header for authorization.
+        Add the user's API token to the header for authorization.
 
         Parameters
         ----------
         token : str
-            User's OSF token
+            User's token
         """
         self.headers.update({'Authorization': 'Bearer {}'.format(token)})
 
@@ -32,11 +40,11 @@ class OSFSession(requests.Session):
         Takes in a list of arguments and uses them to build a
         url that gets appended to the base url.
 
-        *args = ['me', 'nodes'] will build 'https://api.osf.io/v2/me/nodes/'
+        *args = ['me', 'nodes'] will build 'https:<base_url>/v2/me/nodes/'
         """
         parts = [self.base_url]
         parts.extend(args)
-        # canonical OSF URLs end with a slash
+        # canonical URLs end with a slash
         return '/'.join(parts) + '/'
 
     def get(self, url, *args, **kwargs):
@@ -53,7 +61,7 @@ class OSFSession(requests.Session):
             Response object.
         """
 
-        response = super(OSFSession, self).get(url, *args, **kwargs)
+        response = super(PresQTSession, self).get(url, *args, **kwargs)
         if response.status_code == 401:
-            raise RuntimeError("Response returned with 401 status.")
+            raise PresQTInvalidTokenError("Token is invalid. Response returned a 401 status code.")
         return response

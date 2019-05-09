@@ -55,4 +55,4 @@ class TestResourceCollection(TestCase):
         url = reverse('resource_collection', kwargs={'target_name': 'osf'})
         response = client.get(url, **header)
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data, {'error': "Response returned with 401 status."})
+        self.assertEqual(response.data, {'error': "Token is invalid. Response returned a 401 status code."})

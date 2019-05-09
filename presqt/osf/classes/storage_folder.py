@@ -1,44 +1,7 @@
-from presqt.osf.osf_classes.osf_core import OSFCore
-from presqt.osf.osf_classes.osf_file import File
+from presqt.osf.classes.base import OSFBase
+from presqt.osf.classes.file import File
 
 class ContainerMixin:
-    def _iter_children(self, url, kind, klass, recurse=None):
-        """
-        Iterate over all children of `kind`.
-        Yield an instance of `klass` when a child is of type `kind`.
-        Uses `recurse` as the path of attributes in the JSON returned from `url` to find
-        more children.
-        """
-        children = self._follow_next(url)
-
-        while children:
-            child = children.pop()
-            kind_ = child['attributes']['kind']
-            if kind_ == kind:
-                yield klass(child, self.session)
-            elif recurse is not None:
-                # recurse into a child and add entries to `children`
-                value = child
-                for key in recurse:
-                    value = value[key]
-                children.extend(self._follow_next(value))
-
-    @property
-    def top_level_files(self):
-        """
-        Iterate over all files in this container.
-        It does not recursively find all files.
-        Only lists files in this container.
-        """
-        return self._iter_children(self._files_url, 'file', File)
-
-    @property
-    def folders(self):
-        """
-        Iterate over top-level folders in this container.
-        """
-        return self._iter_children(self._files_url, 'folder', Folder)
-
     def get_assets_objects(self, container):
         """
         Get all assets for this container including the original container.
@@ -46,6 +9,7 @@ class ContainerMixin:
         """
         asset_list = []
         children = self._follow_next(self._files_url)
+
         while children:
             child = children.pop()
             kind = child['attributes']['kind']
@@ -76,12 +40,13 @@ class ContainerMixin:
                     asset_list.append(folder)
         return asset_list
 
-class Storage(OSFCore, ContainerMixin):
+
+class Storage(OSFBase, ContainerMixin):
     """
     Class that represents a Storage provider in the OSF API.
     """
 
-    def _update_attributes(self, storage):
+    def _populate_attributes(self, storage):
         """
         Add attributes to the class based on the JSON provided in the API call.
 
@@ -106,20 +71,12 @@ class Storage(OSFCore, ContainerMixin):
     def __str__(self):
         return '<Storage [{}]>'.format(self.id)
 
-    @property
-    def files(self):
-        """
-        Iterate over all files in this storage. Recursively lists all files in all subfolders.
-        """
-        return self._iter_children(self._files_url, 'file', File,
-                                   ('relationships', 'files', 'links', 'related', 'href'))
 
-
-class Folder(OSFCore, ContainerMixin):
+class Folder(OSFBase, ContainerMixin):
     """
     Class that represents a Folder in the OSF API
     """
-    def _update_attributes(self, folder):
+    def _populate_attributes(self, folder):
         if not folder:
             return
 

@@ -1,4 +1,4 @@
-from presqt.osf.osf_functions.fetch import osf_fetch_resources
+from presqt.osf.functions.fetch import osf_fetch_resources
 
 
 class FunctionRouter(object):

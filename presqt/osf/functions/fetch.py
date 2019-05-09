@@ -1,4 +1,4 @@
-from presqt.osf.osf_classes.osf_main import OSF
+from presqt.osf.classes.main import OSF
 
 
 def osf_fetch_resources(token):
@@ -17,7 +17,6 @@ def osf_fetch_resources(token):
     """
 
     osf_instance = OSF(token)
-    assets = []
-    osf_instance.get_user_assets(assets)
+    assets = osf_instance.get_user_assets()
 
     return assets

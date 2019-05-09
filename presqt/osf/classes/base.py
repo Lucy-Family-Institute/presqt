@@ -1,40 +1,26 @@
-from presqt.osf.osf_classes.osf_session import OSFSession
+from presqt.session import PresQTSession
 
-class OSFCore(object):
+
+class OSFBase(object):
     """
     Base class for all OSF classes and the main OSF object.
     """
     def __init__(self, json, session=None):
         # Set the session attribute with the existing session or a new one if one doesn't exist.
         if session is None:
-            self.session = OSFSession()
+            self.session = PresQTSession('https://api.osf.io/v2')
         else:
             self.session = session
 
         # Set the class attributes
-        self._update_attributes(json)
+        self._populate_attributes(json)
 
-    def _update_attributes(self, json):
+    def _populate_attributes(self, json):
         """
         Empty method expected to be overwritten in the subclass to add individual attributes
         to the class.
         """
         pass
-
-    def _build_url(self, *args):
-        """
-        Takes in a list of arguments and uses them to build a
-        url that gets appended to the base url.
-
-        *args = ['me', 'nodes'] will build 'https://api.osf.io/v2/me/nodes/'
-        """
-        return self.session.build_url(*args)
-
-    def _get(self, url, *args, **kwargs):
-        """
-        Performs a get request based on the base session get method.
-        """
-        return self.session.get(url, *args, **kwargs)
 
     def _json(self, response):
         """
@@ -49,12 +35,12 @@ class OSFCore(object):
         """
         Follow the 'next' link on paginated results.
         """
-        response_json = self._json(self._get(url))
+        response_json = self._json(self.session.get(url))
         data = response_json['data']
 
         next_url = response_json['links']['next']
         while next_url is not None:
-            response_json = self._json(self._get(next_url))
+            response_json = self._json(self.session.get(next_url))
             data.extend(response_json['data'])
             next_url = response_json['links']['next']
 

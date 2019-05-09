@@ -17,3 +17,7 @@ class PresQTValidationError(PresQTResponseException):
 
 class PresQTAuthorizationError(PresQTResponseException):
     pass
+
+
+class PresQTInvalidTokenError(PresQTError):
+    pass
