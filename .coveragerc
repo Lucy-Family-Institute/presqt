@@ -1,0 +1,16 @@
+[run]
+# A list of file name patterns, the files to leave out of measurement or reporting.
+omit =
+        # Omit this single file
+        presqt/management/commands/validate_target_json.py
+        # Omit everything in the osf_classes directory
+        presqt/osf/osf_classes/*.py
+
+# A list of packages or directories, the source to measure during execution.
+source = presqt
+
+
+[html]
+
+# The name of the data file/directory to use for storing or reporting coverage.
+directory = coverage_html
