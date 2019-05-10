@@ -2,12 +2,12 @@ from presqt.osf.classes.base import OSFBase
 from presqt.osf.classes.file import File
 
 class ContainerMixin:
-    def get_assets_objects(self, container):
+    def get_resources_objects(self, container):
         """
-        Get all assets for this container including the original container.
-        This exists so we can get all assets in the structure we want for our API payloads.
+        Get all resources for this container including the original container.
+        This exists so we can get all resources in the structure we want for our API payloads.
         """
-        asset_list = []
+        resource_list = []
         children = self._follow_next(self._files_url)
 
         while children:
@@ -22,7 +22,7 @@ class ContainerMixin:
                     'container': container,
                     'title': file.name
                 }
-                asset_list.append(file_obj)
+                resource_list.append(file_obj)
             elif kind == 'folder':
                 folder = Folder(child, self.session)
                 folder_obj = {
@@ -32,13 +32,13 @@ class ContainerMixin:
                     'container': container,
                     'title': folder.name
                 }
-                asset_list.append(folder_obj)
+                resource_list.append(folder_obj)
 
-                folder_asset_objects = folder.get_assets_objects(folder.id)
+                folder_resource_objects = folder.get_resources_objects(folder.id)
 
-                for folder in folder_asset_objects:
-                    asset_list.append(folder)
-        return asset_list
+                for folder in folder_resource_objects:
+                   resource_list.append(folder)
+        return resource_list
 
 
 class Storage(OSFBase, ContainerMixin):

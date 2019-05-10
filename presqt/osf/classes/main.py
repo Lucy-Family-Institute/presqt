@@ -36,20 +36,20 @@ class OSF(OSFBase):
         url = self.session.build_url('nodes', project_id)
         return Project(self._json(self.session.get(url)), self.session)
 
-    def asset(self, asset_id):
+    def resources(self, resource_id):
         """
         Gets a file or folder with the given id.
 
         Parameters
         ----------
-        asset_id : str
-            id of the asset we want to fetch.
+        resource_id : str
+            id of the resource we want to fetch.
 
         Returns
         -------
-        Instance of the desired asset (either Folder or File).
+        Instance of the desired resource (either Folder or File).
         """
-        url = self.session.build_url('files', asset_id)
+        url = self.session.build_url('files', resource_id)
         response_json = self._json(self.session.get(url))['data']
 
         if response_json['attributes']['kind'] == 'file':
@@ -68,15 +68,15 @@ class OSF(OSFBase):
         projects = [Project(self._json(self.session.get(node_url)), self.session) for node_url in node_urls]
         return projects
 
-    def get_user_assets(self):
+    def get_user_resources(self):
         """
-        Get all of the user's assets. Return in the structure expected for the PresQT API.
+        Get all of the user's resources. Return in the structure expected for the PresQT API.
 
         Returns
         -------
-        List of all assets.
+        List of all resources.
         """
-        assets = []
+        resources = []
         for project in self.projects():
-            project.get_assets(assets)
-        return assets
+            project.get_resources(resources)
+        return resources

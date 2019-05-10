@@ -41,18 +41,18 @@ class Project(OSFBase):
         for store in stores_json['data']:
             yield Storage(store, self.session)
 
-    def get_assets(self, assets):
+    def get_resources(self, resources):
         """
-        Get all project assets. Return in the structure expected for the PresQT API.
+        Get all project resources. Return in the structure expected for the PresQT API.
 
         Parameters
         ----------
-        assets : list
-            Reference to the list of assets we want to add to.
+        resources : list
+            Reference to the list of resources we want to add to.
 
         Returns
         -------
-        List of project assets.
+        List of project resources.
         """
         node_obj = {
             'kind': 'container',
@@ -61,7 +61,7 @@ class Project(OSFBase):
             'container': None,
             'title': self.title
         }
-        assets.append(node_obj)
+        resources.append(node_obj)
 
         for storage in self.storages():
             storage_obj = {
@@ -71,9 +71,9 @@ class Project(OSFBase):
                 'container': self.id,
                 'title': storage.name
             }
-            assets.append(storage_obj)
+            resources.append(storage_obj)
 
-            for asset in storage.get_assets_objects(storage.id):
-                assets.append(asset)
+            for resource in storage.get_resources_objects(storage.id):
+                resources.append(resource)
 
-        return assets
+        return resources
