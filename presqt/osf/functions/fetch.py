@@ -1,4 +1,6 @@
+from presqt.exceptions import PresQTResponseException
 from presqt.osf.classes.main import OSF
+from presqt.osf.exceptions import OSFNotFoundError
 
 
 def osf_fetch_resources(token):
@@ -39,7 +41,24 @@ def osf_fetch_resource(token, resource_id):
     """
 
     osf_instance = OSF(token)
-    return {
-        'id': 'poozer',
-        'title': 'poozer'
-    }
+
+    try:
+        resource = osf_instance.resource(resource_id)
+    except OSFNotFoundError:
+        pass
+    else:
+        return {
+            'id': resource.id,
+            'title': resource.title
+        }
+
+    try:
+        resource = osf_instance.project(resource_id)
+    except OSFNotFoundError as e:
+        raise PresQTResponseException(
+            'Resource with id {} not found for this user.'.format(resource_id), e.status_code)
+    else:
+        return {
+            'id': resource.id,
+            'title': resource.title
+        }

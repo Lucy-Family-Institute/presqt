@@ -36,7 +36,7 @@ class OSF(OSFBase):
         url = self.session.build_url('nodes', project_id)
         return Project(self._json(self.session.get(url)), self.session)
 
-    def resources(self, resource_id):
+    def resource(self, resource_id):
         """
         Gets a file or folder with the given id.
 

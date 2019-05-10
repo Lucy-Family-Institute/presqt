@@ -1,3 +1,6 @@
+from rest_framework import status
+
+from presqt.osf.exceptions import OSFNotFoundError, OSFForbiddenError
 from presqt.session import PresQTSession
 
 
@@ -28,8 +31,13 @@ class OSFBase(object):
         """
         if response.status_code == 200:
             return response.json()
-        else:
-            raise RuntimeError("Response has status code {} not 200".format(response.status_code))
+        elif response.status_code == 403:
+            raise OSFForbiddenError(
+                "User does not have access to this resource with the token provided.",
+                status.HTTP_403_FORBIDDEN)
+        elif response.status_code == 404:
+            raise OSFNotFoundError(
+                "Response has status code 404 not 200.", status.HTTP_404_NOT_FOUND)
 
     def _follow_next(self, url):
         """

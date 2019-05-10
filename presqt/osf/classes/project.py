@@ -69,7 +69,7 @@ class Project(OSFBase):
                 'kind_name': 'storage',
                 'id': storage.id,
                 'container': self.id,
-                'title': storage.name
+                'title': storage.title
             }
             resources.append(storage_obj)
 

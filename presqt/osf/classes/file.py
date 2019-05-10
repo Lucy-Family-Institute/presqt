@@ -24,7 +24,7 @@ class File(OSFBase):
         self._delete_url = file['links']['delete']
         self.osf_path = file['attributes']['path']
         self.path = file['attributes']['materialized_path']
-        self.name = file['attributes']['name']
+        self.title = file['attributes']['name']
         self.date_created = file['attributes']['date_created']
         self.date_modified = file['attributes']['date_modified']
         self.hashes = file['attributes']['extra']['hashes']

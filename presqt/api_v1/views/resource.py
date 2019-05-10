@@ -6,7 +6,8 @@ from rest_framework.views import APIView
 from presqt.api_v1.helpers.function_router import FunctionRouter
 from presqt.api_v1.helpers.validation import target_validation, token_validation
 from presqt.api_v1.serializers.resource import ResourcesSerializer, ResourceSerializer
-from presqt.exceptions import PresQTValidationError, PresQTAuthorizationError
+from presqt.exceptions import (PresQTValidationError, PresQTAuthorizationError,
+                               PresQTResponseException)
 
 
 class ResourceCollection(APIView):
@@ -150,8 +151,13 @@ class Resource(APIView):
 
         # Fetch the proper function to call
         func = getattr(FunctionRouter, '{}_{}'.format(target_name, action))
+
         # Fetch the resource
-        resource = func(token, resource_id)
+        try:
+            resource = func(token, resource_id)
+        except PresQTResponseException as e:
+            # Catch any errors that happen within the target fetch
+            return Response(data={'error': e.data}, status=e.status_code)
 
         serializer = ResourceSerializer(instance=resource)
         return Response(serializer.data)

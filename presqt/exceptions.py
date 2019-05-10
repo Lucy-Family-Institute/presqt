@@ -2,6 +2,10 @@ class PresQTError(Exception):
     pass
 
 
+class PresQTInvalidTokenError(PresQTError):
+    pass
+
+
 class PresQTResponseException(PresQTError):
     """
     Custom exception that adds 'data' and 'status_code' to the exception so when the exception is
@@ -19,5 +23,3 @@ class PresQTAuthorizationError(PresQTResponseException):
     pass
 
 
-class PresQTInvalidTokenError(PresQTError):
-    pass

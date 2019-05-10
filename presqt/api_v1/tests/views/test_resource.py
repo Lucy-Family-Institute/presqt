@@ -73,7 +73,7 @@ class TestResource(TestCase):
         """
         Return a 200 if the GET method is successful when grabbing OSF resources.
         """
-        url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': '3'})
+        url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': 'gq92a'})
         response = self.client.get(url, **self.header)
         self.assertEqual(response.status_code, 200)
 

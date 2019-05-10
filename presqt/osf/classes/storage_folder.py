@@ -20,7 +20,7 @@ class ContainerMixin:
                     'kind_name': 'file',
                     'id': file.id,
                     'container': container,
-                    'title': file.name
+                    'title': file.title
                 }
                 resource_list.append(file_obj)
             elif kind == 'folder':
@@ -30,7 +30,7 @@ class ContainerMixin:
                     'kind_name': 'folder',
                     'id': folder.id,
                     'container': container,
-                    'title': folder.name
+                    'title': folder.title
                 }
                 resource_list.append(folder_obj)
 
@@ -61,7 +61,7 @@ class Storage(OSFBase, ContainerMixin):
         self.id = storage['id']
 
         self.path = storage['attributes']['path']
-        self.name = storage['attributes']['name']
+        self.title = storage['attributes']['name']
         self.node = storage['attributes']['node']
         self.provider = storage['attributes']['provider']
         self._files_url = storage['relationships']['files']['links']['related']['href']
@@ -89,7 +89,7 @@ class Folder(OSFBase, ContainerMixin):
         self._files_url = folder['relationships']['files']['links']['related']['href']
         self.osf_path = folder['attributes']['path']
         self.path = folder['attributes']['materialized_path']
-        self.name = folder['attributes']['name']
+        self.title = folder['attributes']['name']
         self.date_created = folder['attributes']['date_created']
         self.date_modified = folder['attributes']['date_modified']
 
