@@ -12,8 +12,7 @@ class TestResourceCollection(TestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.header = {
-            'HTTP_PRESQT_SOURCE_TOKEN': TEST_USER_TOKEN}
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': TEST_USER_TOKEN}
 
     def test_get_success_osf(self):
         """
@@ -21,11 +20,14 @@ class TestResourceCollection(TestCase):
         """
         url = reverse('resource_collection', kwargs={'target_name': 'osf'})
         response = self.client.get(url, **self.header)
+
         self.assertEqual(response.status_code, 200)
 
         keys = ['kind', 'kind_name', 'id', 'container', 'title']
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
+
+        self.assertEqual(70, len(response.data))
 
     def test_get_error_404_bad_target_name(self):
         """
@@ -66,44 +68,54 @@ class TestResource(TestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.header = {
-            'HTTP_PRESQT_SOURCE_TOKEN': TEST_USER_TOKEN}
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': TEST_USER_TOKEN}
 
 
     def test_get_success_osf_project(self):
         """
         Return a 200 if the GET method is successful when grabbing an OSF resource that's a project.
         """
-        url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': 'cmn5z'})
+        resource_id = 'cmn5z'
+
+        url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': resource_id})
         response = self.client.get(url, **self.header)
         self.assertEqual(response.status_code, 200)
 
-        keys = ['id', 'title'] # UPDATE THESE KEYS!!
+        keys = ['id', 'title']
         self.assertListEqual(keys, list(response.data.keys()))
+        self.assertEqual(resource_id, response.data['id'])
+        self.assertEqual('Test Project', response.data['title'])
 
     def test_get_success_osf_file(self):
         """
         Return a 200 if the GET method is successful when grabbing an OSF resource that's a file.
         """
-        url = reverse('resource', kwargs={'target_name': 'osf',
-                                          'resource_id': '5cd9831c054f5b001a5ca2af'})
+        resource_id = '5cd9831c054f5b001a5ca2af'
+
+        url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': resource_id})
         response = self.client.get(url, **self.header)
         self.assertEqual(response.status_code, 200)
 
-        keys = ['id', 'title'] # UPDATE THESE KEYS!!
+        keys = ['id', 'title']
         self.assertListEqual(keys, list(response.data.keys()))
+        self.assertEqual(resource_id, response.data['id'])
+        self.assertEqual('2017-01-27 PresQT Workshop Planning Meeting Items.docx',
+                         response.data['title'])
 
     def test_get_success_osf_folder(self):
         """
         Return a 200 if the GET method is successful when grabbing an OSF resource that's a folder.
         """
+        resource_id = '5cd9895b840cae001a708c31'
         url = reverse('resource', kwargs={'target_name': 'osf',
-                                          'resource_id': '5cd9895b840cae001a708c31'})
+                                          'resource_id': resource_id})
         response = self.client.get(url, **self.header)
         self.assertEqual(response.status_code, 200)
 
-        keys = ['id', 'title']  # UPDATE THESE KEYS!!
+        keys = ['id', 'title']
         self.assertListEqual(keys, list(response.data.keys()))
+        self.assertEqual(resource_id, response.data['id'])
+        self.assertEqual('Docs', response.data['title'])
 
     def test_get_error_404_bad_target_name(self):
         """
