@@ -116,7 +116,8 @@ class Resource(APIView):
         -------
         A dictionary like JSON representation of the requested Target resource.
         {
-        # FILL ME IN!!!!!!
+            'id': '5cd9831c054f5b001a5ca2af',
+            'title': '2017-01-27 PresQT Workshop Planning Meeting Items.docx'
         }
 
         Raises
