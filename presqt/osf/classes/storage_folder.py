@@ -55,9 +55,6 @@ class Storage(OSFBase, ContainerMixin):
         storage : dict
             Data dictionary returned from the json response to create the Storage class instance.
         """
-        if not storage:
-            return
-
         self.id = storage['id']
 
         self.path = storage['attributes']['path']
@@ -77,9 +74,6 @@ class Folder(OSFBase, ContainerMixin):
     Class that represents a Folder in the OSF API
     """
     def _populate_attributes(self, folder):
-        if not folder:
-            return
-
         self.id = folder['id']
         self._endpoint = folder['links']['self']
         self._delete_url = folder['links']['delete']

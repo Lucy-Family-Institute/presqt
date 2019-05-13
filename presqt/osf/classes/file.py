@@ -14,9 +14,6 @@ class File(OSFBase):
         file : dict
             Data dictionary returned from the json response to create the File class instance.
         """
-        if not file:
-            return
-
         self.id = file['id']
         self._endpoint = file['links']['self']
         self._download_url = file['links']['download']

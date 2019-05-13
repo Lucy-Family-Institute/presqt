@@ -15,8 +15,6 @@ class Project(OSFBase):
         project : dict
             Data dictionary returned from the json response to create the Project class instance.
         """
-        if not project:
-            return
 
         project = project['data']
 

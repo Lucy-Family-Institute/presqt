@@ -42,6 +42,7 @@ def osf_fetch_resource(token, resource_id):
 
     osf_instance = OSF(token)
 
+    # Since we don't know the file type, try and get the resource as a file or folder first.
     try:
         resource = osf_instance.resource(resource_id)
     except OSFNotFoundError:
@@ -52,11 +53,12 @@ def osf_fetch_resource(token, resource_id):
             'title': resource.title
         }
 
+    # If it's not a folder/file then it's a project.
     try:
         resource = osf_instance.project(resource_id)
     except OSFNotFoundError as e:
         raise PresQTResponseException(
-            'Resource with id {} not found for this user.'.format(resource_id), e.status_code)
+            "Resource with id '{}' not found for this user.".format(resource_id), e.status_code)
     else:
         return {
             'id': resource.id,

@@ -116,6 +116,7 @@ class Resource(APIView):
         -------
         A dictionary like JSON representation of the requested Target resource.
         {
+        # FILL ME IN!!!!!!
         }
 
         Raises

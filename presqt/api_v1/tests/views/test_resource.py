@@ -2,6 +2,8 @@ from django.test import TestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
+from config.settings.base import TEST_USER_TOKEN
+
 
 class TestResourceCollection(TestCase):
     """
@@ -11,8 +13,7 @@ class TestResourceCollection(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.header = {
-            'HTTP_PRESQT_SOURCE_TOKEN':
-                'iTa4pxa3DyPtT1sTlJ2Quy5q3ZhhHWNAmTmiTq2zI0XDxgjg4iWFSKPjRmQPk3BmrZhKGC'}
+            'HTTP_PRESQT_SOURCE_TOKEN': TEST_USER_TOKEN}
 
     def test_get_success_osf(self):
         """
@@ -55,7 +56,8 @@ class TestResourceCollection(TestCase):
         url = reverse('resource_collection', kwargs={'target_name': 'osf'})
         response = client.get(url, **header)
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data, {'error': "Token is invalid. Response returned a 401 status code."})
+        self.assertEqual(response.data,
+                         {'error': "Token is invalid. Response returned a 401 status code."})
 
 class TestResource(TestCase):
     """
@@ -65,19 +67,42 @@ class TestResource(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.header = {
-            'HTTP_PRESQT_SOURCE_TOKEN':
-                'iTa4pxa3DyPtT1sTlJ2Quy5q3ZhhHWNAmTmiTq2zI0XDxgjg4iWFSKPjRmQPk3BmrZhKGC'}
+            'HTTP_PRESQT_SOURCE_TOKEN': TEST_USER_TOKEN}
 
 
-    def test_get_success_osf(self):
+    def test_get_success_osf_project(self):
         """
-        Return a 200 if the GET method is successful when grabbing OSF resources.
+        Return a 200 if the GET method is successful when grabbing an OSF resource that's a project.
         """
-        url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': 'gq92a'})
+        url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': 'cmn5z'})
         response = self.client.get(url, **self.header)
         self.assertEqual(response.status_code, 200)
 
-        keys = ['id', 'title']
+        keys = ['id', 'title'] # UPDATE THESE KEYS!!
+        self.assertListEqual(keys, list(response.data.keys()))
+
+    def test_get_success_osf_file(self):
+        """
+        Return a 200 if the GET method is successful when grabbing an OSF resource that's a file.
+        """
+        url = reverse('resource', kwargs={'target_name': 'osf',
+                                          'resource_id': '5cd9831c054f5b001a5ca2af'})
+        response = self.client.get(url, **self.header)
+        self.assertEqual(response.status_code, 200)
+
+        keys = ['id', 'title'] # UPDATE THESE KEYS!!
+        self.assertListEqual(keys, list(response.data.keys()))
+
+    def test_get_success_osf_folder(self):
+        """
+        Return a 200 if the GET method is successful when grabbing an OSF resource that's a folder.
+        """
+        url = reverse('resource', kwargs={'target_name': 'osf',
+                                          'resource_id': '5cd9895b840cae001a708c31'})
+        response = self.client.get(url, **self.header)
+        self.assertEqual(response.status_code, 200)
+
+        keys = ['id', 'title']  # UPDATE THESE KEYS!!
         self.assertListEqual(keys, list(response.data.keys()))
 
     def test_get_error_404_bad_target_name(self):
@@ -99,3 +124,24 @@ class TestResource(TestCase):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.data,
                          {'error': "'presqt-source-token' missing in the request headers."})
+
+    def test_get_error_404_file_id_doesnt_exist(self):
+        """
+        Return a 404 if the GET method fails because the file_id given does not map to a resource.
+        """
+        url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': '1234'})
+        response = self.client.get(url, **self.header)
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.data,
+                         {'error': "Resource with id '1234' not found for this user."})
+
+    def test_get_error_403_not_authorized(self):
+        """
+        Return a 403 if the GET method fails because the user doesn't have access to this resource.
+        """
+        url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': 'q5xmw'})
+        response = self.client.get(url, **self.header)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            response.data,
+            {'error': "User does not have access to this resource with the token provided."})
