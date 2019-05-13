@@ -163,3 +163,43 @@ class Resource(APIView):
 
         serializer = ResourceSerializer(instance=resource)
         return Response(serializer.data)
+
+
+class ResourceDownload(APIView):
+    """
+    **Supported HTTP Methods**
+
+    * GET: Download a single file with the given resource ID provided.
+    """
+
+    def get(self, request, target_name, resource_id):
+        """
+
+        Parameters
+        ----------
+        request
+        target_name
+        resource_id
+
+        Returns
+        -------
+
+        """
+        action = 'resource_download'
+
+        # Perform token validation
+        try:
+            token = token_validation(request)
+        except PresQTAuthorizationError as e:
+            return Response(data={'error': e.data}, status=e.status_code)
+
+        # Perform target_name and action validation
+        try:
+            target_validation(target_name, action)
+        except PresQTValidationError as e:
+            return Response(data={'error': e.data}, status=e.status_code)
+
+        # Fetch the proper function to call
+        func = getattr(FunctionRouter, '{}_{}'.format(target_name, action))
+
+        return Response({'We did it': 'yay!'})
