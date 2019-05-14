@@ -32,8 +32,6 @@ class ResourceSerializer(serializers.Serializer):
     size = serializers.IntegerField()
     hashes = HashSerializer()
     extra =serializers.DictField()
-    # extra
-    # links eventually
 
 
 
