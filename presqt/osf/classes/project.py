@@ -30,6 +30,9 @@ class Project(OSFBase):
         self.date_created = attrs['date_created']
         self.date_modified = attrs['date_modified']
         self.description = attrs['description']
+        self.size = None
+        self.kind = 'container'
+        self.kind_name = 'project'
 
     def __str__(self):
         return '<project [{}]>'.format(self.id)
@@ -48,8 +51,8 @@ class Project(OSFBase):
 
         Parameters
         ----------
-        storage_id : str
-            Storage ID
+        storage : str
+            Storage name
 
         Returns
         -------

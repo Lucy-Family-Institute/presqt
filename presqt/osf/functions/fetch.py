@@ -1,4 +1,6 @@
-from presqt.exceptions import PresQTResponseException
+from rest_framework import status
+
+from presqt.exceptions import PresQTResponseException, PresQTInvalidTokenError
 from presqt.osf.classes.main import OSF
 from presqt.osf.exceptions import OSFNotFoundError
 
@@ -19,8 +21,11 @@ def osf_fetch_resources(token):
     """
 
     osf_instance = OSF(token)
-    resources = osf_instance.get_user_resources()
-
+    try:
+        resources = osf_instance.get_user_resources()
+    except PresQTInvalidTokenError:
+        raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
+                                      status.HTTP_401_UNAUTHORIZED)
     return resources
 
 def osf_fetch_resource(token, resource_id):
@@ -42,34 +47,35 @@ def osf_fetch_resource(token, resource_id):
 
     osf_instance = OSF(token)
 
+    def create_object(resource_obj):
+        return {
+            'kind': resource_obj.kind,
+            'kind_name': resource_obj.kind_name,
+            'id': resource_obj.id,
+            'title': resource_obj.title,
+            'date_created': resource_obj.date_created,
+            'date_modified': resource_obj.date_modified,
+            'size': resource_obj.size
+        }
 
-
+    # Since we don't know the file type, try and get the resource as a storage provider first.
+    resource_id_split = resource_id.split(':')
     try:
-        resource_id_split = resource_id.split(':')
+        resource = osf_instance.project(resource_id_split[0]).storage(resource_id_split[1])
+    except OSFNotFoundError:
+        pass
     except IndexError:
         pass
     else:
-        try:
-            storage = osf_instance.project(resource_id_split[0]).storage(resource_id_split[1])
-        except OSFNotFoundError:
-            pass
-        else:
-            return {
-                'id': storage.id,
-                'title': storage.title
-            }
+        return create_object(resource)
 
-
-    # Since we don't know the file type, try and get the resource as a file or folder first.
+    # If it's not a storage provider then check if it's a file or folder.
     try:
         resource = osf_instance.resource(resource_id)
     except OSFNotFoundError:
         pass
     else:
-        return {
-            'id': resource.id,
-            'title': resource.title
-        }
+        return create_object(resource)
 
     # If it's not a folder/file then it's a project.
     try:
@@ -78,7 +84,5 @@ def osf_fetch_resource(token, resource_id):
         raise PresQTResponseException(
             "Resource with id '{}' not found for this user.".format(resource_id), e.status_code)
     else:
-        return {
-            'id': resource.id,
-            'title': resource.title
-        }
+        return create_object(resource)
+

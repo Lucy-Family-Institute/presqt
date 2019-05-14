@@ -25,6 +25,9 @@ class File(OSFBase):
         self.date_created = file['attributes']['date_created']
         self.date_modified = file['attributes']['date_modified']
         self.hashes = file['attributes']['extra']['hashes']
+        self.size = file['attributes']['size']
+        self.kind = 'item'
+        self.kind_name = 'file'
 
     def __str__(self):
         return '<File [{}, {}]>'.format(self.id, self.path)

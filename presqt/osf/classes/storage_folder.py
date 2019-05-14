@@ -64,6 +64,11 @@ class Storage(OSFBase, ContainerMixin):
         self._files_url = storage['relationships']['files']['links']['related']['href']
         self._new_folder_url = storage['links']['new_folder']
         self._new_file_url = storage['links']['upload']
+        self.size = None
+        self.kind = 'container'
+        self.kind_name = 'storage'
+        self.date_created = None
+        self.date_modified = None
 
     def __str__(self):
         return '<Storage [{}]>'.format(self.id)
@@ -86,6 +91,9 @@ class Folder(OSFBase, ContainerMixin):
         self.title = folder['attributes']['name']
         self.date_created = folder['attributes']['date_created']
         self.date_modified = folder['attributes']['date_modified']
+        self.size = folder['attributes']['size']
+        self.kind = 'container'
+        self.kind_name = 'folder'
 
     def __str__(self):
         return '<Folder [{}, {}]>'.format(self.id, self.path)
