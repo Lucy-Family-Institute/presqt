@@ -1,6 +1,4 @@
 from rest_framework.response import Response
-
-from rest_framework import status
 from rest_framework.views import APIView
 
 from presqt.api_v1.helpers.function_router import FunctionRouter
@@ -29,8 +27,8 @@ class ResourceCollection(APIView):
 
         Returns
         -------
+        200 : OK
         A list-like JSON representation of all resources for the given Target and token.
-
         [
             {
                 "kind": "container",
@@ -48,8 +46,6 @@ class ResourceCollection(APIView):
             }
         ]
 
-        Raises
-        ---------
         400: Bad Request
         {
             "error": "'new_target' does not support the action 'resource_collection'."
@@ -58,6 +54,10 @@ class ResourceCollection(APIView):
         401: Unauthorized
         {
             "error": "'presqt-source-token' missing in the request headers."
+        }
+        or
+        {
+            "error": "Token is invalid. Response returned a 401 status code.""
         }
 
         404: Not Found
@@ -85,9 +85,9 @@ class ResourceCollection(APIView):
         # Fetch the target's resources
         try:
             resources = func(token)
-        except Exception as e:
+        except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch
-            return Response(data={'error': e.__str__()}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data={'error': e.data}, status=e.status_code)
 
         serializer = ResourcesSerializer(instance=resources, many=True)
         return Response(serializer.data)
@@ -114,14 +114,13 @@ class Resource(APIView):
 
         Returns
         -------
+        200: OK
         A dictionary like JSON representation of the requested Target resource.
         {
             'id': '5cd9831c054f5b001a5ca2af',
             'title': '2017-01-27 PresQT Workshop Planning Meeting Items.docx'
         }
 
-        Raises
-        ------
         400: Bad Request
         {
             "error": "'new_target' does not support the action 'resource_collection'."
@@ -132,9 +131,18 @@ class Resource(APIView):
             "error": "'presqt-source-token' missing in the request headers."
         }
 
+        403: Forbidden
+        {
+            "error": "User does not have access to this resource with the token provided."
+        }
+
         404: Not Found
         {
             "error": "'bad_target' is not a valid Target name."
+        }
+        or
+        {
+            "error": "Response has status code 404 not 200."
         }
         """
         action = 'resource_detail'

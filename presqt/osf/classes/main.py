@@ -1,7 +1,7 @@
 from presqt.osf.classes.base import OSFBase
 from presqt.osf.classes.file import File
 from presqt.osf.classes.project import Project
-from presqt.osf.classes.storage_folder import Folder
+from presqt.osf.classes.storage_folder import Folder, Storage
 
 
 class OSF(OSFBase):
@@ -56,6 +56,25 @@ class OSF(OSFBase):
             return File(response_json, self.session)
         else:
             return Folder(response_json, self.session)
+
+    # def storage(self, resource_id):
+    #     """
+    #     Get a storage folder with the given id.
+    #
+    #     Parameters
+    #     ----------
+    #     resource_id : str
+    #         id of the resource we want to fetch.
+    #
+    #     Returns
+    #     -------
+    #     Instance of the desired storage folder.
+    #     """
+    #     resource_split = resource_id.split(':')
+    #     url = self.session.build_url('nodes', resource_split[0])
+    #     response_json = self._json(self.session.get(url))
+    #     project = Project(response_json, self.session)
+    #     return project.storage(resource_split[1])
 
     def projects(self):
         """

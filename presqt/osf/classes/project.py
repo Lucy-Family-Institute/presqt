@@ -1,5 +1,8 @@
+from rest_framework import status
+
 from presqt.osf.classes.base import OSFBase
 from presqt.osf.classes.storage_folder import Storage
+from presqt.osf.exceptions import OSFNotFoundError
 
 
 class Project(OSFBase):
@@ -38,6 +41,26 @@ class Project(OSFBase):
         stores_json = self._json(self.session.get(self._storages_url))
         for store in stores_json['data']:
             yield Storage(store, self.session)
+
+    def storage(self, storage):
+        """
+        Get a storage attached to the project.
+
+        Parameters
+        ----------
+        storage_id : str
+            Storage ID
+
+        Returns
+        -------
+        Project object.
+        """
+        for store in self.storages():
+            if store.provider == storage:
+                return store
+        else:
+            raise OSFNotFoundError("Project has no storage provider '{}'".format(storage),
+                                    status.HTTP_404_NOT_FOUND)
 
     def get_resources(self, resources):
         """

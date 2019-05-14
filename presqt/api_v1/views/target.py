@@ -21,6 +21,7 @@ class TargetCollection(APIView):
 
         Returns
         -------
+        200 : OK
         A list-like JSON representation of all Targets.
         [
             {
@@ -66,6 +67,7 @@ class Target(APIView):
 
         Returns
         -------
+        200 : OK
         A dictionary like JSON representation of the requested Target resource.
         {
             "name": "osf",
@@ -74,10 +76,7 @@ class Target(APIView):
             }
         }
 
-        Raises
-        ------
         404: Not Found
-
         {
             "error": "Invalid Target Name 'bad_target'"
         }

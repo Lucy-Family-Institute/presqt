@@ -37,10 +37,28 @@ def osf_fetch_resource(token, resource_id):
 
     Returns
     -------
-    A dictionary object that represents teh OSF resource.
+    A dictionary object that represents the OSF resource.
     """
 
     osf_instance = OSF(token)
+
+
+
+    try:
+        resource_id_split = resource_id.split(':')
+    except IndexError:
+        pass
+    else:
+        try:
+            storage = osf_instance.project(resource_id_split[0]).storage(resource_id_split[1])
+        except OSFNotFoundError:
+            pass
+        else:
+            return {
+                'id': storage.id,
+                'title': storage.title
+            }
+
 
     # Since we don't know the file type, try and get the resource as a file or folder first.
     try:
