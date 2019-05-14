@@ -11,6 +11,14 @@ class ResourcesSerializer(serializers.Serializer):
     title = serializers.CharField(max_length=256)
 
 
+class HashSerializer(serializers.Serializer):
+    """
+    Serializer for a hash object.
+    """
+    md5 = serializers.CharField(max_length=256)
+    sha256 = serializers.CharField(max_length=256)
+
+
 class ResourceSerializer(serializers.Serializer):
     """
     Serializer for a give resource object.
@@ -22,7 +30,10 @@ class ResourceSerializer(serializers.Serializer):
     date_created = serializers.DateField()
     date_modified = serializers.DateField()
     size = serializers.IntegerField()
-
+    hashes = HashSerializer()
+    extra =serializers.DictField()
     # extra
     # links eventually
-    # hashes
+
+
+

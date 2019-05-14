@@ -47,16 +47,53 @@ def osf_fetch_resource(token, resource_id):
 
     osf_instance = OSF(token)
 
-    def create_object(resource_obj):
-        return {
-            'kind': resource_obj.kind,
-            'kind_name': resource_obj.kind_name,
-            'id': resource_obj.id,
-            'title': resource_obj.title,
-            'date_created': resource_obj.date_created,
-            'date_modified': resource_obj.date_modified,
-            'size': resource_obj.size
+    def create_object(resource_object):
+        resource_object_obj = {
+            'kind': resource_object.kind,
+            'kind_name': resource_object.kind_name,
+            'id': resource_object.id,
+            'title': resource_object.title,
+            'date_created': resource_object.date_created,
+            'date_modified': resource_object.date_modified,
+            'size': resource_object.size,
+            'hashes': {
+                'md5': resource_object.md5,
+                'sha256': resource_object.sha256
+            }
         }
+
+        if resource_object.kind_name == 'folder' or resource_object.kind_name == 'file':
+            resource_object_obj['extra'] = {
+                'last_touched': resource_object.last_touched,
+                'materialized_path': resource_object.materialized_path,
+                'current_version': resource_object.current_version,
+                'provider': resource_object.provider,
+                'path': resource_object.path,
+                'current_user_can_comment': resource_object.current_user_can_comment,
+                'guid': resource_object.guid,
+                'checkout': resource_object.checkout,
+                'tags': resource_object.tags
+            }
+        elif resource_object.kind_name == 'project':
+            resource_object_obj['extra'] = {
+                'category': resource_object.category,
+                'fork': resource_object.fork,
+                'current_user_is_contributor': resource_object.current_user_is_contributor,
+                'preprint': resource_object.preprint,
+                'current_user_permissions': resource_object.current_user_permissions,
+                'custom_citation': resource_object.custom_citation,
+                'collection': resource_object.collection,
+                'public': resource_object.public,
+                'subjects': resource_object.subjects,
+                'registration': resource_object.registration,
+                'current_user_can_comment': resource_object.current_user_can_comment,
+                'wiki_enabled': resource_object.wiki_enabled,
+                'node_license': resource_object.node_license,
+                'tags': resource_object.tags
+            }
+        else:
+            resource_object_obj['extra'] = {}
+        return resource_object_obj
 
     # Since we don't know the file type, try and get the resource as a storage provider first.
     resource_id_split = resource_id.split(':')

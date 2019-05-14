@@ -56,19 +56,23 @@ class Storage(OSFBase, ContainerMixin):
             Data dictionary returned from the json response to create the Storage class instance.
         """
         self.id = storage['id']
-
-        self.path = storage['attributes']['path']
-        self.title = storage['attributes']['name']
-        self.node = storage['attributes']['node']
-        self.provider = storage['attributes']['provider']
+        # Links
         self._files_url = storage['relationships']['files']['links']['related']['href']
         self._new_folder_url = storage['links']['new_folder']
         self._new_file_url = storage['links']['upload']
-        self.size = None
+        # Attributes
+        attrs = storage['attributes']
+        self.node = attrs['node']
+        self.path = attrs['path']
         self.kind = 'container'
         self.kind_name = 'storage'
+        self.title = attrs['name']
+        self.provider = attrs['provider']
+        self.size = None
         self.date_created = None
         self.date_modified = None
+        self.sha256 = None
+        self.md5 = None
 
     def __str__(self):
         return '<Storage [{}]>'.format(self.id)
@@ -80,20 +84,33 @@ class Folder(OSFBase, ContainerMixin):
     """
     def _populate_attributes(self, folder):
         self.id = folder['id']
+        # Links
         self._endpoint = folder['links']['self']
         self._delete_url = folder['links']['delete']
         self._new_folder_url = folder['links']['new_folder']
         self._new_file_url = folder['links']['upload']
         self._move_url = folder['links']['move']
         self._files_url = folder['relationships']['files']['links']['related']['href']
-        self.osf_path = folder['attributes']['path']
-        self.path = folder['attributes']['materialized_path']
-        self.title = folder['attributes']['name']
-        self.date_created = folder['attributes']['date_created']
-        self.date_modified = folder['attributes']['date_modified']
-        self.size = folder['attributes']['size']
+        # Attributes
+        attrs = folder['attributes']
         self.kind = 'container'
         self.kind_name = 'folder'
+        self.title = attrs['name']
+        self.last_touched = attrs['last_touched']
+        self.materialized_path = attrs['materialized_path']
+        self.date_modified = attrs['date_modified']
+        self.current_version = attrs['current_version']
+        self.date_created = attrs['date_created']
+        self.provider = attrs['provider']
+        self.path = attrs['path']
+        self.current_user_can_comment = attrs['current_user_can_comment']
+        self.guid = attrs['guid']
+        self.checkout = attrs['checkout']
+        self.tags = attrs['tags']
+        self.size = attrs['size']
+        # Extra
+        self.sha256 = None
+        self.md5 = None
 
     def __str__(self):
         return '<Folder [{}, {}]>'.format(self.id, self.path)
