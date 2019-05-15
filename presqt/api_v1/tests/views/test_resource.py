@@ -20,22 +20,22 @@ class TestResourceCollection(TestCase):
         """
         url = reverse('resource_collection', kwargs={'target_name': 'osf'})
         response = self.client.get(url, **self.header)
-
+        # Verify the Status Code
         self.assertEqual(response.status_code, 200)
-
+        # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title']
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
-
+        # Verify the count of resource objects is what we expect.
         self.assertEqual(70, len(response.data))
 
     def test_get_error_404_bad_target_name(self):
         """
         Return a 404 if the GET method fails because a bad target_name was given.
-
         """
         url = reverse('resource_collection', kwargs={'target_name': 'bad_name'})
         response = self.client.get(url, **self.header)
+        # Verify the error status code and message
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.data, {'error': "'bad_name' is not a valid Target name."})
 
@@ -45,6 +45,7 @@ class TestResourceCollection(TestCase):
         """
         url = reverse('resource_collection', kwargs={'target_name': 'osf'})
         response = self.client.get(url)
+        # Verify the error status code and message
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.data,
                          {'error': "'presqt-source-token' missing in the request headers."})
@@ -57,6 +58,7 @@ class TestResourceCollection(TestCase):
         header = {'HTTP_PRESQT_SOURCE_TOKEN': 'bad_token'}
         url = reverse('resource_collection', kwargs={'target_name': 'osf'})
         response = client.get(url, **header)
+        # Verify the error status code and message
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.data,
                          {'error': "Token is invalid. Response returned a 401 status code."})
@@ -84,13 +86,15 @@ class TestResource(TestCase):
 
         url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': resource_id})
         response = self.client.get(url, **self.header)
+        # Verify the Status Code
         self.assertEqual(response.status_code, 200)
-
+        # Verify the dict keys match what we expect
         self.assertListEqual(self.keys, list(response.data.keys()))
+        self.assertListEqual(extra_keys, list(response.data['extra'].keys()))
+        # Spot check some individual fields
         self.assertEqual('project', response.data['kind_name'])
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('Test Project', response.data['title'])
-        self.assertListEqual(extra_keys, list(response.data['extra'].keys()))
 
     def test_get_success_osf_file(self):
         """
@@ -101,13 +105,16 @@ class TestResource(TestCase):
                       'current_user_can_comment', 'guid', 'checkout', 'tags']
         url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': resource_id})
         response = self.client.get(url, **self.header)
+        # Verify the Status Code
         self.assertEqual(response.status_code, 200)
+        # Verify the dict keys match what we expect
         self.assertListEqual(self.keys, list(response.data.keys()))
+        self.assertListEqual(extra_keys, list(response.data['extra'].keys()))
+        # Spot check some individual fields
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('file', response.data['kind_name'])
         self.assertEqual('2017-01-27 PresQT Workshop Planning Meeting Items.docx',
                          response.data['title'])
-        self.assertListEqual(extra_keys, list(response.data['extra'].keys()))
 
     def test_get_success_osf_folder(self):
         """
@@ -119,13 +126,15 @@ class TestResource(TestCase):
         url = reverse('resource', kwargs={'target_name': 'osf',
                                           'resource_id': resource_id})
         response = self.client.get(url, **self.header)
+        # Verify the Status Code
         self.assertEqual(response.status_code, 200)
-
+        # Verify the dict keys match what we expect
         self.assertListEqual(self.keys, list(response.data.keys()))
+        self.assertListEqual(extra_keys, list(response.data['extra'].keys()))
+        # Spot check some individual fields
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('folder', response.data['kind_name'])
         self.assertEqual('Docs', response.data['title'])
-        self.assertListEqual(extra_keys, list(response.data['extra'].keys()))
 
     def test_get_success_osf_storage(self):
         """
@@ -135,21 +144,24 @@ class TestResource(TestCase):
         url = reverse('resource', kwargs={'target_name': 'osf',
                                           'resource_id': resource_id})
         response = self.client.get(url, **self.header)
+        # Verify the Status Code
         self.assertEqual(response.status_code, 200)
-
+        # Verify the dict keys match what we expect
         self.assertListEqual(self.keys, list(response.data.keys()))
+        # Verify that the extra field is empty for storage.
+        self.assertEqual({}, response.data['extra'])
+        # Spot check some individual fields
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('storage', response.data['kind_name'])
         self.assertEqual('osfstorage', response.data['title'])
-        self.assertEqual({}, response.data['extra'])
 
     def test_get_error_404_bad_target_name(self):
         """
         Return a 404 if the GET method fails because a bad target_name was given.
-
         """
         url = reverse('resource', kwargs={'target_name': 'bad_name', 'resource_id': '3'})
         response = self.client.get(url, **self.header)
+        # Verify the error status code and message
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.data, {'error': "'bad_name' is not a valid Target name."})
 
@@ -159,6 +171,7 @@ class TestResource(TestCase):
         """
         url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': '3'})
         response = self.client.get(url)
+        # Verify the error status code and message
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.data,
                          {'error': "'presqt-source-token' missing in the request headers."})
@@ -169,6 +182,7 @@ class TestResource(TestCase):
         """
         url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': '1234'})
         response = self.client.get(url, **self.header)
+        # Verify the error status code and message
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.data,
                          {'error': "Resource with id '1234' not found for this user."})
@@ -179,6 +193,7 @@ class TestResource(TestCase):
         """
         url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': 'q5xmw'})
         response = self.client.get(url, **self.header)
+        # Verify the error status code and message
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             response.data,
@@ -191,6 +206,7 @@ class TestResource(TestCase):
         """
         url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': 'cmn5z:badstorage'})
         response = self.client.get(url, **self.header)
+        # Verify the error status code and message
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.data,
                          {'error': "Resource with id 'cmn5z:badstorage' not found for this user."})

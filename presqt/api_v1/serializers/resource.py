@@ -31,7 +31,7 @@ class ResourceSerializer(serializers.Serializer):
     date_modified = serializers.DateField()
     size = serializers.IntegerField()
     hashes = HashSerializer()
-    extra =serializers.DictField()
+    extra = serializers.DictField()
 
 
 

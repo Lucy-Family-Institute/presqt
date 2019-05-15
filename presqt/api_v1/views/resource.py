@@ -117,8 +117,28 @@ class Resource(APIView):
         200: OK
         A dictionary like JSON representation of the requested Target resource.
         {
-            'id': '5cd9831c054f5b001a5ca2af',
-            'title': '2017-01-27 PresQT Workshop Planning Meeting Items.docx'
+            "kind": "item",
+            "kind_name": "file",
+            "id": "5cd98518f244ec001ee8606b",
+            "title": "23296359282_934200ec59_o.jpg",
+            "date_created": "2019-05-13T14:54:17.129170Z",
+            "date_modified": "2019-05-13T14:54:17.129170Z",
+            "size": 1773294,
+            "hashes": {
+                "md5": "aaca7ef067dcab7cb8d79c36243823e4",
+                "sha256": "ea94ce54261720c16abb508c6dcd1fd481c30c09b7f2f5ab0b79e3199b7e2b55"
+            },
+            "extra": {
+                "last_touched": null,
+                "materialized_path": "/Images/23296359282_934200ec59_o.jpg",
+                "current_version": 1,
+                "provider": "osfstorage",
+                "path": "/5cd98518f244ec001ee8606b",
+                "current_user_can_comment": true,
+                "guid": null,
+                "checkout": null,
+                "tags": []
+            }
         }
 
         400: Bad Request

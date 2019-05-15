@@ -59,7 +59,8 @@ def osf_fetch_resource(token, resource_id):
             'hashes': {
                 'md5': resource_object.md5,
                 'sha256': resource_object.sha256
-            }
+            },
+            'extra': {}
         }
 
         if resource_object.kind_name == 'folder' or resource_object.kind_name == 'file':
@@ -91,8 +92,6 @@ def osf_fetch_resource(token, resource_id):
                 'node_license': resource_object.node_license,
                 'tags': resource_object.tags
             }
-        else:
-            resource_object_obj['extra'] = {}
         return resource_object_obj
 
     # Since we don't know the file type, try and get the resource as a storage provider first.
