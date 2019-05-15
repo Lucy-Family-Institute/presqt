@@ -162,7 +162,7 @@ class Resource(APIView):
         }
         or
         {
-            "error": "Response has status code 404 not 200."
+            "error": "Resource with id 'bad_id' not found for this user."
         }
         """
         action = 'resource_detail'
