@@ -15,3 +15,6 @@ coverage_html/
 
 # OSF API JSON
 presqt/osf/osf_api.json
+
+# Personal Management Command to test OSF API
+presqt/management/commands/osf_test.py

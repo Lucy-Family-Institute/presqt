@@ -166,6 +166,20 @@ class TestResource(TestCase):
         self.assertEqual(response.data,
                          {'error': "'presqt-source-token' missing in the request headers."})
 
+    def test_get_error_401_invalid_token(self):
+        """
+`       Return a 401 if the token provided is not a valid token.
+        """
+        client = APIClient()
+        header = {'HTTP_PRESQT_SOURCE_TOKEN': 'bad_token'}
+        url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': 'cmn5z'})
+        response = client.get(url, **header)
+
+        # Verify the error status code and message
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.data,
+                         {'error': "Token is invalid. Response returned a 401 status code."})
+
     def test_get_error_403_not_authorized(self):
         """
         Return a 403 if the GET method fails because the user doesn't have access to this resource.

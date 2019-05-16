@@ -1,7 +1,8 @@
+from presqt.exceptions import PresQTInvalidTokenError
 from presqt.osf.classes.base import OSFBase
 from presqt.osf.classes.file import File
 from presqt.osf.classes.project import Project
-from presqt.osf.classes.storage_folder import Folder, Storage
+from presqt.osf.classes.storage_folder import Folder
 
 
 class OSF(OSFBase):
@@ -13,6 +14,10 @@ class OSF(OSFBase):
     def __init__(self, token):
         super(OSF, self).__init__({})
         self.login(token)
+
+        # Verify that the token provided is a valid one.
+        if self.session.get('https://api.osf.io/v2/users/me/').status_code == 401:
+            raise PresQTInvalidTokenError("Token is invalid. Response returned a 401 status code.")
 
     def login(self, token):
         """

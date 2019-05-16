@@ -19,13 +19,13 @@ def osf_fetch_resources(token):
     -------
     List of dictionary objects that represent an OSF resources.
     """
-
-    osf_instance = OSF(token)
     try:
-        resources = osf_instance.get_user_resources()
+        osf_instance = OSF(token)
     except PresQTInvalidTokenError:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
+
+    resources = osf_instance.get_user_resources()
     return resources
 
 def osf_fetch_resource(token, resource_id):
@@ -45,7 +45,11 @@ def osf_fetch_resource(token, resource_id):
     A dictionary object that represents the OSF resource.
     """
 
-    osf_instance = OSF(token)
+    try:
+        osf_instance = OSF(token)
+    except PresQTInvalidTokenError:
+        raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
+                                      status.HTTP_401_UNAUTHORIZED)
 
     def create_object(resource_object):
         resource_object_obj = {

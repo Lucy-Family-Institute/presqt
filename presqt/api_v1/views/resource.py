@@ -150,6 +150,11 @@ class Resource(APIView):
             "error": "'presqt-source-token' missing in the request headers."
         }
 
+        401: Unauthorized
+        {
+            "error": "Token is invalid. Response returned a 401 status code.""
+        }
+
         403: Forbidden
         {
             "error": "User does not have access to this resource with the token provided."
