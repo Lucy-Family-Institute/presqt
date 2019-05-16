@@ -45,16 +45,10 @@ class Storage(OSFBase, ContainerMixin):
     """
     Class that represents a Storage provider in the OSF API.
     """
+    def __init__(self, storage, session):
+        super(Storage, self).__init__(storage, session)
 
-    def _populate_attributes(self, storage):
-        """
-        Add attributes to the class based on the JSON provided in the API call.
-
-        Parameters
-        ----------
-        storage : dict
-            Data dictionary returned from the json response to create the Storage class instance.
-        """
+        # Add attributes to the class based on the JSON provided in the API call
         self.id = storage['id']
         # Links
         self._files_url = storage['relationships']['files']['links']['related']['href']
@@ -82,7 +76,10 @@ class Folder(OSFBase, ContainerMixin):
     """
     Class that represents a Folder in the OSF API
     """
-    def _populate_attributes(self, folder):
+    def __init__(self, folder, session):
+        super(Folder, self).__init__(folder, session)
+
+        # Add attributes to the class based on the JSON provided in the API call
         self.id = folder['id']
         # Links
         self._endpoint = folder['links']['self']

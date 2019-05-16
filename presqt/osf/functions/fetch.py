@@ -63,7 +63,7 @@ def osf_fetch_resource(token, resource_id):
             'extra': {}
         }
 
-        if resource_object.kind_name == 'folder' or resource_object.kind_name == 'file':
+        if resource_object.kind_name in ['folder', 'file']:
             resource_object_obj['extra'] = {
                 'last_touched': resource_object.last_touched,
                 'materialized_path': resource_object.materialized_path,
@@ -98,9 +98,7 @@ def osf_fetch_resource(token, resource_id):
     resource_id_split = resource_id.split(':')
     try:
         resource = osf_instance.project(resource_id_split[0]).storage(resource_id_split[1])
-    except OSFNotFoundError:
-        pass
-    except IndexError:
+    except (OSFNotFoundError, IndexError):
         pass
     else:
         return create_object(resource)
@@ -113,7 +111,7 @@ def osf_fetch_resource(token, resource_id):
     else:
         return create_object(resource)
 
-    # If it's not a folder/file then it's a project.
+    # If it's not a folder/file then it's a project or it doesn't exist.
     try:
         resource = osf_instance.project(resource_id)
     except OSFNotFoundError as e:

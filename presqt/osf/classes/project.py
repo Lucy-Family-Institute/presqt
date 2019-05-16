@@ -9,15 +9,10 @@ class Project(OSFBase):
     """
     Class that represents a project in the OSF API.
     """
-    def _populate_attributes(self, project):
-        """
-        Add attributes to the class based on the JSON provided in the API call
+    def __init__(self, project, session):
+        super(Project, self).__init__(project, session)
 
-        Parameters
-        ----------
-        project : dict
-            Data dictionary returned from the json response to create the Project class instance.
-        """
+        # Add attributes to the class based on the JSON provided in the API call
         project = project['data']
         self.id = project['id']
         # Links

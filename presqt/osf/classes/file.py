@@ -5,15 +5,10 @@ class File(OSFBase):
     """
     Class that represents a File in the OSF API.
     """
-    def _populate_attributes(self, file):
-        """
-        Add attributes to the class based on the JSON provided in the API call.
+    def __init__(self, file, session):
+        super(File, self).__init__(file, session)
 
-        Parameters
-        ----------
-        file : dict
-            Data dictionary returned from the json response to create the File class instance.
-        """
+        # Add attributes to the class based on the JSON provided in the API call.
         self.id = file['id']
         # Links
         self._endpoint = file['links']['self']
