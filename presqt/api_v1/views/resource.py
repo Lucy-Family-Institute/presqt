@@ -50,12 +50,12 @@ class ResourceCollection(APIView):
         {
             "error": "'new_target' does not support the action 'resource_collection'."
         }
-
-        401: Unauthorized
+        or
         {
             "error": "'presqt-source-token' missing in the request headers."
         }
-        or
+
+        401: Unauthorized
         {
             "error": "Token is invalid. Response returned a 401 status code.""
         }
@@ -145,8 +145,7 @@ class Resource(APIView):
         {
             "error": "'new_target' does not support the action 'resource_collection'."
         }
-
-        401: Unauthorized
+        or
         {
             "error": "'presqt-source-token' missing in the request headers."
         }

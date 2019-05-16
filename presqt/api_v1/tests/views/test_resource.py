@@ -29,14 +29,14 @@ class TestResourceCollection(TestCase):
         # Verify the count of resource objects is what we expect.
         self.assertEqual(70, len(response.data))
 
-    def test_get_error_401_missing_token(self):
+    def test_get_error_400_missing_token(self):
         """
-        Return a 401 if the GET method fails because the presqt-source-token was not provided.
+        Return a 400 if the GET method fails because the presqt-source-token was not provided.
         """
         url = reverse('resource_collection', kwargs={'target_name': 'osf'})
         response = self.client.get(url)
         # Verify the error status code and message
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data,
                          {'error': "'presqt-source-token' missing in the request headers."})
 
@@ -155,14 +155,14 @@ class TestResource(TestCase):
         self.assertEqual('storage', response.data['kind_name'])
         self.assertEqual('osfstorage', response.data['title'])
 
-    def test_get_error_401_missing_token(self):
+    def test_get_error_400_missing_token(self):
         """
-        Return a 401 if the GET method fails because the presqt-source-token was not provided.
+        Return a 400 if the GET method fails because the presqt-source-token was not provided.
         """
         url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': '3'})
         response = self.client.get(url)
         # Verify the error status code and message
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data,
                          {'error': "'presqt-source-token' missing in the request headers."})
 
