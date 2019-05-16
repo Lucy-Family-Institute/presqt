@@ -14,9 +14,8 @@ api_v1_endpoints = [
     # Resources
     path('targets/<str:target_name>/resources/',
          ResourceCollection.as_view(), name="resource_collection"),
-    path('targets/<str:target_name>/resources/<str:resource_id>/', Resource.as_view(),
-         name="resource"),
-
+    path('targets/<str:target_name>/resources/<str:resource_id>/',
+         Resource.as_view(), name="resource"),
     # Resource Transfer
     path('targets/<str:target_name>/resources/<str:resource_id>/download/',
          ResourceDownload.as_view(), name="resource_download")

@@ -11,9 +11,37 @@ class ResourcesSerializer(serializers.Serializer):
     title = serializers.CharField(max_length=256)
 
 
+class HashSerializer(serializers.Serializer):
+    """
+    Serializer for a hash object.
+    """
+    md5 = serializers.CharField(max_length=256)
+    sha256 = serializers.CharField(max_length=256)
+
+
 class ResourceSerializer(serializers.Serializer):
     """
     Serializer for a give resource object.
     """
+    kind = serializers.CharField(max_length=256)
+    kind_name = serializers.CharField(max_length=256)
     id = serializers.CharField(max_length=256)
     title = serializers.CharField(max_length=256)
+    date_created = serializers.DateField()
+    date_modified = serializers.DateField()
+    size = serializers.IntegerField()
+    hashes = HashSerializer()
+    extra = serializers.DictField()
+
+
+class ResourceDownloadSerializer(serializers.Serializer):
+    """
+    Serializer for the resource download object.
+    """
+    kind = serializers.CharField(max_length=256)
+    kind_name = serializers.CharField(max_length=256)
+    id = serializers.CharField(max_length=256)
+    title = serializers.CharField(max_length=256)
+    hashes = HashSerializer()
+    path = serializers.CharField(max_length=256)
+    download_url = serializers.CharField(max_length=256)

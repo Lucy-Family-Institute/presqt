@@ -1,5 +1,8 @@
+from rest_framework import status
+
 from presqt.osf.classes.base import OSFBase
 from presqt.osf.classes.storage_folder import Storage
+from presqt.osf.exceptions import OSFNotFoundError
 
 
 class Project(OSFBase):
@@ -15,18 +18,36 @@ class Project(OSFBase):
         project : dict
             Data dictionary returned from the json response to create the Project class instance.
         """
-
         project = project['data']
-
-        self._endpoint = project['links']['self']
         self.id = project['id']
+        # Links
+        self._endpoint = project['links']['self']
         self._storages_url = project['relationships']['files']['links']['related']['href']
-
+        # Attributes
         attrs = project['attributes']
-        self.title = attrs['title']
-        self.date_created = attrs['date_created']
-        self.date_modified = attrs['date_modified']
+        self.kind = 'container'
+        self.kind_name = 'project'
+        self.category = attrs['category']
+        self.fork = attrs['fork']
+        self.current_user_is_contributor = attrs['current_user_is_contributor']
+        self.preprint = attrs['preprint']
         self.description = attrs['description']
+        self.current_user_permissions = attrs['current_user_permissions']
+        self.title = attrs['title']
+        self.custom_citation = attrs['custom_citation']
+        self.date_modified = attrs['date_modified']
+        self.collection = attrs['collection']
+        self.public = attrs['public']
+        self.subjects = attrs['subjects']
+        self.registration = attrs['registration']
+        self.date_created = attrs['date_created']
+        self.current_user_can_comment = attrs['current_user_can_comment']
+        self.node_license = attrs['node_license']
+        self.wiki_enabled = attrs['wiki_enabled']
+        self.tags = attrs['tags']
+        self.size = None
+        self.sha256 = None
+        self.md5 = None
 
     def __str__(self):
         return '<project [{}]>'.format(self.id)
@@ -38,6 +59,26 @@ class Project(OSFBase):
         stores_json = self._json(self.session.get(self._storages_url))
         for store in stores_json['data']:
             yield Storage(store, self.session)
+
+    def storage(self, storage):
+        """
+        Get a storage attached to the project.
+
+        Parameters
+        ----------
+        storage : str
+            Storage name
+
+        Returns
+        -------
+        Project object.
+        """
+        for store in self.storages():
+            if store.provider == storage:
+                return store
+        else:
+            raise OSFNotFoundError("Project has no storage provider '{}'".format(storage),
+                                    status.HTTP_404_NOT_FOUND)
 
     def get_resources(self, resources):
         """

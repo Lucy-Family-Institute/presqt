@@ -1,7 +1,7 @@
 from presqt.osf.classes.base import OSFBase
 from presqt.osf.classes.file import File
 from presqt.osf.classes.project import Project
-from presqt.osf.classes.storage_folder import Folder
+from presqt.osf.classes.storage_folder import Folder, Storage
 
 
 class OSF(OSFBase):
