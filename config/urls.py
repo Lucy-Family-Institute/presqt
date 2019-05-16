@@ -15,10 +15,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import RedirectView
 
 from presqt.api_v1.urls import api_v1_endpoints
 
 urlpatterns = [
+    # path('', include(api_v1_endpoints)),
+    path('', RedirectView.as_view(pattern_name='api_root')),
     path('admin/', admin.site.urls),
     path('api_v1/', include(api_v1_endpoints))
 ]
