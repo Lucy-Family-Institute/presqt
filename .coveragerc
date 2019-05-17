@@ -3,8 +3,7 @@
 omit =
         # Omit this single file
         presqt/management/commands/validate_target_json.py
-        # Omit everything in the osf_classes directory
-        presqt/osf/osf_classes/*.py
+
 
 # A list of packages or directories, the source to measure during execution.
 source = presqt

@@ -21,19 +21,22 @@ class TargetCollection(APIView):
 
         Returns
         -------
+        200 : OK
         A list-like JSON representation of all Targets.
         [
             {
                 "name": "osf",
                 "supported_actions": {
-                    "resource_collection": true
+                    "resource_collection": true,
+                    "resource_detail": true
                 },
                 "detail": "http://localhost/api_v1/target/osf/"
             },
             {
                 "name": "curate_nd",
                 "supported_actions": {
-                    "resource_collection": true
+                    "resource_collection": true,
+                    "resource_detail": true
                 },
                 "detail": "http://localhost/api_v1/target/curate_nd/"
             },
@@ -66,18 +69,17 @@ class Target(APIView):
 
         Returns
         -------
+        200 : OK
         A dictionary like JSON representation of the requested Target resource.
         {
             "name": "osf",
             "supported_actions": {
-                "resource_collection": true
+                "resource_collection": true,
+                "resource_detail": true
             }
         }
 
-        Raises
-        ------
         404: Not Found
-
         {
             "error": "Invalid Target Name 'bad_target'"
         }
