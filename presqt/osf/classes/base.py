@@ -15,16 +15,6 @@ class OSFBase(object):
         else:
             self.session = session
 
-        # Set the class attributes
-        self._populate_attributes(json)
-
-    def _populate_attributes(self, json):
-        """
-        Empty method expected to be overwritten in the subclass to add individual attributes
-        to the class.
-        """
-        pass
-
     def _json(self, response):
         """
         Extract JSON from response if `status_code` is 200.

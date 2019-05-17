@@ -1,7 +1,5 @@
 import requests
 
-from presqt.exceptions import PresQTInvalidTokenError
-
 
 class PresQTSession(requests.Session):
     """
@@ -46,22 +44,3 @@ class PresQTSession(requests.Session):
         parts.extend(args)
         # canonical URLs end with a slash
         return '/'.join(parts) + '/'
-
-    def get(self, url, *args, **kwargs):
-        """
-        Make a GET request using the base request GET method with the provided url and arguments.
-
-        Parameters
-        ----------
-        url : str
-            URL the GET request should hit.
-
-        Returns
-        -------
-            Response object.
-        """
-
-        response = super(PresQTSession, self).get(url, *args, **kwargs)
-        if response.status_code == 401:
-            raise PresQTInvalidTokenError("Token is invalid. Response returned a 401 status code.")
-        return response
