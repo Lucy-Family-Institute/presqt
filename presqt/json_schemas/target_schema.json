@@ -7,7 +7,9 @@
         "supported_actions": {
             "type": "object",
             "properties": {
-                "resource_collection": {"type": "boolean"}
+                "resource_collection": {"type": "boolean"},
+                "resource_detail": {"type": "boolean"},
+                "resource_download": {"type": "boolean"}
             }
         }
       },

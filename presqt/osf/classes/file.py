@@ -1,3 +1,4 @@
+
 from presqt.osf.classes.base import OSFBase
 
 
@@ -40,3 +41,15 @@ class File(OSFBase):
 
     def __str__(self):
         return '<File [{}, {}]>'.format(self.id, self.path)
+
+    def download(self):
+        """
+        Download the file using the download_url.
+
+        Returns
+        -------
+        The requested file in byte format.
+        """
+
+        response = self.session.get(self.download_url)
+        return response.content

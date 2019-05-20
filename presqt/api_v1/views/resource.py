@@ -1,12 +1,14 @@
+from django.http import HttpResponse
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from presqt.api_v1.helpers.function_router import FunctionRouter
 from presqt.api_v1.helpers.validation import target_validation, token_validation
-from presqt.api_v1.serializers.resource import (ResourcesSerializer, ResourceSerializer,
-                                                ResourceDownloadSerializer)
+from presqt.api_v1.serializers.resource import ResourcesSerializer, ResourceSerializer
 from presqt.exceptions import (PresQTValidationError, PresQTAuthorizationError,
                                PresQTResponseException)
+from presqt.fixity import fixity_checker
 
 
 class ResourceCollection(APIView):
@@ -207,16 +209,52 @@ class ResourceDownload(APIView):
 
     def get(self, request, target_name, resource_id):
         """
+        Download a single item.
 
         Parameters
         ----------
-        request
-        target_name
-        resource_id
+        target_name : str
+            The name of the Target resource to retrieve.
+        resource_id : str
+            The id of the Resource to retrieve.
 
         Returns
         -------
+        200: OK
+        Returns a HttpResponse with file content to download.
 
+        400: Bad Request
+        {
+            "error": "'new_target' does not support the action 'resource_collection'."
+        }
+        or
+        {
+            "error": "'presqt-source-token' missing in the request headers."
+        }
+
+        401: Unauthorized
+        {
+            "error": "Token is invalid. Response returned a 401 status code.""
+        }
+
+        403: Forbidden
+        {
+            "error": "User does not have access to this resource with the token provided."
+        }
+
+        404: Not Found
+        {
+            "error": "'bad_target' is not a valid Target name."
+        }
+        or
+        {
+            "error": "Resource with id 'bad_id' not found for this user."
+        }
+
+        424: Failed Dependency
+        {
+            "error": "Fixity Check failed using '49f68a5c8493ec2c0bf489821c21fc3b'"
+        }
         """
         action = 'resource_download'
 
@@ -235,12 +273,26 @@ class ResourceDownload(APIView):
         # Fetch the proper function to call
         func = getattr(FunctionRouter, '{}_{}'.format(target_name, action))
 
-        # Fetch the resource
+        # Fetch the binary file
         try:
             resource = func(token, resource_id)
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch
             return Response(data={'error': e.data}, status=e.status_code)
 
-        serializer = ResourceDownloadSerializer(instance=resource)
-        return Response(serializer.data)
+        # Pass the file and it's hashes to the fixity checker.
+        fixity_obj = fixity_checker(resource['file'], resource['resource'].hashes)
+
+        # If the file passes the fixity check then create a
+        # response obj with the file and return it.
+        if fixity_obj['fixity']:
+            response = HttpResponse(resource['file'], content_type='application/octet-stream')
+            response['Content-Disposition'] = 'attachment; filename={}'.format(
+                resource['resource'].title)
+            response['presqt_hash_algorithm'] = fixity_obj['hash_algorithm']
+            response['presqt_hash'] = fixity_obj['hash']
+            return response
+        else:
+            return Response(
+                data={'error': "Fixity Check failed using '{}'".format(fixity_obj['hash_algorithm'])},
+                status=status.HTTP_424_FAILED_DEPENDENCY)

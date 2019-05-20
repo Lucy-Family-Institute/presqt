@@ -28,7 +28,8 @@ class TargetCollection(APIView):
                 "name": "osf",
                 "supported_actions": {
                     "resource_collection": true,
-                    "resource_detail": true
+                    "resource_detail": true,
+                    "resource_download": true
                 },
                 "detail": "http://localhost/api_v1/target/osf/"
             },
@@ -36,7 +37,8 @@ class TargetCollection(APIView):
                 "name": "curate_nd",
                 "supported_actions": {
                     "resource_collection": true,
-                    "resource_detail": true
+                    "resource_detail": true,
+                    "resource_download": false
                 },
                 "detail": "http://localhost/api_v1/target/curate_nd/"
             },
@@ -75,7 +77,8 @@ class Target(APIView):
             "name": "osf",
             "supported_actions": {
                 "resource_collection": true,
-                "resource_detail": true
+                "resource_detail": true,
+                "resource_download": true
             }
         }
 

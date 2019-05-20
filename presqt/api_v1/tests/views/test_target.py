@@ -24,7 +24,7 @@ class TestTargetCollection(TestCase):
 
         # Verify that the first dictionary in the payload's array has the correct keys
         expected_keys = ['name', 'supported_actions', 'detail']
-        expected_supported_keys = ['resource_collection', 'resource_detail']
+        expected_supported_keys = ['resource_collection', 'resource_detail', 'resource_download']
         for dict_item in response.data:
             self.assertListEqual(list(dict_item.keys()), expected_keys)
             self.assertListEqual(list(dict_item['supported_actions'].keys()),
