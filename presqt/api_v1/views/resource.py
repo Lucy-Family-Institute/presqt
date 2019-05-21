@@ -146,7 +146,7 @@ class Resource(APIView):
 
         400: Bad Request
         {
-            "error": "'new_target' does not support the action 'resource_collection'."
+            "error": "'new_target' does not support the action 'resource_detail'."
         }
         or
         {
@@ -225,7 +225,7 @@ class ResourceDownload(APIView):
 
         400: Bad Request
         {
-            "error": "'new_target' does not support the action 'resource_collection'."
+            "error": "'new_target' does not support the action 'resource_download'."
         }
         or
         {

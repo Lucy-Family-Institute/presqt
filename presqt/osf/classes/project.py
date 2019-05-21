@@ -44,9 +44,6 @@ class Project(OSFBase):
         self.sha256 = None
         self.md5 = None
 
-    def __str__(self):
-        return '<project [{}]>'.format(self.id)
-
     def storages(self):
         """
         Iterate over all storages for this project.

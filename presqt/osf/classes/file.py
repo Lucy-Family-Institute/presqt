@@ -39,9 +39,6 @@ class File(OSFBase):
         self.sha256 = extra['hashes']['sha256']
         self.md5 = extra['hashes']['md5']
 
-    def __str__(self):
-        return '<File [{}, {}]>'.format(self.id, self.path)
-
     def download(self):
         """
         Download the file using the download_url.

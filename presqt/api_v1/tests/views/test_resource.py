@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import patch, mock_open
 
 from django.test import TestCase
 from rest_framework.reverse import reverse
@@ -42,6 +42,23 @@ class TestResourceCollection(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data,
                          {'error': "'presqt-source-token' missing in the request headers."})
+
+    def test_get_error_400_target_not_supported_test_target(self):
+        """
+        Return a 400 if the GET method fails because the target requested does not support
+        this endpoint's action.
+        """
+        with open('presqt/api_v1/tests/views/targets_test.json') as json_file:
+            with patch("builtins.open") as mock_file:
+                mock_file.return_value = json_file
+                url = reverse('resource_collection', kwargs={'target_name': 'test'})
+                response = self.client.get(url, **self.header)
+                # Verify the error status code and message
+                self.assertEqual(response.status_code, 400)
+                self.assertEqual(
+                    response.data,
+                    {'error': "'test' does not support the action 'resource_collection'."})
+
 
     def test_get_error_401_invalid_token_osf(self):
         """
@@ -169,14 +186,29 @@ class TestResource(TestCase):
         self.assertEqual(response.data,
                          {'error': "'presqt-source-token' missing in the request headers."})
 
+    def test_get_error_400_target_not_supported_test_target(self):
+        """
+        Return a 400 if the GET method fails because the target requested does not support
+        this endpoint's action.
+        """
+        with open('presqt/api_v1/tests/views/targets_test.json') as json_file:
+            with patch("builtins.open") as mock_file:
+                mock_file.return_value = json_file
+                url = reverse('resource', kwargs={'target_name': 'test', 'resource_id': 'cmn5z'})
+                response = self.client.get(url, **self.header)
+                # Verify the error status code and message
+                self.assertEqual(response.status_code, 400)
+                self.assertEqual(
+                    response.data,
+                    {'error': "'test' does not support the action 'resource_detail'."})
+
     def test_get_error_401_invalid_token_osf(self):
         """
 `       Return a 401 if the token provided is not a valid token.
         """
-        client = APIClient()
         header = {'HTTP_PRESQT_SOURCE_TOKEN': 'bad_token'}
         url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': 'cmn5z'})
-        response = client.get(url, **header)
+        response = self.client.get(url, **header)
 
         # Verify the error status code and message
         self.assertEqual(response.status_code, 401)
@@ -313,6 +345,24 @@ class TestResourceDownload(TestCase):
         self.assertEqual(response.data,
                          {'error': "'presqt-source-token' missing in the request headers."})
 
+    def test_get_error_400_target_not_supported_test_target(self):
+        """
+        Return a 400 if the GET method fails because the target requested does not support
+        this endpoint's action.
+        """
+        with open('presqt/api_v1/tests/views/targets_test.json') as json_file:
+            with patch("builtins.open") as mock_file:
+                mock_file.return_value = json_file
+                url = reverse(
+                    'resource_download',
+                    kwargs={'target_name': 'test', 'resource_id': '5cd98510f244ec001fe5632f'})
+                response = self.client.get(url, **self.header)
+                # Verify the error status code and message
+                self.assertEqual(response.status_code, 400)
+                self.assertEqual(
+                    response.data,
+                    {'error': "'test' does not support the action 'resource_download'."})
+
     def test_get_error_401_invalid_token_osf(self):
         """
 `       Return a 401 if the token provided is not a valid token.
@@ -384,19 +434,20 @@ class TestResourceDownload(TestCase):
             2. The second will do another GET request but this time take the returned fixity
                 dictionary for a failed fixity check and force fixity_checker() to return it causing
                 the view to hit the 424 error response.
-
         """
         hashes = {
             "sha256": "bad_hash",
             "md5": "bad_hash"
         }
-
         url = reverse('resource_download', kwargs={'target_name': 'osf',
                                                    'resource_id': '5cd98510f244ec001fe5632f'})
         response = self.client.get(url, **self.header)
+        # Manually verify the fixity_checker will fail
         fixity = fixity_checker(response.content, hashes)
         self.assertEqual(fixity['fixity'], False)
 
+        # Use the returned 'fixity' object from the failed fixity check and have
+        # fixity_check() force return that when making the same GET request as above.
         with patch('presqt.fixity.fixity_checker') as fake_send:
             fake_send.return_value = fixity
             response = self.client.get(url, **self.header)

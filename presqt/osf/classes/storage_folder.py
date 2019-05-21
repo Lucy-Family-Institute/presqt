@@ -68,9 +68,6 @@ class Storage(OSFBase, ContainerMixin):
         self.sha256 = None
         self.md5 = None
 
-    def __str__(self):
-        return '<Storage [{}]>'.format(self.id)
-
 
 class Folder(OSFBase, ContainerMixin):
     """
@@ -108,6 +105,3 @@ class Folder(OSFBase, ContainerMixin):
         # Extra
         self.sha256 = None
         self.md5 = None
-
-    def __str__(self):
-        return '<Folder [{}, {}]>'.format(self.id, self.path)
