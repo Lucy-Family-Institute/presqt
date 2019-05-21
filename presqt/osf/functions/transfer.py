@@ -32,11 +32,11 @@ def osf_download_resource(token, resource_id):
     # Get the resource
     resource = get_osf_resource(resource_id, osf_instance)
 
-    # Make a download request to OSF.
-    binary_file = resource.download()
-
     # Only continue if the resource ends up being a file.
     if resource.kind_name == 'file':
+        # Make a download request to OSF.
+        binary_file = resource.download()
+
         return {
             'file': binary_file,
             'resource': resource,

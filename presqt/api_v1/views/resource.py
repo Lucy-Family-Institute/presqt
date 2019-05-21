@@ -8,7 +8,7 @@ from presqt.api_v1.helpers.validation import target_validation, token_validation
 from presqt.api_v1.serializers.resource import ResourcesSerializer, ResourceSerializer
 from presqt.exceptions import (PresQTValidationError, PresQTAuthorizationError,
                                PresQTResponseException)
-from presqt.fixity import fixity_checker
+from presqt import fixity
 
 
 class ResourceCollection(APIView):
@@ -231,6 +231,10 @@ class ResourceDownload(APIView):
         {
             "error": "'presqt-source-token' missing in the request headers."
         }
+        or
+        {
+            "error": "Resource with id, 'folder_id', is not a file."
+        }
 
         401: Unauthorized
         {
@@ -281,7 +285,8 @@ class ResourceDownload(APIView):
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Pass the file and it's hashes to the fixity checker.
-        fixity_obj = fixity_checker(resource['file'], resource['resource'].hashes)
+
+        fixity_obj = fixity.fixity_checker(resource['file'], resource['resource'].hashes)
 
         # If the file passes the fixity check then create a
         # response obj with the file and return it.
@@ -294,5 +299,6 @@ class ResourceDownload(APIView):
             return response
         else:
             return Response(
-                data={'error': "Fixity Check failed using '{}'".format(fixity_obj['hash_algorithm'])},
+                data={
+                    'error': "Fixity Check failed using '{}'".format(fixity_obj['hash_algorithm'])},
                 status=status.HTTP_424_FAILED_DEPENDENCY)
