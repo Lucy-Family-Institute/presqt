@@ -353,7 +353,7 @@ class TestResourceDownload(TestCase):
         """
         Return a 200 if the GET method is successful when downloading OSF resources of type '.js'.
         """
-        hashes ={
+        hashes = {
             "sha256": "a64091e8b8f3659184a4d4ba13adca36347aa8b981ee6c672bd2bd3a014c5a0c",
             "md5": "1f67b72a90b524873a26cd5d2671d0ef"
         }
@@ -391,7 +391,7 @@ class TestResourceDownload(TestCase):
         """
         Return a 200 if the GET method is successful when downloading OSF resources of type '.pdf'.
         """
-        hashes ={
+        hashes = {
             "sha256": "343e249fdb0818a58edcc64663e1eb116843b4e1c4e74790ff331628593c02be",
             "md5": "a4536efb47b26eaf509edfdaca442037"
         }
