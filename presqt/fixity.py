@@ -13,7 +13,7 @@ def fixity_checker(binary_file, hashes):
         Dictionary of known hashes the file had in the target.
         Example:
             {
-                'md5': 'Some Hash',
+                'md5': '1f67b72a90b524873a26cd5d2671d0ef',
                 'sha256': None
             }
 
@@ -21,34 +21,37 @@ def fixity_checker(binary_file, hashes):
     -------
     A dictionary object of the fixity check results.
     """
+    fixity_obj = {
+        'hash_algorithm': None,
+        'given_hash': None,
+        'calculated_hash': None,
+        'fixity': True
+    }
+
     for hash_algorithm, hash_value in hashes.items():
         # If the current hash_value is not None and the hash algorithm is supported by hashlib
         # then this is the hash we will run our fixity checker against.
         if hash_value and hash_algorithm in hashlib.algorithms_available:
-            # Run the file through the hash algorithm
+            # Run the file through the hash algorithm.
             h = hashlib.new(hash_algorithm)
             h.update(binary_file)
+            hash_hex = h.hexdigest()
+
+            fixity_obj['calculated_hash'] = hash_hex
+            fixity_obj['given_hash'] = hash_value
+            fixity_obj['hash_algorithm'] = hash_algorithm
 
             # Compare the given hash with the calculated hash.
-            if h.hexdigest() == hash_value:
-                # Fixity check has passed
-                return {
-                    'hash_algorithm': hash_algorithm,
-                    'hash': hash_value,
-                    'fixity': True
-                }
-            else:
-                # Fixity check has failed.
-                return {
-                    'hash_algorithm': hash_algorithm,
-                    'hash': hash_value,
-                    'fixity': False
-                }
-    # If none of the provided hashes are supported by hashlib or the file didn't come with
-    # any hashes to check against then we say fixity has passed.
+            if hash_hex != hash_value:
+                fixity_obj['fixity'] = False
+            break
     else:
-        return {
-                    'hash_algorithm': None,
-                    'hash': None,
-                    'fixity': True
-                }
+        # If either there is no matching algorithms in hashlib or the provided hashes
+        # don't have values then we assume fixity has remained and we calculate a new hash
+        # using md5 to give to the user.
+        h = hashlib.md5(binary_file)
+        hash_hex = h.hexdigest()
+        fixity_obj['calculated_hash'] = hash_hex
+        fixity_obj['hash_algorithm'] = 'md5'
+
+    return fixity_obj

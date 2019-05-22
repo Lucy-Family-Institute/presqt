@@ -254,11 +254,6 @@ class ResourceDownload(APIView):
         {
             "error": "Resource with id 'bad_id' not found for this user."
         }
-
-        424: Failed Dependency
-        {
-            "error": "Fixity Check failed using '49f68a5c8493ec2c0bf489821c21fc3b'"
-        }
         """
         action = 'resource_download'
 
@@ -285,20 +280,17 @@ class ResourceDownload(APIView):
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Pass the file and it's hashes to the fixity checker.
-
+        # 'file' should be a file in binary format
+        # 'hashes' should be a dictionary of hash algorithms and hashes
         fixity_obj = fixity.fixity_checker(resource['file'], resource['resource'].hashes)
 
         # If the file passes the fixity check then create a
         # response obj with the file and return it.
-        if fixity_obj['fixity']:
-            response = HttpResponse(resource['file'], content_type='application/octet-stream')
-            response['Content-Disposition'] = 'attachment; filename={}'.format(
-                resource['resource'].title)
-            response['presqt_hash_algorithm'] = fixity_obj['hash_algorithm']
-            response['presqt_hash'] = fixity_obj['hash']
-            return response
-        else:
-            return Response(
-                data={
-                    'error': "Fixity Check failed using '{}'".format(fixity_obj['hash_algorithm'])},
-                status=status.HTTP_424_FAILED_DEPENDENCY)
+        response = HttpResponse(resource['file'], content_type='application/octet-stream')
+        response['Content-Disposition'] = 'attachment; filename={}'.format(
+            resource['resource'].title)
+        response['presqt_hash_algorithm'] = fixity_obj['hash_algorithm']
+        response['presqt_given_hash'] = fixity_obj['given_hash']
+        response['presqt_calculated_hash'] = fixity_obj['calculated_hash']
+        response['presqt_fixity'] = fixity_obj['fixity']
+        return response
