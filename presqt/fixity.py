@@ -23,9 +23,10 @@ def fixity_checker(binary_file, hashes):
     """
     fixity_obj = {
         'hash_algorithm': None,
-        'given_hash': None,
-        'calculated_hash': None,
-        'fixity': True
+        'source_hash': None,
+        'presqt_hash': None,
+        'fixity': None,
+        'fixity_details': None
     }
 
     for hash_algorithm, hash_value in hashes.items():
@@ -37,13 +38,18 @@ def fixity_checker(binary_file, hashes):
             h.update(binary_file)
             hash_hex = h.hexdigest()
 
-            fixity_obj['calculated_hash'] = hash_hex
-            fixity_obj['given_hash'] = hash_value
             fixity_obj['hash_algorithm'] = hash_algorithm
+            fixity_obj['presqt_hash'] = hash_hex
+            fixity_obj['source_hash'] = hash_value
 
             # Compare the given hash with the calculated hash.
-            if hash_hex != hash_value:
+            if hash_hex == hash_value:
+                fixity_obj['fixity'] = True
+                fixity_obj['fixity_details'] = 'Source Hash and PresQT Calculated hash matched.'
+            else:
                 fixity_obj['fixity'] = False
+                fixity_obj['fixity_details'] = 'Source Hash and PresQT Calculated ' \
+                                               'hash do not match.'
             break
     else:
         # If either there is no matching algorithms in hashlib or the provided hashes
@@ -51,7 +57,9 @@ def fixity_checker(binary_file, hashes):
         # using md5 to give to the user.
         h = hashlib.md5(binary_file)
         hash_hex = h.hexdigest()
-        fixity_obj['calculated_hash'] = hash_hex
         fixity_obj['hash_algorithm'] = 'md5'
+        fixity_obj['presqt_hash'] = hash_hex
+        fixity_obj['fixity_details'] = 'Either a Source Hash was not provided or ' \
+                                       'the source hash algorithm is not supported.'
 
     return fixity_obj

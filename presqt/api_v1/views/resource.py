@@ -204,12 +204,12 @@ class ResourceDownload(APIView):
     """
     **Supported HTTP Methods**
 
-    * GET: Download a single file with the given resource ID provided.
+    * GET: Download a resource with the given resource ID provided.
     """
 
     def get(self, request, target_name, resource_id):
         """
-        Download a single item.
+        Download a resource.
 
         Parameters
         ----------
@@ -230,10 +230,6 @@ class ResourceDownload(APIView):
         or
         {
             "error": "'presqt-source-token' missing in the request headers."
-        }
-        or
-        {
-            "error": "Resource with id, 'folder_id', is not a file."
         }
 
         401: Unauthorized
@@ -272,25 +268,32 @@ class ResourceDownload(APIView):
         # Fetch the proper function to call
         func = getattr(FunctionRouter, '{}_{}'.format(target_name, action))
 
-        # Fetch the binary file
+        # Fetch the resources
         try:
-            resource = func(token, resource_id)
+            resources = func(token, resource_id)
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch
             return Response(data={'error': e.data}, status=e.status_code)
-
+        print(resources)
         # Pass the file and it's hashes to the fixity checker.
         # 'file' should be a file in binary format
         # 'hashes' should be a dictionary of hash algorithms and hashes
-        fixity_obj = fixity.fixity_checker(resource['file'], resource['resource'].hashes)
+        # for resource in resources:
+        #     fixity_obj = fixity.fixity_checker(resource['file'], resource['hashes'])
+            # Add fixity information to fixity file
+            # Add file to bagit
+
+        # return bagit
+
+        response = Response('hi')
+        return response
+
 
         # If the file passes the fixity check then create a
         # response obj with the file and return it.
-        response = HttpResponse(resource['file'], content_type='application/octet-stream')
-        response['Content-Disposition'] = 'attachment; filename={}'.format(
-            resource['resource'].title)
-        response['presqt_hash_algorithm'] = fixity_obj['hash_algorithm']
-        response['presqt_given_hash'] = fixity_obj['given_hash']
-        response['presqt_calculated_hash'] = fixity_obj['calculated_hash']
-        response['presqt_fixity'] = fixity_obj['fixity']
-        return response
+        # response = HttpResponse(resource['file'], content_type='application/octet-stream')
+        # response['Content-Disposition'] = 'attachment; filename={}'.format(resource['title'])
+        # response['presqt_hash_algorithm'] = fixity_obj['hash_algorithm']
+        # response['presqt_given_hash'] = fixity_obj['given_hash']
+        # response['presqt_calculated_hash'] = fixity_obj['calculated_hash']
+        # response['presqt_fixity'] = fixity_obj['fixity']

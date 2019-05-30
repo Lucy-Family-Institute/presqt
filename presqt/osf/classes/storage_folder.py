@@ -16,8 +16,8 @@ class ContainerMixin:
             if kind == 'file':
                 file = File(child, self.session)
                 file_obj = {
-                    'kind': 'item',
-                    'kind_name': 'file',
+                    'kind': file.kind,
+                    'kind_name': file.kind_name,
                     'id': file.id,
                     'container': container,
                     'title': file.title
@@ -26,19 +26,38 @@ class ContainerMixin:
             elif kind == 'folder':
                 folder = Folder(child, self.session)
                 folder_obj = {
-                    'kind': 'container',
-                    'kind_name': 'folder',
+                    'kind': folder.kind,
+                    'kind_name': folder.kind_name,
                     'id': folder.id,
                     'container': container,
                     'title': folder.title
                 }
                 resource_list.append(folder_obj)
 
-                folder_resource_objects = folder.get_resources_objects(folder.id)
+                for resource in folder.get_resources_objects(folder.id):
+                   resource_list.append(resource)
 
-                for folder in folder_resource_objects:
-                   resource_list.append(folder)
         return resource_list
+
+    def get_all_files(self):
+        """
+        Recursively gets all files for a given container.
+        """
+        file_list = []
+        children = self._follow_next(self._files_url)
+        while children:
+            child = children.pop()
+            kind = child['attributes']['kind']
+
+            if kind == 'file':
+                file_list.append(File(child, self.session))
+            elif kind == 'folder':
+                folder = Folder(child, self.session)
+
+                for file in folder.get_all_files():
+                    file_list.append(file)
+
+        return file_list
 
 
 class Storage(OSFBase, ContainerMixin):

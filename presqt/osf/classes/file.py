@@ -16,6 +16,7 @@ class File(OSFBase):
         self.download_url = file['links']['download']
         self.upload_url = file['links']['upload']
         self.delete_url = file['links']['delete']
+
         # Attributes
         attrs = file['attributes']
         self.kind = 'item'

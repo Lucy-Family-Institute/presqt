@@ -108,3 +108,10 @@ class Project(OSFBase):
                 resources.append(resource)
 
         return resources
+
+    def get_all_files(self):
+        files = []
+        for storage in self.storages():
+            [files.append(file) for file in storage.get_all_files()]
+        # print(files)
+        return files
