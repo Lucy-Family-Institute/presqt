@@ -1,9 +1,20 @@
+import io
+import datetime
+import json
+import os
+import shutil
+import zipfile
+from zipfile import ZipFile
+
+import bagit
 from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from config.settings.base import MEDIA_ROOT
 from presqt.api_v1.helpers.function_router import FunctionRouter
+from presqt.api_v1.helpers.read_write_tools import write_file, zip_directory
 from presqt.api_v1.helpers.validation import target_validation, token_validation
 from presqt.api_v1.serializers.resource import ResourcesSerializer, ResourceSerializer
 from presqt.exceptions import (PresQTValidationError, PresQTAuthorizationError,
@@ -221,7 +232,7 @@ class ResourceDownload(APIView):
         Returns
         -------
         200: OK
-        Returns a HttpResponse with file content to download.
+        Returns a HttpResponse with a zip file to download.
 
         400: Bad Request
         {
@@ -254,10 +265,10 @@ class ResourceDownload(APIView):
         action = 'resource_download'
 
         # Perform token validation
-        try:
-            token = token_validation(request)
-        except PresQTAuthorizationError as e:
-            return Response(data={'error': e.data}, status=e.status_code)
+        # try:
+        #     token = token_validation(request)
+        # except PresQTAuthorizationError as e:
+        #     return Response(data={'error': e.data}, status=e.status_code)
 
         # Perform target_name and action validation
         try:
@@ -268,32 +279,50 @@ class ResourceDownload(APIView):
         # Fetch the proper function to call
         func = getattr(FunctionRouter, '{}_{}'.format(target_name, action))
 
-        # Fetch the resources
+        # Fetch the resources. 'resources' will be a list  the following dict:
+        # {'file': binary_file,
+        # 'hashes': {'some_hash': value, 'other_hash': value},
+        # 'title': resource_title,
+        # 'path': /some/path/to/resource}
         try:
-            resources = func(token, resource_id)
+            resources = func('0UAX3rbdd59OUXkGIu19gY0BMQODAbtGimcLNAfAie6dUQGGPig93mpFOpJQ8ceynlGScp', resource_id)
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch
             return Response(data={'error': e.data}, status=e.status_code)
-        print(resources)
-        # Pass the file and it's hashes to the fixity checker.
-        # 'file' should be a file in binary format
-        # 'hashes' should be a dictionary of hash algorithms and hashes
-        # for resource in resources:
-        #     fixity_obj = fixity.fixity_checker(resource['file'], resource['hashes'])
-            # Add fixity information to fixity file
-            # Add file to bagit
 
-        # return bagit
+        # The directory all files should be saved in.
+        file_name = '{}_download_{}'.format(target_name, datetime.datetime.now())
+        folder_directory = 'mediafiles/{}'.format(file_name)
 
-        response = Response('hi')
+        # Loop through the resources, perform fixity check on each one, and save the file to disk.
+        fixity_info = []
+        for resource in resources:
+            # Perform the fixity check and add extra info to the returned fixity object.
+            fixity_obj = fixity.fixity_checker(resource['file'], resource['hashes'])
+            fixity_obj['resource_title'] = resource['title']
+            fixity_obj['path'] = resource['path']
+            fixity_info.append(fixity_obj)
+
+            # Save the file to the disk.
+            file_path = '{}{}'.format(folder_directory, resource['path'])
+            write_file(file_path, resource['file'])
+
+        # Add the fixity file to the disk directory
+        file_path = '{}/fixity_info.json'.format(folder_directory)
+        write_file(file_path, fixity_info, True)
+
+        # Make a Bagit 'bag' of the resources.
+        bagit.make_bag(folder_directory)
+
+        # Zip the Bagit 'bag' to send forward.
+        zip_file_path = "mediafiles/{}.zip".format(file_name)
+        zip_directory(zip_file_path, folder_directory)
+
+        response = HttpResponse(open(zip_file_path, 'rb'), content_type='application/zip')
+        response['Content-Disposition'] = 'attachment; filename=zip_file.zip'
+
+        # Delete the data directory and zip file
+        # shutil.rmtree(folder_directory)
+        # os.remove(zip_file_path)
+
         return response
-
-
-        # If the file passes the fixity check then create a
-        # response obj with the file and return it.
-        # response = HttpResponse(resource['file'], content_type='application/octet-stream')
-        # response['Content-Disposition'] = 'attachment; filename={}'.format(resource['title'])
-        # response['presqt_hash_algorithm'] = fixity_obj['hash_algorithm']
-        # response['presqt_given_hash'] = fixity_obj['given_hash']
-        # response['presqt_calculated_hash'] = fixity_obj['calculated_hash']
-        # response['presqt_fixity'] = fixity_obj['fixity']

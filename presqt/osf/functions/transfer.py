@@ -7,7 +7,7 @@ from presqt.osf.helpers import get_osf_resource
 
 def osf_download_resource(token, resource_id):
     """
-    Fetch the requested resource from OSF along with it's class representation.
+    Fetch the requested resource from OSF along with its hash information.
 
     Parameters
     ----------
@@ -19,7 +19,7 @@ def osf_download_resource(token, resource_id):
 
     Returns
     -------
-
+    List of dictionary objects that each hold a file and its information.
     """
 
     try:
@@ -31,6 +31,9 @@ def osf_download_resource(token, resource_id):
     # Get the resource
     resource = get_osf_resource(resource_id, osf_instance)
 
+    # Get all files for the provided resources.
+    # The 'path' value will be the path that the file is eventually saved in. The root of the
+    # path should be the resource.
     files = []
     if resource.kind_name == 'file':
         binary_file = resource.download()
@@ -43,19 +46,25 @@ def osf_download_resource(token, resource_id):
         })
     else:
         for file in resource.get_all_files():
-            # Calculate the full file path
+            # Calculate the full file path with the resource as the root of the path.
             if resource.kind_name == 'project':
+                # File path needs the project and storage names prepended to it.
                 file_path = '/{}/{}/{}'.format(resource.title,
                                                file.provider, file.materialized_path)
             elif resource.kind_name == 'storage':
+                # File path needs the storage name prepended to it.
                 file_path = '/{}/{}'.format(file.provider, file.materialized_path)
-            else:
+            else: # elif project
+                # File Path needs to start at the folder and strip everything before it.
+                # Example: If the resource is 'Docs2' and the starting path is
+                # '/Project/Storage/Docs1/Docs2/file.jpeg' then the final path
+                # needs to be '/Docs2/file.jpeg'
                 path_to_strip = resource.materialized_path[:-(len(resource.title)+2)]
                 file_path = file.materialized_path[len(path_to_strip):]
 
-            # binary_file = file.download()
+            binary_file = file.download()
             files.append({
-                # 'file': binary_file,
+                'file': binary_file,
                 'hashes': file.hashes,
                 'title': file.title,
                 'path': file_path
