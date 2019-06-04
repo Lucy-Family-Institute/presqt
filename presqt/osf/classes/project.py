@@ -113,5 +113,4 @@ class Project(OSFBase):
         files = []
         for storage in self.storages():
             [files.append(file) for file in storage.get_all_files()]
-        # print(files)
         return files
