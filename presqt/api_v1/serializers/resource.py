@@ -32,16 +32,3 @@ class ResourceSerializer(serializers.Serializer):
     size = serializers.IntegerField()
     hashes = HashSerializer()
     extra = serializers.DictField()
-
-
-class ResourceDownloadSerializer(serializers.Serializer):
-    """
-    Serializer for the resource download object.
-    """
-    kind = serializers.CharField(max_length=256)
-    kind_name = serializers.CharField(max_length=256)
-    id = serializers.CharField(max_length=256)
-    title = serializers.CharField(max_length=256)
-    hashes = HashSerializer()
-    path = serializers.CharField(max_length=256)
-    download_url = serializers.CharField(max_length=256)
