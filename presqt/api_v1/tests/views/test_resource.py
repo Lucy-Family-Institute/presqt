@@ -1,4 +1,7 @@
 import hashlib
+import io
+import json
+import zipfile
 from unittest.mock import patch, mock_open
 
 from django.test import TestCase
@@ -83,6 +86,7 @@ class TestResourceCollection(TestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.data, {'error': "'bad_name' is not a valid Target name."})
+
 
 class TestResource(TestCase):
     """
@@ -262,169 +266,215 @@ class TestResource(TestCase):
                          {'error': "Resource with id 'cmn5z:badstorage' not found for this user."})
 
 
-# class TestResourceDownload(TestCase):
-#     """
-#     Test the `api_v1/targets/{target_name}/resources/{resource_id}/download/` endpoint's GET method.
-#     """
-#     def setUp(self):
-#         self.client = APIClient()
-#         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': TEST_USER_TOKEN}
-#
-#     def test_get_success_200_file_osfstorage_osf_jpg(self):
-#         """
-#         Return a 200 if the GET method is successful when downloading OSF resources of type '.jpg'.
-#         """
-#         hashes = {
-#             "sha256": "3e517cda95ddbfcb270ab273201517f5ae0ee1190a9c5f6f7e6662f97868366f",
-#             "md5": "9e79fdd9032629743fca52634ecdfd86"
-#         }
-#
-#         url = reverse('resource_download', kwargs={'target_name': 'osf',
-#                                                    'resource_id': '5cd98510f244ec001fe5632f'})
-#         response = self.client.get(url, **self.header)
-#
-#         # Verify the Status Code
-#         self.assertEqual(response.status_code, 200)
-#         # Verify the name
-#         self.assertEqual(
-#             response._headers['content-disposition'][1],
-#             'attachment; filename=22776439564_7edbed7e10_o.jpg')
-#         # Verify the calculated hash is the same as the matching hash in the defined
-#         # hashes dictionary.
-#         self.assertEqual(
-#             hashes[response._headers['presqt_hash_algorithm'][1]],
-#             response._headers['presqt_calculated_hash'][1])
-#         # Verify the given and calculated hashes in the headers match
-#         self.assertEqual(
-#             response._headers['presqt_calculated_hash'][1],
-#             response._headers['presqt_given_hash'][1])
-#         # Verify content type
-#         self.assertEqual(response._headers['content-type'][1], 'application/octet-stream')
-#         # Verify the content length
-#         self.assertEqual(response._headers['content-length'][1], '1728998')
-#         # Verify that fixity was true
-#         self.assertEqual(response._headers['presqt_fixity'][1], 'True')
-#
-#         # Run the file downloaded from the fixity checker to check if the
-#         # file we got from the response is the same that we sent.
-#         fixity = fixity_checker(response.content, hashes)
-#         self.assertEqual(fixity['fixity'], True)
-#
-#
-#     def test_get_success_200_file_osfstorage_osf_docx(self):
-#         """
-#         Return a 200 if the GET method is successful when downloading OSF resources of type '.docx'.
-#         """
-#         hashes ={
-#             "sha256": "f87040f7f12957c996d0440ebadeca9e55908092faea2f600dc4b079f75ea943",
-#             "md5": "38b6bd925c04af35a10cacf00704a2a4"
-#         }
-#
-#         url = reverse('resource_download', kwargs={'target_name': 'osf',
-#                                                    'resource_id': '5cd9831c054f5b001a5ca2af'})
-#         response = self.client.get(url, **self.header)
-#         # Verify the Status Code
-#         self.assertEqual(response.status_code, 200)
-#         # Verify the name
-#         self.assertEqual(
-#             response._headers['content-disposition'][1],
-#             'attachment; filename=2017-01-27 PresQT Workshop Planning Meeting Items.docx')
-#         # Verify the calculated hash is the same as the matching hash in the defined
-#         # hashes dictionary.
-#         self.assertEqual(
-#             hashes[response._headers['presqt_hash_algorithm'][1]],
-#             response._headers['presqt_calculated_hash'][1])
-#         # Verify the given and calculated hashes in the headers match
-#         self.assertEqual(
-#             response._headers['presqt_calculated_hash'][1],
-#             response._headers['presqt_given_hash'][1])
-#         # Verify content type
-#         self.assertEqual(response._headers['content-type'][1], 'application/octet-stream')
-#         # Verify the content length
-#         self.assertEqual(response._headers['content-length'][1], '8289')
-#         # Verify the fixity was true
-#         self.assertEqual(response._headers['presqt_fixity'][1], 'True')
-#         # Run the file downloaded from the fixity checker to check if the
-#         # file we got from teh response is the same that we sent.
-#         fixity = fixity_checker(response.content, hashes)
-#         self.assertEqual(fixity['fixity'], True)
-#
-#     def test_get_success_200_file_osfstorage_osf_js(self):
-#         """
-#         Return a 200 if the GET method is successful when downloading OSF resources of type '.js'.
-#         """
-#         hashes = {
-#             "sha256": "a64091e8b8f3659184a4d4ba13adca36347aa8b981ee6c672bd2bd3a014c5a0c",
-#             "md5": "1f67b72a90b524873a26cd5d2671d0ef"
-#         }
-#
-#         url = reverse('resource_download', kwargs={'target_name': 'osf',
-#                                                    'resource_id': '5cd98978054f5b001a5ca746'})
-#         response = self.client.get(url, **self.header)
-#         # Verify the Status Code
-#         self.assertEqual(response.status_code, 200)
-#         # Verify the name
-#         self.assertEqual(
-#             response._headers['content-disposition'][1],
-#             'attachment; filename=build-plugins.js')
-#         # Verify the calculated hash is the same as the matching hash in the defined
-#         # hashes dictionary.
-#         self.assertEqual(
-#             hashes[response._headers['presqt_hash_algorithm'][1]],
-#             response._headers['presqt_calculated_hash'][1])
-#         # Verify the given and calculated hashes in the headers match
-#         self.assertEqual(
-#             response._headers['presqt_calculated_hash'][1],
-#             response._headers['presqt_given_hash'][1])
-#         # Verify content type
-#         self.assertEqual(response._headers['content-type'][1], 'application/octet-stream')
-#         # Verify the content length
-#         self.assertEqual(response._headers['content-length'][1], '2507')
-#         # Verify the fixity was true
-#         self.assertEqual(response._headers['presqt_fixity'][1], 'True')
-#         # Run the file downloaded from the fixity checker to check if the
-#         # file we got from teh response is the same that we sent.
-#         fixity = fixity_checker(response.content, hashes)
-#         self.assertEqual(fixity['fixity'], True)
-#
-#     def test_get_success_200_file_osfstorage_osf_pdf(self):
-#         """
-#         Return a 200 if the GET method is successful when downloading OSF resources of type '.pdf'.
-#         """
-#         hashes = {
-#             "sha256": "343e249fdb0818a58edcc64663e1eb116843b4e1c4e74790ff331628593c02be",
-#             "md5": "a4536efb47b26eaf509edfdaca442037"
-#         }
-#
-#         url = reverse('resource_download', kwargs={'target_name': 'osf',
-#                                                    'resource_id': '5cd98978f244ec001ee86609'})
-#         response = self.client.get(url, **self.header)
-#         # Verify the Status Code
-#         self.assertEqual(response.status_code, 200)
-#         # Verify the name
-#         self.assertEqual(
-#             response._headers['content-disposition'][1],
-#             'attachment; filename=Character Sheet - Alternative - Print Version.pdf')
-#         # Verify the calculated hash is the same as the matching hash in the defined
-#         # hashes dictionary.
-#         self.assertEqual(
-#             hashes[response._headers['presqt_hash_algorithm'][1]],
-#             response._headers['presqt_calculated_hash'][1])
-#         # Verify the given and calculated hashes in the headers match
-#         self.assertEqual(
-#             response._headers['presqt_calculated_hash'][1],
-#             response._headers['presqt_given_hash'][1])
-#         # Verify content type
-#         self.assertEqual(response._headers['content-type'][1], 'application/octet-stream')
-#         # Verify the content length
-#         self.assertEqual(response._headers['content-length'][1], '146824')
-#         # Verify the fixity was true
-#         self.assertEqual(response._headers['presqt_fixity'][1], 'True')
-#         # Run the file downloaded from the fixity checker to check if the
-#         # file we got from teh response is the same that we sent.
-#         fixity = fixity_checker(response.content, hashes)
-#         self.assertEqual(fixity['fixity'], True)
-#
+class TestResourceDownload(TestCase):
+    """
+    Test the `api_v1/targets/{target_name}/resources/{resource_id}/download/` endpoint's GET method.
+    """
+    def setUp(self):
+        self.client = APIClient()
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': TEST_USER_TOKEN}
+
+    def test_get_success_200_file_osfstorage_osf_file_jpg(self):
+        """
+        Return a 200 if the GET method is successful when downloading
+        OSF resources file of type '.jpg'.
+        """
+        hashes = {
+            "sha256": "3e517cda95ddbfcb270ab273201517f5ae0ee1190a9c5f6f7e6662f97868366f",
+            "md5": "9e79fdd9032629743fca52634ecdfd86"
+        }
+        resource_id = '5cd98510f244ec001fe5632f'
+
+        url = reverse('resource_download', kwargs={'target_name': 'osf',
+                                                   'resource_id': resource_id})
+        response = self.client.get(url, **self.header)
+        zip_file = zipfile.ZipFile(io.BytesIO(response.content))
+
+        # Verify the Status Code
+        self.assertEqual(response.status_code, 200)
+        # Verify the name of the zip file
+        self.assertEquals(
+            response._headers['content-disposition'][1],
+            'attachment; filename=osf_download_{}.zip'.format(resource_id))
+        # Verify content type
+        self.assertEqual(response._headers['content-type'][1], 'application/zip')
+        # Verify the number of resources in the zip is correct
+        self.assertEqual(len(zip_file.namelist()), 8)
+        # Verify the custom hash_file information is correct
+        with zip_file.open('mediafiles/osf_download_5cd98510f244ec001fe5632f/data/fixity_info.json') as fixityfile:
+            zip_json = json.load(fixityfile)[0]
+            self.assertEqual(zip_json['fixity'], True)
+            self.assertEqual(zip_json['fixity_details'], 'Source Hash and PresQT Calculated hash matched.')
+            self.assertEqual(zip_json['hash_algorithm'], 'sha256')
+            self.assertEqual(zip_json['presqt_hash'], hashes['sha256'])
+
+        # Run the file through the fixity checker again to make sure it downloaded correctly
+        with zip_file.open('mediafiles/osf_download_5cd98510f244ec001fe5632f/data/22776439564_7edbed7e10_o.jpg') as myfile:
+            temp_file = myfile.read()
+            fixity = fixity_checker(temp_file, hashes)
+            self.assertEqual(fixity['fixity'], True)
+
+    def test_get_success_200_file_osfstorage_osf_file_docx(self):
+        """
+        Return a 200 if the GET method is successful when downloading
+        OSF resources file of type '.docx'.
+        """
+        hashes = {
+            "sha256": "f87040f7f12957c996d0440ebadeca9e55908092faea2f600dc4b079f75ea943",
+            "md5": "38b6bd925c04af35a10cacf00704a2a4"
+        }
+        resource_id = '5cd9831c054f5b001a5ca2af'
+
+        url = reverse('resource_download', kwargs={'target_name': 'osf',
+                                                   'resource_id': resource_id})
+        response = self.client.get(url, **self.header)
+        zip_file = zipfile.ZipFile(io.BytesIO(response.content))
+
+        # Verify the Status Code
+        self.assertEqual(response.status_code, 200)
+        # Verify the name of the zip file
+        self.assertEquals(
+            response._headers['content-disposition'][1],
+            'attachment; filename=osf_download_{}.zip'.format(resource_id))
+        # Verify content type
+        self.assertEqual(response._headers['content-type'][1], 'application/zip')
+        # Verify the number of resources in the zip is correct
+        self.assertEqual(len(zip_file.namelist()), 8)
+        # Verify the custom hash_file information is correct
+        with zip_file.open('mediafiles/osf_download_5cd9831c054f5b001a5ca2af/data/fixity_info.json') as fixityfile:
+            zip_json = json.load(fixityfile)[0]
+            self.assertEqual(zip_json['fixity'], True)
+            self.assertEqual(zip_json['fixity_details'], 'Source Hash and PresQT Calculated hash matched.')
+            self.assertEqual(zip_json['hash_algorithm'], 'sha256')
+            self.assertEqual(zip_json['presqt_hash'], hashes['sha256'])
+
+        # Run the file through the fixity checker again to make sure it downloaded correctly
+        with zip_file.open('mediafiles/osf_download_5cd9831c054f5b001a5ca2af/data/2017-01-27 PresQT Workshop Planning Meeting Items.docx') as myfile:
+            temp_file = myfile.read()
+            fixity = fixity_checker(temp_file, hashes)
+            self.assertEqual(fixity['fixity'], True)
+
+    def test_get_success_200_file_osfstorage_osf_file_js(self):
+        """
+        Return a 200 if the GET method is successful when downloading
+        OSF resources file of type '.js'.
+        """
+        hashes = {
+            "sha256": "a64091e8b8f3659184a4d4ba13adca36347aa8b981ee6c672bd2bd3a014c5a0c",
+            "md5": "1f67b72a90b524873a26cd5d2671d0ef"
+        }
+        resource_id = '5cd98978054f5b001a5ca746'
+
+        url = reverse('resource_download', kwargs={'target_name': 'osf',
+                                                   'resource_id': resource_id})
+        response = self.client.get(url, **self.header)
+        zip_file = zipfile.ZipFile(io.BytesIO(response.content))
+
+        # Verify the Status Code
+        self.assertEqual(response.status_code, 200)
+        # Verify the name of the zip file
+        self.assertEquals(
+            response._headers['content-disposition'][1],
+            'attachment; filename=osf_download_{}.zip'.format(resource_id))
+        # Verify content type
+        self.assertEqual(response._headers['content-type'][1], 'application/zip')
+        # Verify the number of resources in the zip is correct
+        self.assertEqual(len(zip_file.namelist()), 8)
+        # Verify the custom hash_file information is correct
+        with zip_file.open('mediafiles/osf_download_5cd98978054f5b001a5ca746/data/fixity_info.json') as fixityfile:
+            zip_json = json.load(fixityfile)[0]
+            self.assertEqual(zip_json['fixity'], True)
+            self.assertEqual(zip_json['fixity_details'], 'Source Hash and PresQT Calculated hash matched.')
+            self.assertEqual(zip_json['hash_algorithm'], 'sha256')
+            self.assertEqual(zip_json['presqt_hash'], hashes['sha256'])
+
+        # Run the file through the fixity checker again to make sure it downloaded correctly
+        with zip_file.open('mediafiles/osf_download_5cd98978054f5b001a5ca746/data/build-plugins.js') as myfile:
+            temp_file = myfile.read()
+            fixity = fixity_checker(temp_file, hashes)
+            self.assertEqual(fixity['fixity'], True)
+
+    def test_get_success_200_file_osfstorage_osf_file_pdf(self):
+        """
+        Return a 200 if the GET method is successful when downloading
+        OSF resources file of type '.pdf'.
+        """
+        hashes = {
+            "sha256": "343e249fdb0818a58edcc64663e1eb116843b4e1c4e74790ff331628593c02be",
+            "md5": "a4536efb47b26eaf509edfdaca442037"
+        }
+        resource_id = '5cd98978f244ec001ee86609'
+
+        url = reverse('resource_download', kwargs={'target_name': 'osf',
+                                                   'resource_id': resource_id})
+        response = self.client.get(url, **self.header)
+        zip_file = zipfile.ZipFile(io.BytesIO(response.content))
+
+        # Verify the Status Code
+        self.assertEqual(response.status_code, 200)
+        # Verify the name of the zip file
+        self.assertEquals(
+            response._headers['content-disposition'][1],
+            'attachment; filename=osf_download_{}.zip'.format(resource_id))
+        # Verify content type
+        self.assertEqual(response._headers['content-type'][1], 'application/zip')
+        # Verify the number of resources in the zip is correct
+        self.assertEqual(len(zip_file.namelist()), 8)
+        # Verify the custom hash_file information is correct
+        with zip_file.open('mediafiles/osf_download_5cd98978f244ec001ee86609/data/fixity_info.json') as fixityfile:
+            zip_json = json.load(fixityfile)[0]
+            self.assertEqual(zip_json['fixity'], True)
+            self.assertEqual(zip_json['fixity_details'], 'Source Hash and PresQT Calculated hash matched.')
+            self.assertEqual(zip_json['hash_algorithm'], 'sha256')
+            self.assertEqual(zip_json['presqt_hash'], hashes['sha256'])
+
+        # Run the file through the fixity checker again to make sure it downloaded correctly
+        with zip_file.open('mediafiles/osf_download_5cd98978f244ec001ee86609/data/Character Sheet - Alternative - Print Version.pdf') as myfile:
+            temp_file = myfile.read()
+            fixity = fixity_checker(temp_file, hashes)
+            self.assertEqual(fixity['fixity'], True)
+
+
+    def test_get_success_200_file_osfstorage_osf_file_mp4(self):
+        """
+        Return a 200 if the GET method is successful when downloading
+        OSF resources file of type '.mp4'.
+        """
+        hashes = {
+            "sha256": "7d0ebb2f04bb6a43bda6a918ff2279db0a38afc10b82d21365c41fa9cd203c81",
+            "md5": "f2184329b0f75edb39f559effd16f44f"
+        }
+        resource_id = '5cd989c5f8214b00188af9b5'
+
+        url = reverse('resource_download', kwargs={'target_name': 'osf',
+                                                   'resource_id': resource_id})
+        response = self.client.get(url, **self.header)
+        zip_file = zipfile.ZipFile(io.BytesIO(response.content))
+
+        # Verify the Status Code
+        self.assertEqual(response.status_code, 200)
+        # Verify the name of the zip file
+        self.assertEquals(
+            response._headers['content-disposition'][1],
+            'attachment; filename=osf_download_{}.zip'.format(resource_id))
+        # Verify content type
+        self.assertEqual(response._headers['content-type'][1], 'application/zip')
+        # Verify the number of resources in the zip is correct
+        self.assertEqual(len(zip_file.namelist()), 8)
+        # Verify the custom hash_file information is correct
+        with zip_file.open('mediafiles/osf_download_5cd989c5f8214b00188af9b5/data/fixity_info.json') as fixityfile:
+            zip_json = json.load(fixityfile)[0]
+            self.assertEqual(zip_json['fixity'], True)
+            self.assertEqual(zip_json['fixity_details'], 'Source Hash and PresQT Calculated hash matched.')
+            self.assertEqual(zip_json['hash_algorithm'], 'sha256')
+            self.assertEqual(zip_json['presqt_hash'], hashes['sha256'])
+
+        # Run the file through the fixity checker again to make sure it downloaded correctly
+        with zip_file.open('mediafiles/osf_download_5cd989c5f8214b00188af9b5/data/VID_20180314_155531.mp4') as myfile:
+            temp_file = myfile.read()
+            fixity = fixity_checker(temp_file, hashes)
+            self.assertEqual(fixity['fixity'], True)
+
 #     def test_get_success_200_file_osfstorage_osf_mp4(self):
 #         """
 #         Return a 200 if the GET method is successful when downloading OSF resources of type '.mp4'.

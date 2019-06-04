@@ -12,7 +12,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from config.settings.base import MEDIA_ROOT
+from config.settings.base import MEDIA_ROOT, TEST_USER_TOKEN
 from presqt.api_v1.helpers.function_router import FunctionRouter
 from presqt.api_v1.helpers.read_write_tools import write_file, zip_directory
 from presqt.api_v1.helpers.validation import target_validation, token_validation
@@ -265,10 +265,10 @@ class ResourceDownload(APIView):
         action = 'resource_download'
 
         # Perform token validation
-        # try:
-        #     token = token_validation(request)
-        # except PresQTAuthorizationError as e:
-        #     return Response(data={'error': e.data}, status=e.status_code)
+        try:
+            token = token_validation(request)
+        except PresQTAuthorizationError as e:
+            return Response(data={'error': e.data}, status=e.status_code)
 
         # Perform target_name and action validation
         try:
@@ -285,13 +285,13 @@ class ResourceDownload(APIView):
         # 'title': resource_title,
         # 'path': /some/path/to/resource}
         try:
-            resources = func('0UAX3rbdd59OUXkGIu19gY0BMQODAbtGimcLNAfAie6dUQGGPig93mpFOpJQ8ceynlGScp', resource_id)
+            resources = func(token, resource_id)
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch
             return Response(data={'error': e.data}, status=e.status_code)
 
         # The directory all files should be saved in.
-        file_name = '{}_download_{}'.format(target_name, datetime.datetime.now())
+        file_name = '{}_download_{}'.format(target_name, resource_id)
         folder_directory = 'mediafiles/{}'.format(file_name)
 
         # Loop through the resources, perform fixity check on each one, and save the file to disk.
@@ -319,10 +319,10 @@ class ResourceDownload(APIView):
         zip_directory(zip_file_path, folder_directory)
 
         response = HttpResponse(open(zip_file_path, 'rb'), content_type='application/zip')
-        response['Content-Disposition'] = 'attachment; filename=zip_file.zip'
+        response['Content-Disposition'] = 'attachment; filename={}.zip'.format(file_name)
 
         # Delete the data directory and zip file
-        # shutil.rmtree(folder_directory)
-        # os.remove(zip_file_path)
+        shutil.rmtree(folder_directory)
+        os.remove(zip_file_path)
 
         return response
