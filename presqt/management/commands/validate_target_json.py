@@ -2,7 +2,7 @@ import json
 
 from django.core.management import BaseCommand
 
-from presqt.api_v1.helpers.function_router import FunctionRouter
+from presqt.api_v1.utilities.utils.function_router import FunctionRouter
 from presqt.json_schemas.schema_handlers import schema_validator
 
 

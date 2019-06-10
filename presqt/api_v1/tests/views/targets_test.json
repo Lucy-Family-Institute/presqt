@@ -1,0 +1,10 @@
+[
+  {
+    "name": "test",
+    "supported_actions": {
+          "resource_collection": false,
+          "resource_detail": false,
+          "resource_download": false
+    }
+  }
+]

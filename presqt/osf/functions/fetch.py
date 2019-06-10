@@ -2,7 +2,7 @@ from rest_framework import status
 
 from presqt.exceptions import PresQTResponseException, PresQTInvalidTokenError
 from presqt.osf.classes.main import OSF
-from presqt.osf.exceptions import OSFNotFoundError
+from presqt.osf.helpers import get_osf_resource
 
 
 def osf_fetch_resources(token):
@@ -98,29 +98,7 @@ def osf_fetch_resource(token, resource_id):
             }
         return resource_object_obj
 
-    # Since we don't know the file type, try and get the resource as a storage provider first.
-    resource_id_split = resource_id.split(':')
-    try:
-        resource = osf_instance.project(resource_id_split[0]).storage(resource_id_split[1])
-    except (OSFNotFoundError, IndexError):
-        pass
-    else:
-        return create_object(resource)
+    # Get the resource
+    resource = get_osf_resource(resource_id, osf_instance)
 
-    # If it's not a storage provider then check if it's a file or folder.
-    try:
-        resource = osf_instance.resource(resource_id)
-    except OSFNotFoundError:
-        pass
-    else:
-        return create_object(resource)
-
-    # If it's not a folder/file then it's a project or it doesn't exist.
-    try:
-        resource = osf_instance.project(resource_id)
-    except OSFNotFoundError as e:
-        raise PresQTResponseException(
-            "Resource with id '{}' not found for this user.".format(resource_id), e.status_code)
-    else:
-        return create_object(resource)
-
+    return create_object(resource)

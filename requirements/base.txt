@@ -10,3 +10,4 @@ djangorestframework==3.9.2          # Latest version of DRF
 django-cors-headers==2.5.2          # Allows cross-domain HTTP communication
 Markdown==3.1                       # Markdown support for browsable API
 coreapi==2.3.3                      # Schema generation support for API
+bagit==1.7.0                        # Utility for working with BagIt style packages.

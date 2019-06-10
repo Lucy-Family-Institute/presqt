@@ -44,9 +44,6 @@ class Project(OSFBase):
         self.sha256 = None
         self.md5 = None
 
-    def __str__(self):
-        return '<project [{}]>'.format(self.id)
-
     def storages(self):
         """
         Iterate over all storages for this project.
@@ -111,3 +108,9 @@ class Project(OSFBase):
                 resources.append(resource)
 
         return resources
+
+    def get_all_files(self):
+        files = []
+        for storage in self.storages():
+            [files.append(file) for file in storage.get_all_files()]
+        return files
