@@ -14,6 +14,7 @@ from rest_framework.views import APIView
 from presqt.api_v1.serializers.resource import ResourcesSerializer, ResourceSerializer
 from presqt.api_v1.utilities import (token_validation, target_validation, FunctionRouter,
                                      write_file, zip_directory)
+from presqt.api_v1.utilities.io.read_file import read_file
 from presqt.exceptions import (PresQTValidationError, PresQTAuthorizationError,
                                PresQTResponseException)
 from presqt import fixity
@@ -291,7 +292,7 @@ class PrepareDownload(APIView):
         write_file(server_metadata_path, server_metadata_obj, True)
 
         # Spawn separate job
-        # ¯\_(ツ)_ /¯
+        # ¯\_(ツ)_/¯
         temp_function(target_name, action, token, resource_id, ticket_path, server_metadata_path)
 
         # Return response
@@ -314,8 +315,7 @@ def temp_function(target_name, action, token, resource_id, ticket_path, server_m
     except PresQTResponseException as e:
         # Catch any errors that happen within the target fetch.
         # Update the server metadata file appropriately.
-        with open(server_metadata_path, 'r') as metadata_file:
-            data = json.load(metadata_file)
+        data = read_file(server_metadata_path, True)
         data['status_code'] = e.status_code
         data['status'] = 'failed'
         data['message'] = e.data
@@ -351,8 +351,7 @@ def temp_function(target_name, action, token, resource_id, ticket_path, server_m
     zip_directory(zip_file_path, folder_directory)
 
     # Everything was a success so update the server metadata file.
-    with open(server_metadata_path, 'r') as metadata_file:
-        data = json.load(metadata_file)
+    data = read_file(server_metadata_path, True)
     data['status_code'] = '200'
     data['status'] = 'done'
     data['message'] = 'Download successful'
