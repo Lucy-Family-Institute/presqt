@@ -5,10 +5,10 @@ from django.http import HttpResponse
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from presqt.api_v1.helpers.function_router import FunctionRouter
-from presqt.api_v1.helpers.read_write_tools import write_file, zip_directory
-from presqt.api_v1.helpers.validation import target_validation, token_validation
+
 from presqt.api_v1.serializers.resource import ResourcesSerializer, ResourceSerializer
+from presqt.api_v1.utilities import (token_validation, target_validation, FunctionRouter,
+                                     write_file, zip_directory)
 from presqt.exceptions import (PresQTValidationError, PresQTAuthorizationError,
                                PresQTResponseException)
 from presqt import fixity
@@ -86,7 +86,7 @@ class ResourceCollection(APIView):
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Fetch the proper function to call
-        func = getattr(FunctionRouter, '{}_{}'.format(target_name, action))
+        func = FunctionRouter.get_function(target_name, action)
 
         # Fetch the target's resources
         try:
@@ -190,7 +190,7 @@ class Resource(APIView):
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Fetch the proper function to call
-        func = getattr(FunctionRouter, '{}_{}'.format(target_name, action))
+        func = FunctionRouter.get_function(target_name, action)
 
         # Fetch the resource
         try:
@@ -269,7 +269,7 @@ class ResourceDownload(APIView):
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Fetch the proper function to call
-        func = getattr(FunctionRouter, '{}_{}'.format(target_name, action))
+        func = FunctionRouter.get_function(target_name, action)
 
         # Fetch the resources. 'resources' will be a list  the following dict:
         # {'file': binary_file,

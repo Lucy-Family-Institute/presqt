@@ -1,4 +1,3 @@
-
 from presqt.osf.classes.base import OSFBase
 
 
