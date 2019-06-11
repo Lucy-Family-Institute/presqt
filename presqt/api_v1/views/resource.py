@@ -294,7 +294,7 @@ class PrepareDownload(APIView):
 
         # Spawn separate job
         # ¯\_(ツ)_/¯
-        # This is current;y working on another thread as were are now see
+        # This is current;y working on another thread as were  now see
         # print statements from the function in our log simultaneous with the
         # view logs. Phase 2 will be to figure out how to get return data from
         # this process
