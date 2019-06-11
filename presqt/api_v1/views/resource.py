@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 from datetime import timedelta, datetime
+import multiprocessing
 from uuid import uuid4
 
 import bagit
@@ -293,7 +294,12 @@ class PrepareDownload(APIView):
 
         # Spawn separate job
         # ¯\_(ツ)_/¯
-        temp_function(target_name, action, token, resource_id, ticket_path, server_metadata_path)
+        # This is current;y working on another thread as were are no longer seeing print statements
+        # from the function in our log. Phase 2 will be to figure out how to get return data from this process
+        function_thread = multiprocessing.Process(target=temp_function, args=[
+            target_name, action, token, resource_id, ticket_path, server_metadata_path])
+
+        print(function_thread)
 
         # Return response
         return Response(status=status.HTTP_200_OK,
@@ -305,6 +311,7 @@ def temp_function(target_name, action, token, resource_id, ticket_path, server_m
     # Fetch the proper function to call
     func = FunctionRouter.get_function(target_name, action)
 
+    print('We working')
     # Fetch the resources. 'resources' will be a list  the following dict:
     # {'file': binary_file,
     # 'hashes': {'some_hash': value, 'other_hash': value},
@@ -330,7 +337,8 @@ def temp_function(target_name, action, token, resource_id, ticket_path, server_m
     fixity_info = []
     for resource in resources:
         # Perform the fixity check and add extra info to the returned fixity object.
-        fixity_obj = fixity.fixity_checker(resource['file'], resource['hashes'])
+        fixity_obj = fixity.fixity_checker(
+            resource['file'], resource['hashes'])
         fixity_obj['resource_title'] = resource['title']
         fixity_obj['path'] = resource['path']
         fixity_info.append(fixity_obj)
@@ -356,4 +364,5 @@ def temp_function(target_name, action, token, resource_id, ticket_path, server_m
     data['status'] = 'done'
     data['message'] = 'Download successful'
     write_file(server_metadata_path, data, True)
+    print('The job is finished')
     return
