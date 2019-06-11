@@ -3,6 +3,7 @@ import bagit
 
 from uuid import uuid4
 from dateutil.relativedelta import relativedelta
+from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
@@ -24,6 +25,7 @@ class PrepareDownload(APIView):
     * GET: Prepares a download of a resource with the given resource ID provided. Spawns a
     process separate from the request server to do the actual downloading and zip-file preparation.
     """
+
     def get(self, request, target_name, resource_id):
         """
         Prepare a resource for download.
@@ -93,9 +95,16 @@ class PrepareDownload(APIView):
             target_name, action, token, resource_id, ticket_path, process_info_path])
         function_thread.start()
 
+        # Get the download url
+        reversed_url = reverse('download_resource', kwargs={
+                               'ticket_number': ticket_number})
+        download_hyperlink = request.build_absolute_uri(
+            reversed_url)
+
         return Response(status=status.HTTP_202_ACCEPTED,
                         data={'ticket_number': ticket_number,
-                              'message': 'The server is processing the request.'})
+                              'message': 'The server is processing the request.',
+                              'download_link': download_hyperlink})
 
 
 def download_resource(target_name, action, token, resource_id, ticket_path, process_info_path):
@@ -146,7 +155,8 @@ def download_resource(target_name, action, token, resource_id, ticket_path, proc
     fixity_info = []
     for resource in resources:
         # Perform the fixity check and add extra info to the returned fixity object.
-        fixity_obj = fixity.fixity_checker(resource['file'], resource['hashes'])
+        fixity_obj = fixity.fixity_checker(
+            resource['file'], resource['hashes'])
         fixity_obj['resource_title'] = resource['title']
         fixity_obj['path'] = resource['path']
         fixity_info.append(fixity_obj)
