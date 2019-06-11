@@ -46,17 +46,17 @@ class DownloadResource(APIView):
         if download_file_status == 'in_progress':
             return Response(status=status.HTTP_202_ACCEPTED,
                             data={'status': download_file_status,
-                                  'message': data['message'],
+                                  'message': data['finish_message'],
                                   'download_file': None})
 
         if download_file_status == 'failed':
             return Response(status=status.HTTP_200_OK,
                             data={'status': download_file_status,
-                                  'message': data['message'],
+                                  'message': data['finish_message'],
                                   'download_file': None})
 
         if download_file_status == 'finished':
             return Response(status=status.HTTP_200_OK,
                             data={'status': download_file_status,
-                                  'message': data['message'],
+                                  'message': data['finish_message'],
                                   'download_file': zip_file_path[0]})
