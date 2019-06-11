@@ -16,8 +16,8 @@ class Command(BaseCommand):
         """
         for directory in glob.glob('mediafiles/downloads/*/'):
             for metadata in glob.glob(directory + 'process_info.json'):
-                with open(metadata) as server_metadata:
-                    data = json.load(server_metadata)
+                with open(metadata) as process_info:
+                    data = json.load(process_info)
                     # Convert string datetime into a datetime object
                     expiration = parse(data['expiration'])
 
