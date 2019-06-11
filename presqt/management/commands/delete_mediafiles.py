@@ -1,6 +1,5 @@
 
 from dateutil.parser import parse
-from datetime import datetime
 import glob
 import json
 import shutil
@@ -16,13 +15,13 @@ class Command(BaseCommand):
         expiration date.
         """
         for directory in glob.glob('mediafiles/downloads/*/'):
-            for metadata in glob.glob(directory + 'server_metadata.json'):
+            for metadata in glob.glob(directory + 'process_info.json'):
                 with open(metadata) as server_metadata:
                     data = json.load(server_metadata)
                     # Convert string datetime into a datetime object
                     expiration = parse(data['expiration'])
 
-                    if expiration <= datetime.now():
+                    if expiration <= timezone.now():
                         shutil.rmtree(directory)
                         print(directory + ' has been deleted.')
 
