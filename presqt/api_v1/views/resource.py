@@ -294,12 +294,13 @@ class PrepareDownload(APIView):
 
         # Spawn separate job
         # ¯\_(ツ)_/¯
-        # This is current;y working on another thread as were are no longer seeing print statements
-        # from the function in our log. Phase 2 will be to figure out how to get return data from this process
+        # This is current;y working on another thread as were are now see
+        # print statements from the function in our log simultaneous with the
+        # view logs. Phase 2 will be to figure out how to get return data from
+        # this process
         function_thread = multiprocessing.Process(target=temp_function, args=[
             target_name, action, token, resource_id, ticket_path, server_metadata_path])
-
-        print(function_thread)
+        function_thread.start()
 
         # Return response
         return Response(status=status.HTTP_200_OK,
