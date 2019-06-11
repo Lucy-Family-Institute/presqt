@@ -1,6 +1,7 @@
 from django.urls import path, re_path
 
 from presqt.api_v1 import api_root
+from presqt.api_v1.views.download import DownloadResource
 from presqt.api_v1.views.resource import ResourceCollection, Resource, PrepareDownload
 from presqt.api_v1.views.target import TargetCollection, Target
 
@@ -19,5 +20,9 @@ api_v1_endpoints = [
 
     # Resource Actions
     path('targets/<str:target_name>/resources/<str:resource_id>/download/',
-         PrepareDownload.as_view(), name="prepare_download")
+         PrepareDownload.as_view(), name="prepare_download"),
+
+    # Downloads
+    path('download/<str:ticket_number>/',
+         DownloadResource.as_view(), name='download_resource')
 ]
