@@ -7,6 +7,8 @@ import shutil
 from django.core.management import BaseCommand
 from django.utils import timezone
 
+from presqt.api_v1.utilities.io.read_file import read_file
+
 
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
@@ -16,14 +18,13 @@ class Command(BaseCommand):
         """
         for directory in glob.glob('mediafiles/downloads/*/'):
             for metadata in glob.glob(directory + 'process_info.json'):
-                with open(metadata) as process_info:
-                    data = json.load(process_info)
-                    # Convert string datetime into a datetime object
-                    expiration = parse(data['expiration'])
+                data = read_file(metadata, True)
 
-                    if expiration <= timezone.now():
-                        shutil.rmtree(directory)
-                        print(directory + ' has been deleted.')
+                expiration = parse(data['expiration'])
 
-                    else:
-                        print(directory + ' has been retained.')
+                if expiration <= timezone.now():
+                    shutil.rmtree(directory)
+                    print(directory + ' has been deleted.')
+
+                else:
+                    print(directory + ' has been retained.')
