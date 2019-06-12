@@ -65,14 +65,14 @@ class DownloadResource(APIView):
         except PresQTAuthorizationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
-        # Read data from the process_info file
-        data = read_file('mediafiles/downloads/{}/process_info.json'.format(
-            ticket_number), True)
-
         # Ensure that the header token is the same one listed in the process_info file
         if (request.META['HTTP_PRESQT_SOURCE_TOKEN']) != data['presqt-source-token']:
             return Response(status=status.HTTP_401_UNAUTHORIZED,
                             data={'error': 'Header does not match the request token for this file.'})
+
+        # Read data from the process_info file
+        data = read_file('mediafiles/downloads/{}/process_info.json'.format(
+            ticket_number), True)
 
         download_file_status = data['status']
         message = data['message']
