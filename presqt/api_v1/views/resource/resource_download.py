@@ -140,7 +140,7 @@ def download_resource(target_name, action, token, resource_id, ticket_path, proc
         # Catch any errors that happen within the target fetch.
         # Update the server process_info file appropriately.
         data = read_file(process_info_path, True)
-        data['status_code'] = e.status_code
+        data['finish_status_code'] = e.status_code
         data['status'] = 'failed'
         data['finish_message'] = e.data
         data['expiration'] = str(timezone.now() + relativedelta(hours=1))
@@ -178,8 +178,8 @@ def download_resource(target_name, action, token, resource_id, ticket_path, proc
 
     # Everything was a success so update the server metadata file.
     data = read_file(process_info_path, True)
-    data['status_code'] = '200'
+    data['finish_status_code'] = '200'
     data['status'] = 'finished'
-    data['finish_message'] = 'Download successful'
+    data['finish_message'] = 'Download successful.'
     write_file(process_info_path, data, True)
     return

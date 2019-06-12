@@ -1,6 +1,7 @@
 import hashlib
 import io
 import json
+import os
 import zipfile
 from unittest.mock import patch
 
@@ -9,6 +10,8 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from config.settings.base import TEST_USER_TOKEN
+from presqt.api_v1.utilities.io.read_file import read_file
+from presqt.api_v1.views.resource.resource_download import download_resource
 from presqt.fixity import fixity_checker
 
 
@@ -34,10 +37,22 @@ class TestPrepareDownload(TestCase):
         # Verify response content
         self.assertEqual(response.data['message'], 'The server is processing the request.')
         ticket_number = response.data['ticket_number']
+        process_info = read_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number), True)
+        # Verify process_info file status is 'in_progress'
+        self.assertEqual(process_info['status'],'in_progress')
 
-        # Verify process_info file
+        # Since it's not really possible to multiprocessing we will manually call the same function
+        # that the multiprocessing.Process() would call.
+        ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
+        process_info_path = '{}/process_info.json'.format(ticket_path)
+        download_resource('osf', 'resource_download', TEST_USER_TOKEN, resource_id, ticket_path, process_info_path)
+        process_info = read_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number), True)
+        # Verify process_info file status is 'finished'
+        self.assertEqual(process_info['status'], 'finished')
+        # Verify zip file exists and has the proper amount of resources in it.
+        zip_path = '{}/osf_download_{}.zip'.format(ticket_path, resource_id)
+        self.assertEqual(os.path.isfile(zip_path), True)
 
-        # Verify zip file exists
         # Verify the files here or in the DownloadResource() tests? or Both?
         # verify fixity here or in the DownloadResource() tests? or Both?
         # Delete corresponding folder
