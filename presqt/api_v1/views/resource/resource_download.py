@@ -1,8 +1,10 @@
 import multiprocessing
 import bagit
+import glob
 
 from uuid import uuid4
 from dateutil.relativedelta import relativedelta
+from django.http import HttpResponse
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
@@ -16,6 +18,86 @@ from presqt.api_v1.utilities.io.read_file import read_file
 from presqt.exceptions import (PresQTValidationError, PresQTAuthorizationError,
                                PresQTResponseException)
 from presqt import fixity
+
+
+class DownloadResource(APIView):
+    """
+    **Supported HTTP Methods**
+
+    * GET: 
+    """
+
+    def get(self, request, ticket_number):
+        """
+        Offer the resource for download.
+
+        Parameters
+        ----------
+        ticket_number : str
+            The ticket number of the download being prepared.
+
+        Returns
+        -------
+        200: OK
+        Returns the files/folders to be downloaded
+
+        202: Accepted
+        {
+            "status": "in_progress",
+            "message": "Download is being processed on the server"
+        }
+
+        401: Unauthorized
+        {
+            "error": "Header does not match the request token for this file."
+        }
+
+        417: Expectation Failed
+        {
+            "status": "failed",
+            "message": "Resource with id 'eggyboi' not found for this user."
+        }
+
+        """
+        # Perform token validation
+        try:
+            token = token_validation(request)
+        except PresQTAuthorizationError as e:
+            return Response(data={'error': e.data}, status=e.status_code)
+
+        # Read data from the process_info file
+        data = read_file('mediafiles/downloads/{}/process_info.json'.format(
+            ticket_number), True)
+
+        # Ensure that the header token is the same one listed in the process_info file
+        if (request.META['HTTP_PRESQT_SOURCE_TOKEN']) != data['presqt-source-token']:
+            return Response(status=status.HTTP_401_UNAUTHORIZED,
+                            data={'error': 'Header does not match the request token for this file.'})
+
+        # Path to the file to be downloaded
+        zip_file_path = glob.glob('mediafiles/downloads/{}/*.zip'.format(
+            ticket_number))
+
+        download_file_status = data['status']
+        message = data['message']
+
+        # Return the file to download if it has finished.
+        if download_file_status == 'finished':
+            response = HttpResponse(open(zip_file_path[0], 'rb'),
+                                    content_type='application/zip')
+            response['Content-Disposition'] = 'attachment; filename= {}.zip'.format(
+                ticket_number)
+            return response
+
+        else:
+            if download_file_status == 'in_progress':
+                http_status = status.HTTP_202_ACCEPTED
+            else:
+                http_status = status.HTTP_417_EXPECTATION_FAILED
+
+            return Response(status=http_status,
+                            data={'status': download_file_status,
+                                  'message': message})
 
 
 class PrepareDownload(APIView):
@@ -83,8 +165,8 @@ class PrepareDownload(APIView):
             'status': 'in_progress',
             'expiration': str(timezone.now() + relativedelta(days=5)),
             'kill_time': str(timezone.now() + relativedelta(hours=1)),
-            'finish_message': None,
-            'finish_status_code': None
+            'message': 'Download is being processed on the server',
+            'status_code': None
         }
         ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
         process_info_path = '{}/process_info.json'.format(ticket_path)
@@ -142,7 +224,7 @@ def download_resource(target_name, action, token, resource_id, ticket_path, proc
         data = read_file(process_info_path, True)
         data['status_code'] = e.status_code
         data['status'] = 'failed'
-        data['finish_message'] = e.data
+        data['message'] = e.data
         data['expiration'] = str(timezone.now() + relativedelta(hours=1))
         write_file(process_info_path, data, True)
         return
@@ -180,6 +262,6 @@ def download_resource(target_name, action, token, resource_id, ticket_path, proc
     data = read_file(process_info_path, True)
     data['status_code'] = '200'
     data['status'] = 'finished'
-    data['finish_message'] = 'Download successful'
+    data['message'] = 'Download successful'
     write_file(process_info_path, data, True)
     return
