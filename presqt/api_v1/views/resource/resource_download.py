@@ -78,6 +78,11 @@ class DownloadResource(APIView):
         zip_file_path = glob.glob('mediafiles/downloads/{}/*.zip'.format(
             ticket_number))
 
+        # This is to ensure the file name is the same as it is on our servers
+        split_path = zip_file_path[0].split('/')
+        isolate_file_name = split_path[3].split('.')
+        file_name = isolate_file_name[0]
+
         download_file_status = data['status']
         message = data['message']
 
@@ -86,7 +91,7 @@ class DownloadResource(APIView):
             response = HttpResponse(open(zip_file_path[0], 'rb'),
                                     content_type='application/zip')
             response['Content-Disposition'] = 'attachment; filename= {}.zip'.format(
-                ticket_number)
+                file_name)
             return response
 
         else:
