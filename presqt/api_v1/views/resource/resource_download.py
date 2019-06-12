@@ -1,8 +1,10 @@
 import multiprocessing
 import bagit
+import glob
 
 from uuid import uuid4
 from dateutil.relativedelta import relativedelta
+from django.http import HttpResponse
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
@@ -83,9 +85,10 @@ class PrepareDownload(APIView):
             'status': 'in_progress',
             'expiration': str(timezone.now() + relativedelta(days=5)),
             'kill_time': str(timezone.now() + relativedelta(hours=1)),
-            'finish_message': None,
-            'finish_status_code': None
+            'message': 'Download is being processed on the server',
+            'status_code': None
         }
+
         ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
         process_info_path = '{}/process_info.json'.format(ticket_path)
         write_file(process_info_path, process_info_obj, True)
@@ -140,16 +143,16 @@ def download_resource(target_name, action, token, resource_id, ticket_path, proc
         # Catch any errors that happen within the target fetch.
         # Update the server process_info file appropriately.
         data = read_file(process_info_path, True)
-        data['finish_status_code'] = e.status_code
+        data['status_code'] = e.status_code
         data['status'] = 'failed'
-        data['finish_message'] = e.data
+        data['message'] = e.data
         data['expiration'] = str(timezone.now() + relativedelta(hours=1))
         write_file(process_info_path, data, True)
         return
 
     # The directory all files should be saved in.
-    file_name = '{}_download_{}'.format(target_name, resource_id)
-    folder_directory = '{}/{}'.format(ticket_path, file_name)
+    base_file_name = '{}_download_{}'.format(target_name, resource_id)
+    base_directory = '{}/{}'.format(ticket_path, base_file_name)
 
     # For each resource, perform fixity check, and save to disk.
     fixity_info = []
@@ -162,24 +165,106 @@ def download_resource(target_name, action, token, resource_id, ticket_path, proc
         fixity_info.append(fixity_obj)
 
         # Save the file to the disk.
-        file_path = '{}{}'.format(folder_directory, resource['path'])
-        write_file(file_path, resource['file'])
+        write_file('{}{}'.format(base_directory, resource['path']), resource['file'])
 
     # Add the fixity file to the disk directory
-    file_path = '{}/fixity_info.json'.format(folder_directory)
-    write_file(file_path, fixity_info, True)
+    write_file('{}/fixity_info.json'.format(base_directory), fixity_info, True)
 
     # Make a Bagit 'bag' of the resources.
-    bagit.make_bag(folder_directory)
+    bagit.make_bag(base_directory)
 
     # Zip the Bagit 'bag' to send forward.
-    zip_file_path = "{}/{}.zip".format(ticket_path, file_name)
-    zip_directory(zip_file_path, folder_directory)
+    zip_directory("{}/{}.zip".format(ticket_path, base_file_name), base_directory, ticket_path)
 
     # Everything was a success so update the server metadata file.
     data = read_file(process_info_path, True)
-    data['finish_status_code'] = '200'
+    data['status_code'] = '200'
     data['status'] = 'finished'
-    data['finish_message'] = 'Download successful.'
+    data['message'] = 'Download successful'
+    data['zip_name'] = '{}.zip'.format(base_file_name)
     write_file(process_info_path, data, True)
     return
+
+
+class DownloadResource(APIView):
+    """
+    **Supported HTTP Methods**
+
+    * GET: Check if a resource download is finished on the server matching the ticket number.  If it
+    is then download it otherwise return the state of it.
+    """
+
+    def get(self, request, ticket_number):
+        """
+        Offer the resource for download.
+
+        Parameters
+        ----------
+        ticket_number : str
+            The ticket number of the download being prepared.
+
+        Returns
+        -------
+        200: OK
+        Returns the zip of resources to be downloaded.
+
+        202: Accepted
+        {
+            "status": "in_progress",
+            "message": "Download is being processed on the server"
+        }
+
+        400: Bad Request
+        {
+            "error": "'presqt-source-token' missing in the request headers."
+        }
+
+        401: Unauthorized
+        {
+            "error": 'Header "presqt-source-token" does not match the
+                     "presqt-source-token" for this server process.'
+        }
+
+        500: Internal Server Error
+        {
+            "status": "failed",
+            "message": "Resource with id 'eggyboi' not found for this user."
+        }
+
+        """
+        # Perform token validation
+        try:
+            token = token_validation(request)
+        except PresQTAuthorizationError as e:
+            return Response(data={'error': e.data}, status=e.status_code)
+
+        # Read data from the process_info file
+        data = read_file('mediafiles/downloads/{}/process_info.json'.format(
+            ticket_number), True)
+
+        # Ensure that the header token is the same one listed in the process_info file
+        if token != data['presqt-source-token']:
+            return Response(status=status.HTTP_401_UNAUTHORIZED,
+                            data={'error': ('Header "presqt-source-token" does not match the '
+                                            '"presqt-source-token" for this server process.')})
+
+        download_status = data['status']
+        message = data['message']
+        # Return the file to download if it has finished.
+        if download_status == 'finished':
+            # Path to the file to be downloaded
+            zip_name = data['zip_name']
+            zip_file_path = 'mediafiles/downloads/{}/{}'.format(ticket_number, zip_name)
+
+            response = HttpResponse(open(zip_file_path, 'rb'), content_type='application/zip')
+            response['Content-Disposition'] = 'attachment; filename= {}'.format(zip_name)
+            return response
+
+        else:
+            if download_status == 'in_progress':
+                http_status = status.HTTP_202_ACCEPTED
+            else:
+                http_status = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+            return Response(status=http_status,
+                            data={'status': download_status, 'message': message})
