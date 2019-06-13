@@ -183,3 +183,14 @@ class TestResource(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.data,
                          {'error': "Resource with id 'cmn5z:badstorage' not found for this user."})
+
+    def test_get_error_410_bad_resource_no_longer_exists_osf(self):
+        """
+        Return a 410 if the GET method fails because the resource requested no longer exists.
+        """
+        url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': '5cd989c5f8214b00188af9b5'})
+        response = self.client.get(url, **self.header)
+        # Verify the error status code and message
+        self.assertEqual(response.status_code, 410)
+        self.assertEqual(response.data,
+                         {'error': "The requested resource is no longer available."})

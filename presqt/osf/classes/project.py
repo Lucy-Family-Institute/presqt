@@ -48,7 +48,7 @@ class Project(OSFBase):
         """
         Iterate over all storages for this project.
         """
-        stores_json = self._json(self.session.get(self._storages_url))
+        stores_json = self._json(self.get(self._storages_url))
         for store in stores_json['data']:
             yield Storage(store, self.session)
 

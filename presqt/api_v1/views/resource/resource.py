@@ -83,6 +83,11 @@ class Resource(APIView):
         {
             "error": "Resource with id 'bad_id' not found for this user."
         }
+
+        410: Gone
+        {
+            "error": "The requested resource is no longer available."
+        }
         """
         action = 'resource_detail'
 

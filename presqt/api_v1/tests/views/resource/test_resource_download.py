@@ -2,6 +2,8 @@ import hashlib
 import io
 import json
 import os
+import shutil
+import time
 import zipfile
 from unittest.mock import patch
 
@@ -28,6 +30,10 @@ class TestPrepareDownload(TestCase):
         Return a 202 if the GET method is successful when preparing a download OSF
         resource file of type '.jpg'.
         """
+        hashes = {
+            "sha256": "3e517cda95ddbfcb270ab273201517f5ae0ee1190a9c5f6f7e6662f97868366f",
+            "md5": "9e79fdd9032629743fca52634ecdfd86"
+        }
         resource_id = '5cd98510f244ec001fe5632f'
         url = reverse('prepare_download', kwargs={'target_name': 'osf', 'resource_id': resource_id})
         response = self.client.get(url, **self.header)
@@ -41,69 +47,97 @@ class TestPrepareDownload(TestCase):
         # Verify process_info file status is 'in_progress'
         self.assertEqual(process_info['status'],'in_progress')
 
-        # Since it's not really possible to multiprocessing we will manually call the same function
-        # that the multiprocessing.Process() would call.
+        # Since it's not really possible to use multiprocessing we will manually call the
+        # same function that the multiprocessing.Process() would call.
         ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
         process_info_path = '{}/process_info.json'.format(ticket_path)
         download_resource('osf', 'resource_download', TEST_USER_TOKEN, resource_id, ticket_path, process_info_path)
-        process_info = read_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number), True)
+
         # Verify process_info file status is 'finished'
+        process_info = read_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number), True)
         self.assertEqual(process_info['status'], 'finished')
+
         # Verify zip file exists and has the proper amount of resources in it.
-        zip_path = '{}/osf_download_{}.zip'.format(ticket_path, resource_id)
+        base_name = 'osf_download_{}'.format(resource_id)
+        zip_path = '{}/{}.zip'.format(ticket_path, base_name)
+        zip_file = zipfile.ZipFile(zip_path)
         self.assertEqual(os.path.isfile(zip_path), True)
+        self.assertEqual(len(zip_file.namelist()), 8)
 
-        # Verify the files here or in the DownloadResource() tests? or Both?
-        # verify fixity here or in the DownloadResource() tests? or Both?
+        # Verify that the resource we expect is there.
+        self.assertEqual(os.path.isfile('{}/{}/data/22776439564_7edbed7e10_o.jpg'.format(ticket_path, base_name)), True)
+
+        # Verify the custom hash_file information is correct.
+        with zip_file.open('{}/data/fixity_info.json'.format(base_name)) as fixityfile:
+            zip_json = json.load(fixityfile)[0]
+            self.assertEqual(zip_json['fixity'], True)
+            self.assertEqual(zip_json['fixity_details'], 'Source Hash and PresQT Calculated hash matched.')
+            self.assertEqual(zip_json['hash_algorithm'], 'sha256')
+            self.assertEqual(zip_json['presqt_hash'], hashes['sha256'])
+
         # Delete corresponding folder
+    #     shutil.rmtree(ticket_path)
 
-# class TestResourceDownload(TestCase):
-#     """
-#     Test the `api_v1/targets/{target_name}/resources/{resource_id}/download/` endpoint's GET method.
-#     """
-#     def setUp(self):
-#         self.client = APIClient()
-#         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': TEST_USER_TOKEN}
-#
-#     def test_get_success_200_file_osfstorage_file_jpg_osf(self):
-#         """
-#         Return a 200 if the GET method is successful when downloading
-#         OSF resources file of type '.jpg'.
-#         """
-#         hashes = {
-#             "sha256": "3e517cda95ddbfcb270ab273201517f5ae0ee1190a9c5f6f7e6662f97868366f",
-#             "md5": "9e79fdd9032629743fca52634ecdfd86"
-#         }
-#         resource_id = '5cd98510f244ec001fe5632f'
-#
-#         url = reverse('resource_download', kwargs={'target_name': 'osf',
-#                                                    'resource_id': resource_id})
-#         response = self.client.get(url, **self.header)
-#         zip_file = zipfile.ZipFile(io.BytesIO(response.content))
-#
-#         # Verify the Status Code
-#         self.assertEqual(response.status_code, 200)
-#         # Verify the name of the zip file
-#         self.assertEquals(
-#             response._headers['content-disposition'][1],
-#             'attachment; filename=osf_download_{}.zip'.format(resource_id))
-#         # Verify content type
-#         self.assertEqual(response._headers['content-type'][1], 'application/zip')
-#         # Verify the number of resources in the zip is correct
-#         self.assertEqual(len(zip_file.namelist()), 8)
-#         # Verify the custom hash_file information is correct
-#         with zip_file.open('mediafiles/osf_download_5cd98510f244ec001fe5632f/data/fixity_info.json') as fixityfile:
-#             zip_json = json.load(fixityfile)[0]
-#             self.assertEqual(zip_json['fixity'], True)
-#             self.assertEqual(zip_json['fixity_details'], 'Source Hash and PresQT Calculated hash matched.')
-#             self.assertEqual(zip_json['hash_algorithm'], 'sha256')
-#             self.assertEqual(zip_json['presqt_hash'], hashes['sha256'])
-#
-#         # Run the file through the fixity checker again to make sure it downloaded correctly
-#         with zip_file.open('mediafiles/osf_download_5cd98510f244ec001fe5632f/data/22776439564_7edbed7e10_o.jpg') as myfile:
-#             temp_file = myfile.read()
-#             fixity = fixity_checker(temp_file, hashes)
-#             self.assertEqual(fixity['fixity'], True)
+    def test_get_success_202_file_osfstorage_docx_osf(self):
+        """
+        Return a 202 if the GET method is successful when preparing a download OSF
+        resource file of type '.docx'.
+        """
+        hashes = {
+            "sha256": "f87040f7f12957c996d0440ebadeca9e55908092faea2f600dc4b079f75ea943",
+            "md5": "38b6bd925c04af35a10cacf00704a2a4"
+        }
+        resource_id = '5cd9897e054f5b00195d9e4a'
+        url = reverse('prepare_download', kwargs={'target_name': 'osf', 'resource_id': resource_id})
+        response = self.client.get(url, **self.header)
+
+        # Verify the Status Code
+        self.assertEqual(response.status_code, 202)
+        # Verify response content
+        # self.assertEqual(response.data['message'], 'The server is processing the request.')
+        # ticket_number = response.data['ticket_number']
+        # process_info = 'in_progress'
+        # while process_info == 'in_progress':
+        #     print(1)
+        #     process_info = read_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number), True)
+        #     # Verify process_info file status is 'in_progress'
+        #
+        #     self.assertEqual(process_info['status'],'in_progress')
+        #     continue
+        # process_info = read_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number), True)
+        # print(process_info['status'])
+        # self.assertEqual(process_info['status'],'finished')
+
+        # # Since it's not really possible to use multiprocessing we will manually call the
+        # # same function that the multiprocessing.Process() would call.
+        # ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
+        # process_info_path = '{}/process_info.json'.format(ticket_path)
+        # download_resource('osf', 'resource_download', TEST_USER_TOKEN, resource_id, ticket_path, process_info_path)
+        #
+        # # Verify process_info file status is 'finished'
+        # process_info = read_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number), True)
+        # self.assertEqual(process_info['status'], 'finished')
+        #
+        # # Verify zip file exists and has the proper amount of resources in it.
+        # base_name = 'osf_download_{}'.format(resource_id)
+        # zip_path = '{}/{}.zip'.format(ticket_path, base_name)
+        # zip_file = zipfile.ZipFile(zip_path)
+        # self.assertEqual(os.path.isfile(zip_path), True)
+        # self.assertEqual(len(zip_file.namelist()), 8)
+        #
+        # # Verify that the resource we expect is there.
+        # self.assertEqual(os.path.isfile('{}/{}/data/2017-01-27 PresQT Workshop Planning Meeting Items.docx'.format(ticket_path, base_name)), True)
+        #
+        # # Verify the custom hash_file information is correct.
+        # with zip_file.open('{}/data/fixity_info.json'.format(base_name)) as fixityfile:
+        #     zip_json = json.load(fixityfile)[0]
+        #     self.assertEqual(zip_json['fixity'], True)
+        #     self.assertEqual(zip_json['fixity_details'], 'Source Hash and PresQT Calculated hash matched.')
+        #     self.assertEqual(zip_json['hash_algorithm'], 'sha256')
+        #     self.assertEqual(zip_json['presqt_hash'], hashes['sha256'])
+
+        # Delete corresponding folder
+        # shutil.rmtree(ticket_path)
 #
 #     def test_get_success_200_file_osfstorage_file_docx_osf(self):
 #         """

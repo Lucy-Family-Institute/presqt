@@ -230,7 +230,6 @@ class DownloadResource(APIView):
             "status": "failed",
             "message": "Resource with id 'eggyboi' not found for this user."
         }
-
         """
         # Perform token validation
         try:

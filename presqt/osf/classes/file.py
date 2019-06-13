@@ -48,5 +48,5 @@ class File(OSFBase):
         The requested file in byte format.
         """
 
-        response = self.session.get(self.download_url)
+        response = self.get(self.download_url)
         return response.content
