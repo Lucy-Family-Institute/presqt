@@ -15,6 +15,7 @@ services:
       # Inside of the nginx config, it's port 80 it forwarded to Django 8000
       # It is a little confusing.
       - 127.0.0.1:80:80
+      - 127.0.0.1:443:443
     restart: always
     volumes:
       - ./config/ssl:/etc/ssl
