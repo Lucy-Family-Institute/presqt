@@ -10,6 +10,7 @@ from rest_framework.test import APIClient
 
 from config.settings.base import TEST_USER_TOKEN
 from presqt.api_v1.utilities.io.read_file import read_file
+from presqt.api_v1.utilities.io.remove_path_contents import remove_path_contents
 from presqt.api_v1.views.resource.resource_download import download_resource
 
 
@@ -42,16 +43,27 @@ class TestPrepareDownload(TestCase):
         ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
 
         # Verify process_info file status is 'in_progress'
-        process_info = read_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number), True)
+        process_info = read_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number),
+                                 True)
         self.assertEqual(process_info['status'],'in_progress')
 
-        # Wait until the process finishes to do validation on the resulting files
+        # Wait until the spawned off process finishes to do validation on the resulting files
         while process_info['status'] == 'in_progress':
             try:
                 process_info = read_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number), True)
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
+
+        # Since the coverage package does not pick up the multiprocessing, we will run the
+        # 'download_resource' function manually with the same parameters that the multiprocess
+        # version ran.
+
+        # First we need to remove the contents of the ticket path except 'process_info.json'
+        remove_path_contents(ticket_path, 'process_info.json')
+        process_info_path = '{}/process_info.json'.format(ticket_path)
+        download_resource('osf', 'resource_download', TEST_USER_TOKEN, resource_id, ticket_path,
+                          process_info_path)
 
         final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         # Verify the final status in the process_info file is 'finishes'
@@ -76,7 +88,6 @@ class TestPrepareDownload(TestCase):
 
         # Delete corresponding folder
         shutil.rmtree(ticket_path)
-
 
     def test_get_success_202_file_osfstorage_docx_osf(self):
         """
@@ -103,7 +114,7 @@ class TestPrepareDownload(TestCase):
                                  True)
         self.assertEqual(process_info['status'], 'in_progress')
 
-        # Wait until the process finishes to do validation on the resulting files
+        # Wait until the spawned off process finishes to do validation on the resulting files
         while process_info['status'] == 'in_progress':
             try:
                 process_info = read_file(
@@ -111,6 +122,15 @@ class TestPrepareDownload(TestCase):
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
+        # Since the coverage package does not pick up the multiprocessing, we will run the
+        # 'download_resource' function manually with the same parameters that the multiprocess
+        # version ran.
+
+        # First we need to remove the contents of the ticket path except 'process_info.json'
+        remove_path_contents(ticket_path, 'process_info.json')
+        process_info_path = '{}/process_info.json'.format(ticket_path)
+        download_resource('osf', 'resource_download', TEST_USER_TOKEN, resource_id, ticket_path,
+                          process_info_path)
 
         final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         # Verify the final status in the process_info file is 'finishes'
@@ -161,7 +181,7 @@ class TestPrepareDownload(TestCase):
                                  True)
         self.assertEqual(process_info['status'], 'in_progress')
 
-        # Wait until the process finishes to do validation on the resulting files
+        # Wait until the spawned off process finishes to do validation on the resulting files
         while process_info['status'] == 'in_progress':
             try:
                 process_info = read_file(
@@ -169,6 +189,16 @@ class TestPrepareDownload(TestCase):
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
+
+        # Since the coverage package does not pick up the multiprocessing, we will run the
+        # 'download_resource' function manually with the same parameters that the multiprocess
+        # version ran.
+
+        # First we need to remove the contents of the ticket path except 'process_info.json'
+        remove_path_contents(ticket_path, 'process_info.json')
+        process_info_path = '{}/process_info.json'.format(ticket_path)
+        download_resource('osf', 'resource_download', TEST_USER_TOKEN, resource_id,
+                          ticket_path, process_info_path)
 
         final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         # Verify the final status in the process_info file is 'finishes'
@@ -219,7 +249,7 @@ class TestPrepareDownload(TestCase):
                                  True)
         self.assertEqual(process_info['status'], 'in_progress')
 
-        # Wait until the process finishes to do validation on the resulting files
+        # Wait until the spawned off process finishes to do validation on the resulting files
         while process_info['status'] == 'in_progress':
             try:
                 process_info = read_file(
@@ -227,6 +257,16 @@ class TestPrepareDownload(TestCase):
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
+
+        # Since the coverage package does not pick up the multiprocessing, we will run the
+        # 'download_resource' function manually with the same parameters that the multiprocess
+        # version ran.
+
+        # First we need to remove the contents of the ticket path except 'process_info.json'
+        remove_path_contents(ticket_path, 'process_info.json')
+        process_info_path = '{}/process_info.json'.format(ticket_path)
+        download_resource('osf', 'resource_download', TEST_USER_TOKEN, resource_id,
+                          ticket_path, process_info_path)
 
         final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         # Verify the final status in the process_info file is 'finishes'
@@ -277,7 +317,7 @@ class TestPrepareDownload(TestCase):
                                  True)
         self.assertEqual(process_info['status'], 'in_progress')
 
-        # Wait until the process finishes to do validation on the resulting files
+        # Wait until the spawned off process finishes to do validation on the resulting files
         while process_info['status'] == 'in_progress':
             try:
                 process_info = read_file(
@@ -285,6 +325,16 @@ class TestPrepareDownload(TestCase):
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
+
+        # Since the coverage package does not pick up the multiprocessing, we will run the
+        # 'download_resource' function manually with the same parameters that the multiprocess
+        # version ran.
+
+        # First we need to remove the contents of the ticket path except 'process_info.json'
+        remove_path_contents(ticket_path, 'process_info.json')
+        process_info_path = '{}/process_info.json'.format(ticket_path)
+        download_resource('osf', 'resource_download', TEST_USER_TOKEN, resource_id,
+                          ticket_path, process_info_path)
 
         final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         # Verify the final status in the process_info file is 'finishes'
@@ -331,7 +381,7 @@ class TestPrepareDownload(TestCase):
                                  True)
         self.assertEqual(process_info['status'], 'in_progress')
 
-        # Wait until the process finishes to do validation on the resulting files
+        # Wait until the spawned off process finishes to do validation on the resulting files
         while process_info['status'] == 'in_progress':
             try:
                 process_info = read_file(
@@ -339,6 +389,16 @@ class TestPrepareDownload(TestCase):
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
+
+        # Since the coverage package does not pick up the multiprocessing, we will run the
+        # 'download_resource' function manually with the same parameters that the multiprocess
+        # version ran.
+
+        # First we need to remove the contents of the ticket path except 'process_info.json'
+        remove_path_contents(ticket_path, 'process_info.json')
+        process_info_path = '{}/process_info.json'.format(ticket_path)
+        download_resource('osf', 'resource_download', TEST_USER_TOKEN, resource_id,
+                          ticket_path, process_info_path)
 
         final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         # Verify the final status in the process_info file is 'finishes'
@@ -384,7 +444,7 @@ class TestPrepareDownload(TestCase):
                                  True)
         self.assertEqual(process_info['status'], 'in_progress')
 
-        # Wait until the process finishes to do validation on the resulting files
+        # Wait until the spawned off process finishes to do validation on the resulting files
         while process_info['status'] == 'in_progress':
             try:
                 process_info = read_file(
@@ -392,6 +452,16 @@ class TestPrepareDownload(TestCase):
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
+
+        # Since the coverage package does not pick up the multiprocessing, we will run the
+        # 'download_resource' function manually with the same parameters that the multiprocess
+        # version ran.
+
+        # First we need to remove the contents of the ticket path except 'process_info.json'
+        remove_path_contents(ticket_path, 'process_info.json')
+        process_info_path = '{}/process_info.json'.format(ticket_path)
+        download_resource('osf', 'resource_download', TEST_USER_TOKEN, resource_id,
+                          ticket_path, process_info_path)
 
         final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         # Verify the final status in the process_info file is 'finishes'
@@ -434,7 +504,7 @@ class TestPrepareDownload(TestCase):
                                  True)
         self.assertEqual(process_info['status'], 'in_progress')
 
-        # Wait until the process finishes to do validation on the resulting files
+        # Wait until the spawned off process finishes to do validation on the resulting files
         while process_info['status'] == 'in_progress':
             try:
                 process_info = read_file(
@@ -442,6 +512,16 @@ class TestPrepareDownload(TestCase):
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
+
+        # Since the coverage package does not pick up the multiprocessing, we will run the
+        # 'download_resource' function manually with the same parameters that the multiprocess
+        # version ran.
+
+        # First we need to remove the contents of the ticket path except 'process_info.json'
+        remove_path_contents(ticket_path, 'process_info.json')
+        process_info_path = '{}/process_info.json'.format(ticket_path)
+        download_resource('osf', 'resource_download', TEST_USER_TOKEN, resource_id,
+                          ticket_path, process_info_path)
 
         final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         # Verify the final status in the process_info file is 'finishes'
@@ -484,7 +564,7 @@ class TestPrepareDownload(TestCase):
                                  True)
         self.assertEqual(process_info['status'], 'in_progress')
 
-        # Wait until the process finishes to do validation on the resulting files
+        # Wait until the spawned off process finishes to do validation on the resulting files
         while process_info['status'] == 'in_progress':
             try:
                 process_info = read_file(
@@ -492,6 +572,16 @@ class TestPrepareDownload(TestCase):
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
+
+        # Since the coverage package does not pick up the multiprocessing, we will run the
+        # 'download_resource' function manually with the same parameters that the multiprocess
+        # version ran.
+
+        # First we need to remove the contents of the ticket path except 'process_info.json'
+        remove_path_contents(ticket_path, 'process_info.json')
+        process_info_path = '{}/process_info.json'.format(ticket_path)
+        download_resource('osf', 'resource_download', TEST_USER_TOKEN, resource_id,
+                          ticket_path, process_info_path)
 
         final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         # Verify the final status in the process_info file is 'finishes'
@@ -552,7 +642,8 @@ class TestPrepareDownload(TestCase):
         Return a 202 if the GET method succeeds but the download_resource function fails because
         the file_id given does not map to a resource.
         """
-        url = reverse('prepare_download', kwargs={'target_name': 'osf', 'resource_id': '1234'})
+        resource_id = '1234'
+        url = reverse('prepare_download', kwargs={'target_name': 'osf', 'resource_id': resource_id})
         response = self.client.get(url, **self.header)
 
         # Verify the Status Code
@@ -567,7 +658,7 @@ class TestPrepareDownload(TestCase):
                                  True)
         self.assertEqual(process_info['status'], 'in_progress')
 
-        # Wait until the process finishes to do validation on the resulting files
+        # Wait until the spawned off process finishes to do validation on the resulting files
         while process_info['status'] == 'in_progress':
             try:
                 process_info = read_file(
@@ -575,6 +666,16 @@ class TestPrepareDownload(TestCase):
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
+
+        # Since the coverage package does not pick up the multiprocessing, we will run the
+        # 'download_resource' function manually with the same parameters that the multiprocess
+        # version ran.
+
+        # First we need to remove the contents of the ticket path except 'process_info.json'
+        remove_path_contents(ticket_path, 'process_info.json')
+        process_info_path = '{}/process_info.json'.format(ticket_path)
+        download_resource('osf', 'resource_download', TEST_USER_TOKEN, resource_id,
+                          ticket_path, process_info_path)
 
         final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         # Verify the final status in the process_info file is 'failed'
@@ -590,8 +691,9 @@ class TestPrepareDownload(TestCase):
         a bad storage provider name was given in the
         storage ID
         """
+        resource_id = 'cmn5z:badstorage'
         url = reverse('prepare_download',
-                      kwargs={'target_name': 'osf', 'resource_id': 'cmn5z:badstorage'})
+                      kwargs={'target_name': 'osf', 'resource_id': resource_id})
         response = self.client.get(url, **self.header)
 
         # Verify the Status Code
@@ -606,7 +708,7 @@ class TestPrepareDownload(TestCase):
                                  True)
         self.assertEqual(process_info['status'], 'in_progress')
 
-        # Wait until the process finishes to do validation on the resulting files
+        # Wait until the spawned off process finishes to do validation on the resulting files
         while process_info['status'] == 'in_progress':
             try:
                 process_info = read_file(
@@ -614,6 +716,17 @@ class TestPrepareDownload(TestCase):
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
+
+        # Since the coverage package does not pick up the multiprocessing, we will run the
+        # 'download_resource' function manually with the same parameters that the multiprocess
+        # version ran.
+
+        # First we need to remove the contents of the ticket path except 'process_info.json'
+        remove_path_contents(ticket_path, 'process_info.json')
+        process_info_path = '{}/process_info.json'.format(ticket_path)
+        download_resource('osf', 'resource_download', TEST_USER_TOKEN, resource_id,
+                          ticket_path,
+                          process_info_path)
 
         final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         # Verify the final status in the process_info file is 'failed'
@@ -629,9 +742,11 @@ class TestPrepareDownload(TestCase):
         Return a 202 if the GET method succeeds but the download_resource function fails because
         the token provided is not a valid token.
         """
+        token = 'bad_token'
         client = APIClient()
-        header = {'HTTP_PRESQT_SOURCE_TOKEN': 'bad_token'}
-        url = reverse('prepare_download', kwargs={'target_name': 'osf', 'resource_id': 'cmn5z'})
+        resource_id = 'cmn5z'
+        header = {'HTTP_PRESQT_SOURCE_TOKEN': token}
+        url = reverse('prepare_download', kwargs={'target_name': 'osf', 'resource_id': resource_id})
         response = client.get(url, **header)
 
         # Verify the Status Code
@@ -646,7 +761,7 @@ class TestPrepareDownload(TestCase):
                                  True)
         self.assertEqual(process_info['status'], 'in_progress')
 
-        # Wait until the process finishes to do validation on the resulting files
+        # Wait until the spawned off process finishes to do validation on the resulting files
         while process_info['status'] == 'in_progress':
             try:
                 process_info = read_file(
@@ -654,6 +769,16 @@ class TestPrepareDownload(TestCase):
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
+
+        # Since the coverage package does not pick up the multiprocessing, we will run the
+        # 'download_resource' function manually with the same parameters that the multiprocess
+        # version ran.
+
+        # First we need to remove the contents of the ticket path except 'process_info.json'
+        remove_path_contents(ticket_path, 'process_info.json')
+        process_info_path = '{}/process_info.json'.format(ticket_path)
+        download_resource('osf', 'resource_download', token, resource_id, ticket_path,
+                          process_info_path)
 
         final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         # Verify the final status in the process_info file is 'failed'
@@ -669,7 +794,8 @@ class TestPrepareDownload(TestCase):
         Return a 200 if the GET method succeeds but the download_resource function fails because
         the user doesn't have access to this resource.
         """
-        url = reverse('prepare_download', kwargs={'target_name': 'osf', 'resource_id': 'q5xmw'})
+        resource_id = 'q5xmw'
+        url = reverse('prepare_download', kwargs={'target_name': 'osf', 'resource_id': resource_id})
         response = self.client.get(url, **self.header)
 
         # Verify the Status Code
@@ -684,7 +810,7 @@ class TestPrepareDownload(TestCase):
                                  True)
         self.assertEqual(process_info['status'], 'in_progress')
 
-        # Wait until the process finishes to do validation on the resulting files
+        # Wait until the spawned off process finishes to do validation on the resulting files
         while process_info['status'] == 'in_progress':
             try:
                 process_info = read_file(
@@ -692,6 +818,16 @@ class TestPrepareDownload(TestCase):
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
+
+        # Since the coverage package does not pick up the multiprocessing, we will run the
+        # 'download_resource' function manually with the same parameters that the multiprocess
+        # version ran.
+
+        # First we need to remove the contents of the ticket path except 'process_info.json'
+        remove_path_contents(ticket_path, 'process_info.json')
+        process_info_path = '{}/process_info.json'.format(ticket_path)
+        download_resource('osf', 'resource_download', TEST_USER_TOKEN, resource_id,
+                          ticket_path, process_info_path)
 
         final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         # Verify the final status in the process_info file is 'failed'
