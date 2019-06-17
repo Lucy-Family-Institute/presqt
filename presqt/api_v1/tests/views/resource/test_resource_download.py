@@ -23,14 +23,12 @@ class TestPrepareDownload(TestCase):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': TEST_USER_TOKEN}
 
-    def shared_test_function_202(self):
+    def shared_get_success_function_202(self):
         url = reverse('prepare_download', kwargs={'target_name': self.target_name,
                                                   'resource_id': self.resource_id})
         response = self.client.get(url, **self.header)
-        # Verify the Status Code
+        # Verify the status code and content
         self.assertEqual(response.status_code, 202)
-
-        # Verify response content
         self.assertEqual(response.data['message'], 'The server is processing the request.')
         ticket_number = response.data['ticket_number']
         ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
@@ -40,7 +38,8 @@ class TestPrepareDownload(TestCase):
                                  True)
         self.assertEqual(process_info['status'], 'in_progress')
 
-        # Wait until the spawned off process finishes to do validation on the resulting files
+        # Wait until the spawned off process finishes in the background
+        # to do validation on the resulting files
         while process_info['status'] == 'in_progress':
             try:
                 process_info = read_file(
@@ -49,29 +48,29 @@ class TestPrepareDownload(TestCase):
                 # Pass while the process_info file is being written to
                 pass
 
-        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         # Verify the final status in the process_info file is 'finished'
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         self.assertEqual(process_info['status'], 'finished')
         # Verify zip file exists and has the proper amount of resources in it.
         base_name = 'osf_download_{}'.format(self.resource_id)
         zip_path = '{}/{}.zip'.format(ticket_path, base_name)
         zip_file = zipfile.ZipFile(zip_path)
-        # Verify that the zip file exists and it holds the correct number of files.
         self.assertEqual(os.path.isfile(zip_path), True)
         self.assertEqual(len(zip_file.namelist()), self.file_number)
 
         # Since the coverage package does not pick up the multiprocessing, we will run the
         # 'download_resource' function manually with the same parameters that the multiprocess
-        # version ran. And run the same exact checks.
+        # version ran and run the same exact checks.
 
         # First we need to remove the contents of the ticket path except 'process_info.json'
         remove_path_contents(ticket_path, 'process_info.json')
         process_info_path = '{}/process_info.json'.format(ticket_path)
+        # Call the download_resource manually
         download_resource('osf', 'resource_download', TEST_USER_TOKEN,
                           self.resource_id, ticket_path, process_info_path)
 
-        final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         # Verify the final status in the process_info file is 'finished'
+        final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         self.assertEqual(final_process_info['status'], 'finished')
         # Verify zip file exists and has the proper amount of resources in it.
         base_name = 'osf_download_{}'.format(self.resource_id)
@@ -81,7 +80,8 @@ class TestPrepareDownload(TestCase):
         self.assertEqual(len(zip_file.namelist()), self.file_number)
 
         # Verify that the resource we expect is there.
-        self.assertEqual(os.path.isfile('{}/{}/data/{}'.format(ticket_path, base_name, self.file_name)), True)
+        self.assertEqual(os.path.isfile('{}/{}/data/{}'.format(
+            ticket_path, base_name, self.file_name)), True)
 
         # Delete corresponding folder
         shutil.rmtree(ticket_path)
@@ -90,14 +90,12 @@ class TestPrepareDownload(TestCase):
         fixity_file = zip_file.open('{}/data/fixity_info.json'.format(base_name))
         return json.load(fixity_file)
 
-    def shared_test_function_202_error(self):
+    def shared_get_success_function_202_with_error(self):
         url = reverse('prepare_download', kwargs={'target_name': self.target_name,
                                                   'resource_id': self.resource_id})
         response = self.client.get(url, **self.header)
-        # Verify the Status Code
+        # Verify the status code and content
         self.assertEqual(response.status_code, 202)
-
-        # Verify response content
         self.assertEqual(response.data['message'], 'The server is processing the request.')
         ticket_number = response.data['ticket_number']
         ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
@@ -107,7 +105,8 @@ class TestPrepareDownload(TestCase):
                                  True)
         self.assertEqual(process_info['status'], 'in_progress')
 
-        # Wait until the spawned off process finishes to do validation on the resulting files
+        # Wait until the spawned off process finishes in the background
+        # to do validation on the resulting files
         while process_info['status'] == 'in_progress':
             try:
                 process_info = read_file(
@@ -115,6 +114,7 @@ class TestPrepareDownload(TestCase):
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
+        
         # Since the coverage package does not pick up the multiprocessing, we will run the
         # 'download_resource' function manually with the same parameters that the multiprocess
         # version ran. And run the same exact checks.
@@ -122,15 +122,17 @@ class TestPrepareDownload(TestCase):
         # First we need to remove the contents of the ticket path except 'process_info.json'
         remove_path_contents(ticket_path, 'process_info.json')
         process_info_path = '{}/process_info.json'.format(ticket_path)
+        # Call the download_resource manually
         download_resource('osf', 'resource_download', self.header['HTTP_PRESQT_SOURCE_TOKEN'],
                           self.resource_id, ticket_path, process_info_path)
 
         final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        # Verify zip file exists and has the proper amount of resources in it.
-        base_name = 'osf_download_{}'.format(self.resource_id)
-        zip_path = '{}/{}.zip'.format(ticket_path, base_name)
+        
         # Verify that the zip file doesn't exist
+        base_name = 'osf_download_{}'.format(self.resource_id)
+        zip_path = '{}/{}.zip'.format(ticket_path, base_name)        
         self.assertEqual(os.path.isfile(zip_path), False)
+        
         # Verify the final status in the process_info file is 'failed'
         self.assertEqual(final_process_info['status'], 'failed')
         self.assertEqual(final_process_info['message'], self.status_message)
@@ -152,14 +154,16 @@ class TestPrepareDownload(TestCase):
         self.target_name = 'osf'
         self.file_number = 8
         self.file_name = '22776439564_7edbed7e10_o.jpg'
-        fixity_info = self.shared_test_function_202()
+        fixity_info = self.shared_get_success_function_202()
 
+        # Verify the fixity info returned is correct
         self.assertEqual(fixity_info[0]['fixity'], True)
         self.assertEqual(fixity_info[0]['fixity_details'],
                          'Source Hash and PresQT Calculated hash matched.')
         self.assertEqual(fixity_info[0]['hash_algorithm'], 'sha256')
         self.assertEqual(fixity_info[0]['presqt_hash'], self.hashes['sha256'])
         self.assertEqual(fixity_info[0]['source_hash'], self.hashes['sha256'])
+
     def test_get_success_202_file_osfstorage_docx_osf(self):
         """
         Return a 202 if the GET method is successful when preparing a download OSF
@@ -173,8 +177,9 @@ class TestPrepareDownload(TestCase):
         self.target_name = 'osf'
         self.file_number = 8
         self.file_name = 'build-plugins.js'
-        fixity_info = self.shared_test_function_202()
+        fixity_info = self.shared_get_success_function_202()
 
+        # Verify the fixity info returned is correct
         self.assertEqual(fixity_info[0]['fixity'], True)
         self.assertEqual(fixity_info[0]['fixity_details'],
                          'Source Hash and PresQT Calculated hash matched.')
@@ -195,8 +200,9 @@ class TestPrepareDownload(TestCase):
         self.target_name = 'osf'
         self.file_number = 8
         self.file_name = 'Character Sheet - Alternative - Print Version.pdf'
-        fixity_info = self.shared_test_function_202()
+        fixity_info = self.shared_get_success_function_202()
 
+        # Verify the fixity info returned is correct
         self.assertEqual(fixity_info[0]['fixity'], True)
         self.assertEqual(fixity_info[0]['fixity_details'],
                          'Source Hash and PresQT Calculated hash matched.')
@@ -217,8 +223,9 @@ class TestPrepareDownload(TestCase):
         self.target_name = 'osf'
         self.file_number = 8
         self.file_name = '02 - The Widow.mp3'
-        fixity_info = self.shared_test_function_202()
+        fixity_info = self.shared_get_success_function_202()
 
+        # Verify the fixity info returned is correct
         self.assertEqual(fixity_info[0]['fixity'], True)
         self.assertEqual(fixity_info[0]['fixity_details'],
                          'Source Hash and PresQT Calculated hash matched.')
@@ -236,8 +243,9 @@ class TestPrepareDownload(TestCase):
         self.target_name = 'osf'
         self.file_number = 8
         self.file_name = 'Character Sheet - Alternative - Print Version.pdf'
-        fixity_info = self.shared_test_function_202()
+        fixity_info = self.shared_get_success_function_202()
 
+        # Verify the fixity info returned is correct
         self.assertEqual(fixity_info[0]['fixity'], None)
         self.assertEqual(fixity_info[0]['fixity_details'],
                          'Either a Source Hash was not provided or the source hash algorithm is not supported.')
@@ -252,7 +260,7 @@ class TestPrepareDownload(TestCase):
         self.target_name = 'osf'
         self.file_number = 10
         self.file_name = 'Docs2/Docs3/CODE_OF_CONDUCT.md'
-        final_process_info = self.shared_test_function_202()
+        final_process_info = self.shared_get_success_function_202()
 
         for zjson in final_process_info:
             self.assertEqual(zjson['fixity'], True)
@@ -265,8 +273,9 @@ class TestPrepareDownload(TestCase):
         self.target_name = 'osf'
         self.file_number = 11
         self.file_name = 'googledrive/Google Images/IMG_4740.jpg'
-        final_process_info = self.shared_test_function_202()
+        final_process_info = self.shared_get_success_function_202()
 
+        # Verify the fixity info returned is correct
         for zjson in final_process_info:
             self.assertEqual(zjson['fixity'], None)
 
@@ -278,7 +287,7 @@ class TestPrepareDownload(TestCase):
         self.target_name = 'osf'
         self.file_number = 67
         self.file_name = 'Test Project/osfstorage/Docs/Docs2/Docs3/CODE_OF_CONDUCT.md'
-        self.shared_test_function_202()
+        self.shared_get_success_function_202()
 
     def test_get_error_400_missing_token_osf(self):
         """
@@ -328,7 +337,7 @@ class TestPrepareDownload(TestCase):
         self.target_name = 'osf'
         self.status_code = 404
         self.status_message = "Resource with id '1234' not found for this user."
-        self.shared_test_function_202_error()
+        self.shared_get_success_function_202_with_error()
 
     def test_get_202_downloadresource_fails_bad_storage_provider_osf(self):
         """
@@ -339,7 +348,7 @@ class TestPrepareDownload(TestCase):
         self.target_name = 'osf'
         self.status_code = 404
         self.status_message = "Resource with id 'cmn5z:badstorage' not found for this user."
-        self.shared_test_function_202_error()
+        self.shared_get_success_function_202_with_error()
 
     def test_get_202_downloadresource_fails_not_authorized_osf(self):
         """
@@ -350,7 +359,7 @@ class TestPrepareDownload(TestCase):
         self.target_name = 'osf'
         self.status_code = 403
         self.status_message = "User does not have access to this resource with the token provided."
-        self.shared_test_function_202_error()
+        self.shared_get_success_function_202_with_error()
 
     def test_get_202_downloadresource_fails_invalid_token_osf(self):
         """
@@ -362,7 +371,7 @@ class TestPrepareDownload(TestCase):
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': 'bad_token'}
         self.status_code = 401
         self.status_message = "Token is invalid. Response returned a 401 status code."
-        self.shared_test_function_202_error()
+        self.shared_get_success_function_202_with_error()
 
     # Fixity failed!
     def test_200_success_fixity_failed_osf(self):
@@ -382,10 +391,8 @@ class TestPrepareDownload(TestCase):
         url = reverse('prepare_download', kwargs={'target_name': 'osf',
                                                   'resource_id': resource_id})
         response = self.client.get(url, **self.header)
-        # Verify the Status Code
+        # Verify the status code and content
         self.assertEqual(response.status_code, 202)
-
-        # Verify response content
         self.assertEqual(response.data['message'], 'The server is processing the request.')
         ticket_number = response.data['ticket_number']
         ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
@@ -395,7 +402,8 @@ class TestPrepareDownload(TestCase):
                                  True)
         self.assertEqual(process_info['status'], 'in_progress')
 
-        # Wait until the spawned off process finishes to do validation on the resulting files
+        # Wait until the spawned off process finishes in the background
+        # to do validation on the resulting files
         while process_info['status'] == 'in_progress':
             try:
                 process_info = read_file(
@@ -404,8 +412,8 @@ class TestPrepareDownload(TestCase):
                 # Pass while the process_info file is being written to
                 pass
 
-        final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         # Verify the final status in the process_info file is 'finished'
+        final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         self.assertEqual(final_process_info['status'], 'finished')
         # Verify zip file exists and has the proper amount of resources in it.
         base_name = 'osf_download_{}'.format(resource_id)
@@ -414,7 +422,9 @@ class TestPrepareDownload(TestCase):
         # Verify that the zip file exists and it holds the correct number of files.
         self.assertEqual(os.path.isfile(zip_path), True)
         self.assertEqual(len(zip_file.namelist()), 8)
+
         # Grab the .jpg file in the zip and run it back through the fixity checker with bad hashes
+        # So we can get a failed fixity. This fixity variable will be used later in our Patch.
         fixity = fixity_checker(
             read_file('{}/{}/data/22776439564_7edbed7e10_o.jpg'.format(ticket_path, base_name)),
             hashes)
@@ -428,6 +438,8 @@ class TestPrepareDownload(TestCase):
         process_info_path = '{}/process_info.json'.format(ticket_path)
 
         self.assertEqual(fixity['fixity'], False)
+
+        # Patch the fixity_checker() function to return our bad fixity dictionary.
         with patch('presqt.fixity.fixity_checker') as fake_send:
             # Manually verify the fixity_checker will fail
             fake_send.return_value = fixity
@@ -448,6 +460,7 @@ class TestPrepareDownload(TestCase):
         self.assertEqual(
             os.path.isfile('{}/{}/data/22776439564_7edbed7e10_o.jpg'.format(ticket_path, base_name)), True)
 
+        # Verify the fixity info returned is correct
         fixity_file = zip_file.open('{}/data/fixity_info.json'.format(base_name))
         fixity_info = json.load(fixity_file)
         self.assertEqual(fixity_info[0]['fixity'], False)
