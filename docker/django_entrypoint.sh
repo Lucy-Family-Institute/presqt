@@ -13,6 +13,7 @@ python manage.py migrate
 python manage.py collectstatic --no-input
 
 python manage.py validate_target_json
+python manage.py delete_mediafiles
 
 if [ "$ENVIRONMENT" = "development" ]
 then
