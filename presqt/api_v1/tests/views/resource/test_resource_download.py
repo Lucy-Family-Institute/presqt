@@ -24,6 +24,14 @@ class TestPrepareDownload(TestCase):
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': TEST_USER_TOKEN}
 
     def shared_get_success_function_202(self):
+        """
+        This function will be used by tests that successfully hit the PrepareDownload endpoint.
+        It uses class attributes that are set in the test methods.
+
+        Returns
+        -------
+        Fixity JSON from the fixity_info.json file
+        """
         url = reverse('prepare_download', kwargs={'target_name': self.target_name,
                                                   'resource_id': self.resource_id})
         response = self.client.get(url, **self.header)
@@ -91,6 +99,11 @@ class TestPrepareDownload(TestCase):
         return json.load(fixity_file)
 
     def shared_get_success_function_202_with_error(self):
+        """
+        This function will be used by tests that successfully hit the PrepareDownload endpoint but
+        fail during the download_resource() function.
+        It uses class attributes that are set in the test methods.
+        """
         url = reverse('prepare_download', kwargs={'target_name': self.target_name,
                                                   'resource_id': self.resource_id})
         response = self.client.get(url, **self.header)
@@ -472,3 +485,14 @@ class TestPrepareDownload(TestCase):
 
         # Delete corresponding folder
         shutil.rmtree(ticket_path)
+
+class TestDownloadResource(TestCase):
+    """
+    Test the `api_v1/download/<ticket_id>/` endpoint's GET method.
+    """
+
+    def setUp(self):
+        self.client = APIClient()
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': TEST_USER_TOKEN}
+
+    def test_get_success_200(self):
