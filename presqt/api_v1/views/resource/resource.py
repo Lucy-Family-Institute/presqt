@@ -67,7 +67,7 @@ class Resource(APIView):
 
         401: Unauthorized
         {
-            "error": "Token is invalid. Response returned a 401 status code.""
+            "error": "Token is invalid. Response returned a 401 status code."
         }
 
         403: Forbidden

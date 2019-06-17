@@ -24,3 +24,5 @@ def write_file(file_path, contents, is_json=False):
     else:
         with open(file_path, 'wb') as outfile:
             outfile.write(contents)
+
+    outfile.close()

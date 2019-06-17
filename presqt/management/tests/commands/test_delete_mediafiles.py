@@ -9,8 +9,9 @@ from django.conf import settings
 from django.test.testcases import TestCase
 from django.utils import timezone
 
-from presqt.api_v1.views.resource.resource_download import download_resource
+from presqt.api_v1.utilities import write_file
 from presqt.api_v1.utilities.io.read_file import read_file
+from presqt.api_v1.views.resource.resource_download import download_resource
 
 
 class TestDeleteMediaFiles(TestCase):
@@ -51,16 +52,13 @@ class TestDeleteMediaFiles(TestCase):
         current date, that data that has been downloaded will be deleted.
         """
         # These steps are required to alter the timestamp inside our process_info.json
-        in_file = open('{}process_info.json'.format(self.directory), 'r')
-
-        data_file = in_file.read()
-        data = json.loads(data_file)
+        data = read_file('{}process_info.json'.format(self.directory), True)
 
         # Set the expiration date to be yesterday
         data['expiration'] = str(timezone.now() - relativedelta(days=1))
-        out_file = open('{}process_info.json'.format(self.directory), 'w')
-        out_file.write(json.dumps(data))
-        out_file.close()
+
+        # Write the data JSON back to the process_info file
+        write_file('{}process_info.json'.format(self.directory), data, True)
 
         data_pre_command = glob.glob('mediafiles/downloads/test_command/process_info.json')
         self.assertEqual(len(data_pre_command), 1)
