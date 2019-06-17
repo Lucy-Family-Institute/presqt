@@ -16,4 +16,4 @@ def read_file(file_path, is_json=False):
         with open(file_path, 'r') as metadata_file:
             return json.load(metadata_file)
     else:
-        return open(file_path, 'r')
+        return open(file_path, 'rb').read()
