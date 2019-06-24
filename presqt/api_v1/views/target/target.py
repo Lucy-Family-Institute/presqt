@@ -29,7 +29,8 @@ class TargetCollection(APIView):
                 "supported_actions": {
                     "resource_collection": true,
                     "resource_detail": true,
-                    "resource_download": true
+                    "resource_download": true,
+                    "resource_upload": true
                 },
                 "detail": "http://localhost/api_v1/target/osf/"
             },
@@ -78,7 +79,8 @@ class Target(APIView):
             "supported_actions": {
                 "resource_collection": true,
                 "resource_detail": true,
-                "resource_download": true
+                "resource_download": true,
+                "resource_upload": true
             }
         }
 

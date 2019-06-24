@@ -9,7 +9,8 @@
             "properties": {
                 "resource_collection": {"type": "boolean"},
                 "resource_detail": {"type": "boolean"},
-                "resource_download": {"type": "boolean"}
+                "resource_download": {"type": "boolean"},
+                "resource_upload": {"type": "boolean"}
             }
         }
       },
