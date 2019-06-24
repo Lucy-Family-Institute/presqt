@@ -1,11 +1,15 @@
 import io
 import json
+import multiprocessing
 import os
 import shutil
+import uuid
 import zipfile
 from unittest.mock import patch
 
+from dateutil.relativedelta import relativedelta
 from django.test import TestCase
+from django.utils import timezone
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
@@ -13,6 +17,7 @@ from config.settings.base import TEST_USER_TOKEN
 from presqt.api_v1.utilities import write_file
 from presqt.api_v1.utilities.io.read_file import read_file
 from presqt.api_v1.utilities.io.remove_path_contents import remove_path_contents
+from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
 from presqt.api_v1.views.resource.resource_download import download_resource
 from presqt.fixity import fixity_checker
 
@@ -76,8 +81,9 @@ class TestPrepareDownload(TestCase):
         remove_path_contents(ticket_path, 'process_info.json')
         process_info_path = '{}/process_info.json'.format(ticket_path)
         # Call the download_resource manually
+        process_state = multiprocessing.Value('b', 0)
         download_resource('osf', 'resource_download', TEST_USER_TOKEN,
-                          self.resource_id, ticket_path, process_info_path)
+                          self.resource_id, ticket_path, process_info_path, process_state)
 
         # Verify the final status in the process_info file is 'finished'
         final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
@@ -138,8 +144,9 @@ class TestPrepareDownload(TestCase):
         remove_path_contents(ticket_path, 'process_info.json')
         process_info_path = '{}/process_info.json'.format(ticket_path)
         # Call the download_resource manually
+        process_state = multiprocessing.Value('b', 0)
         download_resource('osf', 'resource_download', self.header['HTTP_PRESQT_SOURCE_TOKEN'],
-                          self.resource_id, ticket_path, process_info_path)
+                          self.resource_id, ticket_path, process_info_path, process_state)
 
         final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         
@@ -458,8 +465,9 @@ class TestPrepareDownload(TestCase):
         with patch('presqt.fixity.fixity_checker') as fake_send:
             # Manually verify the fixity_checker will fail
             fake_send.return_value = fixity
+            process_state = multiprocessing.Value('b', 0)
             download_resource('osf', 'resource_download', TEST_USER_TOKEN,
-                              resource_id, ticket_path, process_info_path)
+                              resource_id, ticket_path, process_info_path, process_state)
 
         final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         # Verify the final status in the process_info file is 'finished'
@@ -488,6 +496,72 @@ class TestPrepareDownload(TestCase):
         # Delete corresponding folder
         shutil.rmtree(ticket_path)
 
+    def test_process_watchdog_success_osf(self):
+        """
+        Manually test the process_watchdog utility function to get code coverage and make sure it
+        is working as expected.
+        """
+        resource_id = '5cd98510f244ec001fe5632f'
+        ticket_number = uuid.uuid4()
+        ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
+        process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(ticket_number)
+        process_info_obj = {
+            'presqt-source-token': TEST_USER_TOKEN,
+            'status': 'in_progress',
+            'expiration': str(timezone.now() + relativedelta(days=5)),
+            'message': 'Download is being processed on the server',
+            'status_code': None
+        }
+        write_file(process_info_path, process_info_obj, True)
+        # Start the download_resource process manually
+        process_state = multiprocessing.Value('b', 0)
+        function_process = multiprocessing.Process(target=download_resource, args=[
+            'osf', 'resource_download', TEST_USER_TOKEN, resource_id,
+            ticket_path, process_info_path, process_state])
+        function_process.start()
+
+        # start watchdog function manually
+        process_watchdog(function_process, process_info_path, 3600, process_state)
+
+        # Make sure the watchdog didn't overwrite the file and its status si still 'finished'
+        process_info = read_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number),
+                                 True)
+        self.assertEqual(process_info['status'], 'finished')
+
+
+    def test_process_watchdog_failure_osf(self):
+        """
+        Manually test the process_watchdog utility function to get code coverage and make sure it
+        is working as expected.
+        Test whether the process_watchdog catches that the monitored process took too long.
+        """
+        resource_id = '5cd9832cf244ec0021e5f245'
+        ticket_number = uuid.uuid4()
+        ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
+        process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(ticket_number)
+        process_info_obj = {
+            'presqt-source-token': TEST_USER_TOKEN,
+            'status': 'in_progress',
+            'expiration': str(timezone.now() + relativedelta(days=5)),
+            'message': 'Download is being processed on the server',
+            'status_code': None
+        }
+        write_file(process_info_path, process_info_obj, True)
+
+        # Start the download_resource process manually
+        process_state = multiprocessing.Value('b', 0)
+        function_process = multiprocessing.Process(target=download_resource, args=[
+            'osf', 'resource_download', TEST_USER_TOKEN, resource_id,
+            ticket_path, process_info_path, process_state])
+        function_process.start()
+
+        # start watchdog function manually
+        process_watchdog(function_process, process_info_path, 1, process_state)
+
+        # Make sure the process_watchdog reached a failure and updated the status to 'failed'
+        process_info = read_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number),
+                                 True)
+        self.assertEqual(process_info['status'], 'failed')
 
 class TestDownloadResource(TestCase):
     """
@@ -506,7 +580,6 @@ class TestDownloadResource(TestCase):
             "md5": "9e79fdd9032629743fca52634ecdfd86"
         }
 
-        # Call the download_resource manually
         url = reverse('prepare_download', kwargs={'target_name': 'osf', 'resource_id': self.resource_id})
         response = self.client.get(url, **self.header)
         # Verify the status code

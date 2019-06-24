@@ -1,6 +1,7 @@
 import multiprocessing
+from time import sleep
+
 import bagit
-import glob
 
 from uuid import uuid4
 from dateutil.relativedelta import relativedelta
@@ -15,6 +16,7 @@ from rest_framework.views import APIView
 from presqt.api_v1.utilities import (token_validation, target_validation, FunctionRouter,
                                      write_file, zip_directory)
 from presqt.api_v1.utilities.io.read_file import read_file
+from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
 from presqt.exceptions import (PresQTValidationError, PresQTAuthorizationError,
                                PresQTResponseException)
 from presqt import fixity
@@ -27,7 +29,6 @@ class PrepareDownload(APIView):
     * GET: Prepares a download of a resource with the given resource ID provided. Spawns a
     process separate from the request server to do the actual downloading and zip-file preparation.
     """
-
     def get(self, request, target_name, resource_id):
         """
         Prepare a resource for download.
@@ -56,7 +57,6 @@ class PrepareDownload(APIView):
             "error": "'presqt-source-token' missing in the request headers."
         }
 
-
         404: Not Found
         {
             "error": "'bad_target' is not a valid Target name."
@@ -84,7 +84,6 @@ class PrepareDownload(APIView):
             'presqt-source-token': token,
             'status': 'in_progress',
             'expiration': str(timezone.now() + relativedelta(days=5)),
-            'kill_time': str(timezone.now() + relativedelta(hours=1)),
             'message': 'Download is being processed on the server',
             'status_code': None
         }
@@ -93,16 +92,24 @@ class PrepareDownload(APIView):
         process_info_path = '{}/process_info.json'.format(ticket_path)
         write_file(process_info_path, process_info_obj, True)
 
+
+        # Create a shared memory map that the watchdog monitors to see if the spawned
+        # off process has finished
+        process_state = multiprocessing.Value('b', 0)
         # Spawn job separate from request memory thread
-        function_thread = multiprocessing.Process(target=download_resource, args=[
-            target_name, action, token, resource_id, ticket_path, process_info_path])
-        function_thread.start()
+        function_process = multiprocessing.Process(target=download_resource, args=[
+            target_name, action, token, resource_id, ticket_path, process_info_path, process_state])
+        function_process.start()
+
+        # Start the watchdog process that will monitor the spawned off process
+        watch_dog = multiprocessing.Process(target=process_watchdog,
+                                            args=[function_process, process_info_path,
+                                                  3600, process_state])
+        watch_dog.start()
 
         # Get the download url
-        reversed_url = reverse('download_resource', kwargs={
-                               'ticket_number': ticket_number})
-        download_hyperlink = request.build_absolute_uri(
-            reversed_url)
+        reversed_url = reverse('download_resource', kwargs={'ticket_number': ticket_number})
+        download_hyperlink = request.build_absolute_uri(reversed_url)
 
         return Response(status=status.HTTP_202_ACCEPTED,
                         data={'ticket_number': ticket_number,
@@ -110,7 +117,8 @@ class PrepareDownload(APIView):
                               'download_link': download_hyperlink})
 
 
-def download_resource(target_name, action, token, resource_id, ticket_path, process_info_path):
+def download_resource(target_name, action, token, resource_id, ticket_path,
+                      process_info_path, process_state):
     """
     Downloads the resources from the target, performs a fixity check, zips them up in BagIt format.
 
@@ -128,9 +136,14 @@ def download_resource(target_name, action, token, resource_id, ticket_path, proc
         Path to the ticket_id directory that holds all downloads and process_info
     process_info_path : str
         Path to the process_info JSON file
+    process_state : memory_map object
+        Shared memory map object that the watchdog process will monitor
     """
     # Fetch the proper function to call
     func = FunctionRouter.get_function(target_name, action)
+
+    # Get the current process_info.json data to be used throughout the file
+    process_info_data = read_file(process_info_path, True)
 
     # Fetch the resources. 'resources' will be a list of the following dictionary:
     # {'file': binary_file,
@@ -142,12 +155,13 @@ def download_resource(target_name, action, token, resource_id, ticket_path, proc
     except PresQTResponseException as e:
         # Catch any errors that happen within the target fetch.
         # Update the server process_info file appropriately.
-        data = read_file(process_info_path, True)
-        data['status_code'] = e.status_code
-        data['status'] = 'failed'
-        data['message'] = e.data
-        data['expiration'] = str(timezone.now() + relativedelta(hours=1))
-        write_file(process_info_path, data, True)
+        process_info_data['status_code'] = e.status_code
+        process_info_data['status'] = 'failed'
+        process_info_data['message'] = e.data
+        process_info_data['expiration'] = str(timezone.now() + relativedelta(hours=1))
+        write_file(process_info_path, process_info_data, True)
+        #  Update the shared memory map so the watchdog process can stop running.
+        process_state.value = 1
         return
 
     # The directory all files should be saved in.
@@ -177,12 +191,14 @@ def download_resource(target_name, action, token, resource_id, ticket_path, proc
     zip_directory("{}/{}.zip".format(ticket_path, base_file_name), base_directory, ticket_path)
 
     # Everything was a success so update the server metadata file.
-    data = read_file(process_info_path, True)
-    data['status_code'] = '200'
-    data['status'] = 'finished'
-    data['message'] = 'Download successful'
-    data['zip_name'] = '{}.zip'.format(base_file_name)
-    write_file(process_info_path, data, True)
+    process_info_data['status_code'] = '200'
+    process_info_data['status'] = 'finished'
+    process_info_data['message'] = 'Download successful'
+    process_info_data['zip_name'] = '{}.zip'.format(base_file_name)
+    write_file(process_info_path, process_info_data, True)
+
+    # Update the shared memory map so the watchdog process can stop running.
+    process_state.value = 1
     return
 
 
@@ -227,8 +243,8 @@ class DownloadResource(APIView):
 
         500: Internal Server Error
         {
-            "status": "failed",
-            "message": "Resource with id 'eggyboi' not found for this user."
+            "status_code": "404",
+            "message": "Resource with id 'bad_id' not found for this user."
         }
         """
         # Perform token validation
