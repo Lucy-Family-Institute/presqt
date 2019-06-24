@@ -36,6 +36,6 @@ def process_watchdog(process_function, process_info_path, process_time, process_
     process_function.terminate()
     d = read_file(process_info_path, True)
     d['status'] = 'failed'
-    d['message'] = 'Process reached kill time'
+    d['message'] = 'The process took too long on the server.'
     d['status_code'] = 500
     write_file(process_info_path, d, True)
