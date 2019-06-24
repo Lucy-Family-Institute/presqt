@@ -1,7 +1,8 @@
 import json
 
 from django.test import TestCase
-from rest_framework.test import APIRequestFactory
+from rest_framework.reverse import reverse
+from rest_framework.test import APIRequestFactory, APIClient
 
 from presqt.api_v1.views.target.target import TargetCollection, Target
 
@@ -14,10 +15,7 @@ class TestTargetCollection(TestCase):
         """
         Return a 200 if the GET method is successful
         """
-        self.factory = APIRequestFactory()
-        view = TargetCollection.as_view()
-        request = self.factory.get('api_v1/targets/')
-        response = view(request)
+        response = self.client.get(reverse('target_collection'))
 
         # Verify the Status Code
         self.assertEqual(response.status_code, 200)
@@ -43,8 +41,7 @@ class TestTarget(TestCase):
     Test the `api_v1/targets/{target_name}/` endpoint's GET method.
     """
     def setUp(self):
-        self.factory = APIRequestFactory()
-        self.view = Target.as_view()
+        self.client = APIClient()
 
     def test_get_success(self):
         """
@@ -54,8 +51,8 @@ class TestTarget(TestCase):
             json_data = json.load(json_file)
         target_name = json_data[0]['name']
 
-        request = self.factory.get('/targets/{}'.format(target_name))
-        response = self.view(request, target_name)
+        url = reverse('target', kwargs={'target_name': target_name})
+        response = self.client.get(url)
 
         # Verify the Status Code
         self.assertEqual(response.status_code, 200)
@@ -69,7 +66,8 @@ class TestTarget(TestCase):
         """
         Return a 404 if an invalid target_name was provided in the URL
         """
-        request = self.factory.get('/targets/{}'.format('Failure!!!'))
-        response = self.view(request, 'Failure!!!')
+        url = reverse('target', kwargs={'target_name': 'Failure!!!'})
+        response = self.client.get(url)
+
         # Verify the Status Code
         self.assertEqual(response.status_code, 404)
