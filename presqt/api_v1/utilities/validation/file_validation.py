@@ -22,5 +22,4 @@ def file_validation(request):
         raise PresQTValidationError(
             "The file, 'presqt-file', is not found in the body of the request.",
             status.HTTP_400_BAD_REQUEST)
-
     return file

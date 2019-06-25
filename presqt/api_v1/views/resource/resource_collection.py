@@ -4,8 +4,7 @@ from rest_framework.views import APIView
 
 from presqt.api_v1.serializers.resource import ResourcesSerializer
 from presqt.api_v1.utilities import target_validation, FunctionRouter, source_token_validation
-from presqt.exceptions import (PresQTValidationError, PresQTAuthorizationError,
-                               PresQTResponseException)
+from presqt.exceptions import PresQTValidationError, PresQTResponseException
 
 class ResourceCollection(APIView):
     """
@@ -70,7 +69,7 @@ class ResourceCollection(APIView):
         try:
             token = source_token_validation(request)
             target_validation(target_name, action)
-        except (PresQTAuthorizationError, PresQTValidationError) as e:
+        except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Fetch the proper function to call

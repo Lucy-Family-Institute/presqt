@@ -13,8 +13,7 @@ from presqt.api_v1.utilities import (source_token_validation, target_validation,
                                      destination_token_validation, write_file)
 from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
 from presqt.api_v1.utilities.validation.file_validation import file_validation
-from presqt.exceptions import (PresQTValidationError, PresQTAuthorizationError,
-                               PresQTResponseException)
+from presqt.exceptions import PresQTValidationError, PresQTResponseException
 
 
 class Resource(APIView):
@@ -104,7 +103,7 @@ class Resource(APIView):
         try:
             token = source_token_validation(request)
             target_validation(target_name, action)
-        except (PresQTAuthorizationError, PresQTValidationError) as e:
+        except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Fetch the proper function to call
@@ -155,12 +154,12 @@ class Resource(APIView):
         """
         action = 'resource_upload'
 
-        # Perform token, target, and action validation
+        # Perform token, target, action, and resource validation
         try:
             token = destination_token_validation(request)
             target_validation(target_name, action)
             resource = file_validation(request)
-        except (PresQTAuthorizationError, PresQTValidationError) as e:
+        except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Generate ticket number

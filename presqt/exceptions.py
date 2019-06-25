@@ -18,8 +18,3 @@ class PresQTResponseException(PresQTError):
 class PresQTValidationError(PresQTResponseException):
     pass
 
-
-class PresQTAuthorizationError(PresQTResponseException):
-    pass
-
-

@@ -1,6 +1,6 @@
 from rest_framework import status
 
-from presqt.exceptions import PresQTAuthorizationError
+from presqt.exceptions import PresQTValidationError
 
 
 def source_token_validation(request):
@@ -20,7 +20,7 @@ def source_token_validation(request):
     try:
         return request.META['HTTP_PRESQT_SOURCE_TOKEN']
     except KeyError:
-        raise PresQTAuthorizationError(
+        raise PresQTValidationError(
             "'presqt-source-token' missing in the request headers.",
             status.HTTP_400_BAD_REQUEST)
 
@@ -41,6 +41,6 @@ def destination_token_validation(request):
     try:
         return request.META['HTTP_PRESQT_DESTINATION_TOKEN']
     except KeyError:
-        raise PresQTAuthorizationError(
+        raise PresQTValidationError(
             "'presqt-destination-token' missing in the request headers.",
             status.HTTP_400_BAD_REQUEST)

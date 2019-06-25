@@ -16,8 +16,7 @@ from presqt.api_v1.utilities import (source_token_validation, target_validation,
                                      write_file, zip_directory)
 from presqt.api_v1.utilities.io.read_file import read_file
 from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
-from presqt.exceptions import (PresQTValidationError, PresQTAuthorizationError,
-                               PresQTResponseException)
+from presqt.exceptions import PresQTValidationError, PresQTResponseException
 from presqt import fixity
 
 
@@ -67,7 +66,7 @@ class PrepareDownload(APIView):
         try:
             token = source_token_validation(request)
             target_validation(target_name, action)
-        except (PresQTAuthorizationError, PresQTValidationError) as e:
+        except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Generate ticket number
@@ -245,7 +244,7 @@ class DownloadResource(APIView):
         # Perform token validation
         try:
             token = source_token_validation(request)
-        except PresQTAuthorizationError as e:
+        except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Read data from the process_info file
