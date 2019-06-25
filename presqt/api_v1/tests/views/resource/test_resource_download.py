@@ -564,6 +564,7 @@ class TestPrepareDownload(TestCase):
         process_info = read_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number),
                                  True)
         self.assertEqual(process_info['status'], 'failed')
+        self.assertEqual(process_info['status_code'], 504)
         self.assertEqual(process_info['message'], 'The process took too long on the server.')
 
         # Delete corresponding folder
