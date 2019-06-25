@@ -63,16 +63,11 @@ class PrepareDownload(APIView):
         """
         action = 'resource_download'
 
-        # Perform token validation
+        # Perform token, target, and action validation
         try:
             token = source_token_validation(request)
-        except PresQTAuthorizationError as e:
-            return Response(data={'error': e.data}, status=e.status_code)
-
-        # Perform target_name and action validation
-        try:
             target_validation(target_name, action)
-        except PresQTValidationError as e:
+        except (PresQTAuthorizationError, PresQTValidationError) as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Generate ticket number

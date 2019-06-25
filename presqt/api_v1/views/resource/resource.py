@@ -12,6 +12,7 @@ from presqt.api_v1.serializers.resource import ResourceSerializer
 from presqt.api_v1.utilities import (source_token_validation, target_validation, FunctionRouter,
                                      destination_token_validation, write_file)
 from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
+from presqt.api_v1.utilities.validation.file_validation import file_validation
 from presqt.exceptions import (PresQTValidationError, PresQTAuthorizationError,
                                PresQTResponseException)
 
@@ -99,16 +100,11 @@ class Resource(APIView):
         """
         action = 'resource_detail'
 
-        # Perform token validation
+        # Perform token, target, and action validation
         try:
             token = source_token_validation(request)
-        except PresQTAuthorizationError as e:
-            return Response(data={'error': e.data}, status=e.status_code)
-
-        # Perform target_name and action validation
-        try:
             target_validation(target_name, action)
-        except PresQTValidationError as e:
+        except (PresQTAuthorizationError, PresQTValidationError) as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Fetch the proper function to call
@@ -159,19 +155,14 @@ class Resource(APIView):
         """
         action = 'resource_upload'
 
-        # Perform token validation
+        # Perform token, target, and action validation
         try:
             token = destination_token_validation(request)
-        except PresQTAuthorizationError as e:
-            return Response(data={'error': e.data}, status=e.status_code)
-
-        # Perform target_name and action validation
-        try:
             target_validation(target_name, action)
-        except PresQTValidationError as e:
+            resource = file_validation(request)
+        except (PresQTAuthorizationError, PresQTValidationError) as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
-        # ADD FILE VALIDATION IN THE REQUEST
         # Generate ticket number
         ticket_number = uuid4()
 
@@ -192,7 +183,7 @@ class Resource(APIView):
         # off process has finished
         process_state = multiprocessing.Value('b', 0)
         # Spawn job separate from request memory thread
-        function_process = multiprocessing.Process(target=upload_resource, args=[])
+        function_process = multiprocessing.Process(target=upload_resource, args=[process_info_path, resource])
         function_process.start()
 
         # Start the watchdog process that will monitor the spawned off process
@@ -205,5 +196,6 @@ class Resource(APIView):
                         data={'ticket_number': ticket_number,
                               'message': 'The server is processing the request.'})
 
-def upload_resource():
+def upload_resource(process_info_path, resource):
+
     return
