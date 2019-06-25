@@ -1,9 +1,17 @@
+import multiprocessing
+from uuid import uuid4
+
+from dateutil.relativedelta import relativedelta
+from django.utils import timezone
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 
 from presqt.api_v1.serializers.resource import ResourceSerializer
-from presqt.api_v1.utilities import token_validation, target_validation, FunctionRouter
+from presqt.api_v1.utilities import (source_token_validation, target_validation, FunctionRouter,
+                                     destination_token_validation, write_file)
+from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
 from presqt.exceptions import (PresQTValidationError, PresQTAuthorizationError,
                                PresQTResponseException)
 
@@ -93,7 +101,7 @@ class Resource(APIView):
 
         # Perform token validation
         try:
-            token = token_validation(request)
+            token = source_token_validation(request)
         except PresQTAuthorizationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
@@ -115,3 +123,87 @@ class Resource(APIView):
 
         serializer = ResourceSerializer(instance=resource)
         return Response(serializer.data)
+
+    def post(self, request, target_name, resource_id):
+        """
+        Upload resources to a specific resource.
+
+        Parameters
+        ----------
+        target_name : str
+            The name of the Target resource to retrieve.
+        resource_id : str
+            The id of the Resource to retrieve.
+
+        Returns
+        -------
+        202: Accepted
+        {
+            "ticket_number": "some_uuid"
+            "message": "The server is processing the request."
+        }
+
+        400: Bad Request
+        {
+            "error": "'new_target' does not support the action 'resource_upload'."
+        }
+        or
+        {
+            "error": "'presqt-destination-token' missing in the request headers."
+        }
+
+        404: Not Found
+        {
+            "error": "'bad_target' is not a valid Target name."
+        }
+        """
+        action = 'resource_upload'
+
+        # Perform token validation
+        try:
+            token = destination_token_validation(request)
+        except PresQTAuthorizationError as e:
+            return Response(data={'error': e.data}, status=e.status_code)
+
+        # Perform target_name and action validation
+        try:
+            target_validation(target_name, action)
+        except PresQTValidationError as e:
+            return Response(data={'error': e.data}, status=e.status_code)
+
+        # ADD FILE VALIDATION IN THE REQUEST
+        # Generate ticket number
+        ticket_number = uuid4()
+
+        # Create directory and process_info json file
+        process_info_obj = {
+            'presqt-destination-token': token,
+            'status': 'in_progress',
+            'expiration': str(timezone.now() + relativedelta(days=5)),
+            'message': 'Upload is being processed on the server',
+            'status_code': None
+        }
+
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        process_info_path = '{}/process_info.json'.format(ticket_path)
+        write_file(process_info_path, process_info_obj, True)
+
+        # Create a shared memory map that the watchdog monitors to see if the spawned
+        # off process has finished
+        process_state = multiprocessing.Value('b', 0)
+        # Spawn job separate from request memory thread
+        function_process = multiprocessing.Process(target=upload_resource, args=[])
+        function_process.start()
+
+        # Start the watchdog process that will monitor the spawned off process
+        watch_dog = multiprocessing.Process(target=process_watchdog,
+                                            args=[function_process, process_info_path,
+                                                  3600, process_state])
+        watch_dog.start()
+
+        return Response(status=status.HTTP_202_ACCEPTED,
+                        data={'ticket_number': ticket_number,
+                              'message': 'The server is processing the request.'})
+
+def upload_resource():
+    return

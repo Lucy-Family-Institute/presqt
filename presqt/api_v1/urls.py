@@ -23,7 +23,7 @@ api_v1_endpoints = [
     path('targets/<str:target_name>/resources/<str:resource_id>/download/',
          PrepareDownload.as_view(), name="prepare_download"),
 
-    # Downloads
+    # Download
     path('download/<str:ticket_number>/',
          DownloadResource.as_view(), name='download_resource')
 ]

@@ -1,5 +1,4 @@
 import multiprocessing
-from time import sleep
 
 import bagit
 
@@ -13,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 
-from presqt.api_v1.utilities import (token_validation, target_validation, FunctionRouter,
+from presqt.api_v1.utilities import (source_token_validation, target_validation, FunctionRouter,
                                      write_file, zip_directory)
 from presqt.api_v1.utilities.io.read_file import read_file
 from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
@@ -44,7 +43,7 @@ class PrepareDownload(APIView):
         -------
         202: Accepted
         {
-            "ticket_number": "1234567890"
+            "ticket_number": "some_uuid"
             "message": "The server is processing the request."
         }
 
@@ -66,7 +65,7 @@ class PrepareDownload(APIView):
 
         # Perform token validation
         try:
-            token = token_validation(request)
+            token = source_token_validation(request)
         except PresQTAuthorizationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
@@ -91,7 +90,6 @@ class PrepareDownload(APIView):
         ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
         process_info_path = '{}/process_info.json'.format(ticket_path)
         write_file(process_info_path, process_info_obj, True)
-
 
         # Create a shared memory map that the watchdog monitors to see if the spawned
         # off process has finished
@@ -249,7 +247,7 @@ class DownloadResource(APIView):
         """
         # Perform token validation
         try:
-            token = token_validation(request)
+            token = source_token_validation(request)
         except PresQTAuthorizationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
