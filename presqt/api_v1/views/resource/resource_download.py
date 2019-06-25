@@ -1,5 +1,4 @@
 import multiprocessing
-from time import sleep
 
 import bagit
 
@@ -158,6 +157,8 @@ def download_resource(target_name, action, token, resource_id, ticket_path,
         process_info_data['status_code'] = e.status_code
         process_info_data['status'] = 'failed'
         process_info_data['message'] = e.data
+        # Update the expiration from 5 days to 1 hour from now. We can delete this faster because
+        # it's an incomplete/failed directory.
         process_info_data['expiration'] = str(timezone.now() + relativedelta(hours=1))
         write_file(process_info_path, process_info_data, True)
         #  Update the shared memory map so the watchdog process can stop running.
@@ -276,7 +277,6 @@ class DownloadResource(APIView):
             response = HttpResponse(open(zip_file_path, 'rb'), content_type='application/zip')
             response['Content-Disposition'] = 'attachment; filename={}'.format(zip_name)
             return response
-
         else:
             if download_status == 'in_progress':
                 http_status = status.HTTP_202_ACCEPTED
