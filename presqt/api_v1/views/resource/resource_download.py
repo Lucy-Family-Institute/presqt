@@ -189,7 +189,7 @@ def download_resource(target_name, action, token, resource_id, ticket_path,
     bagit.make_bag(base_directory)
 
     # Zip the Bagit 'bag' to send forward.
-    zip_directory("{}/{}.zip".format(ticket_path, base_file_name), base_directory, ticket_path)
+    zip_directory(base_directory, "{}/{}.zip".format(ticket_path, base_file_name), ticket_path)
 
     # Everything was a success so update the server metadata file.
     process_info_data['status_code'] = '200'
@@ -248,6 +248,7 @@ class DownloadResource(APIView):
             "message": "Resource with id 'bad_id' not found for this user."
         }
         """
+        print('hhihihihihihihihihi')
         # Perform token validation
         try:
             token = token_validation(request)
