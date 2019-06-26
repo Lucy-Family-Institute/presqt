@@ -1,5 +1,6 @@
 from rest_framework import status
 
+from presqt.exceptions import PresQTInvalidTokenError, PresQTResponseException
 from presqt.osf.exceptions import OSFNotFoundError, OSFForbiddenError
 from presqt.session import PresQTSession
 
@@ -33,13 +34,26 @@ class OSFBase(object):
         """
         Follow the 'next' link on paginated results.
         """
-        response_json = self._json(self.session.get(url))
+        response_json = self._json(self.get(url))
         data = response_json['data']
 
         next_url = response_json['links']['next']
         while next_url is not None:
-            response_json = self._json(self.session.get(next_url))
+            response_json = self._json(self.get(next_url))
             data.extend(response_json['data'])
             next_url = response_json['links']['next']
 
         return data
+
+    def get(self, url, *args, **kwargs):
+        """
+        Handle any errors that may pop of while making get requests through the session
+        """
+        response =  self.session.get(url, *args, **kwargs)
+        if response.status_code == 401:
+            raise PresQTInvalidTokenError("Token is invalid. Response returned a 401 status code.")
+        elif response.status_code == 410:
+            raise PresQTResponseException("The requested resource is no longer available.",
+                                          status.HTTP_410_GONE)
+
+        return response

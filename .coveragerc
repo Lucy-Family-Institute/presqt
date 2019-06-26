@@ -3,7 +3,9 @@
 omit =
         # Omit this single file
         presqt/management/commands/validate_target_json.py
-
+        presqt/management/tests/*
+        presqt/api_v1/tests/*
+        presqt/json_schemas/tests/*
 
 # A list of packages or directories, the source to measure during execution.
 source = presqt

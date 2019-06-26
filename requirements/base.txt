@@ -1,9 +1,10 @@
-Django==2.1.7
+Django==2.2.2
 gunicorn==19.9.0
 psycopg2==2.7.6.1
 pytz==2018.9
 requests==2.21.0
 jsonschema==3.0.1                   # An implementation of JSON Schema for Python
+python-dateutil==2.8.0              # The dateutil module provides powerful extensions to the standard datetime module, available in Python.
 
 # Requirements for RESTful API Support
 djangorestframework==3.9.2          # Latest version of DRF

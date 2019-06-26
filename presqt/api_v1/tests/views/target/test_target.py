@@ -3,7 +3,7 @@ import json
 from django.test import TestCase
 from rest_framework.test import APIRequestFactory
 
-from presqt.api_v1.views.target import TargetCollection, Target
+from presqt.api_v1.views.target.target import TargetCollection, Target
 
 
 class TestTargetCollection(TestCase):

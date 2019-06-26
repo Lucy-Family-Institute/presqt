@@ -21,7 +21,6 @@ def osf_download_resource(token, resource_id):
     -------
     List of dictionary objects that each hold a file and its information.
     """
-
     try:
         osf_instance = OSF(token)
     except PresQTInvalidTokenError:

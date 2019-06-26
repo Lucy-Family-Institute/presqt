@@ -1,4 +1,6 @@
-from presqt.exceptions import PresQTInvalidTokenError
+from rest_framework import status
+
+from presqt.exceptions import PresQTInvalidTokenError, PresQTResponseException
 from presqt.osf.classes.base import OSFBase
 from presqt.osf.classes.file import File
 from presqt.osf.classes.project import Project
@@ -16,8 +18,7 @@ class OSF(OSFBase):
         self.login(token)
 
         # Verify that the token provided is a valid one.
-        if self.session.get('https://api.osf.io/v2/users/me/').status_code == 401:
-            raise PresQTInvalidTokenError("Token is invalid. Response returned a 401 status code.")
+        self.get('https://api.osf.io/v2/users/me/')
 
     def login(self, token):
         """
@@ -39,7 +40,7 @@ class OSF(OSFBase):
         Instance of the desired Project.
         """
         url = self.session.build_url('nodes', project_id)
-        return Project(self._json(self.session.get(url)), self.session)
+        return Project(self._json(self.get(url)), self.session)
 
     def resource(self, resource_id):
         """
@@ -55,7 +56,7 @@ class OSF(OSFBase):
         Instance of the desired resource (either Folder or File).
         """
         url = self.session.build_url('files', resource_id)
-        response_json = self._json(self.session.get(url))['data']
+        response_json = self._json(self.get(url))['data']
 
         if response_json['attributes']['kind'] == 'file':
             return File(response_json, self.session)
@@ -67,10 +68,10 @@ class OSF(OSFBase):
         Fetch all projects for this user.
         """
         url = self.session.build_url('users', 'me', 'nodes')
-        response_json = self._json(self.session.get(url))
+        response_json = self._json(self.get(url))
         node_urls = [self.session.build_url('nodes', node['id']) for node in response_json['data']]
 
-        projects = [Project(self._json(self.session.get(node_url)), self.session) for node_url in node_urls]
+        projects = [Project(self._json(self.get(node_url)), self.session) for node_url in node_urls]
         return projects
 
     def get_user_resources(self):
