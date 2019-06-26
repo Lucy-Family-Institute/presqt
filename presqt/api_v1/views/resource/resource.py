@@ -1,4 +1,5 @@
 import multiprocessing
+import zipfile
 from uuid import uuid4
 
 from dateutil.relativedelta import relativedelta
@@ -161,6 +162,9 @@ class Resource(APIView):
             resource = file_validation(request)
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
+
+        # Unzip the resource
+        zip = zipfile.ZipFile(resource, 'r')
 
         # Generate ticket number
         ticket_number = uuid4()

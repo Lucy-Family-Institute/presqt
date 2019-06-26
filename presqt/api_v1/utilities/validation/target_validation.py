@@ -31,6 +31,7 @@ def target_validation(target_name, action):
                 raise PresQTValidationError(
                     "'{}' does not support the action '{}'.".format(target_name,action),
                     status.HTTP_400_BAD_REQUEST)
+            return True
     else:
         raise PresQTValidationError(
             "'{}' is not a valid Target name.".format(target_name),
