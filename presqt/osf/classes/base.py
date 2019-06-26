@@ -47,7 +47,7 @@ class OSFBase(object):
 
     def get(self, url, *args, **kwargs):
         """
-        Handle any errors that may pop of while making get requests through the session
+        Handle any errors that may pop up while making get requests through the session
         """
         response =  self.session.get(url, *args, **kwargs)
         if response.status_code == 401:

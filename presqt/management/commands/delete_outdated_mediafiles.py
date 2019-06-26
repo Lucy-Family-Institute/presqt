@@ -15,13 +15,12 @@ class Command(BaseCommand):
         Delete all mediafiles that have run past their expiration date.
         """
         for directory in glob.glob('mediafiles/downloads/*/'):
-            for metadata in glob.glob(directory + 'process_info.json'):
-                data = read_file(metadata, True)
+            data = read_file('{}process_info.json'.format(directory), True)
 
-                expiration = parse(data['expiration'])
+            expiration = parse(data['expiration'])
 
-                if expiration <= timezone.now():
-                    shutil.rmtree(directory)
-                    print(directory + ' has been deleted.')
-                else:
-                    print(directory + ' has been retained.')
+            if expiration <= timezone.now():
+                shutil.rmtree(directory)
+                print('{} has been deleted.'.format(directory))
+            else:
+                print('{} has been retained.'.format(directory))

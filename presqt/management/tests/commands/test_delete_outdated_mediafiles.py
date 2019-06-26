@@ -41,7 +41,7 @@ class TestDeleteMediaFiles(TestCase):
         data_pre_command = glob.glob('mediafiles/downloads/test_command/process_info.json')
         self.assertEqual(len(data_pre_command), 1)
 
-        call_command('delete_mediafiles')
+        call_command('delete_outdated_mediafiles')
 
         # Ensure that the folder and files have been retained
         data_post_command = glob.glob('mediafiles/downloads/test_command/')
@@ -64,7 +64,7 @@ class TestDeleteMediaFiles(TestCase):
         data_pre_command = glob.glob('mediafiles/downloads/test_command/process_info.json')
         self.assertEqual(len(data_pre_command), 1)
 
-        call_command('delete_mediafiles')
+        call_command('delete_outdated_mediafiles')
 
         # Check that the folder has been deleted
         data_post_command = glob.glob('mediafiles/downloads/test_command/')
