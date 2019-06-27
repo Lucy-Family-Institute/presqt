@@ -1,7 +1,10 @@
 import multiprocessing
+import os
 import zipfile
+from io import BytesIO
 from uuid import uuid4
 
+import bagit
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from rest_framework import status
@@ -12,6 +15,7 @@ from rest_framework.views import APIView
 from presqt.api_v1.serializers.resource import ResourceSerializer
 from presqt.api_v1.utilities import (source_token_validation, target_validation, FunctionRouter,
                                      destination_token_validation, write_file)
+from presqt.api_v1.utilities.io.read_file import read_file
 from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
 from presqt.api_v1.utilities.validation.file_validation import file_validation
 from presqt.exceptions import PresQTValidationError, PresQTResponseException
@@ -163,13 +167,24 @@ class Resource(APIView):
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
-        # Unzip the resource
-        zip = zipfile.ZipFile(resource, 'r')
-
         # Generate ticket number
         ticket_number = uuid4()
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
-        # Create directory and process_info json file
+        # Extract the zip file to disk
+        with zipfile.ZipFile(resource) as myzip:
+            myzip.extractall(ticket_path)
+
+        resource_main_dir = '{}/{}'.format(ticket_path, next(os.walk(ticket_path))[1][0])
+
+        # Verify it is BagIt
+        bag = bagit.Bag(resource_main_dir)
+        # POSSIBLY CREATE A CLEARER EXPLANATION WHY
+        if not bag.is_valid(bag):
+            return Response(data={'error': 'The file provided is not in BagIt format.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Create directory and write process_info.json file
         process_info_obj = {
             'presqt-destination-token': token,
             'status': 'in_progress',
@@ -177,8 +192,6 @@ class Resource(APIView):
             'message': 'Upload is being processed on the server',
             'status_code': None
         }
-
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
         process_info_path = '{}/process_info.json'.format(ticket_path)
         write_file(process_info_path, process_info_obj, True)
 
@@ -186,19 +199,50 @@ class Resource(APIView):
         # off process has finished
         process_state = multiprocessing.Value('b', 0)
         # Spawn job separate from request memory thread
-        function_process = multiprocessing.Process(target=upload_resource, args=[process_info_path, resource])
+        function_process = multiprocessing.Process(target=upload_resource,
+                                                   args=[resource_main_dir, process_info_path, bag.payload_entries(), target_name, action, token, resource_id, process_state])
         function_process.start()
 
         # Start the watchdog process that will monitor the spawned off process
         watch_dog = multiprocessing.Process(target=process_watchdog,
-                                            args=[function_process, process_info_path,
-                                                  3600, process_state])
+                                            args=[function_process, process_info_path, 3600,
+                                                  process_state])
         watch_dog.start()
 
         return Response(status=status.HTTP_202_ACCEPTED,
                         data={'ticket_number': ticket_number,
                               'message': 'The server is processing the request.'})
 
-def upload_resource(process_info_path, resource):
+def upload_resource(resource_main_dir, process_info_path, bag_payload_entries, target_name, action, token, resource_id, process_state):
+    # Fetch the proper function to call
+    func = FunctionRouter.get_function(target_name, action)
 
+    # Get the current process_info.json data to be used throughout the file
+    process_info_data = read_file(process_info_path, True)
+
+    # Upload the resources
+    try:
+        uploaded_resources = func(token, resource_id, resource_main_dir)
+    except PresQTResponseException as e:
+        # Catch any errors that happen within the target fetch.
+        # Update the server process_info file appropriately.
+        process_info_data['status_code'] = e.status_code
+        process_info_data['status'] = 'failed'
+        process_info_data['message'] = e.data
+        # Update the expiration from 5 days to 1 hour from now. We can delete this faster because
+        # it's an incomplete/failed directory.
+        process_info_data['expiration'] = str(timezone.now() + relativedelta(hours=1))
+        write_file(process_info_path, process_info_data, True)
+        #  Update the shared memory map so the watchdog process can stop running.
+        process_state.value = 1
+        return
+
+    # Everything was a success so update the server metadata file.
+    process_info_data['status_code'] = '200'
+    process_info_data['status'] = 'finished'
+    process_info_data['message'] = 'Upload successful'
+    write_file(process_info_path, process_info_data, True)
+
+    # Update the shared memory map so the watchdog process can stop running.
+    process_state.value = 1
     return

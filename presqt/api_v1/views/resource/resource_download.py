@@ -241,7 +241,6 @@ class DownloadResource(APIView):
             "message": "Resource with id 'bad_id' not found for this user."
         }
         """
-        print('hhihihihihihihihihi')
         # Perform token validation
         try:
             token = source_token_validation(request)
