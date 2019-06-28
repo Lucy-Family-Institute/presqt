@@ -12,7 +12,7 @@ from django.utils import timezone
 
 from presqt.api_v1.utilities import write_file
 from presqt.api_v1.utilities.io.read_file import read_file
-from presqt.api_v1.views.resource.resource_download import download_resource
+from presqt.api_v1.views.resource.resource import download_resource
 
 
 class TestDeleteMediaFiles(TestCase):
