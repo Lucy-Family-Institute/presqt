@@ -128,8 +128,7 @@ class Resource(APIView):
             return Response(
                 data={
                     'error': '{} is not a valid format for this endpoint.'.format(resource_format)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+                status=status.HTTP_400_BAD_REQUEST)
 
     def get_json_format(self, request, target_name, resource_id):
         """
@@ -245,6 +244,7 @@ class Resource(APIView):
                         data={'ticket_number': ticket_number,
                               'message': 'The server is processing the request.',
                               'download_link': download_hyperlink})
+
 
 def download_resource(target_name, action, token, resource_id, ticket_path,
                       process_info_path, process_state):

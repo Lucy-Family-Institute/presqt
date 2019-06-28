@@ -23,9 +23,8 @@ from presqt.fixity import fixity_checker
 
 class TestResource(TestCase):
     """
-        Test the
+        Test the endpoint's GET method for
         `api_v1/targets/{target_name}/resources/{resource_id}.{resource_format}/`
-        endpoint's GET method.
     """
     def setUp(self):
         self.client = APIClient()
@@ -270,7 +269,7 @@ class TestResourceZip(TestCase):
 
     def shared_get_success_function_202(self):
         """
-        This function will be used by tests that successfully hit the PrepareDownload endpoint.
+        This function will be used by tests that successfully hit the resource GET endpoint.
         It uses class attributes that are set in the test methods.
 
         Returns
@@ -347,7 +346,7 @@ class TestResourceZip(TestCase):
 
     def shared_get_success_function_202_with_error(self):
         """
-        This function will be used by tests that successfully hit the PrepareDownload endpoint but
+        This function will be used by tests that successfully hit the GET resource endpoint but
         fail during the download_resource() function.
         It uses class attributes that are set in the test methods.
         """

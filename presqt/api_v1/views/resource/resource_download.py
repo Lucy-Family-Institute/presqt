@@ -14,7 +14,7 @@ class DownloadResource(APIView):
     **Supported HTTP Methods**
 
     * GET: Check if a resource download is finished on the server matching the ticket number.
-    If it is then download it otherwise return the state of it.
+        If it is then download it otherwise return the state of it.
     """
 
     def get(self, request, ticket_number):
