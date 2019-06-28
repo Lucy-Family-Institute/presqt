@@ -132,8 +132,11 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL = '/mediafiles/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'mediafiles')
 
+# If we don't do this, NGINX will not be able to serve large files that are uploaded to the server
+# since the default permissions set for large files deny it access.
+FILE_UPLOAD_PERMISSIONS = 0o644
+
 # OSF Test user tokens. Used for unit tests.
 # DON'T EVER USE THESE TOKENS TO STORE NON-PUBLIC DATA AS THEY ARE NOT SECURE
 TEST_USER_TOKEN = '3f5ULLSX3OaJcNVmj6N6cTomvcmlZf5YQYYKl6ek6c6SKXMG7V0R63ueMB0uiiGwrkXQi8'
 PRIVATE_USER_TOKEN = '0UAX3rbdd59OUXkGIu19gY0BMQODAbtGimcLNAfAie6dUQGGPig93mpFOpJQ8ceynlGScp'
-
