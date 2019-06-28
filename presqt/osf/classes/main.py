@@ -86,3 +86,9 @@ class OSF(OSFBase):
         for project in self.projects():
             project.get_resources(resources)
         return resources
+
+    def create_project(self):
+        """
+        Create a project for this user.
+        """
+

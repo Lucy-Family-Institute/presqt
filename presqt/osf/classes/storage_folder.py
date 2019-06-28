@@ -1,3 +1,6 @@
+from rest_framework import status
+
+from presqt.exceptions import PresQTResponseException
 from presqt.osf.classes.base import OSFBase
 from presqt.osf.classes.file import File
 
@@ -58,6 +61,53 @@ class ContainerMixin:
                     file_list.append(file)
 
         return file_list
+
+    def iter_children(self, url, kind, klass, recurse=None):
+        """
+        Iterate over all children of `kind`.
+        """
+        children = self._follow_next(url)
+
+        while children:
+            child = children.pop()
+            kind_ = child['attributes']['kind']
+            if kind_ == kind:
+                yield klass(child, self.session)
+            elif recurse is not None:
+                # recurse into a child and add entries to `children`
+                url = self._get_attribute(child, *recurse)
+                children.extend(self._follow_next(url))
+
+    def get_folder_by_name(self, folder_name):
+        """
+        Gets a folder object based on the name. Only looks for top level folders.
+        """
+        for folder in self.iter_children(self._files_url, 'folder', Folder):
+            if folder.title == folder_name:
+                return folder
+        else:
+            return None
+
+    def create_folder(self, name, exist_ok=False):
+        """
+        Create a new sub-folder for this container
+        """
+        response = self.put(self._new_folder_url, params={'name': name})
+        if response.status_code == 409 and not exist_ok:
+            raise PresQTResponseException("The folder, {}, already exists.".format(name),
+                                          status.HTTP_409_CONFLICT)
+
+        elif response.status_code == 409 and exist_ok:
+            return self.get_folder_by_name(name)
+
+        elif response.status_code == 201:
+            return self.get_folder_by_name(name)
+
+        else:
+            raise PresQTResponseException(
+                "Response has status code {} while creating folder {}".format(response.status_code,
+                                                                              name),
+                status.HTTP_400_BAD_REQUEST)
 
 
 class Storage(OSFBase, ContainerMixin):

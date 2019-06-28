@@ -47,7 +47,7 @@ class OSFBase(object):
 
     def get(self, url, *args, **kwargs):
         """
-        Handle any errors that may pop up while making get requests through the session
+        Handle any errors that may pop up while making GET requests through the session.
         """
         response =  self.session.get(url, *args, **kwargs)
         if response.status_code == 401:
@@ -56,4 +56,18 @@ class OSFBase(object):
             raise PresQTResponseException("The requested resource is no longer available.",
                                           status.HTTP_410_GONE)
 
+        return response
+
+    def put(self, url, *args, **kwargs):
+        """
+        Handle any errors that may pop up while making PUT requests through the session.
+        """
+        response = self.session.put(url, *args, **kwargs)
+        return response
+
+    def post(self, url, *args, **kwargs):
+        """
+        Handle any errors that may pop up while making POST requests through the session.
+        """
+        response = self.session.post(url, *args, **kwargs)
         return response
