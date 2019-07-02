@@ -313,7 +313,7 @@ class Resource(APIView):
         process_state = multiprocessing.Value('b', 0)
         # Spawn job separate from request memory thread
         function_process = multiprocessing.Process(target=upload_resource,
-                                                   args=[resource_main_dir, process_info_path, bag.payload_entries(), target_name, action, token, resource_id, process_state])
+                                                   args=[resource_main_dir, process_info_path, target_name, action, token, resource_id, process_state])
         function_process.start()
 
         # Start the watchdog process that will monitor the spawned off process
@@ -413,16 +413,19 @@ def download_resource(target_name, action, token, resource_id, ticket_path,
     process_state.value = 1
     return
 
-def upload_resource(resource_main_dir, process_info_path, bag_payload_entries, target_name, action, token, resource_id, process_state):
+def upload_resource(resource_main_dir, process_info_path, target_name, action, token, resource_id, process_state):
     # Fetch the proper function to call
     func = FunctionRouter.get_function(target_name, action)
 
     # Get the current process_info.json data to be used throughout the file
     process_info_data = read_file(process_info_path, True)
 
+    # Data directory in the bag
+    data_directory = '{}/data'.format(resource_main_dir)
+
     # Upload the resources
     try:
-        uploaded_resources = func(token, resource_id, resource_main_dir)
+        uploaded_resources = func(token, resource_id, data_directory)
     except PresQTResponseException as e:
         # Catch any errors that happen within the target fetch.
         # Update the server process_info file appropriately.

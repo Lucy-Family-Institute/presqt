@@ -1,3 +1,5 @@
+import json
+
 from rest_framework import status
 
 from presqt.exceptions import PresQTInvalidTokenError, PresQTResponseException
@@ -87,8 +89,27 @@ class OSF(OSFBase):
             project.get_resources(resources)
         return resources
 
-    def create_project(self):
+    def create_project(self, title):
         """
         Create a project for this user.
         """
+        project_payload = {
+            "data": {
+                "type": "nodes",
+                "attributes": {
+                    "title": title,
+                    "category": "project"
+                }
+            }
+        }
+        response = self.post(self.session.build_url('nodes'),
+                             data=json.dumps(project_payload),
+                             headers={'content-type': 'application/json'})
 
+        if response.status_code == 201:
+            return self.project(response.json()['data']['id'])
+        else:
+            raise PresQTResponseException(
+                "Response has status code {} while creating project {}".format(response.status_code,
+                                                                               title),
+                status.HTTP_400_BAD_REQUEST)

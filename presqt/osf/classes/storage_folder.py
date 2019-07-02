@@ -1,5 +1,9 @@
+import os
+
+from requests.exceptions import ConnectionError
 from rest_framework import status
 
+from presqt.api_v1.utilities import read_file
 from presqt.exceptions import PresQTResponseException
 from presqt.osf.classes.base import OSFBase
 from presqt.osf.classes.file import File
@@ -88,26 +92,73 @@ class ContainerMixin:
         else:
             return None
 
-    def create_folder(self, name, exist_ok=False):
+    def get_file_by_name(self, file_name):
+        """
+        Gets a file object based on the name. Only looks for top level files.
+        """
+        for file in self.iter_children(self._files_url, 'file', File):
+            if file.title == file_name:
+                return file
+            else:
+                return None
+
+    def create_folder(self, folder_name):
         """
         Create a new sub-folder for this container
         """
-        response = self.put(self._new_folder_url, params={'name': name})
-        if response.status_code == 409 and not exist_ok:
-            raise PresQTResponseException("The folder, {}, already exists.".format(name),
-                                          status.HTTP_409_CONFLICT)
+        response = self.put(self._new_folder_url, params={'name': folder_name})
 
-        elif response.status_code == 409 and exist_ok:
-            return self.get_folder_by_name(name)
+        if response.status_code == 409:
+            return self.get_folder_by_name(folder_name)
 
         elif response.status_code == 201:
-            return self.get_folder_by_name(name)
+            return self.get_folder_by_name(folder_name)
 
         else:
             raise PresQTResponseException(
                 "Response has status code {} while creating folder {}".format(response.status_code,
-                                                                              name),
+                                                                              folder_name),
                 status.HTTP_400_BAD_REQUEST)
+
+    def create_file(self, file_name, file_to_write):
+        """
+        Upload a file to a container.
+        """
+
+        # When uploading a large file (>a few MB) that already exists
+        # we sometimes get a ConnectionError instead of a status == 409.
+        connection_error = False
+        try:
+            response = self.put(self._new_file_url, params={'name': file_name}, data=file_to_write)
+        except ConnectionError:
+            connection_error = True
+
+        if connection_error or response.status_code == 409:
+            return self.get_file_by_name(file_name)
+
+        elif response.status_code == 201:
+            return self.get_file_by_name(file_name)
+
+        else:
+            raise PresQTResponseException(
+                "Response has status code {} while creating folder {}".format(response.status_code,
+                                                                              file_name),
+                status.HTTP_400_BAD_REQUEST)
+
+
+    def create_directory(self, directory_path):
+        """
+        Create a directory of folders and files found in the given directory_path.
+        """
+        directory, folders, files = next(os.walk(directory_path))
+
+        for file in files:
+            file_to_write = read_file('{}/{}'.format(directory, file))
+            self.create_file(file, file_to_write)
+
+        for folder in folders:
+            created_folder = self.create_folder(folder)
+            created_folder.create_directory('{}/{}'.format(directory, folder))
 
 
 class Storage(OSFBase, ContainerMixin):

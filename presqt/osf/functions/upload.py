@@ -8,7 +8,6 @@ from presqt.osf.helpers import get_osf_resource
 
 
 def osf_upload_resource(token, resource_id, resource_main_dir):
-    print('hiya!')
     try:
         osf_instance = OSF(token)
     except PresQTInvalidTokenError:
@@ -24,9 +23,10 @@ def osf_upload_resource(token, resource_id, resource_main_dir):
             "The Resource provided, {}, is not a container".format(resource_id),
             status.HTTP_401_UNAUTHORIZED)
 
-    for root, dirs, files in os.walk(resource_main_dir):
-        for file in files:
-            print(file)
+    elif resource.kind == 'project':
+        pass
+    else:
+        resource.create_directory(resource_main_dir)
 
 
     return
