@@ -5,6 +5,7 @@
           "resource_collection": true,
           "resource_detail": true,
           "resource_download": true
-    }
+    },
+    "supported_hash_algorithms": ["sha256", "md5"]
   }
 ]
