@@ -2,10 +2,7 @@ import json
 
 from django.test import TestCase
 from rest_framework.reverse import reverse
-from rest_framework.test import APIRequestFactory, APIClient
-
-from presqt.api_v1.views.target.target import TargetCollection, Target
-
+from rest_framework.test import APIClient
 
 class TestTargetCollection(TestCase):
     """
@@ -21,7 +18,7 @@ class TestTargetCollection(TestCase):
         self.assertEqual(response.status_code, 200)
 
         # Verify that the first dictionary in the payload's array has the correct keys
-        expected_keys = ['name', 'supported_actions', 'detail']
+        expected_keys = ['name', 'supported_actions', 'supported_hash_algorithms', 'detail']
         expected_supported_keys = ['resource_collection', 'resource_detail', 'resource_download',
                                    'resource_upload']
         for dict_item in response.data:

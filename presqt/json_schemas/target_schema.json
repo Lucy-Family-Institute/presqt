@@ -12,11 +12,18 @@
                 "resource_download": {"type": "boolean"},
                 "resource_upload": {"type": "boolean"}
             }
+        },
+        "supported_hash_algorithms": {
+            "type": "array",
+            "items": {
+            "type": "string"
+            }
         }
       },
       "required": [
         "name",
-        "supported_actions"
+        "supported_actions",
+        "supported_hash_algorithms"
       ]
     }
 }

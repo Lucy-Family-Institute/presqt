@@ -397,7 +397,7 @@ def download_resource(target_name, action, token, resource_id, ticket_path,
     write_file('{}/fixity_info.json'.format(base_directory), fixity_info, True)
 
     # Make a Bagit 'bag' of the resources.
-    bagit.make_bag(base_directory)
+    bagit.make_bag(base_directory, checksums=['md5', 'sha1', 'sha256', 'sha512'])
 
     # Zip the Bagit 'bag' to send forward.
     zip_directory(base_directory, "{}/{}.zip".format(ticket_path, base_file_name), ticket_path)
