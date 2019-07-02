@@ -16,6 +16,7 @@ class TargetsSerializer(serializers.Serializer):
     """
     name = serializers.CharField(max_length=256)
     supported_actions = SupportedActions()
+    supported_hash_algorithms = serializers.StringRelatedField(many=True)
     detail = serializers.SerializerMethodField()
 
     def get_detail(self, instance):
@@ -41,3 +42,4 @@ class TargetSerializer(serializers.Serializer):
     """
     name = serializers.CharField(max_length=256)
     supported_actions = SupportedActions()
+    supported_hash_algorithms = serializers.StringRelatedField(many=True)

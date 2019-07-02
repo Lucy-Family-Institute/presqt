@@ -31,6 +31,10 @@ class TargetCollection(APIView):
                     "resource_detail": true,
                     "resource_download": true
                 },
+                "supported_hash_algorithms": [
+                    "sha256",
+                    "md5"
+                ],
                 "detail": "http://localhost/api_v1/target/osf/"
             },
             {
@@ -40,6 +44,10 @@ class TargetCollection(APIView):
                     "resource_detail": true,
                     "resource_download": false
                 },
+                "supported_hash_algorithms": [
+                    "sha256",
+                    "md5"
+                ],
                 "detail": "http://localhost/api_v1/target/curate_nd/"
             },
             ...
@@ -79,7 +87,11 @@ class Target(APIView):
                 "resource_collection": true,
                 "resource_detail": true,
                 "resource_download": true
-            }
+            },
+            "supported_hash_algorithms": [
+                "sha256",
+                "md5"
+            ]
         }
 
         404: Not Found
