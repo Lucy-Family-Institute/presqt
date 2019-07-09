@@ -23,5 +23,3 @@ def zip_directory(source_path, destination_path, to_strip=None):
             my_zip_file.write(os.path.join(root, file), new_path)
     my_zip_file.close()
 
-def read_zip(zip_file):
-    return zipfile.ZipFile(zip_file, 'r')

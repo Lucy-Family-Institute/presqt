@@ -4,6 +4,9 @@ from django.test import TestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
+from presqt.api_v1.utilities import read_file
+
+
 class TestTargetCollection(TestCase):
     """
     Test the `api_v1/targets/` endpoint's GET method.
@@ -26,8 +29,7 @@ class TestTargetCollection(TestCase):
             self.assertListEqual(list(dict_item['supported_actions'].keys()),
                                  expected_supported_keys)
 
-        with open('presqt/targets.json') as json_file:
-            json_data = json.load(json_file)
+        json_data = read_file('presqt/targets.json', True)
         # Verify that the same amount of Target dictionaries exist in the payload and the original
         # json array
         self.assertEqual(len(json_data), len(response.data))
@@ -44,8 +46,7 @@ class TestTarget(TestCase):
         """
         Return a 200 if the GET method is successful
         """
-        with open('presqt/targets.json') as json_file:
-            json_data = json.load(json_file)
+        json_data = read_file('presqt/targets.json', True)
         target_name = json_data[0]['name']
 
         url = reverse('target', kwargs={'target_name': target_name})

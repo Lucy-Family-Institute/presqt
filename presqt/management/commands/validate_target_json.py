@@ -2,6 +2,7 @@ import json
 
 from django.core.management import BaseCommand
 
+from presqt.api_v1.utilities import read_file
 from presqt.api_v1.utilities.utils.function_router import FunctionRouter
 from presqt.json_schemas.schema_handlers import schema_validator
 
@@ -31,8 +32,7 @@ class Command(BaseCommand):
             exit(0)
         else:
             # Further validation
-            with open('presqt/targets.json') as json_file:
-                json_data = json.load(json_file)
+            json_data = read_file('presqt/targets.json', True)
 
             name_list = []
             for data in json_data:

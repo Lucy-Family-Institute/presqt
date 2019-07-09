@@ -99,8 +99,8 @@ class ContainerMixin:
         for file in self.iter_children(self._files_url, 'file', File):
             if file.title == file_name:
                 return file
-            else:
-                return None
+        else:
+            return None
 
     def create_folder(self, folder_name):
         """
@@ -146,19 +146,25 @@ class ContainerMixin:
                 status.HTTP_400_BAD_REQUEST)
 
 
-    def create_directory(self, directory_path):
+    def create_directory(self, directory_path, file_hashes=None):
         """
         Create a directory of folders and files found in the given directory_path.
         """
+        if not file_hashes:
+            file_hashes = {}
+
         directory, folders, files = next(os.walk(directory_path))
 
         for file in files:
-            file_to_write = read_file('{}/{}'.format(directory, file))
-            self.create_file(file, file_to_write)
+            file_path = '{}/{}'.format(directory, file)
+            file_to_write = read_file(file_path)
+            file_hashes[file_path] = self.create_file(file, file_to_write).hashes
 
         for folder in folders:
             created_folder = self.create_folder(folder)
-            created_folder.create_directory('{}/{}'.format(directory, folder))
+            created_folder.create_directory('{}/{}'.format(directory, folder), file_hashes)
+
+        return file_hashes
 
 
 class Storage(OSFBase, ContainerMixin):

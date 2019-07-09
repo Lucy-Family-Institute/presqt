@@ -11,13 +11,12 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 
-from presqt import fixity
 from presqt.api_v1.serializers.resource import ResourceSerializer
-from presqt.api_v1.utilities import zip_directory
 from presqt.api_v1.utilities import (source_token_validation, target_validation, FunctionRouter,
-                                     destination_token_validation, write_file)
-from presqt.api_v1.utilities.io.read_file import read_file
+                                     write_file, destination_token_validation, read_file,
+                                     zip_directory, get_target_data, hash_generator, fixity_checker)
 from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
+from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
 from presqt.exceptions import PresQTValidationError, PresQTResponseException
 
@@ -264,10 +263,45 @@ class Resource(APIView):
         {
             "error": "'presqt-destination-token' missing in the request headers."
         }
+        or
+        {
+            "error": "The file, 'presqt-file', is not found in the body of the request."
+        }
+        or
+        {
+            "error": "The file provided, 'presqt-file', is not a zip file."
+        }
+        o"
+        {
+            "error": "The file provided is not in BagIt format."
+        }
+        or
+        {
+            "error": "Checksums failed to validate."
+        }
+
+        401: Unauthorized
+        {
+            "error": "Token is invalid. Response returned a 401 status code."
+        }
+
+        403: Forbidden
+        {
+            "error": "User does not have access to this resource with the token provided."
+        }
 
         404: Not Found
         {
             "error": "'bad_target' is not a valid Target name."
+        }
+        or
+        {
+            "error": "Resource with id 'bad_id' not found for this user."
+        }
+
+        410: Gone
+        {
+            "error": "The requested resource is no longer available."
         }
         """
         action = 'resource_upload'
@@ -284,18 +318,37 @@ class Resource(APIView):
         ticket_number = uuid4()
         ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
-        # Extract the zip file to disk
+        # Extract each file in the zip file to disk and check for fixity
         with zipfile.ZipFile(resource) as myzip:
             myzip.extractall(ticket_path)
 
         resource_main_dir = '{}/{}'.format(ticket_path, next(os.walk(ticket_path))[1][0])
 
-        # Verify it is BagIt
+        # Validate the 'bag' and check for checksum mismatches
         bag = bagit.Bag(resource_main_dir)
-        # POSSIBLY CREATE A CLEARER EXPLANATION WHY
-        if not bag.is_valid(bag):
-            return Response(data={'error': 'The file provided is not in BagIt format.'},
-                            status=status.HTTP_400_BAD_REQUEST)
+        try:
+            validate_bag(bag)
+        except PresQTValidationError as e:
+            return Response(data={'error': e.data}, status=e.status_code)
+
+        # Create a hash dictionary to compare with the hashes returned from the target after upload
+        file_hashes = {}
+        # Check if the hash algorithms provided in the bag are supported by the target
+        target_supported_algorithms = get_target_data(target_name)['supported_hash_algorithms']
+        matched_algorithms = set('3').intersection(bag.algorithms)
+        # If the bag and target have a matching supported hash algorithm then pull that algorithm's
+        # hash from the bag.
+        # Else calculate a new hash for each file with a target supported hash algorithm.
+        if matched_algorithms:
+            hash_algorithm = matched_algorithms.pop()
+            for key, value in bag.payload_entries().items():
+                file_hashes['{}/{}'.format(resource_main_dir, key)] = value[hash_algorithm]
+        else:
+            hash_algorithm = target_supported_algorithms[0]
+            for key, value in bag.payload_entries().items():
+                file_path = '{}/{}'.format(resource_main_dir, key)
+                binary_file = read_file(file_path)
+                file_hashes[file_path] = hash_generator(binary_file, hash_algorithm)
 
         # Create directory and write process_info.json file
         process_info_obj = {
@@ -313,7 +366,10 @@ class Resource(APIView):
         process_state = multiprocessing.Value('b', 0)
         # Spawn job separate from request memory thread
         function_process = multiprocessing.Process(target=upload_resource,
-                                                   args=[resource_main_dir, process_info_path, target_name, action, token, resource_id, process_state])
+                                                   args=[resource_main_dir, process_info_path,
+                                                         target_name, action, token, resource_id,
+                                                         process_state, hash_algorithm,
+                                                         file_hashes])
         function_process.start()
 
         # Start the watchdog process that will monitor the spawned off process
@@ -384,7 +440,7 @@ def download_resource(target_name, action, token, resource_id, ticket_path,
     fixity_info = []
     for resource in resources:
         # Perform the fixity check and add extra info to the returned fixity object.
-        fixity_obj = fixity.fixity_checker(
+        fixity_obj = fixity_checker(
             resource['file'], resource['hashes'])
         fixity_obj['resource_title'] = resource['title']
         fixity_obj['path'] = resource['path']
@@ -396,10 +452,10 @@ def download_resource(target_name, action, token, resource_id, ticket_path,
     # Add the fixity file to the disk directory
     write_file('{}/fixity_info.json'.format(base_directory), fixity_info, True)
 
-    # Make a Bagit 'bag' of the resources.
+    # Make a BagIt 'bag' of the resources.
     bagit.make_bag(base_directory, checksums=['md5', 'sha1', 'sha256', 'sha512'])
 
-    # Zip the Bagit 'bag' to send forward.
+    # Zip the BagIt 'bag' to send forward.
     zip_directory(base_directory, "{}/{}.zip".format(ticket_path, base_file_name), ticket_path)
 
     # Everything was a success so update the server metadata file.
@@ -413,7 +469,32 @@ def download_resource(target_name, action, token, resource_id, ticket_path,
     process_state.value = 1
     return
 
-def upload_resource(resource_main_dir, process_info_path, target_name, action, token, resource_id, process_state):
+def upload_resource(resource_main_dir, process_info_path, target_name, action, token, resource_id,
+                    process_state, hash_algorithm, file_hashes):
+    """
+    Upload resources to the target and perform a fixity check on the resulting hashes.
+
+    Parameters
+    ----------
+    resource_main_dir : str
+        Path to the main directory for the resources to be uploaded.
+    process_info_path : str
+        Path to the process_info JSON file.
+    target_name : str
+        Name of the Target resource to retrieve.
+    action : str
+        Name of the action being performed.
+    token : str
+        Token of the user performing the request.
+    resource_id: str
+        ID of the Resource to retrieve.
+    process_state : memory_map object
+        Shared memory map object that the watchdog process will monitor.
+    hash_algorithm : str
+        Hash algorithm we are using to check for fixity.
+    file_hashes : dict
+        Dictionary of the file hashes obtained from the bag's mainfest
+    """
     # Fetch the proper function to call
     func = FunctionRouter.get_function(target_name, action)
 
@@ -425,7 +506,7 @@ def upload_resource(resource_main_dir, process_info_path, target_name, action, t
 
     # Upload the resources
     try:
-        uploaded_resources = func(token, resource_id, data_directory)
+        uploaded_file_hashes = func(token, resource_id, data_directory, hash_algorithm)
     except PresQTResponseException as e:
         # Catch any errors that happen within the target fetch.
         # Update the server process_info file appropriately.
@@ -443,7 +524,16 @@ def upload_resource(resource_main_dir, process_info_path, target_name, action, t
     # Everything was a success so update the server metadata file.
     process_info_data['status_code'] = '200'
     process_info_data['status'] = 'finished'
+    process_info_data['failed_fixity'] = []
     process_info_data['message'] = 'Upload successful'
+    process_info_data['hash_algorithm'] = hash_algorithm
+
+    # Check if fixity fails on any files. If so then update the process_info_data file.
+    if file_hashes != uploaded_file_hashes:
+        process_info_data['message'] = 'Upload successful but fixity failed.'
+        for key, value in file_hashes.items():
+            if value != uploaded_file_hashes[key]:
+                process_info_data['failed_fixity'].append(key[len(resource_main_dir)+1:])
     write_file(process_info_path, process_info_data, True)
 
     # Update the shared memory map so the watchdog process can stop running.

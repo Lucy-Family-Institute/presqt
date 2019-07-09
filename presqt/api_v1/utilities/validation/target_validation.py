@@ -2,6 +2,7 @@ import json
 
 from rest_framework import status
 
+from presqt.api_v1.utilities import read_file
 from presqt.exceptions import PresQTValidationError
 
 
@@ -22,8 +23,7 @@ def target_validation(target_name, action):
     True if the validation passes.
     Raises a custom ValidationException error if validation fails.
     """
-    with open('presqt/targets.json') as json_file:
-        json_data = json.load(json_file)
+    json_data = read_file('presqt/targets.json', True)
 
     for data in json_data:
         if data['name'] == target_name:

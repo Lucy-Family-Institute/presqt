@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from presqt.api_v1.serializers.target import TargetsSerializer, TargetSerializer
+from presqt.api_v1.utilities import read_file
 
 
 class TargetCollection(APIView):
@@ -102,8 +103,7 @@ class Target(APIView):
         }
 
         """
-        with open('presqt/targets.json') as json_file:
-            json_data = json.load(json_file)
+        json_data = read_file('presqt/targets.json', True)
 
         # Find the JSON dictionary for the target_name provided
         for data in json_data:

@@ -1,5 +1,7 @@
 import hashlib
 
+from presqt.api_v1.utilities.fixity.hash_generator import hash_generator
+
 def fixity_checker(binary_file, hashes):
     """
     Take a file in binary format and a dictionary of hashes and run a fixity check against the first
@@ -33,10 +35,8 @@ def fixity_checker(binary_file, hashes):
         # If the current hash_value is not None and the hash algorithm is supported by hashlib
         # then this is the hash we will run our fixity checker against.
         if hash_value and hash_algorithm in hashlib.algorithms_available:
-            # Run the file through the hash algorithm.
-            h = hashlib.new(hash_algorithm)
-            h.update(binary_file)
-            hash_hex = h.hexdigest()
+            # Run the file through the hash algorithm
+            hash_hex = hash_generator(binary_file, hash_algorithm)
 
             fixity_obj['hash_algorithm'] = hash_algorithm
             fixity_obj['presqt_hash'] = hash_hex
