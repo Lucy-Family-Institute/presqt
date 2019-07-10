@@ -1,5 +1,6 @@
 import multiprocessing
 import os
+import shutil
 import zipfile
 from uuid import uuid4
 
@@ -16,6 +17,7 @@ from presqt.api_v1.utilities import (source_token_validation, target_validation,
                                      write_file, destination_token_validation, read_file,
                                      zip_directory, get_target_data, hash_generator, fixity_checker,
                                      file_duplicate_action_validation)
+from presqt.api_v1.utilities.io.remove_path_contents import remove_path_contents
 from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
@@ -325,28 +327,38 @@ class Resource(APIView):
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
-        # Generate ticket number
-        ticket_number = uuid4()
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        # Save the files to disk and check their fixity integrity. If BagIt validation fails attempt
+        # to save files to disk again. If BagIt validation fails after 3 attempts return an error.
+        upload_fixity = False
+        upload_attempts = 0
+        while not upload_fixity:
+            # Generate ticket number
+            ticket_number = uuid4()
+            ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
-        # Extract each file in the zip file to disk and check for fixity
-        with zipfile.ZipFile(resource) as myzip:
-            myzip.extractall(ticket_path)
+            # Extract each file in the zip file to disk and check for fixity
+            with zipfile.ZipFile(resource) as myzip:
+                myzip.extractall(ticket_path)
 
-        resource_main_dir = '{}/{}'.format(ticket_path, next(os.walk(ticket_path))[1][0])
+            resource_main_dir = '{}/{}'.format(ticket_path, next(os.walk(ticket_path))[1][0])
 
-        # Validate the 'bag' and check for checksum mismatches
-        bag = bagit.Bag(resource_main_dir)
-        try:
-            validate_bag(bag)
-        except PresQTValidationError as e:
-            return Response(data={'error': e.data}, status=e.status_code)
+            # Validate the 'bag' and check for checksum mismatches
+            bag = bagit.Bag(resource_main_dir)
+            try:
+                validate_bag(bag)
+            except PresQTValidationError as e:
+                upload_attempts += 1
+                shutil.rmtree(ticket_path)
+                if upload_attempts > 2:
+                    return Response(data={'error': e.data}, status=e.status_code)
+            else:
+                upload_fixity = True
 
         # Create a hash dictionary to compare with the hashes returned from the target after upload
         file_hashes = {}
         # Check if the hash algorithms provided in the bag are supported by the target
         target_supported_algorithms = get_target_data(target_name)['supported_hash_algorithms']
-        matched_algorithms = set('3').intersection(bag.algorithms)
+        matched_algorithms = set(target_supported_algorithms).intersection(bag.algorithms)
         # If the bag and target have a matching supported hash algorithm then pull that algorithm's
         # hash from the bag.
         # Else calculate a new hash for each file with a target supported hash algorithm.
@@ -553,14 +565,14 @@ def upload_resource(resource_main_dir, process_info_path, target_name, action, t
     process_info_data['message'] = 'Upload successful'
     process_info_data['hash_algorithm'] = hash_algorithm
 
-    # Check if fixity fails on any files. If so then update the process_info_data file.
+    # Check if fixity fails on any files. If so, then update the process_info_data file.
     if file_hashes != uploaded_file_hashes:
         process_info_data['message'] = 'Upload successful but fixity failed.'
         for key, value in file_hashes.items():
             if value != uploaded_file_hashes[key] and key not in files_ignored:
                 process_info_data['failed_fixity'].append(key[len(resource_main_dir)+1:])
 
-    # Strip the server created prefix of the file paths for ignored and updated files
+    # Strip the server created directory prefix of the file paths for ignored and updated files
     for file_path in files_ignored:
         process_info_data['duplicate_files_ignored'].append(file_path[len(resource_main_dir)+1:])
     for file_path in files_updated:
