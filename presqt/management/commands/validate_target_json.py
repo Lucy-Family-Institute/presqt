@@ -1,5 +1,3 @@
-import json
-
 from django.core.management import BaseCommand
 
 from presqt.api_v1.utilities import read_file

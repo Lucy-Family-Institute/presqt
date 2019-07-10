@@ -50,3 +50,11 @@ class File(OSFBase):
 
         response = self.get(self.download_url)
         return response.content
+
+    def update(self, file_to_write):
+        """
+        Update the file with a new file
+        """
+
+        response = self.put(self.upload_url, data=file_to_write)
+        return response

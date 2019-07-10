@@ -7,13 +7,14 @@ from presqt.osf.classes.main import OSF
 from presqt.osf.helpers import get_osf_resource
 
 
-def osf_upload_resource(token, resource_id, resource_main_dir, hash_algorithm):
+def osf_upload_resource(token, resource_id, resource_main_dir,
+                        hash_algorithm, file_duplicate_action):
     """
     Upload the files found in the resource_main_dir to the target.
 
     Parameters
     ----------
-    tokentoken : str
+    token : str
         User's OSF token.
     resource_id : str
         ID of the resource requested.
@@ -21,10 +22,17 @@ def osf_upload_resource(token, resource_id, resource_main_dir, hash_algorithm):
         Path to the main directory for the resources to be uploaded.
     hash_algorithm : str
         Hash algorithm we are using to check for fixity.
+    file_duplicate_action : str
+        The action to take when a duplicate file is found
 
     Returns
     -------
-    Dictionary of file hashes obtained from the target.
+    final_file_hashes : dict
+        Dictionary of file hashes obtained from the target
+    files_ignored : array
+        Array of file paths of files that were ignored when uploading the resource
+    files_updated : array
+        Array of file paths of files that were updated when uploading the resource
     """
     try:
         osf_instance = OSF(token)
@@ -35,15 +43,21 @@ def osf_upload_resource(token, resource_id, resource_main_dir, hash_algorithm):
     # Get the resource
     resource = get_osf_resource(resource_id, osf_instance)
 
+    file_hashes = {}
+    files_ignored = []
+    files_updated = []
+
     # Resource being uploaded to must not be a file
     if resource.kind_name == 'file':
         raise PresQTResponseException(
             "The Resource provided, {}, is not a container".format(resource_id),
             status.HTTP_401_UNAUTHORIZED)
     elif resource.kind_name == 'project':
-        file_hashes = resource.storage('osfstorage').create_directory(resource_main_dir)
+        file_hashes, files_ignored, files_updated = resource.storage('osfstorage').create_directory(
+            resource_main_dir,file_duplicate_action, file_hashes, files_ignored, files_updated)
     else:
-        file_hashes = resource.create_directory(resource_main_dir)
+        file_hashes, files_ignored, files_updated = resource.create_directory(
+            resource_main_dir, file_duplicate_action, file_hashes, files_ignored, files_updated)
 
 
     # Only send forward the hashes we need based on the hash_algorithm provided
@@ -51,4 +65,4 @@ def osf_upload_resource(token, resource_id, resource_main_dir, hash_algorithm):
     for key, value in file_hashes.items():
         final_file_hashes[key] = value[hash_algorithm]
 
-    return final_file_hashes
+    return final_file_hashes, files_ignored, files_updated

@@ -3,7 +3,7 @@ import os
 from requests.exceptions import ConnectionError
 from rest_framework import status
 
-from presqt.api_v1.utilities import read_file
+from presqt.api_v1.utilities import read_file, hash_generator
 from presqt.exceptions import PresQTResponseException
 from presqt.osf.classes.base import OSFBase
 from presqt.osf.classes.file import File
@@ -120,11 +120,10 @@ class ContainerMixin:
                                                                               folder_name),
                 status.HTTP_400_BAD_REQUEST)
 
-    def create_file(self, file_name, file_to_write):
+    def create_file(self, file_name, file_to_write, file_duplicate_action):
         """
         Upload a file to a container.
         """
-
         # When uploading a large file (>a few MB) that already exists
         # we sometimes get a ConnectionError instead of a status == 409.
         connection_error = False
@@ -133,11 +132,30 @@ class ContainerMixin:
         except ConnectionError:
             connection_error = True
 
+        # If the file is a duplicate then either ignore or update it
         if connection_error or response.status_code == 409:
-            return self.get_file_by_name(file_name)
+            original_file = self.get_file_by_name(file_name)
 
+            if file_duplicate_action == 'ignore':
+                return 'ignored', original_file
+
+            elif file_duplicate_action == 'update':
+                # Only attempt to update the file if the new file is different than the original
+                if hash_generator(file_to_write, 'md5') != original_file.hashes['md5']:
+                    response = self.get_file_by_name(file_name).update(file_to_write)
+
+                    if response.status_code == 200:
+                        return 'updated', self.get_file_by_name(file_name)
+                    else:
+                        raise PresQTResponseException(
+                            "Response has status code {} while updating file {}".format(
+                                response.status_code, file_name), status.HTTP_400_BAD_REQUEST)
+                else:
+                    return 'ignored', original_file
+
+        # File uploaded successfully
         elif response.status_code == 201:
-            return self.get_file_by_name(file_name)
+            return 'created', self.get_file_by_name(file_name)
 
         else:
             raise PresQTResponseException(
@@ -146,25 +164,32 @@ class ContainerMixin:
                 status.HTTP_400_BAD_REQUEST)
 
 
-    def create_directory(self, directory_path, file_hashes=None):
+    def create_directory(self, directory_path, file_duplicate_action, file_hashes,
+                         files_ignored, files_updated):
         """
         Create a directory of folders and files found in the given directory_path.
         """
-        if not file_hashes:
-            file_hashes = {}
-
         directory, folders, files = next(os.walk(directory_path))
 
         for file in files:
             file_path = '{}/{}'.format(directory, file)
             file_to_write = read_file(file_path)
-            file_hashes[file_path] = self.create_file(file, file_to_write).hashes
+
+            action, file = self.create_file(file, file_to_write, file_duplicate_action)
+
+            file_hashes[file_path] = file.hashes
+            if action == 'ignored':
+                files_ignored.append(file_path)
+            elif action == 'updated':
+                files_updated.append(file_path)
 
         for folder in folders:
             created_folder = self.create_folder(folder)
-            created_folder.create_directory('{}/{}'.format(directory, folder), file_hashes)
+            created_folder.create_directory('{}/{}'.format(directory, folder),
+                                            file_duplicate_action, file_hashes,
+                                            files_ignored, files_updated)
 
-        return file_hashes
+        return file_hashes, files_ignored, files_updated
 
 
 class Storage(OSFBase, ContainerMixin):

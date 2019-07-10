@@ -14,7 +14,8 @@ from rest_framework.views import APIView
 from presqt.api_v1.serializers.resource import ResourceSerializer
 from presqt.api_v1.utilities import (source_token_validation, target_validation, FunctionRouter,
                                      write_file, destination_token_validation, read_file,
-                                     zip_directory, get_target_data, hash_generator, fixity_checker)
+                                     zip_directory, get_target_data, hash_generator, fixity_checker,
+                                     file_duplicate_action_validation)
 from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
@@ -279,6 +280,15 @@ class Resource(APIView):
         {
             "error": "Checksums failed to validate."
         }
+        or
+        {
+            "error": "'presqt-file-duplicate-action' missing in the request headers."
+        }
+        or
+        {
+            "error": "'bad_action' is not a valid file_duplicate_action.
+            The options are 'ignore' or 'update'."
+        }
 
         401: Unauthorized
         {
@@ -306,9 +316,10 @@ class Resource(APIView):
         """
         action = 'resource_upload'
 
-        # Perform token, target, action, and resource validation
+        # Perform token, header, target, action, and resource validation
         try:
             token = destination_token_validation(request)
+            file_duplicate_action = file_duplicate_action_validation(request)
             target_validation(target_name, action)
             resource = file_validation(request)
         except PresQTValidationError as e:
@@ -369,7 +380,7 @@ class Resource(APIView):
                                                    args=[resource_main_dir, process_info_path,
                                                          target_name, action, token, resource_id,
                                                          process_state, hash_algorithm,
-                                                         file_hashes])
+                                                         file_hashes, file_duplicate_action])
         function_process.start()
 
         # Start the watchdog process that will monitor the spawned off process
@@ -470,7 +481,7 @@ def download_resource(target_name, action, token, resource_id, ticket_path,
     return
 
 def upload_resource(resource_main_dir, process_info_path, target_name, action, token, resource_id,
-                    process_state, hash_algorithm, file_hashes):
+                    process_state, hash_algorithm, file_hashes, file_duplicate_action):
     """
     Upload resources to the target and perform a fixity check on the resulting hashes.
 
@@ -493,7 +504,9 @@ def upload_resource(resource_main_dir, process_info_path, target_name, action, t
     hash_algorithm : str
         Hash algorithm we are using to check for fixity.
     file_hashes : dict
-        Dictionary of the file hashes obtained from the bag's mainfest
+        Dictionary of the file hashes obtained from the bag's manifest
+    file_duplicate_action : str
+        Action for how to handle any duplicate files we find.
     """
     # Fetch the proper function to call
     func = FunctionRouter.get_function(target_name, action)
@@ -505,8 +518,18 @@ def upload_resource(resource_main_dir, process_info_path, target_name, action, t
     data_directory = '{}/data'.format(resource_main_dir)
 
     # Upload the resources
+    # 'uploaded_file_hashes' should be a dictionary of files and their hashes according to the
+    # hash_algorithm we are using. For example if hash_algorithm == sha256:
+    #     {'mediafiles/uploads/66e7b906-63f0-4160-/osf_download_5cd98b0af244/data/fixity_info.json':
+    #         'a48df41bb55c7f9e1fa41b02197477ff0eccb550ed1244155048ef5750993ce7',
+    #     'mediafiles/uploads/66e7b906-63f0-4160-b20d/osf_download_5cd98b0af244e/data/Docs2/02.mp3':
+    #         'fe3e904fbd549a3ac014bc26fb3d5042d58759f639f24e745dba3580ea316850'
+    #     }
+    # 'files_ignored' should be a list of file paths of files that were ignored while uploading
+    # 'files_updated' should be a list of file paths of files that were updated while uploading
     try:
-        uploaded_file_hashes = func(token, resource_id, data_directory, hash_algorithm)
+        uploaded_file_hashes, files_ignored, files_updated = func(
+            token, resource_id, data_directory, hash_algorithm, file_duplicate_action)
     except PresQTResponseException as e:
         # Catch any errors that happen within the target fetch.
         # Update the server process_info file appropriately.
@@ -525,6 +548,8 @@ def upload_resource(resource_main_dir, process_info_path, target_name, action, t
     process_info_data['status_code'] = '200'
     process_info_data['status'] = 'finished'
     process_info_data['failed_fixity'] = []
+    process_info_data['duplicate_files_ignored'] = []
+    process_info_data['duplicate_files_updated'] = []
     process_info_data['message'] = 'Upload successful'
     process_info_data['hash_algorithm'] = hash_algorithm
 
@@ -532,10 +557,18 @@ def upload_resource(resource_main_dir, process_info_path, target_name, action, t
     if file_hashes != uploaded_file_hashes:
         process_info_data['message'] = 'Upload successful but fixity failed.'
         for key, value in file_hashes.items():
-            if value != uploaded_file_hashes[key]:
+            if value != uploaded_file_hashes[key] and key not in files_ignored:
                 process_info_data['failed_fixity'].append(key[len(resource_main_dir)+1:])
+
+    # Strip the server created prefix of the file paths for ignored and updated files
+    for file_path in files_ignored:
+        process_info_data['duplicate_files_ignored'].append(file_path[len(resource_main_dir)+1:])
+    for file_path in files_updated:
+        process_info_data['duplicate_files_updated'].append(file_path[len(resource_main_dir)+1:])
+
     write_file(process_info_path, process_info_data, True)
 
     # Update the shared memory map so the watchdog process can stop running.
     process_state.value = 1
+    print('DONE')
     return
