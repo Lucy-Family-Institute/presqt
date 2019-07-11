@@ -329,9 +329,7 @@ class Resource(APIView):
 
         # Save the files to disk and check their fixity integrity. If BagIt validation fails attempt
         # to save files to disk again. If BagIt validation fails after 3 attempts return an error.
-        upload_fixity = False
-        upload_attempts = 0
-        while not upload_fixity:
+        for index in range(3):
             # Generate ticket number
             ticket_number = uuid4()
             ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
@@ -347,12 +345,14 @@ class Resource(APIView):
             try:
                 validate_bag(bag)
             except PresQTValidationError as e:
-                upload_attempts += 1
                 shutil.rmtree(ticket_path)
-                if upload_attempts > 2:
+                # If we've reached the maximum number of attempts then return an error response
+                if index == 2:
                     return Response(data={'error': e.data}, status=e.status_code)
             else:
-                upload_fixity = True
+                # If the bag validated successfully then break from the loop
+                break
+
 
         # Create a hash dictionary to compare with the hashes returned from the target after upload
         file_hashes = {}
