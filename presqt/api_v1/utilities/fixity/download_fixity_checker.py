@@ -2,7 +2,7 @@ import hashlib
 
 from presqt.api_v1.utilities.fixity.hash_generator import hash_generator
 
-def fixity_checker(binary_file, hashes):
+def download_fixity_checker(binary_file, hashes):
     """
     Take a file in binary format and a dictionary of hashes and run a fixity check against the first
     one found that's supported by hashlib.

@@ -14,10 +14,10 @@ from rest_framework.test import APIClient
 
 from config.settings.base import TEST_USER_TOKEN
 from presqt.api_v1.utilities import write_file, read_file
-from presqt.api_v1.utilities.fixity.download_fixity_checker import fixity_checker
+from presqt.api_v1.utilities.fixity.download_fixity_checker import download_fixity_checker
 from presqt.api_v1.utilities.io.remove_path_contents import remove_path_contents
 from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
-from presqt.api_v1.views.resource.resource import download_resource
+from presqt.api_v1.views.resource.resource import Resource
 
 
 class TestResource(TestCase):
@@ -176,7 +176,7 @@ class TestResourceJSON(TestCase):
                     {'error': "'test' does not support the action 'resource_detail'."})
 
     def test_get_error_401_invalid_token_osf(self):
-        """
+        """`
 `       Return a 401 if the token provided is not a valid token.
         """
         header = {'HTTP_PRESQT_SOURCE_TOKEN': 'bad_token'}
@@ -319,7 +319,7 @@ class TestResourceZip(TestCase):
         process_info_path = '{}/process_info.json'.format(ticket_path)
         # Call the download_resource manually
         process_state = multiprocessing.Value('b', 0)
-        download_resource('osf', 'resource_download', TEST_USER_TOKEN,
+        Resource._download_resource('osf', 'resource_download', TEST_USER_TOKEN,
                           self.resource_id, ticket_path, process_info_path, process_state)
 
         # Verify the final status in the process_info file is 'finished'
@@ -346,7 +346,7 @@ class TestResourceZip(TestCase):
     def shared_get_success_function_202_with_error(self):
         """
         This function will be used by tests that successfully hit the GET resource endpoint but
-        fail during the download_resource() function.
+        fail during the Resource._download_resource function.
         It uses class attributes that are set in the test methods.
         """
         url = reverse('resource', kwargs={'target_name': self.target_name,
@@ -383,7 +383,7 @@ class TestResourceZip(TestCase):
         process_info_path = '{}/process_info.json'.format(ticket_path)
         # Call the download_resource manually
         process_state = multiprocessing.Value('b', 0)
-        download_resource('osf', 'resource_download', self.header['HTTP_PRESQT_SOURCE_TOKEN'],
+        Resource._download_resource('osf', 'resource_download', self.header['HTTP_PRESQT_SOURCE_TOKEN'],
                           self.resource_id, ticket_path, process_info_path, process_state)
 
         final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
@@ -412,7 +412,7 @@ class TestResourceZip(TestCase):
         }
         self.resource_id = '5cd98510f244ec001fe5632f'
         self.target_name = 'osf'
-        self.file_number = 8
+        self.file_number = 12
         self.file_name = '22776439564_7edbed7e10_o.jpg'
         fixity_info = self.shared_get_success_function_202()
 
@@ -435,7 +435,7 @@ class TestResourceZip(TestCase):
         }
         self.resource_id = '5cd98978054f5b001a5ca746'
         self.target_name = 'osf'
-        self.file_number = 8
+        self.file_number = 12
         self.file_name = 'build-plugins.js'
         fixity_info = self.shared_get_success_function_202()
 
@@ -458,7 +458,7 @@ class TestResourceZip(TestCase):
         }
         self.resource_id = '5cd98978f244ec001ee86609'
         self.target_name = 'osf'
-        self.file_number = 8
+        self.file_number = 12
         self.file_name = 'Character Sheet - Alternative - Print Version.pdf'
         fixity_info = self.shared_get_success_function_202()
 
@@ -481,7 +481,7 @@ class TestResourceZip(TestCase):
         }
         self.resource_id = '5cd98979f8214b00198b1153'
         self.target_name = 'osf'
-        self.file_number = 8
+        self.file_number = 12
         self.file_name = '02 - The Widow.mp3'
         fixity_info = self.shared_get_success_function_202()
 
@@ -500,7 +500,7 @@ class TestResourceZip(TestCase):
         """
         self.resource_id = '5cd98a30f2c01100177156be'
         self.target_name = 'osf'
-        self.file_number = 8
+        self.file_number = 12
         self.file_name = 'Character Sheet - Alternative - Print Version.pdf'
         fixity_info = self.shared_get_success_function_202()
 
@@ -517,7 +517,7 @@ class TestResourceZip(TestCase):
         """
         self.resource_id = '5cd98b0af244ec0021e5f8dd'
         self.target_name = 'osf'
-        self.file_number = 10
+        self.file_number = 14
         self.file_name = 'Docs2/Docs3/CODE_OF_CONDUCT.md'
         final_process_info = self.shared_get_success_function_202()
 
@@ -530,7 +530,7 @@ class TestResourceZip(TestCase):
         """
         self.resource_id = 'cmn5z:googledrive'
         self.target_name = 'osf'
-        self.file_number = 11
+        self.file_number = 15
         self.file_name = 'googledrive/Google Images/IMG_4740.jpg'
         final_process_info = self.shared_get_success_function_202()
 
@@ -544,7 +544,7 @@ class TestResourceZip(TestCase):
         """
         self.resource_id = 'cmn5z'
         self.target_name = 'osf'
-        self.file_number = 67
+        self.file_number = 71
         self.file_name = 'Test Project/osfstorage/Docs/Docs2/Docs3/CODE_OF_CONDUCT.md'
         self.shared_get_success_function_202()
 
@@ -637,7 +637,6 @@ class TestResourceZip(TestCase):
         self.status_message = "Token is invalid. Response returned a 401 status code."
         self.shared_get_success_function_202_with_error()
 
-    # Fixity failed!
     def test_200_success_fixity_failed_osf(self):
         """
         Since both the file and hashes are coming from OSF API calls we don't have the opportunity
@@ -686,11 +685,11 @@ class TestResourceZip(TestCase):
         zip_file = zipfile.ZipFile(zip_path)
         # Verify that the zip file exists and it holds the correct number of files.
         self.assertEqual(os.path.isfile(zip_path), True)
-        self.assertEqual(len(zip_file.namelist()), 8)
+        self.assertEqual(len(zip_file.namelist()), 12)
 
         # Grab the .jpg file in the zip and run it back through the fixity checker with bad hashes
         # So we can get a failed fixity. This fixity variable will be used later in our Patch.
-        fixity = fixity_checker(
+        fixity = download_fixity_checker(
             read_file('{}/{}/data/22776439564_7edbed7e10_o.jpg'.format(ticket_path, base_name)),
             hashes)
 
@@ -705,12 +704,14 @@ class TestResourceZip(TestCase):
         self.assertEqual(fixity['fixity'], False)
 
         # Patch the fixity_checker() function to return our bad fixity dictionary.
-        with patch('presqt.fixity.fixity_checker') as fake_send:
+        with patch('presqt.api_v1.utilities.fixity.download_fixity_checker.download_fixity_checker') as fake_send:
             # Manually verify the fixity_checker will fail
             fake_send.return_value = fixity
             process_state = multiprocessing.Value('b', 0)
-            download_resource('osf', 'resource_download', TEST_USER_TOKEN,
+            print(1)
+            Resource._download_resource('osf', 'resource_download', TEST_USER_TOKEN,
                               resource_id, ticket_path, process_info_path, process_state)
+            print(2)
 
         final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         # Verify the final status in the process_info file is 'finished'
@@ -720,7 +721,7 @@ class TestResourceZip(TestCase):
         zip_path = '{}/{}.zip'.format(ticket_path, base_name)
         zip_file = zipfile.ZipFile(zip_path)
         self.assertEqual(os.path.isfile(zip_path), True)
-        self.assertEqual(len(zip_file.namelist()), 8)
+        self.assertEqual(len(zip_file.namelist()), 12)
 
         # Verify that the resource we expect is there.
         self.assertEqual(
@@ -759,7 +760,7 @@ class TestResourceZip(TestCase):
         write_file(process_info_path, process_info_obj, True)
         # Start the download_resource process manually
         process_state = multiprocessing.Value('b', 0)
-        function_process = multiprocessing.Process(target=download_resource, args=[
+        function_process = multiprocessing.Process(target=Resource._download_resource, args=[
             'osf', 'resource_download', TEST_USER_TOKEN, resource_id,
             ticket_path, process_info_path, process_state])
         function_process.start()
@@ -796,7 +797,7 @@ class TestResourceZip(TestCase):
 
         # Start the download_resource process manually
         process_state = multiprocessing.Value('b', 0)
-        function_process = multiprocessing.Process(target=download_resource, args=[
+        function_process = multiprocessing.Process(target=Resource._download_resource, args=[
             'osf', 'resource_download', TEST_USER_TOKEN, resource_id,
             ticket_path, process_info_path, process_state])
         function_process.start()
@@ -813,5 +814,3 @@ class TestResourceZip(TestCase):
 
         # Delete corresponding folder
         shutil.rmtree(ticket_path)
-
-

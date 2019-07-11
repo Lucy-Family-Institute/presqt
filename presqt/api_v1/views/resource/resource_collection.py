@@ -4,13 +4,17 @@ from rest_framework.views import APIView
 
 from presqt.api_v1.serializers.resource import ResourcesSerializer
 from presqt.api_v1.utilities import target_validation, FunctionRouter, source_token_validation
+from presqt.api_v1.views.resource.base_resource import BaseResource
 from presqt.exceptions import PresQTValidationError, PresQTResponseException
 
-class ResourceCollection(APIView):
+class ResourceCollection(BaseResource):
     """
     **Supported HTTP Methods**
 
-    * GET: Retrieve a summary of all resources for the given Target that a user has access to.
+    * GET:
+        - Retrieve a summary of all resources for the given Target that a user has access to.
+    * POST
+        -  Upload a top level resource for a user.
     """
     required_scopes = ['read']
 

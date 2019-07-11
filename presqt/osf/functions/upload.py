@@ -40,25 +40,30 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
-    # Get the resource
-    resource = get_osf_resource(resource_id, osf_instance)
-
     file_hashes = {}
     files_ignored = []
     files_updated = []
 
-    # Resource being uploaded to must not be a file
-    if resource.kind_name == 'file':
-        raise PresQTResponseException(
-            "The Resource provided, {}, is not a container".format(resource_id),
-            status.HTTP_401_UNAUTHORIZED)
-    elif resource.kind_name == 'project':
-        file_hashes, files_ignored, files_updated = resource.storage('osfstorage').create_directory(
-            resource_main_dir,file_duplicate_action, file_hashes, files_ignored, files_updated)
+    # If we are uploading to an existing container
+    if resource_id:
+        # Get the resource
+        resource = get_osf_resource(resource_id, osf_instance)
+        # Resource being uploaded to must not be a file
+        if resource.kind_name == 'file':
+            raise PresQTResponseException(
+                "The Resource provided, {}, is not a container".format(resource_id),
+                status.HTTP_401_UNAUTHORIZED)
+        elif resource.kind_name == 'project':
+            file_hashes, files_ignored, files_updated = resource.storage('osfstorage').create_directory(
+                resource_main_dir,file_duplicate_action, file_hashes, files_ignored, files_updated)
+        else:
+            file_hashes, files_ignored, files_updated = resource.create_directory(
+                resource_main_dir, file_duplicate_action, file_hashes, files_ignored, files_updated)
+    # else if we are uploading a new project
     else:
-        file_hashes, files_ignored, files_updated = resource.create_directory(
+        project = osf_instance.create_project(os.path.basename(resource_main_dir))
+        file_hashes, files_ignored, files_updated = project.storage('osfstorage').create_directory(
             resource_main_dir, file_duplicate_action, file_hashes, files_ignored, files_updated)
-
 
     # Only send forward the hashes we need based on the hash_algorithm provided
     final_file_hashes = {}

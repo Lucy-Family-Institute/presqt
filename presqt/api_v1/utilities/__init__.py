@@ -1,4 +1,3 @@
-from presqt.api_v1.utilities.fixity.download_fixity_checker import fixity_checker
 from presqt.api_v1.utilities.fixity.hash_generator import hash_generator
 from presqt.api_v1.utilities.io.read_file import read_file
 from presqt.api_v1.utilities.io.write_file import write_file
@@ -19,8 +18,7 @@ __all__ = [
     target_validation,
     source_token_validation,
     destination_token_validation,
-    fixity_checker,
     get_target_data,
     hash_generator,
-    file_duplicate_action_validation
+    file_duplicate_action_validation,
 ]

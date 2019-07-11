@@ -8,7 +8,8 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from config.settings.base import TEST_USER_TOKEN
-from presqt.api_v1.utilities import write_file, read_file, fixity_checker
+from presqt.api_v1.utilities import write_file, read_file
+from presqt.api_v1.utilities.fixity.download_fixity_checker import download_fixity_checker
 
 
 class TestDownloadResource(TestCase):
@@ -71,7 +72,7 @@ class TestDownloadResource(TestCase):
         # Verify content type
         self.assertEqual(response._headers['content-type'][1], 'application/zip')
         # Verify the number of resources in the zip is correct
-        self.assertEqual(len(zip_file.namelist()), 8)
+        self.assertEqual(len(zip_file.namelist()), 12)
 
         # Verify the custom hash_file information is correct
         with zip_file.open('osf_download_{}/data/fixity_info.json'.format(self.resource_id)) as fixityfile:
@@ -84,7 +85,7 @@ class TestDownloadResource(TestCase):
         # Run the file through the fixity checker again to make sure it downloaded correctly
         with zip_file.open('osf_download_{}/data/22776439564_7edbed7e10_o.jpg'.format(self.resource_id)) as myfile:
             temp_file = myfile.read()
-            fixity = fixity_checker(temp_file, self.hashes)
+            fixity = download_fixity_checker(temp_file, self.hashes)
             self.assertEqual(fixity['fixity'], True)
 
         # Delete corresponding folder
