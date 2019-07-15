@@ -6,7 +6,9 @@ from presqt.api_v1.utilities.utils.get_target_data import get_target_data
 from presqt.api_v1.utilities.utils.function_router import FunctionRouter
 from presqt.api_v1.utilities.validation.file_duplicate_action_validation import \
     file_duplicate_action_validation
+from presqt.api_v1.utilities.validation.process_token_validation import process_token_validation
 from presqt.api_v1.utilities.validation.target_validation import target_validation
+from presqt.api_v1.utilities.validation.get_process_info_data import get_process_info_data
 from presqt.api_v1.utilities.validation.token_validation import (source_token_validation,
     destination_token_validation)
 
@@ -21,4 +23,6 @@ __all__ = [
     get_target_data,
     hash_generator,
     file_duplicate_action_validation,
+    get_process_info_data,
+    process_token_validation
 ]

@@ -3,8 +3,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from presqt.api_v1.utilities import source_token_validation
-from presqt.api_v1.utilities.io.read_file import read_file
+from presqt.api_v1.utilities import (source_token_validation, get_process_info_data,
+                                     process_token_validation)
 from presqt.exceptions import PresQTValidationError
 
 
@@ -48,27 +48,24 @@ class DownloadResource(APIView):
             'presqt-source-token' for this server process."
         }
 
+        404: Not Found
+        {
+            "error": "Invalid ticket number, '1234'."
+        }
+
         500: Internal Server Error
         {
             "status_code": "404",
             "message": "Resource with id 'bad_id' not found for this user."
         }
         """
-        # Perform token validation
+        # Perform token validation. Read data from the process_info file.
         try:
             token = source_token_validation(request)
+            data = get_process_info_data('downloads', ticket_number)
+            process_token_validation(token, data['presqt-source-token'])
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
-
-        # Read data from the process_info file
-        data = read_file('mediafiles/downloads/{}/process_info.json'.format(
-            ticket_number), True)
-
-        # Ensure that the header token is the same one listed in the process_info file
-        if token != data['presqt-source-token']:
-            return Response(status=status.HTTP_401_UNAUTHORIZED,
-                            data={'error': ("Header 'presqt-source-token' does not match the "
-                                            "'presqt-source-token' for this server process.")})
 
         download_status = data['status']
         message = data['message']
