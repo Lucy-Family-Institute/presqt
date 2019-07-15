@@ -138,6 +138,16 @@ class BaseResource(APIView):
                 # If the bag validated successfully then break from the loop
                 break
 
+        # Create directory and write process_info.json file
+        process_info_obj = {
+            'presqt-destination-token': token,
+            'status': 'in_progress',
+            'expiration': str(timezone.now() + relativedelta(days=5)),
+            'message': 'Upload is being processed on the server',
+            'status_code': None
+        }
+        process_info_path = '{}/process_info.json'.format(ticket_path)
+        write_file(process_info_path, process_info_obj, True)
 
         # Create a hash dictionary to compare with the hashes returned from the target after upload
         file_hashes = {}
@@ -157,17 +167,6 @@ class BaseResource(APIView):
                 file_path = '{}/{}'.format(resource_main_dir, key)
                 binary_file = read_file(file_path)
                 file_hashes[file_path] = hash_generator(binary_file, hash_algorithm)
-
-        # Create directory and write process_info.json file
-        process_info_obj = {
-            'presqt-destination-token': token,
-            'status': 'in_progress',
-            'expiration': str(timezone.now() + relativedelta(days=5)),
-            'message': 'Upload is being processed on the server',
-            'status_code': None
-        }
-        process_info_path = '{}/process_info.json'.format(ticket_path)
-        write_file(process_info_path, process_info_obj, True)
 
         # Create a shared memory map that the watchdog monitors to see if the spawned
         # off process has finished
