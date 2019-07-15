@@ -7,7 +7,7 @@ from presqt.api_v1.utilities import (destination_token_validation, get_process_i
 from presqt.exceptions import PresQTValidationError
 
 
-class UploadResource(APIView):
+class UploadJob(APIView):
     """
     **Supported HTTP Methods**
 

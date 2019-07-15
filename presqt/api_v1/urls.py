@@ -1,11 +1,11 @@
 from django.urls import path
 
 from presqt.api_v1 import api_root
+from presqt.api_v1.views.download.download_job import DownloadJob
 from presqt.api_v1.views.resource.resource import Resource
 from presqt.api_v1.views.resource.resource_collection import ResourceCollection
-from presqt.api_v1.views.download.download_resource import DownloadResource
 from presqt.api_v1.views.target.target import TargetCollection, Target
-from presqt.api_v1.views.upload.upload_resource import UploadResource
+from presqt.api_v1.views.upload.upload_job import UploadJob
 
 api_v1_endpoints = [
     path('', api_root, name='api_root'),
@@ -23,8 +23,8 @@ api_v1_endpoints = [
          Resource.as_view(), name="resource"),
 
     # Downloads
-    path('downloads/<str:ticket_number>/', DownloadResource.as_view(), name='download_resource'),
+    path('downloads/<str:ticket_number>/', DownloadJob.as_view(), name='download_job'),
 
     # Uploads
-    path('uploads/<str:ticket_number>/', UploadResource.as_view(), name='upload_resource')
+    path('uploads/<str:ticket_number>/', UploadJob.as_view(), name='upload_job')
 ]

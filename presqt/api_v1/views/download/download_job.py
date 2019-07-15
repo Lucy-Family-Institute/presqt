@@ -8,7 +8,7 @@ from presqt.api_v1.utilities import (source_token_validation, get_process_info_d
 from presqt.exceptions import PresQTValidationError
 
 
-class DownloadResource(APIView):
+class DownloadJob(APIView):
     """
     **Supported HTTP Methods**
 

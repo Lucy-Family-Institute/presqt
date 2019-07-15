@@ -12,7 +12,7 @@ from presqt.api_v1.utilities import write_file, read_file
 from presqt.api_v1.utilities.fixity.download_fixity_checker import download_fixity_checker
 
 
-class TestDownloadResource(TestCase):
+class TestDownloadJob(TestCase):
     """
     Test the `api_v1/downloads/<ticket_id>/` endpoint's GET method.
     """
@@ -59,7 +59,7 @@ class TestDownloadResource(TestCase):
         """
         self.call_get_resource_zip()
 
-        url = reverse('download_resource', kwargs={'ticket_number': self.ticket_number})
+        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
         response = self.client.get(url, **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
@@ -100,7 +100,7 @@ class TestDownloadResource(TestCase):
         # Update the fixity_info.json to say the resource hasn't finished processing
         write_file('mediafiles/downloads/{}/process_info.json'.format(self.ticket_number), self.initial_process_info, True)
 
-        url = reverse('download_resource', kwargs={'ticket_number': self.ticket_number})
+        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
         response = self.client.get(url, **self.header)
 
         # Verify the status code and content
@@ -121,7 +121,7 @@ class TestDownloadResource(TestCase):
         self.call_get_resource_zip()
 
         header = {}
-        url = reverse('download_resource', kwargs={'ticket_number': self.ticket_number})
+        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
         response = self.client.get(url, **header)
 
         # Verify the status code and content
@@ -139,7 +139,7 @@ class TestDownloadResource(TestCase):
         """
         self.call_get_resource_zip()
 
-        url = reverse('download_resource', kwargs={'ticket_number': self.ticket_number})
+        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
         headers = {'HTTP_PRESQT_SOURCE_TOKEN': '1234'}
         response = self.client.get(url, **headers)
 
@@ -153,12 +153,12 @@ class TestDownloadResource(TestCase):
 
     def test_get_error_500_401_token_invalid_osf(self):
         """
-        Return a 500 if the resource_download() function running on the server gets a 401 error
+        Return a 500 if the Resource._download_resource() function running on the server gets a 401 error
         """
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': '1234'}
         self.call_get_resource_zip()
 
-        url = reverse('download_resource', kwargs={'ticket_number': self.ticket_number})
+        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
         response = self.client.get(url, **self.header)
 
         self.assertEqual(response.status_code, 500)
@@ -171,12 +171,12 @@ class TestDownloadResource(TestCase):
 
     def test_get_success_500_403_unauthorized_resource_osf(self):
         """
-        Return a 500 if the resource_download() function running on the server gets a 403 error
+        Return a 500 if the Resource._download_resource() function running on the server gets a 403 error
         """
         self.resource_id = 'q5xmw'
         self.call_get_resource_zip()
 
-        url = reverse('download_resource', kwargs={'ticket_number': self.ticket_number})
+        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
         response = self.client.get(url, **self.header)
 
         self.assertEqual(response.status_code, 500)
@@ -189,12 +189,12 @@ class TestDownloadResource(TestCase):
 
     def test_get_success_500_404_resource_not_found_osf(self):
         """
-        Return a 500 if the resource_download() function running on the server gets a 404 error
+        Return a 500 if the Resource._download_resource() function running on the server gets a 404 error
         """
         self.resource_id = 'bad_id'
         self.call_get_resource_zip()
 
-        url = reverse('download_resource', kwargs={'ticket_number': self.ticket_number})
+        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
         response = self.client.get(url, **self.header)
 
         self.assertEqual(response.status_code, 500)
@@ -207,12 +207,12 @@ class TestDownloadResource(TestCase):
 
     def test_get_success_500_410_gone_osf(self):
         """
-        Return a 500 if the resource_download() function running on the server gets a 410 error
+        Return a 500 if the Resource._download_resource() function running on the server gets a 410 error
         """
         self.resource_id = '5cd989c5f8214b00188af9b5'
         self.call_get_resource_zip()
 
-        url = reverse('download_resource', kwargs={'ticket_number': self.ticket_number})
+        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
         response = self.client.get(url, **self.header)
 
         self.assertEqual(response.status_code, 500)

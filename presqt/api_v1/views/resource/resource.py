@@ -120,6 +120,7 @@ class Resource(BaseResource):
             "error": "The requested resource is no longer available."
         }
         """
+        # ADD NONE HERE TO GO TO JSON
         if resource_format == 'json':
             return self.get_json_format(request, target_name, resource_id)
         elif resource_format == 'zip':
@@ -227,7 +228,7 @@ class Resource(BaseResource):
         watch_dog.start()
 
         # Get the download url
-        reversed_url = reverse('download_resource', kwargs={'ticket_number': ticket_number})
+        reversed_url = reverse('download_job', kwargs={'ticket_number': ticket_number})
         download_hyperlink = request.build_absolute_uri(reversed_url)
 
         return Response(status=status.HTTP_202_ACCEPTED,

@@ -375,13 +375,13 @@ class TestResourceZip(TestCase):
                 pass
 
         # Since the coverage package does not pick up the multiprocessing, we will run the
-        # 'download_resource' function manually with the same parameters that the multiprocess
-        # version ran. And run the same exact checks.
+        # 'Resource._download_resource' function manually with the same parameters that the
+        # multiprocess version ran. And run the same exact checks.
 
         # First we need to remove the contents of the ticket path except 'process_info.json'
         remove_path_contents(ticket_path, 'process_info.json')
         process_info_path = '{}/process_info.json'.format(ticket_path)
-        # Call the download_resource manually
+        # Call the Resource._download_resource manually
         process_state = multiprocessing.Value('b', 0)
         Resource._download_resource('osf', 'resource_download', self.header['HTTP_PRESQT_SOURCE_TOKEN'],
                           self.resource_id, ticket_path, process_info_path, process_state)
@@ -594,8 +594,8 @@ class TestResourceZip(TestCase):
 
     def test_get_202_downloadresource_fails_file_id_doesnt_exist_osf(self):
         """
-        Return a 202 if the GET method succeeds but the download_resource function fails because
-        the file_id given does not map to a resource.
+        Return a 202 if the GET method succeeds but the Resource._download_resource function fails
+        because the file_id given does not map to a resource.
         """
         self.resource_id = '1234'
         self.target_name = 'osf'
@@ -605,8 +605,8 @@ class TestResourceZip(TestCase):
 
     def test_get_202_downloadresource_fails_bad_storage_provider_osf(self):
         """
-        Return a 202 if the GET method succeeds but the download_resource function fails because
-        a bad storage provider name was given in the storage ID
+        Return a 202 if the GET method succeeds but the Resource._download_resource function fails
+        because a bad storage provider name was given in the storage ID
         """
         self.resource_id = 'cmn5z:badstorage'
         self.target_name = 'osf'
@@ -616,7 +616,7 @@ class TestResourceZip(TestCase):
 
     def test_get_202_downloadresource_fails_not_authorized_osf(self):
         """
-        Return a 200 if the GET method succeeds but the download_resource function fails because
+        Return a 200 if the GET method succeeds but the Resource._download_resource function fails because
         the user doesn't have access to this resource.
         """
         self.resource_id = 'q5xmw'
@@ -627,8 +627,8 @@ class TestResourceZip(TestCase):
 
     def test_get_202_downloadresource_fails_invalid_token_osf(self):
         """
-        Return a 202 if the GET method succeeds but the download_resource function fails because
-        the token provided is not a valid token.
+        Return a 202 if the GET method succeeds but the Resource._download_resource function fails
+        because the token provided is not a valid token.
         """
         self.resource_id = 'cmn5z'
         self.target_name = 'osf'
@@ -694,8 +694,8 @@ class TestResourceZip(TestCase):
             hashes)
 
         # Since the coverage package does not pick up the multiprocessing, we will run the
-        # 'download_resource' function manually with the same parameters that the multiprocess
-        # version ran. And run the same exact checks.
+        # 'Resource._download_resource' function manually with the same parameters that the
+        # multiprocess version ran. And run the same exact checks.
 
         # First we need to remove the contents of the ticket path except 'process_info.json'
         remove_path_contents(ticket_path, 'process_info.json')
@@ -708,10 +708,8 @@ class TestResourceZip(TestCase):
             # Manually verify the fixity_checker will fail
             fake_send.return_value = fixity
             process_state = multiprocessing.Value('b', 0)
-            print(1)
             Resource._download_resource('osf', 'resource_download', TEST_USER_TOKEN,
                               resource_id, ticket_path, process_info_path, process_state)
-            print(2)
 
         final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         # Verify the final status in the process_info file is 'finished'
@@ -758,7 +756,7 @@ class TestResourceZip(TestCase):
             'status_code': None
         }
         write_file(process_info_path, process_info_obj, True)
-        # Start the download_resource process manually
+        # Start the Resource._download_resource process manually
         process_state = multiprocessing.Value('b', 0)
         function_process = multiprocessing.Process(target=Resource._download_resource, args=[
             'osf', 'resource_download', TEST_USER_TOKEN, resource_id,
@@ -795,7 +793,7 @@ class TestResourceZip(TestCase):
         }
         write_file(process_info_path, process_info_obj, True)
 
-        # Start the download_resource process manually
+        # Start the Resource._download_resource process manually
         process_state = multiprocessing.Value('b', 0)
         function_process = multiprocessing.Process(target=Resource._download_resource, args=[
             'osf', 'resource_download', TEST_USER_TOKEN, resource_id,
