@@ -240,7 +240,8 @@ class Resource(BaseResource):
     def _download_resource(target_name, action, token, resource_id, ticket_path,
                       process_info_path, process_state):
         """
-        Downloads the resources from the target, performs a fixity check, zips them up in BagIt format.
+        Downloads the resources from the target, performs a fixity check,
+        zips them up in BagIt format.
 
         Parameters
         ----------

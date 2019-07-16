@@ -20,10 +20,10 @@ from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
 from presqt.api_v1.views.resource.resource import Resource
 
 
-class TestResource(TestCase):
+class TestResourceGET(TestCase):
     """
-        Test the endpoint's GET method for
-        `api_v1/targets/{target_name}/resources/{resource_id}.{resource_format}/`
+    Test the endpoint's GET method for
+    `api_v1/targets/{target_name}/resources/{resource_id}.{resource_format}/`
     """
     def setUp(self):
         self.client = APIClient()
@@ -45,8 +45,7 @@ class TestResource(TestCase):
                          {"error": "bad_format is not a valid format for this endpoint."})
 
 
-
-class TestResourceJSON(TestCase):
+class TestResourceGETJSON(TestCase):
     """
     Test the `api_v1/targets/{target_name}/resources/{resource_id}.json/` endpoint's GET method.
     """
@@ -162,7 +161,7 @@ class TestResourceJSON(TestCase):
         Return a 400 if the GET method fails because the target requested does not support
         this endpoint's action.
         """
-        with open('presqt/api_v1/tests/views/targets_test.json') as json_file:
+        with open('presqt/api_v1/tests/resources/targets_test.json') as json_file:
             with patch("builtins.open") as mock_file:
                 mock_file.return_value = json_file
                 url = reverse('resource', kwargs={'target_name': 'test',
@@ -257,7 +256,7 @@ class TestResourceJSON(TestCase):
                          {'error': "The requested resource is no longer available."})
 
 
-class TestResourceZip(TestCase):
+class TestResourceGETZip(TestCase):
     """
     Test the `api_v1/targets/{target_name}/resources/{resource_id}.zip/` endpoint's GET method.
     """
@@ -286,16 +285,14 @@ class TestResourceZip(TestCase):
         ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
 
         # Verify process_info file status is 'in_progress' initially
-        process_info = read_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number),
-                                 True)
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         self.assertEqual(process_info['status'], 'in_progress')
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
         while process_info['status'] == 'in_progress':
             try:
-                process_info = read_file(
-                    'mediafiles/downloads/{}/process_info.json'.format(ticket_number), True)
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
@@ -566,7 +563,7 @@ class TestResourceZip(TestCase):
         Return a 400 if the GET method fails because the target requested does not support
         this endpoint's action.
         """
-        with open('presqt/api_v1/tests/views/targets_test.json') as json_file:
+        with open('presqt/api_v1/tests/resources/targets_test.json') as json_file:
             with patch("builtins.open") as mock_file:
                 mock_file.return_value = json_file
                 url = reverse(
@@ -812,3 +809,98 @@ class TestResourceZip(TestCase):
 
         # Delete corresponding folder
         shutil.rmtree(ticket_path)
+
+
+class TestResourcePOST(TestCase):
+    """
+    Test the endpoint's POST method for resource uploads:
+         `api_v1/targets/{target_name}/resources/{resource_id}/`
+         `api_v1/targets/{target_name}/resources/`
+    """
+
+    def setUp(self):
+        self.client = APIClient()
+        self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': TEST_USER_TOKEN}
+        self.good_zip_file = 'presqt/api_v1/tests/resources/upload/good_bagit.zip'
+    def tearDown(self):
+        # Delete project
+        pass
+
+    def test_post_success_202_upload_osf(self):
+        """
+        This test is more of an integration test rather than a unit test.
+        Since order of requests is important, it will test several POST requests to verify the files
+        are properly ignored/replaced:
+
+        Return a 202 when uploading a new top level container.
+        Return a 202 when uploading to an existing container with duplicate files ignored.
+        Return a 202 when uploading to an existing container with duplicate files replaced.
+        """
+        self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = 'ignore'
+
+        #### 202 when uploading a new top level container ###
+        url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        response = self.client.post(url, {'presqt-file': open('presqt/api_v1/tests/resources/upload/new_project.zip', 'rb')}, **self.headers)
+
+        # Verify status code and message
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(response.data['message'], 'The server is processing the request.')
+
+        # #### Return a 202 when uploading to an existing container with duplicate files ignored ####
+        # #### Return a 202 when uploading to an existing container with duplicate files replaced ####
+        # # Make the initial upload of files
+        # url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': 's7dvn'})
+        # response = self.client.post(url, {'presqt-file': open(self.good_zip_file, 'rb')}, **self.headers)
+        #
+        # # Verify status code and message
+        # self.assertEqual(response.status_code, 202)
+        # self.assertEqual(response.data['message'], 'The server is processing the request.')
+        #
+        # ticket_number = response.data['ticket_number']
+        # ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        #
+        # # Verify process_info file status is 'in_progress' initially
+        # process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        # self.assertEqual(process_info['status'], 'in_progress')
+        #
+        # # Wait until the spawned off process finishes in the background to do further validation
+        # while process_info['status'] == 'in_progress':
+        #     try:
+        #         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        #     except json.decoder.JSONDecodeError:
+        #         # Pass while the process_info file is being written to
+        #         pass
+        #
+        # # Verify process_info.json file data
+        # process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        # print(process_info)
+        # self.assertEqual(process_info['status'], 'finished')
+        # self.assertEqual(process_info['message'], 'Upload successful')
+        # self.assertEqual(process_info['status_code'], '200')
+        # self.assertEqual(process_info['failed_fixity'], [])
+        # self.assertEqual(process_info['hash_algorithm'], 'sha256')
+
+        # DELETE PROJECT FROM OSF
+
+
+
+    # 202 Upload file to container
+    # 202 Upload project to container
+    # 202 Upload storage to container
+    # 202 Upload new project
+    # 400 "'new_target' does not support the action 'resource_upload'."
+    # 400 "'presqt-destination-token' missing in the request headers."
+    # 400 "The file, 'presqt-file', is not found in the body of the request."
+    # 400 "The file provided, 'presqt-file', is not a zip file."
+    # 400 "The file provided is not in BagIt format."
+    #       - missing file
+    #       - unknown file
+    #       - mismatched hashes
+    # 400 "Checksums failed to validate."
+    # 400 "'presqt-file-duplicate-action' missing in the request headers."
+    # 400 "'bad_action' is not a valid file_duplicate_action. The options are 'ignore' or 'update'."
+    # 401 "Token is invalid. Response returned a 401 status code."
+    # 403 "User does not have access to this resource with the token provided."
+    # 404 "'bad_target' is not a valid Target name."
+    # 404 "error": "Resource with id 'bad_id' not found for this user."
+    # 410 "error": "The requested resource is no longer available."

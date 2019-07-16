@@ -59,7 +59,7 @@ class BaseResource(APIView):
         {
             "error": "The file provided, 'presqt-file', is not a zip file."
         }
-        o"
+        or
         {
             "error": "The file provided is not in BagIt format."
         }
@@ -110,6 +110,7 @@ class BaseResource(APIView):
             target_validation(target_name, action)
             resource = file_validation(request)
         except PresQTValidationError as e:
+            print(e.data)
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Save the files to disk and check their fixity integrity. If BagIt validation fails attempt
@@ -156,11 +157,11 @@ class BaseResource(APIView):
         matched_algorithms = set(target_supported_algorithms).intersection(bag.algorithms)
         # If the bag and target have a matching supported hash algorithm then pull that algorithm's
         # hash from the bag.
-        # Else calculate a new hash for each file with a target supported hash algorithm.
         if matched_algorithms:
             hash_algorithm = matched_algorithms.pop()
             for key, value in bag.payload_entries().items():
                 file_hashes['{}/{}'.format(resource_main_dir, key)] = value[hash_algorithm]
+        # Else calculate a new hash for each file with a target supported hash algorithm.
         else:
             hash_algorithm = target_supported_algorithms[0]
             for key, value in bag.payload_entries().items():
@@ -189,7 +190,8 @@ class BaseResource(APIView):
                         data={'ticket_number': ticket_number,
                               'message': 'The server is processing the request.'})
 
-    def _upload_resource(self, resource_main_dir, process_info_path, target_name, action, token,
+    @staticmethod
+    def _upload_resource(resource_main_dir, process_info_path, target_name, action, token,
                          resource_id, process_state, hash_algorithm, file_hashes,
                          file_duplicate_action):
         """
@@ -229,10 +231,10 @@ class BaseResource(APIView):
 
         # Upload the resources
         # 'uploaded_file_hashes' should be a dictionary of files and their hashes according to the
-        # hash_algorithm we are using. For example if hash_algorithm == sha256:
-        #     {'mediafiles/uploads/66e7b906-63f0-4160-/osf_download_5cd98b0af244/data/fixity_info.json':
+        # hash_algorithm we are using. For example, if hash_algorithm == sha256:
+        #     {'mediafiles/uploads/66e7b906-63f0/osf_download_5cd98b0af244/data/fixity_info.json':
         #         'a48df41bb55c7f9e1fa41b02197477ff0eccb550ed1244155048ef5750993ce7',
-        #     'mediafiles/uploads/66e7b906-63f0-4160-b20d/osf_download_5cd98b0af244e/data/Docs2/02.mp3':
+        #     'mediafiles/uploads/66e7b906-63f0/osf_download_5cd98b0af244e/data/Docs2/02.mp3':
         #         'fe3e904fbd549a3ac014bc26fb3d5042d58759f639f24e745dba3580ea316850'
         #     }
         # 'files_ignored' should be a list of file paths of files that were ignored while uploading
@@ -280,5 +282,4 @@ class BaseResource(APIView):
 
         # Update the shared memory map so the watchdog process can stop running.
         process_state.value = 1
-        print('DONE')
         return
