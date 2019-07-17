@@ -6,6 +6,7 @@ import uuid
 import zipfile
 from unittest.mock import patch
 
+import requests
 from dateutil.relativedelta import relativedelta
 from django.test import TestCase
 from django.utils import timezone
@@ -822,9 +823,42 @@ class TestResourcePOST(TestCase):
         self.client = APIClient()
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': TEST_USER_TOKEN}
         self.good_zip_file = 'presqt/api_v1/tests/resources/upload/good_bagit.zip'
-    def tearDown(self):
-        # Delete project
-        pass
+
+    def process_wait(self, process_info, ticket_path):
+        # Wait until the spawned off process finishes in the background to do further validation
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+
+    def shared_osf_test_code(self):
+        response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+
+        ticket_number = response.data['ticket_number']
+        self.ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+
+        # Verify status code and message
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(response.data['message'], 'The server is processing the request.')
+
+        # Verify process_info file status is 'in_progress' initially
+        process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
+        self.assertEqual(process_info['status'], 'in_progress')
+
+        # Wait until the spawned off process finishes in the background to do further validation
+        self.process_wait(process_info, self.ticket_path)
+
+        # Verify process_info.json file data
+        process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
+        self.assertEqual(process_info['status'], 'finished')
+        self.assertEqual(process_info['message'], 'Upload successful')
+        self.assertEqual(process_info['status_code'], '200')
+        self.assertEqual(process_info['failed_fixity'], [])
+        self.assertEqual(process_info['duplicate_files_ignored'], self.duplicate_files_ignored)
+        self.assertEqual(process_info['duplicate_files_updated'], self.duplicate_files_updated)
+        self.assertEqual(process_info['hash_algorithm'], 'sha256')
 
     def test_post_success_202_upload_osf(self):
         """
@@ -836,58 +870,80 @@ class TestResourcePOST(TestCase):
         Return a 202 when uploading to an existing container with duplicate files ignored.
         Return a 202 when uploading to an existing container with duplicate files replaced.
         """
+        ######## 202 when uploading a new top level container ########
         self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = 'ignore'
+        self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
+        self.duplicate_files_ignored = []
+        self.duplicate_files_updated = []
+        self.shared_osf_test_code()
 
-        #### 202 when uploading a new top level container ###
-        url = reverse('resource_collection', kwargs={'target_name': 'osf'})
-        response = self.client.post(url, {'presqt-file': open('presqt/api_v1/tests/resources/upload/new_project.zip', 'rb')}, **self.headers)
+        # Verify files exist in OSF
+        headers = {'Authorization': 'Bearer {}'.format(TEST_USER_TOKEN)}
+        for node in requests.get('http://api.osf.io/v2/users/me/nodes', headers=headers).json()['data']:
+            if node['attributes']['title'] == 'NewProject':
+                node_id = node['id']
+                storage_data = requests.get(node['relationships']['files']['links']['related']['href'], headers=headers).json()
+                folder_data = requests.get(storage_data['data'][0]['relationships']['files']['links']['related']['href'], headers=headers).json()
+                folder_id = folder_data['data'][0]['id']
+                file_data = requests.get(folder_data['data'][0]['relationships']['files']['links']['related']['href'], headers=headers).json()
+                break
+        self.assertEqual(folder_data['links']['meta']['total'], 1)
+        self.assertEqual(folder_data['data'][0]['attributes']['name'], 'funnyfunnyimages')
+        self.assertEqual(file_data['links']['meta']['total'], 1)
+        self.assertEqual(file_data['data'][0]['attributes']['name'], 'Screen Shot 2019-07-15 at 3.26.49 PM.png')
 
-        # Verify status code and message
-        self.assertEqual(response.status_code, 202)
-        self.assertEqual(response.data['message'], 'The server is processing the request.')
+        # delete upload folder
+        shutil.rmtree(self.ticket_path)
 
-        # #### Return a 202 when uploading to an existing container with duplicate files ignored ####
-        # #### Return a 202 when uploading to an existing container with duplicate files replaced ####
-        # # Make the initial upload of files
-        # url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': 's7dvn'})
-        # response = self.client.post(url, {'presqt-file': open(self.good_zip_file, 'rb')}, **self.headers)
-        #
-        # # Verify status code and message
-        # self.assertEqual(response.status_code, 202)
-        # self.assertEqual(response.data['message'], 'The server is processing the request.')
-        #
-        # ticket_number = response.data['ticket_number']
-        # ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
-        #
-        # # Verify process_info file status is 'in_progress' initially
-        # process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        # self.assertEqual(process_info['status'], 'in_progress')
-        #
-        # # Wait until the spawned off process finishes in the background to do further validation
-        # while process_info['status'] == 'in_progress':
-        #     try:
-        #         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        #     except json.decoder.JSONDecodeError:
-        #         # Pass while the process_info file is being written to
-        #         pass
-        #
-        # # Verify process_info.json file data
-        # process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        # print(process_info)
-        # self.assertEqual(process_info['status'], 'finished')
-        # self.assertEqual(process_info['message'], 'Upload successful')
-        # self.assertEqual(process_info['status_code'], '200')
-        # self.assertEqual(process_info['failed_fixity'], [])
-        # self.assertEqual(process_info['hash_algorithm'], 'sha256')
+        ######## 202 when uploading to an existing container with duplicate files ignored ########
+        self.url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': '{}:osfstorage'.format(node_id)})
+        self.file = 'presqt/api_v1/tests/resources/upload/FolderBagItToUpload.zip'
+        self.duplicate_files_ignored = ['data/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
+        self.duplicate_files_updated = []
+        self.shared_osf_test_code()
 
-        # DELETE PROJECT FROM OSF
+        # Verify files exist in OSF
+        file_data = requests.get(folder_data['data'][0]['relationships']['files']['links']['related']['href'],headers=headers).json()
+        self.assertEqual(file_data['links']['meta']['total'], 2)
+        for file in file_data['data']:
+            self.assertIn(file['attributes']['name'], ['Screen Shot 2019-07-15 at 3.26.49 PM.png', 'Screen Shot 2019-07-15 at 3.51.13 PM.png'])
+            if file['attributes']['name'] == 'Screen Shot 2019-07-15 at 3.26.49 PM.png':
+                original_file_hash = file['attributes']['extra']['hashes']['sha256']
+        # delete upload folder
+        shutil.rmtree(self.ticket_path)
 
+        ######## 202 when uploading to an existing container with duplicate files replaced ########
+        self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = 'update'
+        self.url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': folder_id})
+        self.file = 'presqt/api_v1/tests/resources/upload/FolderUpdateBagItToUpload.zip'
+        self.duplicate_files_ignored = ['data/Screen Shot 2019-07-15 at 3.51.13 PM.png']
+        self.duplicate_files_updated = ['data/Screen Shot 2019-07-15 at 3.26.49 PM.png']
+        self.shared_osf_test_code()
 
+        # Verify files exist in OSF
+        file_data = requests.get(folder_data['data'][0]['relationships']['files']['links']['related']['href'],headers=headers).json()
+        self.assertEqual(file_data['links']['meta']['total'], 2)
+        for file in file_data['data']:
+            self.assertIn(file['attributes']['name'], ['Screen Shot 2019-07-15 at 3.26.49 PM.png', 'Screen Shot 2019-07-15 at 3.51.13 PM.png'])
+            if file['attributes']['name'] == 'Screen Shot 2019-07-15 at 3.26.49 PM.png':
+                new_file_hash = file['attributes']['extra']['hashes']['sha256']
 
-    # 202 Upload file to container
-    # 202 Upload project to container
-    # 202 Upload storage to container
-    # 202 Upload new project
+        # Make sure the file we have replaced has a different hash than the original
+        self.assertNotEqual(original_file_hash, new_file_hash)
+
+        # delete upload folder
+        shutil.rmtree(self.ticket_path)
+
+        # Delete project from OSF
+        requests.delete('http://api.osf.io/v2/nodes/{}'.format(node_id), headers=headers)
+
+    # DONE 202 Upload new project
+    # DONE 202 Upload something to project container
+    # DONE 202 Upload something to storage container
+    # DONE 202 Upload something to folder container
+    # Satisfy coverage
+
     # 400 "'new_target' does not support the action 'resource_upload'."
     # 400 "'presqt-destination-token' missing in the request headers."
     # 400 "The file, 'presqt-file', is not found in the body of the request."

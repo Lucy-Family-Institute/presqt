@@ -61,9 +61,13 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
                 resource_main_dir, file_duplicate_action, file_hashes, files_ignored, files_updated)
     # else if we are uploading a new project
     else:
-        project = osf_instance.create_project(os.path.basename(resource_main_dir))
+        os_path = next(os.walk(resource_main_dir))
+        data_to_upload_path =  '{}/{}'.format(os_path[0], os_path[1][0])
+
+        project = osf_instance.create_project(os_path[1][0])
+
         file_hashes, files_ignored, files_updated = project.storage('osfstorage').create_directory(
-            resource_main_dir, file_duplicate_action, file_hashes, files_ignored, files_updated)
+            data_to_upload_path, file_duplicate_action, file_hashes, files_ignored, files_updated)
 
     # Only send forward the hashes we need based on the hash_algorithm provided
     final_file_hashes = {}

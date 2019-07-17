@@ -46,7 +46,7 @@ class TestResourceCollection(TestCase):
         Return a 400 if the GET method fails because the target requested does not support
         this endpoint's action.
         """
-        with open('presqt/api_v1/tests/views/targets_test.json') as json_file:
+        with open('presqt/api_v1/tests/resources/targets_test.json') as json_file:
             with patch("builtins.open") as mock_file:
                 mock_file.return_value = json_file
                 url = reverse('resource_collection', kwargs={'target_name': 'test'})
