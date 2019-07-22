@@ -152,9 +152,25 @@ class TestDownloadJob(TestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
 
+    def test_get_error_404_osf(self):
+        """
+        Return a 404 if the ticket_number provided is not a valid ticket number.
+        """
+        self.call_get_resource_zip()
+
+        url = reverse('download_job', kwargs={'ticket_number': 'bad_ticket'})
+        response = self.client.get(url, **self.header)
+
+        # Verify the status code and content
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.data['error'], "Invalid ticket number, 'bad_ticket'.")
+
+        # Delete corresponding folder
+        shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
+
     def test_get_error_500_401_token_invalid_osf(self):
         """
-        Return a 500 if the Resource._download_resource() function running on the server gets a 401 error
+        Return a 500 if the Resource._download_resource() method running on the server gets a 401 error
         """
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': '1234'}
         self.call_get_resource_zip()

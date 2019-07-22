@@ -66,7 +66,7 @@ class UploadJob(APIView):
         try:
             token = destination_token_validation(request)
             process_data = get_process_info_data('uploads', ticket_number)
-            process_token_validation(token, process_data['presqt-destination-token'])
+            process_token_validation(token, process_data, 'presqt-destination-token')
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 

@@ -23,9 +23,8 @@ class TestUploadJob(TestCase):
         """
         Make a POST request to `resource` to begin uploading a resource
         """
-        url = reverse('resource_collection', kwargs={'target_name': 'osf'})
         good_file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
-        response = self.client.post(url, {'presqt-file': open(good_file, 'rb')}, **self.headers)
+        response = self.client.post(self.url, {'presqt-file': open(good_file, 'rb')}, **self.headers)
 
         # Verify the status code
         self.assertEqual(response.status_code, 202)
@@ -60,6 +59,7 @@ class TestUploadJob(TestCase):
         """
         Return a 200 if the GET was successful and the resources were uploaded.
         """
+        self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
         self.call_upload_resources()
 
         url = reverse('upload_job', kwargs={'ticket_number': self.ticket_number})
@@ -82,6 +82,7 @@ class TestUploadJob(TestCase):
         """
         Return a 202 if the GET was successful and the resource upload is in progress.
         """
+        self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
         self.call_upload_resources()
 
         # Update the fixity_info.json to say the resource hasn't finished processing
@@ -105,6 +106,7 @@ class TestUploadJob(TestCase):
         """
         Return a 400 if the `presqt-destination-token` is missing in the headers.
         """
+        self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
         self.call_upload_resources()
 
         url = reverse('upload_job', kwargs={'ticket_number': self.ticket_number})
@@ -127,14 +129,150 @@ class TestUploadJob(TestCase):
         Return a 401 if the 'presqt-destination-token' provided in the header does not match
         the 'presqt-destination-token' in the process_info file.
         """
+        self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
         self.call_upload_resources()
 
+        url = reverse('upload_job', kwargs={'ticket_number': self.ticket_number})
+        headers = {'HTTP_PRESQT_DESTINATION_TOKEN': '1234'}
+        response = self.client.get(url, **headers)
 
-    # 401 "error": "Header 'presqt-source-token' does not match the presqt-source-token' for this server process."
-    # 404 "Invalid ticket number, '1234'."
+        # Verify the status code and content
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.data['error'],
+                         "Header 'presqt-destination-token' does not match the 'presqt-destination-token' for this server process.")
 
-    # 500 401 "Token is invalid. Response returned a 401 status code."
-    # 500 401 "The Resource provided, {}, is not a container"
-    # 500 403 "User does not have access to this resource with the token provided."
-    # 500 404 "error": "Resource with id 'bad_id' not found for this user."
-    # 500 410 "error": "The requested resource is no longer available."
+        # Delete the newly created project in OSF
+        self.delete_osf_project('NewProject')
+
+        # Delete corresponding folder
+        shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
+
+    def test_get_error_404_osf(self):
+        """
+        Return a 404 if the ticket_number provided is not a valid ticket number.
+        """
+        self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        self.call_upload_resources()
+
+        url = reverse('upload_job', kwargs={'ticket_number': 'bad_ticket'})
+        response = self.client.get(url, **self.headers)
+
+        # Verify the status code and content
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.data['error'], "Invalid ticket number, 'bad_ticket'.")
+
+        # Delete the newly created project in OSF
+        self.delete_osf_project('NewProject')
+
+        # Delete corresponding folder
+        shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
+
+    # def test_get_error_500_401_token_invalid_osf(self):
+    #     """
+    #     Return a 500 if the BaseResource._upload_resource method running on the server gets a 401 error because the token is invalid.
+    #     """
+    #     self.headers['HTTP_PRESQT_DESTINATION_TOKEN'] = 'bad_token'
+    #     self.call_upload_resources()
+    #
+    #     url = reverse('upload_job', kwargs={'ticket_number': self.ticket_number})
+    #     response = self.client.get(url, **self.headers)
+    #
+    #     self.assertEqual(response.status_code, 500)
+    #     self.assertEqual(response.data,
+    #                  {'message': "Token is invalid. Response returned a 401 status code.",
+    #                   'status_code': 401})
+    #
+    #     # Delete corresponding folder
+    #     shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
+
+    def test_get_error_500_401_not_container_osf(self):
+        """
+        Return a 500 if the BaseResource._upload_resource method running on the server gets a 401 error because the resource_id provided is not a container
+        """
+        self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        self.call_upload_resources()
+
+        headers = {'Authorization': 'Bearer {}'.format(TEST_USER_TOKEN)}
+        for node in requests.get('http://api.osf.io/v2/users/me/nodes', headers=headers).json()['data']:
+            if node['attributes']['title'] == 'NewProject':
+                storage_data = requests.get(node['relationships']['files']['links']['related']['href'], headers=headers).json()
+                folder_data = requests.get(storage_data['data'][0]['relationships']['files']['links']['related']['href'], headers=headers).json()
+                file_data = requests.get(folder_data['data'][0]['relationships']['files']['links']['related']['href'], headers=headers).json()
+                break
+
+        ticket_number = self.ticket_number
+        # Attempt to make a new request to the file resource
+        file_id = file_data['data'][0]['id']
+        self.url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': file_id})
+        self.call_upload_resources()
+
+        url = reverse('upload_job', kwargs={'ticket_number': self.ticket_number})
+        response = self.client.get(url, **self.headers)
+
+        # Verify the status code and content
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.data,
+                         {'message': "The Resource provided, {}, is not a container".format(file_id),'status_code': 401})
+
+        # Delete the newly created project in OSF
+        self.delete_osf_project('NewProject')
+
+        # Delete corresponding folders
+        shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
+        shutil.rmtree('mediafiles/uploads/{}'.format(ticket_number))
+
+    def test_get_error_500_403_unauthorized_resource_osf(self):
+        """
+        Return a 500 if the BaseResource._upload_resource function running on the server gets a 403 error because the resource is not available with the given token.
+        """
+        self.url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': 'q5xmw'})
+        self.call_upload_resources()
+
+        url = reverse('upload_job', kwargs={'ticket_number': self.ticket_number})
+        response = self.client.get(url, **self.headers)
+
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.data,
+                         {'message': "User does not have access to this resource with the token provided.",
+                          'status_code': 403})
+
+        # Delete corresponding folders
+        shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
+
+    def test_get_error_500_404_resource_not_found_osf(self):
+        """
+        Return a 500 if the BaseResource._upload_resource function running on the server gets a 404 error because the resource requested does not exist.
+        """
+        self.url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': 'bad_id'})
+        self.call_upload_resources()
+
+        url = reverse('upload_job', kwargs={'ticket_number': self.ticket_number})
+        response = self.client.get(url, **self.headers)
+
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.data,
+                        {'message': "Resource with id 'bad_id' not found for this user.",
+                         'status_code': 404})
+
+        # Delete corresponding folders
+        shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
+
+
+    def test_get_error_500_410_gone_osf(self):
+        """
+        Return a 500 if the BaseResource._upload_resource function running on the server gets a 410 error because the resource requested no longer exists.
+        """
+        self.url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': 'k453b'})
+
+        self.call_upload_resources()
+
+        url = reverse('upload_job', kwargs={'ticket_number': self.ticket_number})
+        response = self.client.get(url, **self.headers)
+
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.data,
+                         {'message': "The requested resource is no longer available.",
+                          'status_code': 410})
+
+        # Delete corresponding folders
+        shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))

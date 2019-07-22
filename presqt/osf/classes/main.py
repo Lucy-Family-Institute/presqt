@@ -25,7 +25,7 @@ class OSF(OSFBase):
         """
         self.session.token_auth(token)
         # Verify that the token provided is a valid one.
-        self.get('https://api.osf.io/v2/users/me/')
+        # self.get('https://api.osf.io/v2/users/me/')
 
     def project(self, project_id):
         """
