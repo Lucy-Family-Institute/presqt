@@ -2,7 +2,7 @@ import json
 
 from rest_framework import status
 
-from presqt.exceptions import PresQTInvalidTokenError, PresQTResponseException
+from presqt.exceptions import PresQTResponseException
 from presqt.osf.classes.base import OSFBase
 from presqt.osf.classes.file import File
 from presqt.osf.classes.project import Project
@@ -19,14 +19,13 @@ class OSF(OSFBase):
         super(OSF, self).__init__({})
         self.login(token)
 
-        # Verify that the token provided is a valid one.
-        self.get('https://api.osf.io/v2/users/me/')
-
     def login(self, token):
         """
         Login user for API calls.
         """
         self.session.token_auth(token)
+        # Verify that the token provided is a valid one.
+        self.get('https://api.osf.io/v2/users/me/')
 
     def project(self, project_id):
         """

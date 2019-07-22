@@ -55,7 +55,6 @@ class OSFBase(object):
         elif response.status_code == 410:
             raise PresQTResponseException("The requested resource is no longer available.",
                                           status.HTTP_410_GONE)
-
         return response
 
     def put(self, url, *args, **kwargs):

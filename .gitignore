@@ -12,6 +12,7 @@ config/settings/local.py
 # Coverage
 .coverage
 coverage_html/
+.coverage.*
 
 # OSF API JSON
 presqt/osf/osf_api.json
@@ -21,3 +22,4 @@ mediafiles/downloads/
 mediafiles/uploads/
 
 .DS_Store
+

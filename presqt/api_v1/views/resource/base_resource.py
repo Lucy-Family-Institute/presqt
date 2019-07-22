@@ -1,3 +1,4 @@
+import io
 import multiprocessing
 import os
 import shutil
@@ -76,33 +77,8 @@ class BaseResource(APIView):
             "error": "'bad_action' is not a valid file_duplicate_action.
             The options are 'ignore' or 'update'."
         }
-
-        401: Unauthorized
-        {
-            "error": "Token is invalid. Response returned a 401 status code."
-        }
-
-        403: Forbidden
-        {
-            "error": "User does not have access to this resource with the token provided."
-        }
-
-        404: Not Found
-        {
-            "error": "'bad_target' is not a valid Target name."
-        }
-        or
-        {
-            "error": "Resource with id 'bad_id' not found for this user."
-        }
-
-        410: Gone
-        {
-            "error": "The requested resource is no longer available."
-        }
         """
         action = 'resource_upload'
-
         # Perform token, header, target, action, and resource validation
         try:
             token = destination_token_validation(request)
@@ -110,7 +86,6 @@ class BaseResource(APIView):
             target_validation(target_name, action)
             resource = file_validation(request)
         except PresQTValidationError as e:
-            print(e.data)
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Save the files to disk and check their fixity integrity. If BagIt validation fails attempt

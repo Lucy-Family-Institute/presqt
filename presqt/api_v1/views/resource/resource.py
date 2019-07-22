@@ -212,7 +212,6 @@ class Resource(BaseResource):
         ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
         process_info_path = '{}/process_info.json'.format(ticket_path)
         write_file(process_info_path, process_info_obj, True)
-
         # Create a shared memory map that the watchdog monitors to see if the spawned
         # off process has finished
         process_state = multiprocessing.Value('b', 0)
@@ -220,13 +219,11 @@ class Resource(BaseResource):
         function_process = multiprocessing.Process(target=Resource._download_resource, args=[
             target_name, action, token, resource_id, ticket_path, process_info_path, process_state])
         function_process.start()
-
         # Start the watchdog process that will monitor the spawned off process
         watch_dog = multiprocessing.Process(target=process_watchdog,
                                             args=[function_process, process_info_path,
                                                   3600, process_state])
         watch_dog.start()
-
         # Get the download url
         reversed_url = reverse('download_job', kwargs={'ticket_number': ticket_number})
         download_hyperlink = request.build_absolute_uri(reversed_url)
@@ -286,7 +283,6 @@ class Resource(BaseResource):
             #  Update the shared memory map so the watchdog process can stop running.
             process_state.value = 1
             return
-
         # The directory all files should be saved in.
         base_file_name = '{}_download_{}'.format(target_name, resource_id)
         base_directory = '{}/{}'.format(ticket_path, base_file_name)

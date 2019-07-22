@@ -47,8 +47,8 @@ class UploadJob(APIView):
 
         401: Unauthorized
         {
-            "error": "Header 'presqt-source-token' does not match the
-            'presqt-source-token' for this server process."
+            "error": "Header 'presqt-destination-token' does not match the
+            'presqt-destination-token' for this server process."
         }
 
         404: Not Found
