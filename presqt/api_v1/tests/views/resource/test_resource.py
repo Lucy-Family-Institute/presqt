@@ -57,7 +57,7 @@ class TestResourceGETJSON(TestCase):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': TEST_USER_TOKEN}
         self.keys = ['kind', 'kind_name', 'id', 'title', 'date_created',
-                     'date_modified', 'size', 'hashes', 'extra']
+                     'date_modified', 'size', 'hashes', 'extra', 'download_url']
 
     def test_get_success_osf_project(self):
         """
@@ -93,6 +93,27 @@ class TestResourceGETJSON(TestCase):
         url = reverse('resource', kwargs={'target_name': 'osf',
                                           'resource_id': resource_id,
                                           'resource_format': 'json'})
+        response = self.client.get(url, **self.header)
+        # Verify the Status Code
+        self.assertEqual(response.status_code, 200)
+        # Verify the dict keys match what we expect
+        self.assertListEqual(self.keys, list(response.data.keys()))
+        self.assertListEqual(extra_keys, list(response.data['extra'].keys()))
+        # Spot check some individual fields
+        self.assertEqual(resource_id, response.data['id'])
+        self.assertEqual('file', response.data['kind_name'])
+        self.assertEqual('2017-01-27 PresQT Workshop Planning Meeting Items.docx',
+                         response.data['title'])
+
+    def test_get_success_osf_file_no_format(self):
+        """
+        Return a 200 if the GET method is successful when grabbing an OSF resource that's a file.
+        """
+        resource_id = '5cd9831c054f5b001a5ca2af'
+        extra_keys = ['last_touched', 'materialized_path', 'current_version', 'provider', 'path',
+                      'current_user_can_comment', 'guid', 'checkout', 'tags']
+        url = reverse('resource', kwargs={'target_name': 'osf',
+                                          'resource_id': resource_id})
         response = self.client.get(url, **self.header)
         # Verify the Status Code
         self.assertEqual(response.status_code, 200)
