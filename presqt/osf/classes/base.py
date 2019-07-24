@@ -50,9 +50,8 @@ class OSFBase(object):
         Handle any errors that may pop up while making GET requests through the session.
         """
         response =  self.session.get(url, *args, **kwargs)
-        if response.status_code == 401:
-            raise PresQTInvalidTokenError("Token is invalid. Response returned a 401 status code.")
-        elif response.status_code == 410:
+
+        if response.status_code == 410:
             raise PresQTResponseException("The requested resource is no longer available.",
                                           status.HTTP_410_GONE)
         return response

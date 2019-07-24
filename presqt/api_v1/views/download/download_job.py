@@ -63,7 +63,7 @@ class DownloadJob(APIView):
         try:
             token = source_token_validation(request)
             data = get_process_info_data('downloads', ticket_number)
-            process_token_validation(token, data['presqt-source-token'])
+            process_token_validation(token, data, 'presqt-source-token')
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 

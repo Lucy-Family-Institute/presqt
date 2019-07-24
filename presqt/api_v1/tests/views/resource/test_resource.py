@@ -944,9 +944,9 @@ class TestResourcePOST(TestCase):
         shutil.rmtree(self.ticket_path)
 
         ######## 202 when uploading to an existing container with mismatched algorithms ########
-        self.resource_id = folder_id
+        self.resource_id = node_id
         self.duplicate_action = 'ignore'
-        self.url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': folder_id})
+        self.url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': self.resource_id})
         self.file = 'presqt/api_v1/tests/resources/upload/GoodBagItsha512.zip'
         self.duplicate_files_updated = []
         self.duplicate_files_ignored = []
@@ -957,6 +957,40 @@ class TestResourcePOST(TestCase):
 
         # Delete project from OSF
         requests.delete('http://api.osf.io/v2/nodes/{}'.format(node_id), headers=headers)
+
+    def test_post_success_202_upload_fixity_failed_osf(self):
+        """
+        Get a 202 if POST succeeds but with fixity errors.
+        """
+        good_file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
+        url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+
+        # patch osf_upload_resource to return dirty hashbrowns
+        with patch('presqt.osf.functions.upload.osf_upload_resource') as new_func:
+            new_func.return_value = {'sha256': 'butt'}, [], []
+            response = self.client.post(url, {'presqt-file': open(good_file, 'rb')}, **self.headers)
+            # Verify the status code
+            self.assertEqual(response.status_code, 202)
+
+            ticket_number = response.data['ticket_number']
+            process_info_path = 'mediafiles/uploads/{}/process_info.json'.format(ticket_number)
+            process_info = read_file(process_info_path, True)
+            ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+
+            self.process_wait(process_info, ticket_path)
+
+            # CHECK FIXITY FAILED
+            process_info = read_file(process_info_path, True)
+            self.assertEqual(process_info['message'], 'Upload successful')
+
+            headers = {'Authorization': 'Bearer {}'.format(TEST_USER_TOKEN)}
+            for node in requests.get('http://api.osf.io/v2/users/me/nodes', headers=headers).json()['data']:
+                if node['attributes']['title'] == 'NewProject':
+                    requests.delete('http://api.osf.io/v2/nodes/{}'.format(node['id']), headers=headers)
+                    break
+
+            # Delete corresponding folder
+            shutil.rmtree('mediafiles/uploads/{}'.format(ticket_number))
 
     def test_get_error_400_target_not_supported_test_target(self):
         """
@@ -1004,7 +1038,6 @@ class TestResourcePOST(TestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data, {'error': "The file provided, 'presqt-file', is not a zip file."})
-
 
     def test_get_error_400_duplicate_action_missing_osf(self):
         """

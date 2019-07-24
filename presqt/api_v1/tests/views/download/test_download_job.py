@@ -166,7 +166,7 @@ class TestDownloadJob(TestCase):
         self.assertEqual(response.data['error'], "Invalid ticket number, 'bad_ticket'.")
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
+        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
 
     def test_get_error_500_401_token_invalid_osf(self):
         """

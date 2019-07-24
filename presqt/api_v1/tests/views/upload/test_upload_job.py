@@ -167,23 +167,24 @@ class TestUploadJob(TestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
 
-    # def test_get_error_500_401_token_invalid_osf(self):
-    #     """
-    #     Return a 500 if the BaseResource._upload_resource method running on the server gets a 401 error because the token is invalid.
-    #     """
-    #     self.headers['HTTP_PRESQT_DESTINATION_TOKEN'] = 'bad_token'
-    #     self.call_upload_resources()
-    #
-    #     url = reverse('upload_job', kwargs={'ticket_number': self.ticket_number})
-    #     response = self.client.get(url, **self.headers)
-    #
-    #     self.assertEqual(response.status_code, 500)
-    #     self.assertEqual(response.data,
-    #                  {'message': "Token is invalid. Response returned a 401 status code.",
-    #                   'status_code': 401})
-    #
-    #     # Delete corresponding folder
-    #     shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
+    def test_get_error_500_401_token_invalid_osf(self):
+        """
+        Return a 500 if the BaseResource._upload_resource method running on the server gets a 401 error because the token is invalid.
+        """
+        self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        self.headers['HTTP_PRESQT_DESTINATION_TOKEN'] = 'bad_token'
+        self.call_upload_resources()
+
+        url = reverse('upload_job', kwargs={'ticket_number': self.ticket_number})
+        response = self.client.get(url, **self.headers)
+
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.data,
+                     {'message': "Token is invalid. Response returned a 401 status code.",
+                      'status_code': 401})
+
+        # Delete corresponding folder
+        shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
 
     def test_get_error_500_401_not_container_osf(self):
         """
@@ -256,7 +257,6 @@ class TestUploadJob(TestCase):
 
         # Delete corresponding folders
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
-
 
     def test_get_error_500_410_gone_osf(self):
         """

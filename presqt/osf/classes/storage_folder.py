@@ -89,8 +89,6 @@ class ContainerMixin:
         for folder in self.iter_children(self._files_url, 'folder', Folder):
             if folder.title == folder_name:
                 return folder
-        else:
-            return None
 
     def get_file_by_name(self, file_name):
         """
@@ -99,26 +97,17 @@ class ContainerMixin:
         for file in self.iter_children(self._files_url, 'file', File):
             if file.title == file_name:
                 return file
-        else:
-            return None
 
     def create_folder(self, folder_name):
         """
         Create a new sub-folder for this container
         """
         response = self.put(self._new_folder_url, params={'name': folder_name})
-
         if response.status_code == 409:
             return self.get_folder_by_name(folder_name)
 
         elif response.status_code == 201:
             return self.get_folder_by_name(folder_name)
-
-        else:
-            raise PresQTResponseException(
-                "Response has status code {} while creating folder {}".format(response.status_code,
-                                                                              folder_name),
-                status.HTTP_400_BAD_REQUEST)
 
     def create_file(self, file_name, file_to_write, file_duplicate_action):
         """
