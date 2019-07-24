@@ -331,28 +331,6 @@ class TestResourceGETZip(TestCase):
         self.assertEqual(os.path.isfile(zip_path), True)
         self.assertEqual(len(zip_file.namelist()), self.file_number)
 
-        # Since the coverage package does not pick up the multiprocessing, we will run the
-        # 'download_resource' function manually with the same parameters that the multiprocess
-        # version ran and run the same exact checks.
-
-        # First we need to remove the contents of the ticket path except 'process_info.json'
-        remove_path_contents(ticket_path, 'process_info.json')
-        process_info_path = '{}/process_info.json'.format(ticket_path)
-        # Call the download_resource manually
-        process_state = multiprocessing.Value('b', 0)
-        Resource._download_resource('osf', 'resource_download', TEST_USER_TOKEN,
-                          self.resource_id, ticket_path, process_info_path, process_state)
-
-        # Verify the final status in the process_info file is 'finished'
-        final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        self.assertEqual(final_process_info['status'], 'finished')
-        # Verify zip file exists and has the proper amount of resources in it.
-        base_name = 'osf_download_{}'.format(self.resource_id)
-        zip_path = '{}/{}.zip'.format(ticket_path, base_name)
-        zip_file = zipfile.ZipFile(zip_path)
-        self.assertEqual(os.path.isfile(zip_path), True)
-        self.assertEqual(len(zip_file.namelist()), self.file_number)
-
         # Verify that the resource we expect is there.
         self.assertEqual(os.path.isfile('{}/{}/data/{}'.format(
             ticket_path, base_name, self.file_name)), True)
@@ -395,19 +373,7 @@ class TestResourceGETZip(TestCase):
                 # Pass while the process_info file is being written to
                 pass
 
-        # Since the coverage package does not pick up the multiprocessing, we will run the
-        # 'Resource._download_resource' function manually with the same parameters that the
-        # multiprocess version ran. And run the same exact checks.
-
-        # First we need to remove the contents of the ticket path except 'process_info.json'
-        remove_path_contents(ticket_path, 'process_info.json')
-        process_info_path = '{}/process_info.json'.format(ticket_path)
-        # Call the Resource._download_resource manually
-        process_state = multiprocessing.Value('b', 0)
-        Resource._download_resource('osf', 'resource_download', self.header['HTTP_PRESQT_SOURCE_TOKEN'],
-                          self.resource_id, ticket_path, process_info_path, process_state)
-
-        final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
 
         # Verify that the zip file doesn't exist
         base_name = 'osf_download_{}'.format(self.resource_id)
@@ -415,9 +381,9 @@ class TestResourceGETZip(TestCase):
         self.assertEqual(os.path.isfile(zip_path), False)
 
         # Verify the final status in the process_info file is 'failed'
-        self.assertEqual(final_process_info['status'], 'failed')
-        self.assertEqual(final_process_info['message'], self.status_message)
-        self.assertEqual(final_process_info['status_code'], self.status_code)
+        self.assertEqual(process_info['status'], 'failed')
+        self.assertEqual(process_info['message'], self.status_message)
+        self.assertEqual(process_info['status_code'], self.status_code)
 
         # Delete corresponding folder
         shutil.rmtree(ticket_path)
@@ -756,41 +722,6 @@ class TestResourceGETZip(TestCase):
         self.assertEqual(fixity_info[0]['hash_algorithm'], 'sha256')
         self.assertEqual(fixity_info[0]['source_hash'], hashes['sha256'])
         self.assertNotEqual(fixity_info[0]['presqt_hash'], hashes['sha256'])
-
-        # Delete corresponding folder
-        shutil.rmtree(ticket_path)
-
-    def test_process_watchdog_success_osf(self):
-        """
-        Manually test the process_watchdog utility function to get code coverage and make sure it
-        is working as expected.
-        """
-        resource_id = '5cd98510f244ec001fe5632f'
-        ticket_number = uuid.uuid4()
-        ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
-        process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(ticket_number)
-        process_info_obj = {
-            'presqt-source-token': TEST_USER_TOKEN,
-            'status': 'in_progress',
-            'expiration': str(timezone.now() + relativedelta(days=5)),
-            'message': 'Download is being processed on the server',
-            'status_code': None
-        }
-        write_file(process_info_path, process_info_obj, True)
-        # Start the Resource._download_resource process manually
-        process_state = multiprocessing.Value('b', 0)
-        function_process = multiprocessing.Process(target=Resource._download_resource, args=[
-            'osf', 'resource_download', TEST_USER_TOKEN, resource_id,
-            ticket_path, process_info_path, process_state])
-        function_process.start()
-
-        # start watchdog function manually
-        process_watchdog(function_process, process_info_path, 3600, process_state)
-
-        # Make sure the watchdog didn't overwrite the file and its status si still 'finished'
-        process_info = read_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number),
-                                 True)
-        self.assertEqual(process_info['status'], 'finished')
 
         # Delete corresponding folder
         shutil.rmtree(ticket_path)
