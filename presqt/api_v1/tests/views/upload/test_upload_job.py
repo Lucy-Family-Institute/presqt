@@ -449,3 +449,49 @@ class TestUploadJob(TestCase):
 
         # Delete corresponding folders
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
+
+    def test_get_error_500_401_bad_project_format_multiple_folders_osf(self):
+        """
+        Return a 500 if the BaseResource._upload_resource function running on the server gets a
+        401 error because a bad project format given with there being multiple top level folders.
+        """
+        self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        self.file = 'presqt/api_v1/tests/resources/upload/BadProjectMultipleFolders.zip'
+        self.call_upload_resources()
+
+        # Check in on the upload job and verify we got the 500 for the server error
+        url = reverse('upload_job', kwargs={'ticket_number': self.ticket_number})
+        response = self.client.get(url, **self.headers)
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.data,
+                         {'message': "Project is not formatted correctly. Multiple directories exist at the top level.",
+                          'status_code': 401})
+
+        # Delete the project
+        self.delete_osf_project('NewProject')
+
+        # Delete corresponding folders
+        shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
+
+    def test_get_error_500_401_bad_project_format_file_exists_osf(self):
+        """
+        Return a 500 if the BaseResource._upload_resource function running on the server gets a
+        401 error because a bad project format given with there a file at the top level.
+        """
+        self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        self.file = 'presqt/api_v1/tests/resources/upload/GoodBagIt.zip'
+        self.call_upload_resources()
+
+        # Check in on the upload job and verify we got the 500 for the server error
+        url = reverse('upload_job', kwargs={'ticket_number': self.ticket_number})
+        response = self.client.get(url, **self.headers)
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.data,
+                         {'message': "Project is not formatted correctly. Files exist at the top level.",
+                          'status_code': 401})
+
+        # Delete the project
+        self.delete_osf_project('NewProject')
+
+        # Delete corresponding folders
+        shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))

@@ -65,8 +65,21 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
         os_path = next(os.walk(resource_main_dir))
         data_to_upload_path =  '{}/{}'.format(os_path[0], os_path[1][0])
 
+        # Verify that the top level directory to upload only has one folder and no files.
+        # This one folder will be the project title and the base for project upload.
+        if len(os_path[1]) > 1:
+            raise PresQTResponseException(
+                'Project is not formatted correctly. Multiple directories exist at the top level.',
+                status.HTTP_401_UNAUTHORIZED)
+        elif  len(os_path[2]) > 0:
+            raise PresQTResponseException(
+                'Project is not formatted correctly. Files exist at the top level.',
+                status.HTTP_401_UNAUTHORIZED)
+
+        # Create a new project with the name being the top level directory's name.
         project = osf_instance.create_project(os_path[1][0])
 
+        # Upload resources into OSFStorage for the new project.
         file_hashes, files_ignored, files_updated = project.storage('osfstorage').create_directory(
             data_to_upload_path, file_duplicate_action, file_hashes, files_ignored, files_updated)
 
