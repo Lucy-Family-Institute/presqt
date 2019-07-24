@@ -61,6 +61,7 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
                 resource_main_dir, file_duplicate_action, file_hashes, files_ignored, files_updated)
     # else if we are uploading a new project
     else:
+        # Get the actual data we want to upload
         os_path = next(os.walk(resource_main_dir))
         data_to_upload_path =  '{}/{}'.format(os_path[0], os_path[1][0])
 

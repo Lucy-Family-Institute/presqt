@@ -6,7 +6,6 @@ import uuid
 import zipfile
 from unittest.mock import patch
 
-import bagit
 import requests
 from dateutil.relativedelta import relativedelta
 from django.test import TestCase
@@ -14,8 +13,8 @@ from django.utils import timezone
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
-from config.settings.base import TEST_USER_TOKEN
-from presqt.api_v1.utilities import write_file, read_file, hash_generator
+from config.settings.base import TEST_USER_TOKEN, UPLOAD_TEST_USER_TOKEN
+from presqt.api_v1.utilities import write_file, read_file
 from presqt.api_v1.utilities.fixity.download_fixity_checker import download_fixity_checker
 from presqt.api_v1.utilities.io.remove_path_contents import remove_path_contents
 from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
@@ -665,7 +664,6 @@ class TestResourceGETZip(TestCase):
             To solve this the test will have two parts:
             1. The first part will be verifying that the fixity checker function will throw an
                 error if given a file and a mismatched hash dictionary.
-
         """
         hashes = {
             "sha256": "bad_hash",
@@ -683,8 +681,7 @@ class TestResourceGETZip(TestCase):
         ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
 
         # Verify process_info file status is 'in_progress' initially
-        process_info = read_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number),
-                                 True)
+        process_info = read_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number),True)
         self.assertEqual(process_info['status'], 'in_progress')
 
         # Wait until the spawned off process finishes in the background
@@ -787,7 +784,7 @@ class TestResourceGETZip(TestCase):
         # start watchdog function manually
         process_watchdog(function_process, process_info_path, 3600, process_state)
 
-        # Make sure the watchdog didn't overwrite the file and its status si still 'finished'
+        # Make sure the watchdog didn't overwrite the file and its status is still 'finished'
         process_info = read_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number),
                                  True)
         self.assertEqual(process_info['status'], 'finished')
@@ -844,7 +841,7 @@ class TestResourcePOST(TestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': TEST_USER_TOKEN, 'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+        self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': UPLOAD_TEST_USER_TOKEN, 'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
         self.good_zip_file = 'presqt/api_v1/tests/resources/upload/GoodBagIt.zip'
 
     @staticmethod
@@ -905,7 +902,7 @@ class TestResourcePOST(TestCase):
         self.shared_osf_test_code()
 
         # Verify files exist in OSF
-        headers = {'Authorization': 'Bearer {}'.format(TEST_USER_TOKEN)}
+        headers = {'Authorization': 'Bearer {}'.format(UPLOAD_TEST_USER_TOKEN)}
         for node in requests.get('http://api.osf.io/v2/users/me/nodes', headers=headers).json()['data']:
             if node['attributes']['title'] == 'NewProject':
                 node_id = node['id']
@@ -982,36 +979,110 @@ class TestResourcePOST(TestCase):
     def test_post_success_202_upload_fixity_failed_osf(self):
         """
         Get a 202 if POST succeeds but with fixity errors.
+
+        First we will run the upload endpoint to get a ticket number. We will then use that ticket
+        number to make a fake bad hash dictionary that will get patched into a manual run of the
+        upload function.
         """
         good_file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
         url = reverse('resource_collection', kwargs={'target_name': 'osf'})
 
-        # patch osf_upload_resource to return dirty hashbrowns
-        with patch('presqt.osf.functions.upload.osf_upload_resource') as new_func:
-            new_func.return_value = {'sha256': 'butt'}, [], []
-            response = self.client.post(url, {'presqt-file': open(good_file, 'rb')}, **self.headers)
-            # Verify the status code
-            self.assertEqual(response.status_code, 202)
+        # Hit the endpoint initially
+        response = self.client.post(url, {'presqt-file': open(good_file, 'rb')}, **self.headers)
+        self.assertEqual(response.status_code, 202)
 
-            ticket_number = response.data['ticket_number']
-            process_info_path = 'mediafiles/uploads/{}/process_info.json'.format(ticket_number)
+        ticket_number = response.data['ticket_number']
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        process_info_path = 'mediafiles/uploads/{}/process_info.json'.format(ticket_number)
+        process_info = read_file(process_info_path, True)
+        resource_main_dir = '{}/{}'.format(ticket_path, next(os.walk(ticket_path))[1][0])
+        process_state = multiprocessing.Value('b', 0)
+
+        # Wait for the process to finish
+        self.process_wait(process_info, ticket_path)
+
+        # Create bad hashes with the ticket number and run the upload function manually
+        file_hashes = {'mediafiles/uploads/{}/BagItToUpload/data/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png'.format(ticket_number): '6d33275234b28d77348e4e1049f58b95a485a7a441684a9eb9175d01c7f141ea'}
+        with patch('presqt.osf.classes.storage_folder.ContainerMixin.create_directory') as fake_send:
+            fake_send.return_value = {'mediafiles/uploads/{}/BagItToUpload/data/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png'.format(ticket_number): {'sha256': 'bad_hash', 'md5': 'another_bad_hash'}}, [], []
+
+            BaseResource._upload_resource(resource_main_dir, process_info_path,
+                                          'osf', 'resource_upload', UPLOAD_TEST_USER_TOKEN,
+                                          None, process_state, 'sha256', file_hashes, 'ignore')
+
             process_info = read_file(process_info_path, True)
-            ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+            self.assertEqual(process_info['message'], 'Upload successful but fixity failed.')
+            self.assertEqual(process_info['failed_fixity'], ['data/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png'])
 
-            self.process_wait(process_info, ticket_path)
-
-            # CHECK FIXITY FAILED
-            process_info = read_file(process_info_path, True)
-            self.assertEqual(process_info['message'], 'Upload successful')
-
-            headers = {'Authorization': 'Bearer {}'.format(TEST_USER_TOKEN)}
+            # Delete the projects that were created
+            headers = {'Authorization': 'Bearer {}'.format(UPLOAD_TEST_USER_TOKEN)}
             for node in requests.get('http://api.osf.io/v2/users/me/nodes', headers=headers).json()['data']:
                 if node['attributes']['title'] == 'NewProject':
                     requests.delete('http://api.osf.io/v2/nodes/{}'.format(node['id']), headers=headers)
-                    break
 
             # Delete corresponding folder
             shutil.rmtree('mediafiles/uploads/{}'.format(ticket_number))
+
+    def test_post_success_202_large_duplicate_connection_error_osf(self):
+        """
+        Return a 202 if we upload a large duplicate file. We have a separate test here because
+        OSF will return a ConnectionError instead of a 409 when the duplicate file is large enough.
+        """
+        project_file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
+        url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        response = self.client.post(url, {'presqt-file': open(project_file, 'rb')}, **self.headers)
+        self.assertEqual(response.status_code, 202)
+
+        # Wait for the process to finish
+        ticket_number = response.data['ticket_number']
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        process_info_path = 'mediafiles/uploads/{}/process_info.json'.format(ticket_number)
+        process_info = read_file(process_info_path, True)
+        self.process_wait(process_info, ticket_path)
+
+        # Wait for the process to finish
+        self.process_wait(process_info, ticket_path)
+
+        # Get new project ID
+        headers = {'Authorization': 'Bearer {}'.format(UPLOAD_TEST_USER_TOKEN)}
+        for node in requests.get('http://api.osf.io/v2/users/me/nodes', headers=headers).json()[
+            'data']:
+            if node['attributes']['title'] == 'NewProject':
+                node_id = node['id']
+
+        # Upload the large file initially
+        large_file = 'presqt/api_v1/tests/resources/upload/LargeBagToUpload.zip'
+        url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': node_id})
+        response = self.client.post(url, {'presqt-file': open(large_file, 'rb')}, **self.headers)
+        self.assertEqual(response.status_code, 202)
+
+        # Wait for the process to finish
+        ticket_number = response.data['ticket_number']
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        process_info_path = 'mediafiles/uploads/{}/process_info.json'.format(ticket_number)
+        process_info = read_file(process_info_path, True)
+        self.process_wait(process_info, ticket_path)
+
+        # Wait for the process to finish
+        self.process_wait(process_info, ticket_path)
+
+        # Attempt to upload the same large file and get the duplicate ConnectionError
+        url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': node_id})
+        response = self.client.post(url, {'presqt-file': open(large_file, 'rb')}, **self.headers)
+        self.assertEqual(response.status_code, 202)
+
+        # Wait for the process to finish
+        ticket_number = response.data['ticket_number']
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        process_info_path = 'mediafiles/uploads/{}/process_info.json'.format(ticket_number)
+        process_info = read_file(process_info_path, True)
+        self.process_wait(process_info, ticket_path)
+
+        # Wait for the process to finish
+        self.process_wait(process_info, ticket_path)
+
+        # Delete project from OSF
+        requests.delete('http://api.osf.io/v2/nodes/{}'.format(node_id), headers=headers)
 
     def test_get_error_400_target_not_supported_test_target(self):
         """
@@ -1064,7 +1135,7 @@ class TestResourcePOST(TestCase):
         """
         Return a 400 if the POST fails because "'presqt-file-duplicate-action' missing in headers.
         """
-        headers = {'HTTP_PRESQT_DESTINATION_TOKEN': TEST_USER_TOKEN}
+        headers = {'HTTP_PRESQT_DESTINATION_TOKEN': UPLOAD_TEST_USER_TOKEN}
         url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': 'resource_id'})
         response = self.client.post(url, {'presqt-file': open('presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip', 'rb')}, **headers)
         # Verify the error status code and message

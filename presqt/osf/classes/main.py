@@ -112,3 +112,8 @@ class OSF(OSFBase):
 
         if response.status_code == 201:
             return self.project(response.json()['data']['id'])
+        else:
+            raise PresQTResponseException(
+                "Response has status code {} while creating project {}".format(response.status_code,
+                                                                               title),
+                status.HTTP_400_BAD_REQUEST)

@@ -1,6 +1,6 @@
 from presqt.osf.functions.fetch import osf_fetch_resources, osf_fetch_resource
 from presqt.osf.functions.download import osf_download_resource
-from presqt.osf.functions.upload import osf_upload_resource
+from presqt.osf.functions import upload
 
 
 class FunctionRouter(object):
@@ -31,4 +31,4 @@ class FunctionRouter(object):
     osf_resource_collection = osf_fetch_resources
     osf_resource_detail = osf_fetch_resource
     osf_resource_download = osf_download_resource
-    osf_resource_upload = osf_upload_resource
+    osf_resource_upload = upload.osf_upload_resource

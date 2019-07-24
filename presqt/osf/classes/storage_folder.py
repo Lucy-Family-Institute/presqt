@@ -66,7 +66,7 @@ class ContainerMixin:
 
         return file_list
 
-    def iter_children(self, url, kind, klass, recurse=None):
+    def iter_children(self, url, kind, klass):
         """
         Iterate over all children of `kind`.
         """
@@ -77,10 +77,6 @@ class ContainerMixin:
             kind_ = child['attributes']['kind']
             if kind_ == kind:
                 yield klass(child, self.session)
-            elif recurse is not None:
-                # recurse into a child and add entries to `children`
-                url = self._get_attribute(child, *recurse)
-                children.extend(self._follow_next(url))
 
     def get_folder_by_name(self, folder_name):
         """
@@ -108,6 +104,12 @@ class ContainerMixin:
 
         elif response.status_code == 201:
             return self.get_folder_by_name(folder_name)
+
+        else:
+            raise PresQTResponseException(
+                "Response has status code {} while creating folder {}".format(response.status_code,
+                                                                              folder_name),
+                status.HTTP_400_BAD_REQUEST)
 
     def create_file(self, file_name, file_to_write, file_duplicate_action):
         """
@@ -148,7 +150,7 @@ class ContainerMixin:
 
         else:
             raise PresQTResponseException(
-                "Response has status code {} while creating folder {}".format(response.status_code,
+                "Response has status code {} while creating file {}".format(response.status_code,
                                                                               file_name),
                 status.HTTP_400_BAD_REQUEST)
 
