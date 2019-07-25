@@ -420,6 +420,9 @@ class TestUploadJob(TestCase):
         self.file = 'presqt/api_v1/tests/resources/upload/ProjectSingleFileToUpload.zip'
         self.call_upload_resources()
 
+        # Delete corresponding folders
+        shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
+
         # Get the project id so we can attempt to upload the file to it.
         headers = {'Authorization': 'Bearer {}'.format(UPLOAD_TEST_USER_TOKEN)}
         for node in requests.get('http://api.osf.io/v2/users/me/nodes', headers=headers).json()[
