@@ -51,11 +51,12 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
         # Resource being uploaded to must not be a file
         if resource.kind_name == 'file':
             raise PresQTResponseException(
-                "The Resource provided, {}, is not a container".format(resource_id),
+                "The Resource provided, {}, is not a container".format(
+                    resource_id),
                 status.HTTP_401_UNAUTHORIZED)
         elif resource.kind_name == 'project':
             file_hashes, files_ignored, files_updated = resource.storage('osfstorage').create_directory(
-                resource_main_dir,file_duplicate_action, file_hashes, files_ignored, files_updated)
+                resource_main_dir, file_duplicate_action, file_hashes, files_ignored, files_updated)
         else:
             file_hashes, files_ignored, files_updated = resource.create_directory(
                 resource_main_dir, file_duplicate_action, file_hashes, files_ignored, files_updated)
@@ -63,7 +64,7 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
     else:
         # Get the actual data we want to upload
         os_path = next(os.walk(resource_main_dir))
-        data_to_upload_path =  '{}/{}'.format(os_path[0], os_path[1][0])
+        data_to_upload_path = '{}/{}'.format(os_path[0], os_path[1][0])
 
         # Verify that the top level directory to upload only has one folder and no files.
         # This one folder will be the project title and the base for project upload.
@@ -71,7 +72,7 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
             raise PresQTResponseException(
                 'Project is not formatted correctly. Multiple directories exist at the top level.',
                 status.HTTP_401_UNAUTHORIZED)
-        elif  len(os_path[2]) > 0:
+        elif len(os_path[2]) > 0:
             raise PresQTResponseException(
                 'Project is not formatted correctly. Files exist at the top level.',
                 status.HTTP_401_UNAUTHORIZED)
