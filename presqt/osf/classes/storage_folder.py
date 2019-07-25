@@ -13,6 +13,15 @@ class ContainerMixin:
         """
         Get all resources for this container including the original container.
         This exists so we can get all resources in the structure we want for our API payloads.
+
+        Parameters
+        ----------
+        container : str
+            ID of the resource's container
+
+        Returns
+        -------
+        List of resource dictionaries.
         """
         resource_list = []
         children = self._follow_next(self._files_url)
@@ -69,6 +78,15 @@ class ContainerMixin:
     def iter_children(self, url, kind, klass):
         """
         Iterate over all children of `kind`.
+
+        Parameters
+        ----------
+        url : str
+            URL to get the current children data points.
+        kind : str
+            The kind of resource we are attempting to get.
+        klass :str
+            The resource's kind associated class
         """
         children = self._follow_next(url)
 
@@ -81,6 +99,15 @@ class ContainerMixin:
     def get_folder_by_name(self, folder_name):
         """
         Gets a folder object based on the name. Only looks for top level folders.
+
+        Parameters
+        ----------
+        folder_name : str
+            Name of the folder we want to find within the container.
+
+        Returns
+        -------
+        Returns an instance of the requested Folder class.
         """
         for folder in self.iter_children(self._files_url, 'folder', Folder):
             if folder.title == folder_name:
@@ -89,6 +116,15 @@ class ContainerMixin:
     def get_file_by_name(self, file_name):
         """
         Gets a file object based on the name. Only looks for top level files.
+
+        Parameters
+        ----------
+        file_name : str
+            Name of the file we want to find within the container.
+
+        Returns
+        -------
+        Returns an instance of the requested File class.
         """
         for file in self.iter_children(self._files_url, 'file', File):
             if file.title == file_name:
@@ -96,7 +132,16 @@ class ContainerMixin:
 
     def create_folder(self, folder_name):
         """
-        Create a new sub-folder for this container
+        Create a new sub-folder for this container.
+
+        Parameters
+        ----------
+        folder_name : str
+            Name of the folder to create.
+
+        Returns
+        -------
+        Class instance of the created folder.
         """
         response = self.put(self._new_folder_url, params={'name': folder_name})
         if response.status_code == 409:
@@ -114,6 +159,19 @@ class ContainerMixin:
     def create_file(self, file_name, file_to_write, file_duplicate_action):
         """
         Upload a file to a container.
+
+        Parameters
+        ----------
+        file_name : str
+            Name of the file to create.
+        file_to_write : binary file
+            File to create.
+        file_duplicate_action : str
+            Flag for how to handle the case of the file already existing.
+
+        Returns
+        -------
+        Class instance of the created file.
         """
         # When uploading a large file (>a few MB) that already exists
         # we sometimes get a ConnectionError instead of a status == 409.
@@ -159,6 +217,23 @@ class ContainerMixin:
                          files_ignored, files_updated):
         """
         Create a directory of folders and files found in the given directory_path.
+
+        Parameters
+        ----------
+        directory_path : str
+            Directory to find the resources to create.
+        file_duplicate_action : str
+            Flag for how to handle the case of the file already existing.
+        file_hashes : dict
+            Dictionary of uploaded file hashes.
+        files_ignored : list
+            List of duplicate files ignored.
+        files_updated : list
+            List of duplicate files updated.
+
+        Returns
+        -------
+            Returns same file_hashes, files ignored, files_updated parameters.
         """
         directory, folders, files = next(os.walk(directory_path))
 

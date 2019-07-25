@@ -47,13 +47,21 @@ class File(OSFBase):
         -------
         The requested file in byte format.
         """
-
         response = self.get(self.download_url)
         return response.content
 
     def update(self, file_to_write):
         """
         Update the file with a new file
+
+        Parameters
+        ----------
+        file_to_write : binary_file
+            File contents to update the file with.
+
+        Returns
+        -------
+        HTTP Rsponse object
         """
 
         response = self.put(self.upload_url, data=file_to_write)

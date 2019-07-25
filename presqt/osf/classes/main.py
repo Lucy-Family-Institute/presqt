@@ -23,6 +23,12 @@ class OSF(OSFBase):
     def login(self, token):
         """
         Login user for API calls.
+
+        Parameters
+        ----------
+        token : str
+            Token of the user performing the request.
+
         """
         self.session.token_auth(token)
         # Verify that the token provided is a valid one.
@@ -30,7 +36,6 @@ class OSF(OSFBase):
                                 headers={'Authorization': 'Bearer {}'.format(token)})
         if response.status_code == 401:
             raise PresQTInvalidTokenError("Token is invalid. Response returned a 401 status code.")
-        self.get('https://api.osf.io/v2/users/me/')
 
     def project(self, project_id):
         """

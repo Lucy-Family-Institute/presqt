@@ -88,14 +88,14 @@ class BaseResource(APIView):
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
-        # Save the files to disk and check their fixity integrity. If BagIt validation fails attempt
+        # Save files to disk and check their fixity integrity. If BagIt validation fails, attempt
         # to save files to disk again. If BagIt validation fails after 3 attempts return an error.
         for index in range(3):
             # Generate ticket number
             ticket_number = uuid4()
             ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
-            # Extract each file in the zip file to disk and check for fixity
+            # Extract each file in the zip file to disk
             with zipfile.ZipFile(resource) as myzip:
                 myzip.extractall(ticket_path)
 
@@ -114,7 +114,7 @@ class BaseResource(APIView):
                 # If the bag validated successfully then break from the loop
                 break
 
-        # Create directory and write process_info.json file
+        # Write process_info.json file
         process_info_obj = {
             'presqt-destination-token': token,
             'status': 'in_progress',
@@ -151,8 +151,8 @@ class BaseResource(APIView):
         function_process = multiprocessing.Process(target=self._upload_resource,
                                                    args=[resource_main_dir, process_info_path,
                                                          target_name, action, token, resource_id,
-                                                         process_state, hash_algorithm,
-                                                         file_hashes, file_duplicate_action])
+                                                         process_state, hash_algorithm, file_hashes,
+                                                         file_duplicate_action, process_info_obj])
         function_process.start()
 
         # Start the watchdog process that will monitor the spawned off process
@@ -168,7 +168,7 @@ class BaseResource(APIView):
     @staticmethod
     def _upload_resource(resource_main_dir, process_info_path, target_name, action, token,
                          resource_id, process_state, hash_algorithm, file_hashes,
-                         file_duplicate_action):
+                         file_duplicate_action, process_info_data):
         """
         Upload resources to the target and perform a fixity check on the resulting hashes.
 
@@ -194,15 +194,14 @@ class BaseResource(APIView):
             Dictionary of the file hashes obtained from the bag's manifest
         file_duplicate_action : str
             Action for how to handle any duplicate files we find.
+        process_info_data : dict
+            Data currently in the process_info.json
         """
-        # Fetch the proper function to call
-        func = FunctionRouter.get_function(target_name, action)
-
-        # Get the current process_info.json data to be used throughout the file
-        process_info_data = read_file(process_info_path, True)
-
         # Data directory in the bag
         data_directory = '{}/data'.format(resource_main_dir)
+
+        # Fetch the proper function to call
+        func = FunctionRouter.get_function(target_name, action)
 
         # Upload the resources
         # 'uploaded_file_hashes' should be a dictionary of files and their hashes according to the

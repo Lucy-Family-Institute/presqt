@@ -33,6 +33,15 @@ class OSFBase(object):
     def _follow_next(self, url):
         """
         Follow the 'next' link on paginated results.
+
+        Parameters
+        ----------
+        url : str
+            URL to the current data to get
+
+        Returns
+        -------
+        Data dictionary of the data points gathered up until now.
         """
         response_json = self._json(self.get(url))
         data = response_json['data']
@@ -48,6 +57,15 @@ class OSFBase(object):
     def get(self, url, *args, **kwargs):
         """
         Handle any errors that may pop up while making GET requests through the session.
+
+        Parameters
+        ----------
+        url: str
+            URL to make the GET request to.
+
+        Returns
+        -------
+        HTTP Response object
         """
         response =  self.session.get(url, *args, **kwargs)
 
@@ -59,6 +77,16 @@ class OSFBase(object):
     def put(self, url, *args, **kwargs):
         """
         Handle any errors that may pop up while making PUT requests through the session.
+
+        Parameters
+        ----------
+        url: str
+            URL to make the PUT request to.
+
+        Returns
+        -------
+        HTTP Response object
+
         """
         response = self.session.put(url, *args, **kwargs)
         return response
@@ -66,6 +94,15 @@ class OSFBase(object):
     def post(self, url, *args, **kwargs):
         """
         Handle any errors that may pop up while making POST requests through the session.
+
+        Parameters
+        ----------
+        url: str
+            URL to make the POST request to.
+
+        Returns
+        -------
+        HTTP Response object
         """
         response = self.session.post(url, *args, **kwargs)
         return response
