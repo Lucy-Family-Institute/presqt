@@ -938,8 +938,9 @@ class TestResourcePOST(TestCase):
             fake_send.return_value = {'mediafiles/uploads/{}/BagItToUpload/data/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png'.format(ticket_number): {'sha256': 'bad_hash', 'md5': 'another_bad_hash'}}, [], []
 
             BaseResource._upload_resource(resource_main_dir, process_info_path,
-                                          'osf', 'resource_upload', UPLOAD_TEST_USER_TOKEN,
-                                          None, process_state, 'sha256', file_hashes, 'ignore')
+                                          'osf', 'resource_upload', UPLOAD_TEST_USER_TOKEN, None,
+                                          process_state, 'sha256', file_hashes, 'ignore',
+                                          process_info)
 
             process_info = read_file(process_info_path, True)
             self.assertEqual(process_info['message'], 'Upload successful but fixity failed.')
@@ -974,6 +975,9 @@ class TestResourcePOST(TestCase):
         # Wait for the process to finish
         self.process_wait(process_info, ticket_path)
 
+        # delete upload folder
+        shutil.rmtree(ticket_path)
+
         # Get new project ID
         headers = {'Authorization': 'Bearer {}'.format(UPLOAD_TEST_USER_TOKEN)}
         for node in requests.get('http://api.osf.io/v2/users/me/nodes', headers=headers).json()[
@@ -997,6 +1001,9 @@ class TestResourcePOST(TestCase):
         # Wait for the process to finish
         self.process_wait(process_info, ticket_path)
 
+        # delete upload folder
+        shutil.rmtree(ticket_path)
+
         # Attempt to upload the same large file and get the duplicate ConnectionError
         url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': node_id})
         response = self.client.post(url, {'presqt-file': open(large_file, 'rb')}, **self.headers)
@@ -1011,6 +1018,9 @@ class TestResourcePOST(TestCase):
 
         # Wait for the process to finish
         self.process_wait(process_info, ticket_path)
+
+        # delete upload folder
+        shutil.rmtree(ticket_path)
 
         # Delete project from OSF
         requests.delete('http://api.osf.io/v2/nodes/{}'.format(node_id), headers=headers)
