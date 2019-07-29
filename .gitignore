@@ -19,3 +19,7 @@ presqt/osf/osf_api.json
 # Media Files directory
 mediafiles/downloads/
 mediafiles/uploads/
+
+# SSL certs and private keys
+config/ssl/certs/
+config/ssl/private/
