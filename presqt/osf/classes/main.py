@@ -1,6 +1,9 @@
+import json
+
+import requests
 from rest_framework import status
 
-from presqt.exceptions import PresQTInvalidTokenError, PresQTResponseException
+from presqt.exceptions import PresQTResponseException, PresQTInvalidTokenError
 from presqt.osf.classes.base import OSFBase
 from presqt.osf.classes.file import File
 from presqt.osf.classes.project import Project
@@ -17,14 +20,22 @@ class OSF(OSFBase):
         super(OSF, self).__init__({})
         self.login(token)
 
-        # Verify that the token provided is a valid one.
-        self.get('https://api.osf.io/v2/users/me/')
-
     def login(self, token):
         """
         Login user for API calls.
+
+        Parameters
+        ----------
+        token : str
+            Token of the user performing the request.
+
         """
         self.session.token_auth(token)
+        # Verify that the token provided is a valid one.
+        response = requests.get('https://api.osf.io/v2/users/me/',
+                                headers={'Authorization': 'Bearer {}'.format(token)})
+        if response.status_code == 401:
+            raise PresQTInvalidTokenError("Token is invalid. Response returned a 401 status code.")
 
     def project(self, project_id):
         """
@@ -86,3 +97,28 @@ class OSF(OSFBase):
         for project in self.projects():
             project.get_resources(resources)
         return resources
+
+    def create_project(self, title):
+        """
+        Create a project for this user.
+        """
+        project_payload = {
+            "data": {
+                "type": "nodes",
+                "attributes": {
+                    "title": title,
+                    "category": "project"
+                }
+            }
+        }
+        response = self.post(self.session.build_url('nodes'),
+                             data=json.dumps(project_payload),
+                             headers={'content-type': 'application/json'})
+
+        if response.status_code == 201:
+            return self.project(response.json()['data']['id'])
+        else:
+            raise PresQTResponseException(
+                "Response has status code {} while creating project {}".format(response.status_code,
+                                                                               title),
+                status.HTTP_400_BAD_REQUEST)

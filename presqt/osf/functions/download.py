@@ -26,10 +26,8 @@ def osf_download_resource(token, resource_id):
     except PresQTInvalidTokenError:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
-
     # Get the resource
     resource = get_osf_resource(resource_id, osf_instance)
-
     # Get all files for the provided resources.
     # The 'path' value will be the path that the file is eventually saved in. The root of the
     # path should be the resource.

@@ -12,7 +12,7 @@ from django.utils import timezone
 
 from presqt.api_v1.utilities import write_file
 from presqt.api_v1.utilities.io.read_file import read_file
-from presqt.api_v1.views.resource.resource import download_resource
+from presqt.api_v1.views.resource.resource import Resource
 
 
 class TestDeleteMediaFiles(TestCase):
@@ -29,7 +29,7 @@ class TestDeleteMediaFiles(TestCase):
 
         # Download file into test directory
         process_state = multiprocessing.Value('b', 0)
-        download_resource('osf', 'resource_download', settings.PRIVATE_USER_TOKEN,
+        Resource._download_resource('osf', 'resource_download', settings.PRIVATE_USER_TOKEN,
                           '5cd98978f244ec001ee86609', self.directory, '{}process_info.json'.format(
                               self.directory), process_state)
 

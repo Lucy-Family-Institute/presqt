@@ -6,6 +6,7 @@ from rest_framework.test import APIClient
 
 from config.settings.base import TEST_USER_TOKEN
 
+
 class TestResourceCollection(TestCase):
     """
     Test the 'api_v1/targets/{target_name}/resources/' endpoint's GET method.
@@ -24,7 +25,7 @@ class TestResourceCollection(TestCase):
         # Verify the Status Code
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
-        keys = ['kind', 'kind_name', 'id', 'container', 'title']
+        keys = ['kind', 'kind_name', 'id', 'container', 'title', 'detail']
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
         # Verify the count of resource objects is what we expect.
@@ -46,17 +47,17 @@ class TestResourceCollection(TestCase):
         Return a 400 if the GET method fails because the target requested does not support
         this endpoint's action.
         """
-        with open('presqt/api_v1/tests/views/targets_test.json') as json_file:
+        with open('presqt/api_v1/tests/resources/targets_test.json') as json_file:
             with patch("builtins.open") as mock_file:
                 mock_file.return_value = json_file
-                url = reverse('resource_collection', kwargs={'target_name': 'test'})
+                url = reverse('resource_collection', kwargs={
+                              'target_name': 'test'})
                 response = self.client.get(url, **self.header)
                 # Verify the error status code and message
                 self.assertEqual(response.status_code, 400)
                 self.assertEqual(
                     response.data,
                     {'error': "'test' does not support the action 'resource_collection'."})
-
 
     def test_get_error_401_invalid_token_osf(self):
         """
@@ -75,8 +76,10 @@ class TestResourceCollection(TestCase):
         """
         Return a 404 if the GET method fails because a bad target_name was given.
         """
-        url = reverse('resource_collection', kwargs={'target_name': 'bad_name'})
+        url = reverse('resource_collection', kwargs={
+                      'target_name': 'bad_name'})
         response = self.client.get(url, **self.header)
         # Verify the error status code and message
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data, {'error': "'bad_name' is not a valid Target name."})
+        self.assertEqual(
+            response.data, {'error': "'bad_name' is not a valid Target name."})

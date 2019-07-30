@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from django.urls import reverse
+
 
 class ResourcesSerializer(serializers.Serializer):
     """
@@ -9,6 +11,16 @@ class ResourcesSerializer(serializers.Serializer):
     id = serializers.CharField(max_length=256)
     container = serializers.CharField(max_length=256)
     title = serializers.CharField(max_length=256)
+    detail = serializers.SerializerMethodField()
+
+    def get_detail(self, instance):
+        reversed_url = reverse(
+            viewname='resource',
+            kwargs={
+                'target_name': self.context.get('target_name'),
+                'resource_id': instance['id']})
+
+        return self.context['request'].build_absolute_uri(reversed_url)
 
 
 class ResourceSerializer(serializers.Serializer):
@@ -24,3 +36,14 @@ class ResourceSerializer(serializers.Serializer):
     size = serializers.IntegerField()
     hashes = serializers.DictField()
     extra = serializers.DictField()
+    download_url = serializers.SerializerMethodField()
+
+    def get_download_url(self, instance):
+        reversed_url = reverse(
+            viewname='resource',
+            kwargs={
+                'target_name': self.context.get('target_name'),
+                'resource_id': instance['id'],
+                'resource_format': 'zip'})
+
+        return self.context['request'].build_absolute_uri(reversed_url)

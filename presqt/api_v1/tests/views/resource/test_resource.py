@@ -6,25 +6,26 @@ import uuid
 import zipfile
 from unittest.mock import patch
 
+import requests
 from dateutil.relativedelta import relativedelta
 from django.test import TestCase
 from django.utils import timezone
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
-from config.settings.base import TEST_USER_TOKEN
-from presqt.api_v1.utilities import write_file
-from presqt.api_v1.utilities.io.read_file import read_file
+from config.settings.base import TEST_USER_TOKEN, UPLOAD_TEST_USER_TOKEN
+from presqt.api_v1.utilities import write_file, read_file
+from presqt.api_v1.utilities.fixity.download_fixity_checker import download_fixity_checker
 from presqt.api_v1.utilities.io.remove_path_contents import remove_path_contents
 from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
-from presqt.api_v1.views.resource.resource import download_resource
-from presqt.fixity import fixity_checker
+from presqt.api_v1.views.resource.base_resource import BaseResource
+from presqt.api_v1.views.resource.resource import Resource
 
 
-class TestResource(TestCase):
+class TestResourceGET(TestCase):
     """
-        Test the endpoint's GET method for
-        `api_v1/targets/{target_name}/resources/{resource_id}.{resource_format}/`
+    Test the endpoint's GET method for
+    `api_v1/targets/{target_name}/resources/{resource_id}.{resource_format}/`
     """
     def setUp(self):
         self.client = APIClient()
@@ -46,8 +47,7 @@ class TestResource(TestCase):
                          {"error": "bad_format is not a valid format for this endpoint."})
 
 
-
-class TestResourceJSON(TestCase):
+class TestResourceGETJSON(TestCase):
     """
     Test the `api_v1/targets/{target_name}/resources/{resource_id}.json/` endpoint's GET method.
     """
@@ -56,7 +56,7 @@ class TestResourceJSON(TestCase):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': TEST_USER_TOKEN}
         self.keys = ['kind', 'kind_name', 'id', 'title', 'date_created',
-                     'date_modified', 'size', 'hashes', 'extra']
+                     'date_modified', 'size', 'hashes', 'extra', 'download_url']
 
     def test_get_success_osf_project(self):
         """
@@ -92,6 +92,27 @@ class TestResourceJSON(TestCase):
         url = reverse('resource', kwargs={'target_name': 'osf',
                                           'resource_id': resource_id,
                                           'resource_format': 'json'})
+        response = self.client.get(url, **self.header)
+        # Verify the Status Code
+        self.assertEqual(response.status_code, 200)
+        # Verify the dict keys match what we expect
+        self.assertListEqual(self.keys, list(response.data.keys()))
+        self.assertListEqual(extra_keys, list(response.data['extra'].keys()))
+        # Spot check some individual fields
+        self.assertEqual(resource_id, response.data['id'])
+        self.assertEqual('file', response.data['kind_name'])
+        self.assertEqual('2017-01-27 PresQT Workshop Planning Meeting Items.docx',
+                         response.data['title'])
+
+    def test_get_success_osf_file_no_format(self):
+        """
+        Return a 200 if the GET method is successful when grabbing an OSF resource that's a file.
+        """
+        resource_id = '5cd9831c054f5b001a5ca2af'
+        extra_keys = ['last_touched', 'materialized_path', 'current_version', 'provider', 'path',
+                      'current_user_can_comment', 'guid', 'checkout', 'tags']
+        url = reverse('resource', kwargs={'target_name': 'osf',
+                                          'resource_id': resource_id})
         response = self.client.get(url, **self.header)
         # Verify the Status Code
         self.assertEqual(response.status_code, 200)
@@ -163,7 +184,7 @@ class TestResourceJSON(TestCase):
         Return a 400 if the GET method fails because the target requested does not support
         this endpoint's action.
         """
-        with open('presqt/api_v1/tests/views/targets_test.json') as json_file:
+        with open('presqt/api_v1/tests/resources/targets_test.json') as json_file:
             with patch("builtins.open") as mock_file:
                 mock_file.return_value = json_file
                 url = reverse('resource', kwargs={'target_name': 'test',
@@ -177,7 +198,7 @@ class TestResourceJSON(TestCase):
                     {'error': "'test' does not support the action 'resource_detail'."})
 
     def test_get_error_401_invalid_token_osf(self):
-        """
+        """`
 `       Return a 401 if the token provided is not a valid token.
         """
         header = {'HTTP_PRESQT_SOURCE_TOKEN': 'bad_token'}
@@ -258,7 +279,7 @@ class TestResourceJSON(TestCase):
                          {'error': "The requested resource is no longer available."})
 
 
-class TestResourceZip(TestCase):
+class TestResourceGETZip(TestCase):
     """
     Test the `api_v1/targets/{target_name}/resources/{resource_id}.zip/` endpoint's GET method.
     """
@@ -287,16 +308,14 @@ class TestResourceZip(TestCase):
         ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
 
         # Verify process_info file status is 'in_progress' initially
-        process_info = read_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number),
-                                 True)
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         self.assertEqual(process_info['status'], 'in_progress')
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
         while process_info['status'] == 'in_progress':
             try:
-                process_info = read_file(
-                    'mediafiles/downloads/{}/process_info.json'.format(ticket_number), True)
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
@@ -304,28 +323,6 @@ class TestResourceZip(TestCase):
         # Verify the final status in the process_info file is 'finished'
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         self.assertEqual(process_info['status'], 'finished')
-        # Verify zip file exists and has the proper amount of resources in it.
-        base_name = 'osf_download_{}'.format(self.resource_id)
-        zip_path = '{}/{}.zip'.format(ticket_path, base_name)
-        zip_file = zipfile.ZipFile(zip_path)
-        self.assertEqual(os.path.isfile(zip_path), True)
-        self.assertEqual(len(zip_file.namelist()), self.file_number)
-
-        # Since the coverage package does not pick up the multiprocessing, we will run the
-        # 'download_resource' function manually with the same parameters that the multiprocess
-        # version ran and run the same exact checks.
-
-        # First we need to remove the contents of the ticket path except 'process_info.json'
-        remove_path_contents(ticket_path, 'process_info.json')
-        process_info_path = '{}/process_info.json'.format(ticket_path)
-        # Call the download_resource manually
-        process_state = multiprocessing.Value('b', 0)
-        download_resource('osf', 'resource_download', TEST_USER_TOKEN,
-                          self.resource_id, ticket_path, process_info_path, process_state)
-
-        # Verify the final status in the process_info file is 'finished'
-        final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        self.assertEqual(final_process_info['status'], 'finished')
         # Verify zip file exists and has the proper amount of resources in it.
         base_name = 'osf_download_{}'.format(self.resource_id)
         zip_path = '{}/{}.zip'.format(ticket_path, base_name)
@@ -347,7 +344,7 @@ class TestResourceZip(TestCase):
     def shared_get_success_function_202_with_error(self):
         """
         This function will be used by tests that successfully hit the GET resource endpoint but
-        fail during the download_resource() function.
+        fail during the Resource._download_resource function.
         It uses class attributes that are set in the test methods.
         """
         url = reverse('resource', kwargs={'target_name': self.target_name,
@@ -375,19 +372,7 @@ class TestResourceZip(TestCase):
                 # Pass while the process_info file is being written to
                 pass
 
-        # Since the coverage package does not pick up the multiprocessing, we will run the
-        # 'download_resource' function manually with the same parameters that the multiprocess
-        # version ran. And run the same exact checks.
-
-        # First we need to remove the contents of the ticket path except 'process_info.json'
-        remove_path_contents(ticket_path, 'process_info.json')
-        process_info_path = '{}/process_info.json'.format(ticket_path)
-        # Call the download_resource manually
-        process_state = multiprocessing.Value('b', 0)
-        download_resource('osf', 'resource_download', self.header['HTTP_PRESQT_SOURCE_TOKEN'],
-                          self.resource_id, ticket_path, process_info_path, process_state)
-
-        final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
 
         # Verify that the zip file doesn't exist
         base_name = 'osf_download_{}'.format(self.resource_id)
@@ -395,9 +380,9 @@ class TestResourceZip(TestCase):
         self.assertEqual(os.path.isfile(zip_path), False)
 
         # Verify the final status in the process_info file is 'failed'
-        self.assertEqual(final_process_info['status'], 'failed')
-        self.assertEqual(final_process_info['message'], self.status_message)
-        self.assertEqual(final_process_info['status_code'], self.status_code)
+        self.assertEqual(process_info['status'], 'failed')
+        self.assertEqual(process_info['message'], self.status_message)
+        self.assertEqual(process_info['status_code'], self.status_code)
 
         # Delete corresponding folder
         shutil.rmtree(ticket_path)
@@ -413,7 +398,7 @@ class TestResourceZip(TestCase):
         }
         self.resource_id = '5cd98510f244ec001fe5632f'
         self.target_name = 'osf'
-        self.file_number = 8
+        self.file_number = 12
         self.file_name = '22776439564_7edbed7e10_o.jpg'
         fixity_info = self.shared_get_success_function_202()
 
@@ -436,7 +421,7 @@ class TestResourceZip(TestCase):
         }
         self.resource_id = '5cd98978054f5b001a5ca746'
         self.target_name = 'osf'
-        self.file_number = 8
+        self.file_number = 12
         self.file_name = 'build-plugins.js'
         fixity_info = self.shared_get_success_function_202()
 
@@ -459,7 +444,7 @@ class TestResourceZip(TestCase):
         }
         self.resource_id = '5cd98978f244ec001ee86609'
         self.target_name = 'osf'
-        self.file_number = 8
+        self.file_number = 12
         self.file_name = 'Character Sheet - Alternative - Print Version.pdf'
         fixity_info = self.shared_get_success_function_202()
 
@@ -482,7 +467,7 @@ class TestResourceZip(TestCase):
         }
         self.resource_id = '5cd98979f8214b00198b1153'
         self.target_name = 'osf'
-        self.file_number = 8
+        self.file_number = 12
         self.file_name = '02 - The Widow.mp3'
         fixity_info = self.shared_get_success_function_202()
 
@@ -501,7 +486,7 @@ class TestResourceZip(TestCase):
         """
         self.resource_id = '5cd98a30f2c01100177156be'
         self.target_name = 'osf'
-        self.file_number = 8
+        self.file_number = 12
         self.file_name = 'Character Sheet - Alternative - Print Version.pdf'
         fixity_info = self.shared_get_success_function_202()
 
@@ -518,7 +503,7 @@ class TestResourceZip(TestCase):
         """
         self.resource_id = '5cd98b0af244ec0021e5f8dd'
         self.target_name = 'osf'
-        self.file_number = 10
+        self.file_number = 14
         self.file_name = 'Docs2/Docs3/CODE_OF_CONDUCT.md'
         final_process_info = self.shared_get_success_function_202()
 
@@ -531,7 +516,7 @@ class TestResourceZip(TestCase):
         """
         self.resource_id = 'cmn5z:googledrive'
         self.target_name = 'osf'
-        self.file_number = 11
+        self.file_number = 15
         self.file_name = 'googledrive/Google Images/IMG_4740.jpg'
         final_process_info = self.shared_get_success_function_202()
 
@@ -545,7 +530,7 @@ class TestResourceZip(TestCase):
         """
         self.resource_id = 'cmn5z'
         self.target_name = 'osf'
-        self.file_number = 67
+        self.file_number = 71
         self.file_name = 'Test Project/osfstorage/Docs/Docs2/Docs3/CODE_OF_CONDUCT.md'
         self.shared_get_success_function_202()
 
@@ -567,7 +552,7 @@ class TestResourceZip(TestCase):
         Return a 400 if the GET method fails because the target requested does not support
         this endpoint's action.
         """
-        with open('presqt/api_v1/tests/views/targets_test.json') as json_file:
+        with open('presqt/api_v1/tests/resources/targets_test.json') as json_file:
             with patch("builtins.open") as mock_file:
                 mock_file.return_value = json_file
                 url = reverse(
@@ -595,8 +580,8 @@ class TestResourceZip(TestCase):
 
     def test_get_202_downloadresource_fails_file_id_doesnt_exist_osf(self):
         """
-        Return a 202 if the GET method succeeds but the download_resource function fails because
-        the file_id given does not map to a resource.
+        Return a 202 if the GET method succeeds but the Resource._download_resource function fails
+        because the file_id given does not map to a resource.
         """
         self.resource_id = '1234'
         self.target_name = 'osf'
@@ -606,8 +591,8 @@ class TestResourceZip(TestCase):
 
     def test_get_202_downloadresource_fails_bad_storage_provider_osf(self):
         """
-        Return a 202 if the GET method succeeds but the download_resource function fails because
-        a bad storage provider name was given in the storage ID
+        Return a 202 if the GET method succeeds but the Resource._download_resource function fails
+        because a bad storage provider name was given in the storage ID
         """
         self.resource_id = 'cmn5z:badstorage'
         self.target_name = 'osf'
@@ -617,7 +602,7 @@ class TestResourceZip(TestCase):
 
     def test_get_202_downloadresource_fails_not_authorized_osf(self):
         """
-        Return a 200 if the GET method succeeds but the download_resource function fails because
+        Return a 200 if the GET method succeeds but the Resource._download_resource function fails because
         the user doesn't have access to this resource.
         """
         self.resource_id = 'q5xmw'
@@ -628,8 +613,8 @@ class TestResourceZip(TestCase):
 
     def test_get_202_downloadresource_fails_invalid_token_osf(self):
         """
-        Return a 202 if the GET method succeeds but the download_resource function fails because
-        the token provided is not a valid token.
+        Return a 202 if the GET method succeeds but the Resource._download_resource function fails
+        because the token provided is not a valid token.
         """
         self.resource_id = 'cmn5z'
         self.target_name = 'osf'
@@ -638,7 +623,6 @@ class TestResourceZip(TestCase):
         self.status_message = "Token is invalid. Response returned a 401 status code."
         self.shared_get_success_function_202_with_error()
 
-    # Fixity failed!
     def test_200_success_fixity_failed_osf(self):
         """
         Since both the file and hashes are coming from OSF API calls we don't have the opportunity
@@ -646,7 +630,6 @@ class TestResourceZip(TestCase):
             To solve this the test will have two parts:
             1. The first part will be verifying that the fixity checker function will throw an
                 error if given a file and a mismatched hash dictionary.
-
         """
         hashes = {
             "sha256": "bad_hash",
@@ -664,8 +647,7 @@ class TestResourceZip(TestCase):
         ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
 
         # Verify process_info file status is 'in_progress' initially
-        process_info = read_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number),
-                                 True)
+        process_info = read_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number),True)
         self.assertEqual(process_info['status'], 'in_progress')
 
         # Wait until the spawned off process finishes in the background
@@ -687,17 +669,17 @@ class TestResourceZip(TestCase):
         zip_file = zipfile.ZipFile(zip_path)
         # Verify that the zip file exists and it holds the correct number of files.
         self.assertEqual(os.path.isfile(zip_path), True)
-        self.assertEqual(len(zip_file.namelist()), 8)
+        self.assertEqual(len(zip_file.namelist()), 12)
 
         # Grab the .jpg file in the zip and run it back through the fixity checker with bad hashes
         # So we can get a failed fixity. This fixity variable will be used later in our Patch.
-        fixity = fixity_checker(
+        fixity = download_fixity_checker(
             read_file('{}/{}/data/22776439564_7edbed7e10_o.jpg'.format(ticket_path, base_name)),
             hashes)
 
         # Since the coverage package does not pick up the multiprocessing, we will run the
-        # 'download_resource' function manually with the same parameters that the multiprocess
-        # version ran. And run the same exact checks.
+        # 'Resource._download_resource' function manually with the same parameters that the
+        # multiprocess version ran. And run the same exact checks.
 
         # First we need to remove the contents of the ticket path except 'process_info.json'
         remove_path_contents(ticket_path, 'process_info.json')
@@ -706,11 +688,11 @@ class TestResourceZip(TestCase):
         self.assertEqual(fixity['fixity'], False)
 
         # Patch the fixity_checker() function to return our bad fixity dictionary.
-        with patch('presqt.fixity.fixity_checker') as fake_send:
+        with patch('presqt.api_v1.utilities.fixity.download_fixity_checker.download_fixity_checker') as fake_send:
             # Manually verify the fixity_checker will fail
             fake_send.return_value = fixity
             process_state = multiprocessing.Value('b', 0)
-            download_resource('osf', 'resource_download', TEST_USER_TOKEN,
+            Resource._download_resource('osf', 'resource_download', TEST_USER_TOKEN,
                               resource_id, ticket_path, process_info_path, process_state)
 
         final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
@@ -721,7 +703,7 @@ class TestResourceZip(TestCase):
         zip_path = '{}/{}.zip'.format(ticket_path, base_name)
         zip_file = zipfile.ZipFile(zip_path)
         self.assertEqual(os.path.isfile(zip_path), True)
-        self.assertEqual(len(zip_file.namelist()), 8)
+        self.assertEqual(len(zip_file.namelist()), 12)
 
         # Verify that the resource we expect is there.
         self.assertEqual(
@@ -737,41 +719,6 @@ class TestResourceZip(TestCase):
         self.assertEqual(fixity_info[0]['hash_algorithm'], 'sha256')
         self.assertEqual(fixity_info[0]['source_hash'], hashes['sha256'])
         self.assertNotEqual(fixity_info[0]['presqt_hash'], hashes['sha256'])
-
-        # Delete corresponding folder
-        shutil.rmtree(ticket_path)
-
-    def test_process_watchdog_success_osf(self):
-        """
-        Manually test the process_watchdog utility function to get code coverage and make sure it
-        is working as expected.
-        """
-        resource_id = '5cd98510f244ec001fe5632f'
-        ticket_number = uuid.uuid4()
-        ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
-        process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(ticket_number)
-        process_info_obj = {
-            'presqt-source-token': TEST_USER_TOKEN,
-            'status': 'in_progress',
-            'expiration': str(timezone.now() + relativedelta(days=5)),
-            'message': 'Download is being processed on the server',
-            'status_code': None
-        }
-        write_file(process_info_path, process_info_obj, True)
-        # Start the download_resource process manually
-        process_state = multiprocessing.Value('b', 0)
-        function_process = multiprocessing.Process(target=download_resource, args=[
-            'osf', 'resource_download', TEST_USER_TOKEN, resource_id,
-            ticket_path, process_info_path, process_state])
-        function_process.start()
-
-        # start watchdog function manually
-        process_watchdog(function_process, process_info_path, 3600, process_state)
-
-        # Make sure the watchdog didn't overwrite the file and its status si still 'finished'
-        process_info = read_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number),
-                                 True)
-        self.assertEqual(process_info['status'], 'finished')
 
         # Delete corresponding folder
         shutil.rmtree(ticket_path)
@@ -795,9 +742,9 @@ class TestResourceZip(TestCase):
         }
         write_file(process_info_path, process_info_obj, True)
 
-        # Start the download_resource process manually
+        # Start the Resource._download_resource process manually
         process_state = multiprocessing.Value('b', 0)
-        function_process = multiprocessing.Process(target=download_resource, args=[
+        function_process = multiprocessing.Process(target=Resource._download_resource, args=[
             'osf', 'resource_download', TEST_USER_TOKEN, resource_id,
             ticket_path, process_info_path, process_state])
         function_process.start()
@@ -816,3 +763,365 @@ class TestResourceZip(TestCase):
         shutil.rmtree(ticket_path)
 
 
+class TestResourcePOST(TestCase):
+    """
+    Test the endpoint's POST method for resource uploads:
+         `api_v1/targets/{target_name}/resources/{resource_id}/`
+         `api_v1/targets/{target_name}/resources/`
+    """
+
+    def setUp(self):
+        self.client = APIClient()
+        self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': UPLOAD_TEST_USER_TOKEN, 'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+        self.good_zip_file = 'presqt/api_v1/tests/resources/upload/GoodBagIt.zip'
+
+    @staticmethod
+    def process_wait(process_info, ticket_path):
+        # Wait until the spawned off process finishes in the background to do further validation
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+
+    def shared_osf_test_code(self):
+        self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
+        response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+
+        ticket_number = response.data['ticket_number']
+        self.ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+
+        # Verify status code and message
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(response.data['message'], 'The server is processing the request.')
+
+        # Verify process_info file status is 'in_progress' initially
+        process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
+        self.assertEqual(process_info['status'], 'in_progress')
+
+        # Wait until the spawned off process finishes in the background to do further validation
+        self.process_wait(process_info, self.ticket_path)
+
+        # Verify process_info.json file data
+        process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
+        self.assertEqual(process_info['status'], 'finished')
+        self.assertEqual(process_info['message'], 'Upload successful')
+        self.assertEqual(process_info['status_code'], '200')
+        self.assertEqual(process_info['failed_fixity'], [])
+        self.assertEqual(process_info['duplicate_files_ignored'], self.duplicate_files_ignored)
+        self.assertEqual(process_info['duplicate_files_updated'], self.duplicate_files_updated)
+        self.assertEqual(process_info['hash_algorithm'], 'sha256')
+
+    def test_post_success_202_upload_osf(self):
+        """
+        This test is more of an integration test rather than a unit test.
+        Since order of requests is important, it will test several POST requests to verify the files
+        are properly ignored/replaced:
+
+        Return a 202 when uploading a new top level container.
+        Return a 202 when uploading to an existing container with duplicate files ignored.
+        Return a 202 when uploading to an existing container with duplicate files replaced.
+        """
+        ######## 202 when uploading a new top level container ########
+        self.resource_id = None
+        self.duplicate_action = 'ignore'
+        self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
+        self.duplicate_files_ignored = []
+        self.duplicate_files_updated = []
+        self.shared_osf_test_code()
+
+        # Verify files exist in OSF
+        headers = {'Authorization': 'Bearer {}'.format(UPLOAD_TEST_USER_TOKEN)}
+        for node in requests.get('http://api.osf.io/v2/users/me/nodes', headers=headers).json()['data']:
+            if node['attributes']['title'] == 'NewProject':
+                node_id = node['id']
+                storage_data = requests.get(node['relationships']['files']['links']['related']['href'], headers=headers).json()
+                folder_data = requests.get(storage_data['data'][0]['relationships']['files']['links']['related']['href'], headers=headers).json()
+                folder_id = folder_data['data'][0]['id']
+                file_data = requests.get(folder_data['data'][0]['relationships']['files']['links']['related']['href'], headers=headers).json()
+                break
+        self.assertEqual(folder_data['links']['meta']['total'], 1)
+        self.assertEqual(folder_data['data'][0]['attributes']['name'], 'funnyfunnyimages')
+        self.assertEqual(file_data['links']['meta']['total'], 1)
+        self.assertEqual(file_data['data'][0]['attributes']['name'], 'Screen Shot 2019-07-15 at 3.26.49 PM.png')
+
+        # delete upload folder
+        shutil.rmtree(self.ticket_path)
+
+        ######## 202 when uploading to an existing container with duplicate files ignored ########
+        self.resource_id = '{}:osfstorage'.format(node_id)
+        self.duplicate_action = 'ignore'
+        self.url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': self.resource_id})
+        self.file = 'presqt/api_v1/tests/resources/upload/FolderBagItToUpload.zip'
+        self.duplicate_files_ignored = ['data/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
+        self.duplicate_files_updated = []
+        self.shared_osf_test_code()
+
+        # Verify files exist in OSF
+        file_data = requests.get(folder_data['data'][0]['relationships']['files']['links']['related']['href'],headers=headers).json()
+        self.assertEqual(file_data['links']['meta']['total'], 2)
+        for file in file_data['data']:
+            self.assertIn(file['attributes']['name'], ['Screen Shot 2019-07-15 at 3.26.49 PM.png', 'Screen Shot 2019-07-15 at 3.51.13 PM.png'])
+            if file['attributes']['name'] == 'Screen Shot 2019-07-15 at 3.26.49 PM.png':
+                original_file_hash = file['attributes']['extra']['hashes']['sha256']
+        # delete upload folder
+        shutil.rmtree(self.ticket_path)
+
+        ######## 202 when uploading to an existing container with duplicate files replaced ########
+        self.resource_id = folder_id
+        self.duplicate_action = 'update'
+        self.url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': self.resource_id})
+        self.file = 'presqt/api_v1/tests/resources/upload/FolderUpdateBagItToUpload.zip'
+        self.duplicate_files_ignored = ['data/Screen Shot 2019-07-15 at 3.51.13 PM.png']
+        self.duplicate_files_updated = ['data/Screen Shot 2019-07-15 at 3.26.49 PM.png']
+        self.shared_osf_test_code()
+
+        # Verify files exist in OSF
+        file_data = requests.get(folder_data['data'][0]['relationships']['files']['links']['related']['href'],headers=headers).json()
+        self.assertEqual(file_data['links']['meta']['total'], 2)
+        for file in file_data['data']:
+            self.assertIn(file['attributes']['name'], ['Screen Shot 2019-07-15 at 3.26.49 PM.png', 'Screen Shot 2019-07-15 at 3.51.13 PM.png'])
+            if file['attributes']['name'] == 'Screen Shot 2019-07-15 at 3.26.49 PM.png':
+                new_file_hash = file['attributes']['extra']['hashes']['sha256']
+
+        # Make sure the file we have replaced has a different hash than the original
+        self.assertNotEqual(original_file_hash, new_file_hash)
+
+        # delete upload folder
+        shutil.rmtree(self.ticket_path)
+
+        ######## 202 when uploading to an existing container with mismatched algorithms ########
+        self.resource_id = node_id
+        self.duplicate_action = 'ignore'
+        self.url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': self.resource_id})
+        self.file = 'presqt/api_v1/tests/resources/upload/GoodBagItsha512.zip'
+        self.duplicate_files_updated = []
+        self.duplicate_files_ignored = []
+        self.shared_osf_test_code()
+
+        # delete upload folder
+        shutil.rmtree(self.ticket_path)
+
+        # Delete project from OSF
+        requests.delete('http://api.osf.io/v2/nodes/{}'.format(node_id), headers=headers)
+
+    def test_post_success_202_upload_fixity_failed_osf(self):
+        """
+        Get a 202 if POST succeeds but with fixity errors.
+
+        First we will run the upload endpoint to get a ticket number. We will then use that ticket
+        number to make a fake bad hash dictionary that will get patched into a manual run of the
+        upload function.
+        """
+        good_file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
+        url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+
+        # Hit the endpoint initially
+        response = self.client.post(url, {'presqt-file': open(good_file, 'rb')}, **self.headers)
+        self.assertEqual(response.status_code, 202)
+
+        ticket_number = response.data['ticket_number']
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        process_info_path = 'mediafiles/uploads/{}/process_info.json'.format(ticket_number)
+        process_info = read_file(process_info_path, True)
+        resource_main_dir = '{}/{}'.format(ticket_path, next(os.walk(ticket_path))[1][0])
+        process_state = multiprocessing.Value('b', 0)
+
+        # Wait for the process to finish
+        self.process_wait(process_info, ticket_path)
+
+        # Create bad hashes with the ticket number and run the upload function manually
+        file_hashes = {'mediafiles/uploads/{}/BagItToUpload/data/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png'.format(ticket_number): '6d33275234b28d77348e4e1049f58b95a485a7a441684a9eb9175d01c7f141ea'}
+        with patch('presqt.osf.classes.storage_folder.ContainerMixin.create_directory') as fake_send:
+            fake_send.return_value = {'mediafiles/uploads/{}/BagItToUpload/data/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png'.format(ticket_number): {'sha256': 'bad_hash', 'md5': 'another_bad_hash'}}, [], []
+
+            BaseResource._upload_resource(resource_main_dir, process_info_path,
+                                          'osf', 'resource_upload', UPLOAD_TEST_USER_TOKEN, None,
+                                          process_state, 'sha256', file_hashes, 'ignore',
+                                          process_info)
+
+            process_info = read_file(process_info_path, True)
+            self.assertEqual(process_info['message'], 'Upload successful but fixity failed.')
+            self.assertEqual(process_info['failed_fixity'], ['data/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png'])
+
+            # Delete the projects that were created
+            headers = {'Authorization': 'Bearer {}'.format(UPLOAD_TEST_USER_TOKEN)}
+            for node in requests.get('http://api.osf.io/v2/users/me/nodes', headers=headers).json()['data']:
+                if node['attributes']['title'] == 'NewProject':
+                    requests.delete('http://api.osf.io/v2/nodes/{}'.format(node['id']), headers=headers)
+
+            # Delete corresponding folder
+            shutil.rmtree('mediafiles/uploads/{}'.format(ticket_number))
+
+    def test_post_success_202_large_duplicate_connection_error_osf(self):
+        """
+        Return a 202 if we upload a large duplicate file. We have a separate test here because
+        OSF will return a ConnectionError instead of a 409 when the duplicate file is large enough.
+        """
+        project_file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
+        url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        response = self.client.post(url, {'presqt-file': open(project_file, 'rb')}, **self.headers)
+        self.assertEqual(response.status_code, 202)
+
+        # Wait for the process to finish
+        ticket_number = response.data['ticket_number']
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        process_info_path = 'mediafiles/uploads/{}/process_info.json'.format(ticket_number)
+        process_info = read_file(process_info_path, True)
+        self.process_wait(process_info, ticket_path)
+
+        # Wait for the process to finish
+        self.process_wait(process_info, ticket_path)
+
+        # delete upload folder
+        shutil.rmtree(ticket_path)
+
+        # Get new project ID
+        headers = {'Authorization': 'Bearer {}'.format(UPLOAD_TEST_USER_TOKEN)}
+        for node in requests.get('http://api.osf.io/v2/users/me/nodes', headers=headers).json()[
+            'data']:
+            if node['attributes']['title'] == 'NewProject':
+                node_id = node['id']
+
+        # Upload the large file initially
+        large_file = 'presqt/api_v1/tests/resources/upload/LargeBagToUpload.zip'
+        url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': node_id})
+        response = self.client.post(url, {'presqt-file': open(large_file, 'rb')}, **self.headers)
+        self.assertEqual(response.status_code, 202)
+
+        # Wait for the process to finish
+        ticket_number = response.data['ticket_number']
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        process_info_path = 'mediafiles/uploads/{}/process_info.json'.format(ticket_number)
+        process_info = read_file(process_info_path, True)
+        self.process_wait(process_info, ticket_path)
+
+        # Wait for the process to finish
+        self.process_wait(process_info, ticket_path)
+
+        # delete upload folder
+        shutil.rmtree(ticket_path)
+
+        # Attempt to upload the same large file and get the duplicate ConnectionError
+        url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': node_id})
+        response = self.client.post(url, {'presqt-file': open(large_file, 'rb')}, **self.headers)
+        self.assertEqual(response.status_code, 202)
+
+        # Wait for the process to finish
+        ticket_number = response.data['ticket_number']
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        process_info_path = 'mediafiles/uploads/{}/process_info.json'.format(ticket_number)
+        process_info = read_file(process_info_path, True)
+        self.process_wait(process_info, ticket_path)
+
+        # Wait for the process to finish
+        self.process_wait(process_info, ticket_path)
+
+        # delete upload folder
+        shutil.rmtree(ticket_path)
+
+        # Delete project from OSF
+        requests.delete('http://api.osf.io/v2/nodes/{}'.format(node_id), headers=headers)
+
+    def test_get_error_400_target_not_supported_test_target(self):
+        """
+        Return a 400 if the POST method fails because the target requested does not supported
+        this endpoint's action
+        """
+        file = open('presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip', 'rb')
+
+        with open('presqt/api_v1/tests/resources/targets_test.json') as json_file:
+            with patch("builtins.open") as mock_file:
+                mock_file.return_value = json_file
+                url = reverse('resource', kwargs={'target_name': 'test','resource_id': 'resource_id'})
+                response = self.client.post(url, {'presqt-file': file}, **self.headers)
+                # Verify the error status code and message
+                self.assertEqual(response.status_code, 400)
+                self.assertEqual(response.data, {'error': "'test' does not support the action 'resource_upload'."})
+
+    def test_get_error_400_missing_token_osf(self):
+        """
+        Return a 400 if the POST method fails because the presqt-destination-token was not provided.
+        """
+        headers = {'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+        url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': 'resource_id'})
+        response = self.client.post(url, {'presqt-file': open('presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip', 'rb')}, **headers)
+        # Verify the error status code and message
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data, {'error': "'presqt-destination-token' missing in the request headers."})
+
+    def test_get_error_400_presqt_file_missing_osf(self):
+        """
+        Return a 400 if the POST method fails because presqt-file was not provided in the request.
+        """
+        url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': 'resource_id'})
+        response = self.client.post(url, **self.headers)
+        # Verify the error status code and message
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data, {'error': "The file, 'presqt-file', is not found in the body of the request."})
+
+    def test_get_error_400_not_zip_file_osf(self):
+        """
+        Return a 400 if POST fails because the file provided in he request is not in zip format
+        """
+        url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': 'resource_id'})
+        response = self.client.post(url, {'presqt-file': open('presqt/api_v1/tests/resources/targets_test.json', 'rb')}, **self.headers)
+        # Verify the error status code and message
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data, {'error': "The file provided, 'presqt-file', is not a zip file."})
+
+    def test_get_error_400_duplicate_action_missing_osf(self):
+        """
+        Return a 400 if the POST fails because "'presqt-file-duplicate-action' missing in headers.
+        """
+        headers = {'HTTP_PRESQT_DESTINATION_TOKEN': UPLOAD_TEST_USER_TOKEN}
+        url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': 'resource_id'})
+        response = self.client.post(url, {'presqt-file': open('presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip', 'rb')}, **headers)
+        # Verify the error status code and message
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data,
+                         {'error': "'presqt-file-duplicate-action' missing in the request headers."})
+
+    def test_get_error_400_invalid_action_osf(self):
+        """
+        Return a 400 if the POST fails because an invalid 'file_duplicate_action' header was given.
+        """
+        self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = 'bad_action'
+        url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': 'resource_id'})
+        response = self.client.post(url, {
+            'presqt-file': open('presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip', 'rb')}, **self.headers)
+        # Verify the error status code and message
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data,{'error': "'bad_action' is not a valid file_duplicate_action. The options are 'ignore' or 'update'."})
+
+    def test_get_error_400_bagit_manifest_error_osf(self):
+        """
+        Return a 400 if the POST fails because the BagIt manifest doesn't match the bag provided because the manifest hashes don't match the current files' hashes.
+        """
+        url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': '5cd9895b840cae001a708c31'})
+        response = self.client.post(url, {'presqt-file': open('presqt/api_v1/tests/resources/upload/BadBagItManifest.zip','rb')}, **self.headers)
+        # Verify the error status code and message
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data, {'error': "Checksums failed to validate."})
+
+    def test_get_error_400_bagit_missing_file_osf(self):
+        """
+        Return a 400 if the POST fails because the BagIt manifest doesn't match the bag provided because a file is missing in the data.
+        """
+        url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': '5cd9895b840cae001a708c31'})
+        response = self.client.post(url, {'presqt-file': open('presqt/api_v1/tests/resources/upload/BadBagItMissingFile.zip','rb')}, **self.headers)
+        # Verify the error status code and message
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data, {'error': "Payload-Oxum validation failed. Expected 2 files and 283274 bytes but found 1 files and 87111 bytes"})
+
+    def test_get_error_400_bagit_unknown_file_osf(self):
+        """
+        Return a 400 if the POST fails because the BagIt manifest doesn't match the bag provided because there's an unexpected file in the data.
+        """
+        url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': '5cd9895b840cae001a708c31'})
+        response = self.client.post(url, {'presqt-file': open('presqt/api_v1/tests/resources/upload/BadBagItUnknownFile.zip','rb')}, **self.headers)
+        # Verify the error status code and message
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data, {'error': "data/fixity_info.json exists in manifest but was not found on filesystem"})
