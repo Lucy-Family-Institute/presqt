@@ -77,6 +77,35 @@ class BaseResource(APIView):
             "error": "'bad_action' is not a valid file_duplicate_action.
             The options are 'ignore' or 'update'."
         }
+        or
+        {
+            "error": "Project is not formatted correctly. Multiple directories
+            exist at the top level."
+        }
+        or
+        {
+            "error": "Project is not formatted correctly. Files exist at the top level."
+        }
+
+        401: Unauthorized
+        {
+            "error": "Token is invalid. Response returned a 401 status code."
+        {
+
+        403: Forbidden
+        {
+            "error": "User does not have access to this resource with the token provided."
+        }
+
+        404: Not Found
+        {
+            "error": "'bad_name' is not a valid Target name."
+        }
+
+        410: Not Found
+        {
+            "error": "The requested resource is no longer available."
+        }
         """
         action = 'resource_upload'
         # Perform token, header, target, action, and resource validation

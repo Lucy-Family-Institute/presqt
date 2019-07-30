@@ -1,5 +1,3 @@
-import json
-
 from rest_framework import status
 
 from presqt.api_v1.utilities import read_file
@@ -33,5 +31,4 @@ def target_validation(target_name, action):
             return True
     else:
         raise PresQTValidationError(
-            "'{}' is not a valid Target name.".format(target_name),
-            status.HTTP_404_NOT_FOUND)
+            "'{}' is not a valid Target name.".format(target_name), status.HTTP_404_NOT_FOUND)

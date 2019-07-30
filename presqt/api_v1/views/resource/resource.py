@@ -228,8 +228,7 @@ class Resource(BaseResource):
                                                   3600, process_state])
         watch_dog.start()
         # Get the download url
-        reversed_url = reverse('download_job', kwargs={
-            'ticket_number': ticket_number})
+        reversed_url = reverse('download_job', kwargs={'ticket_number': ticket_number})
         download_hyperlink = request.build_absolute_uri(reversed_url)
 
         return Response(status=status.HTTP_202_ACCEPTED,
@@ -282,8 +281,7 @@ class Resource(BaseResource):
             process_info_data['message'] = e.data
             # Update the expiration from 5 days to 1 hour from now. We can delete this faster because
             # it's an incomplete/failed directory.
-            process_info_data['expiration'] = str(
-                timezone.now() + relativedelta(hours=1))
+            process_info_data['expiration'] = str(timezone.now() + relativedelta(hours=1))
             write_file(process_info_path, process_info_data, True)
             #  Update the shared memory map so the watchdog process can stop running.
             process_state.value = 1
@@ -296,27 +294,23 @@ class Resource(BaseResource):
         fixity_info = []
         for resource in resources:
             # Perform the fixity check and add extra info to the returned fixity object.
-            fixity_obj = download_fixity_checker.download_fixity_checker(
+            fixity_obj, fixity = download_fixity_checker.download_fixity_checker(
                 resource['file'], resource['hashes'])
             fixity_obj['resource_title'] = resource['title']
             fixity_obj['path'] = resource['path']
             fixity_info.append(fixity_obj)
 
             # Save the file to the disk.
-            write_file('{}{}'.format(base_directory,
-                                     resource['path']), resource['file'])
+            write_file('{}{}'.format(base_directory, resource['path']), resource['file'])
 
         # Add the fixity file to the disk directory
-        write_file('{}/fixity_info.json'.format(base_directory),
-                   fixity_info, True)
+        write_file('{}/fixity_info.json'.format(base_directory),fixity_info, True)
 
         # Make a BagIt 'bag' of the resources.
-        bagit.make_bag(base_directory, checksums=[
-                       'md5', 'sha1', 'sha256', 'sha512'])
+        bagit.make_bag(base_directory, checksums=['md5', 'sha1', 'sha256', 'sha512'])
 
         # Zip the BagIt 'bag' to send forward.
-        zip_directory(
-            base_directory, "{}/{}.zip".format(ticket_path, base_file_name), ticket_path)
+        zip_directory(base_directory, "{}/{}.zip".format(ticket_path, base_file_name), ticket_path)
 
         # Everything was a success so update the server metadata file.
         process_info_data['status_code'] = '200'
