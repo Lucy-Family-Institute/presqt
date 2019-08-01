@@ -294,7 +294,7 @@ class Resource(BaseResource):
         fixity_info = []
         for resource in resources:
             # Perform the fixity check and add extra info to the returned fixity object.
-            fixity_obj, fixity = download_fixity_checker.download_fixity_checker(
+            fixity_obj = download_fixity_checker.download_fixity_checker(
                 resource['file'], resource['hashes'])
             fixity_obj['resource_title'] = resource['title']
             fixity_obj['path'] = resource['path']

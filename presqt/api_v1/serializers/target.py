@@ -44,3 +44,20 @@ class TargetSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=256)
     supported_actions = SupportedActions()
     supported_hash_algorithms = serializers.StringRelatedField(many=True)
+    detail = serializers.SerializerMethodField()
+
+    def get_detail(self, instance):
+        """
+        Translate the `detail` property to a custom Hyperlink value.
+
+        Parameters
+        ----------
+        instance : Target Obj instance
+
+        Returns
+        -------
+        Hyperlink url for Target detail API endpoint
+        """
+        reversed_url = reverse('resource_collection', kwargs={'target_name': instance['name']})
+        hyperlink = self.context['request'].build_absolute_uri(reversed_url)
+        return hyperlink

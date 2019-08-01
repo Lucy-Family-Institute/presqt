@@ -95,6 +95,7 @@ class Target(APIView):
                 "sha256",
                 "md5"
             ]
+            "detail": "http://localhost/api_v1/target/osf/resources/
         }
 
         404: Not Found
@@ -108,7 +109,7 @@ class Target(APIView):
         # Find the JSON dictionary for the target_name provided
         for data in json_data:
             if data['name'] == target_name:
-                serializer = TargetSerializer(instance=data)
+                serializer = TargetSerializer(instance=data, context={'request': request})
                 return Response(serializer.data)
         # If the target_name provided is not found in the Target JSON
         else:
