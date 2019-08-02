@@ -294,7 +294,7 @@ class Resource(BaseResource):
         fixity_info = []
         for resource in resources:
             # Perform the fixity check and add extra info to the returned fixity object.
-            fixity_obj = download_fixity_checker.download_fixity_checker(
+            fixity_obj, fixity_match = download_fixity_checker.download_fixity_checker(
                 resource['file'], resource['hashes'])
             fixity_obj['resource_title'] = resource['title']
             fixity_obj['path'] = resource['path']
@@ -315,7 +315,10 @@ class Resource(BaseResource):
         # Everything was a success so update the server metadata file.
         process_info_data['status_code'] = '200'
         process_info_data['status'] = 'finished'
-        process_info_data['message'] = 'Download successful'
+        if fixity_match is True:
+            process_info_data['message'] = 'Download successful'
+        else:
+            process_info_data['message'] = 'Download successful with fixity errors'
         process_info_data['zip_name'] = '{}.zip'.format(base_file_name)
         write_file(process_info_path, process_info_data, True)
 

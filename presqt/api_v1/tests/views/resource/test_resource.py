@@ -673,7 +673,7 @@ class TestResourceGETZip(TestCase):
 
         # Grab the .jpg file in the zip and run it back through the fixity checker with bad hashes
         # So we can get a failed fixity. This fixity variable will be used later in our Patch.
-        fixity = download_fixity_checker(
+        fixity, fixity_match = download_fixity_checker(
             read_file('{}/{}/data/22776439564_7edbed7e10_o.jpg'.format(ticket_path, base_name)),
             hashes)
 
@@ -690,7 +690,7 @@ class TestResourceGETZip(TestCase):
         # Patch the fixity_checker() function to return our bad fixity dictionary.
         with patch('presqt.api_v1.utilities.fixity.download_fixity_checker.download_fixity_checker') as fake_send:
             # Manually verify the fixity_checker will fail
-            fake_send.return_value = fixity
+            fake_send.return_value = fixity, fixity_match
             process_state = multiprocessing.Value('b', 0)
             Resource._download_resource('osf', 'resource_download', TEST_USER_TOKEN,
                               resource_id, ticket_path, process_info_path, process_state)
@@ -698,6 +698,8 @@ class TestResourceGETZip(TestCase):
         final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         # Verify the final status in the process_info file is 'finished'
         self.assertEqual(final_process_info['status'], 'finished')
+        # Verify that the message is what is expected if fixity has failed.
+        self.assertEqual(final_process_info['message'], 'Download successful with fixity errors')
         # Verify zip file exists and has the proper amount of resources in it.
         base_name = 'osf_download_{}'.format(resource_id)
         zip_path = '{}/{}.zip'.format(ticket_path, base_name)

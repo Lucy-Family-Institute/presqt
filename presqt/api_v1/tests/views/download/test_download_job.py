@@ -85,7 +85,7 @@ class TestDownloadJob(TestCase):
         # Run the file through the fixity checker again to make sure it downloaded correctly
         with zip_file.open('osf_download_{}/data/22776439564_7edbed7e10_o.jpg'.format(self.resource_id)) as myfile:
             temp_file = myfile.read()
-            fixity = download_fixity_checker(temp_file, self.hashes)
+            fixity, fixity_match = download_fixity_checker(temp_file, self.hashes)
             self.assertEqual(fixity['fixity'], True)
 
         # Delete corresponding folder
