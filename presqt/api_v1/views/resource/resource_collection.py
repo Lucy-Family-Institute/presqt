@@ -1,17 +1,20 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-
 from presqt.api_v1.serializers.resource import ResourcesSerializer
-from presqt.api_v1.utilities import token_validation, target_validation, FunctionRouter
-from presqt.exceptions import (PresQTValidationError, PresQTAuthorizationError,
-                               PresQTResponseException)
+from presqt.api_v1.utilities import target_validation, FunctionRouter, get_source_token
+from presqt.api_v1.views.resource.base_resource import BaseResource
+from presqt.exceptions import PresQTValidationError, PresQTResponseException
 
-class ResourceCollection(APIView):
+
+class ResourceCollection(BaseResource):
     """
     **Supported HTTP Methods**
 
-    * GET: Retrieve a summary of all resources for the given Target that a user has access to.
+    * GET:
+        - Retrieve a summary of all resources for the given Target that a user has access to.
+    * POST
+        -  Upload a top level resource for a user.
     """
     required_scopes = ['read']
 
@@ -34,14 +37,16 @@ class ResourceCollection(APIView):
                 "kind_name": "folder",
                 "id": "a02d7b96-a4a9-4521-9913-e3cc68f4d9dc",
                 "container": "None",
-                "title": "Folder Name"
+                "title": "Folder Name",
+                "detail": "http://localhost/api_v1/targets/osf/resources/a02d7b96-a4a9-4521-9913-e3cc68f4d9dc"
             },
             {
                 "kind": "item",
                 "kind_name": "file",
                 "id": "5b305f1b-0da6-4a1a-9861-3bb159d94c96",
                 "container": "a02d7b96-a4a9-4521-9913-e3cc68f4d9dc",
-                "title": "file.jpg"
+                "title": "file.jpg",
+                "detail": "http://localhost/api_v1/targets/osf/resources/5b305f1b-0da6-4a1a-9861-3bb159d94c96"
             }
         ]
 
@@ -66,14 +71,9 @@ class ResourceCollection(APIView):
         """
         action = 'resource_collection'
 
-        # Perform token validation
+        # Perform token, target, and action validation
         try:
-            token = token_validation(request)
-        except PresQTAuthorizationError as e:
-            return Response(data={'error': e.data}, status=e.status_code)
-
-        # Perform target_name and action validation
-        try:
+            token = get_source_token(request)
             target_validation(target_name, action)
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
@@ -88,5 +88,8 @@ class ResourceCollection(APIView):
             # Catch any errors that happen within the target fetch
             return Response(data={'error': e.data}, status=e.status_code)
 
-        serializer = ResourcesSerializer(instance=resources, many=True)
+        serializer = ResourcesSerializer(instance=resources, many=True, context={
+                                         'target_name': target_name,
+                                         'request': request})
+
         return Response(serializer.data)

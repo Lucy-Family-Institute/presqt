@@ -1,6 +1,6 @@
 
 from dateutil.parser import parse
-import glob
+from glob import glob
 import shutil
 
 from django.core.management import BaseCommand
@@ -14,7 +14,14 @@ class Command(BaseCommand):
         """
         Delete all mediafiles that have run past their expiration date.
         """
-        for directory in glob.glob('mediafiles/downloads/*/'):
+        directories_list = [
+            'mediafiles/downloads/*/',
+            'mediafiles/uploads/*/'
+        ]
+        directories = []
+        [directories.extend(glob(directory)) for directory in directories_list]
+
+        for directory in directories:
             data = read_file('{}process_info.json'.format(directory), True)
 
             expiration = parse(data['expiration'])

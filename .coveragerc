@@ -10,6 +10,7 @@ omit =
 # A list of packages or directories, the source to measure during execution.
 source = presqt
 
+concurrency = multiprocessing
 
 [html]
 
