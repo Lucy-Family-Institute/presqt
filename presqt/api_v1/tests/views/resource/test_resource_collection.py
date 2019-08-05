@@ -45,7 +45,7 @@ class TestResourceCollection(TestCase):
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
         # Verify the count of resource objects is what we expect.
-        self.assertEqual(80, len(response.data))
+        self.assertEqual(100, len(response.data))
 
     def test_get_error_400_missing_token_osf(self):
         """

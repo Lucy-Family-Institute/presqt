@@ -3,7 +3,7 @@ from rest_framework import status
 from presqt.exceptions import PresQTValidationError
 
 
-def source_token_validation(request):
+def get_source_token(request):
     """
     Perform token validation for the presqt-source-token header.
 
@@ -24,7 +24,7 @@ def source_token_validation(request):
             "'presqt-source-token' missing in the request headers.",
             status.HTTP_400_BAD_REQUEST)
 
-def destination_token_validation(request):
+def get_destination_token(request):
     """
     Perform token validation for the presqt-destination-token header.
 

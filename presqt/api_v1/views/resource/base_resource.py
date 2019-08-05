@@ -12,7 +12,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from presqt.api_v1.utilities import (target_validation, write_file, destination_token_validation,
+from presqt.api_v1.utilities import (target_validation, write_file, get_destination_token,
                                      read_file, get_target_data, hash_generator,
                                      file_duplicate_action_validation, FunctionRouter)
 from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
@@ -110,7 +110,7 @@ class BaseResource(APIView):
         action = 'resource_upload'
         # Perform token, header, target, action, and resource validation
         try:
-            token = destination_token_validation(request)
+            token = get_destination_token(request)
             file_duplicate_action = file_duplicate_action_validation(request)
             target_validation(target_name, action)
             resource = file_validation(request)

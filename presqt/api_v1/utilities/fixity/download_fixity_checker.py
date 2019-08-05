@@ -30,6 +30,7 @@ def download_fixity_checker(binary_file, hashes):
         'fixity': None,
         'fixity_details': None
     }
+    fixity_match = True
 
     for hash_algorithm, hash_value in hashes.items():
         # If the current hash_value is not None and the hash algorithm is supported by hashlib
@@ -46,7 +47,6 @@ def download_fixity_checker(binary_file, hashes):
             if hash_hex == hash_value:
                 fixity_obj['fixity'] = True
                 fixity_obj['fixity_details'] = 'Source Hash and PresQT Calculated hash matched.'
-                fixity_match = True
             else:
                 fixity_obj['fixity'] = False
                 fixity_obj['fixity_details'] = (

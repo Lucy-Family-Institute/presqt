@@ -9,8 +9,8 @@ from presqt.api_v1.utilities.validation.file_duplicate_action_validation import 
 from presqt.api_v1.utilities.validation.process_token_validation import process_token_validation
 from presqt.api_v1.utilities.validation.target_validation import target_validation
 from presqt.api_v1.utilities.validation.get_process_info_data import get_process_info_data
-from presqt.api_v1.utilities.validation.token_validation import (source_token_validation,
-    destination_token_validation)
+from presqt.api_v1.utilities.validation.token_validation import (get_source_token,
+    get_destination_token)
 
 __all__ = [
     write_file,
@@ -18,8 +18,8 @@ __all__ = [
     zip_directory,
     FunctionRouter,
     target_validation,
-    source_token_validation,
-    destination_token_validation,
+    get_source_token,
+    get_destination_token,
     get_target_data,
     hash_generator,
     file_duplicate_action_validation,

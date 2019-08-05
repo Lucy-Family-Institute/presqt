@@ -164,7 +164,7 @@ class ContainerMixin:
         ----------
         file_name : str
             Name of the file to create.
-        file_to_write : binary file
+        file_to_write : bytes
             File to create.
         file_duplicate_action : str
             Flag for how to handle the case of the file already existing.

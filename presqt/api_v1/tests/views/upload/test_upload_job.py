@@ -202,7 +202,7 @@ class TestUploadJob(TestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
 
-    def test_get_error_500_401_not_container_osf(self):
+    def test_get_error_500_400_not_container_osf(self):
         """
         Return a 500 if the BaseResource._upload_resource method running on the server gets a 401 error because the resource_id provided is not a container
         """
@@ -231,7 +231,7 @@ class TestUploadJob(TestCase):
         # Verify the status code and content
         self.assertEqual(response.status_code, 500)
         self.assertEqual(response.data,
-                         {'message': "The Resource provided, {}, is not a container".format(file_id),'status_code': 401})
+                         {'message': "The Resource provided, {}, is not a container".format(file_id),'status_code': 400})
 
         # Delete the newly created project in OSF
         self.delete_osf_project('NewProject')
@@ -453,7 +453,7 @@ class TestUploadJob(TestCase):
         # Delete corresponding folders
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
 
-    def test_get_error_500_401_bad_project_format_multiple_folders_osf(self):
+    def test_get_error_500_400_bad_project_format_multiple_folders_osf(self):
         """
         Return a 500 if the BaseResource._upload_resource function running on the server gets a
         401 error because a bad project format given with there being multiple top level folders.
@@ -468,7 +468,7 @@ class TestUploadJob(TestCase):
         self.assertEqual(response.status_code, 500)
         self.assertEqual(response.data,
                          {'message': "Project is not formatted correctly. Multiple directories exist at the top level.",
-                          'status_code': 401})
+                          'status_code': 400})
 
         # Delete the project
         self.delete_osf_project('NewProject')
@@ -476,7 +476,7 @@ class TestUploadJob(TestCase):
         # Delete corresponding folders
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
 
-    def test_get_error_500_401_bad_project_format_file_exists_osf(self):
+    def test_get_error_500_400_bad_project_format_file_exists_osf(self):
         """
         Return a 500 if the BaseResource._upload_resource function running on the server gets a
         401 error because a bad project format given with there a file at the top level.
@@ -491,7 +491,7 @@ class TestUploadJob(TestCase):
         self.assertEqual(response.status_code, 500)
         self.assertEqual(response.data,
                          {'message': "Project is not formatted correctly. Files exist at the top level.",
-                          'status_code': 401})
+                          'status_code': 400})
 
         # Delete the project
         self.delete_osf_project('NewProject')

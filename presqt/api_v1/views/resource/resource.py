@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
 from presqt.api_v1.serializers.resource import ResourceSerializer
-from presqt.api_v1.utilities import (source_token_validation, target_validation, FunctionRouter,
+from presqt.api_v1.utilities import (get_source_token, target_validation, FunctionRouter,
                                      write_file, read_file,
                                      zip_directory)
 from presqt.api_v1.utilities.fixity import download_fixity_checker
@@ -153,7 +153,7 @@ class Resource(BaseResource):
 
         # Perform token, target, and action validation
         try:
-            token = source_token_validation(request)
+            token = get_source_token(request)
             target_validation(target_name, action)
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
@@ -195,7 +195,7 @@ class Resource(BaseResource):
 
         # Perform token, target, and action validation
         try:
-            token = source_token_validation(request)
+            token = get_source_token(request)
             target_validation(target_name, action)
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
