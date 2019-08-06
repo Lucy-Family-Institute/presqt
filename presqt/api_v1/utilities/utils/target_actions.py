@@ -45,16 +45,17 @@ def link_builder(self, instance, list_of_actions, endpoint):
     resource_collection_links = []
 
     if endpoint == 'targets':
-        reversed_target_detail = reverse('target', kwargs={'target_name': instance['name']})
+        reversed_target_detail = reverse(
+            'target', kwargs={'target_name': instance['name']})
         targets_links = [{"name": 'Detail', "link": self.context['request'].build_absolute_uri(
-                reversed_target_detail), "method": "GET"}]
+            reversed_target_detail), "method": "GET"}]
         return targets_links
 
     if endpoint == 'target':
         reversed_collection = reverse('resource_collection', kwargs={
             'target_name': instance['name']})
         target_links = [{"name": "Collection", "link": self.context['request'].build_absolute_uri(
-                reversed_collection), "method": "GET"}]
+            reversed_collection), "method": "GET"}]
         return target_links
 
     for action in list_of_actions:
@@ -71,7 +72,7 @@ def link_builder(self, instance, list_of_actions, endpoint):
             reversed_download = reverse(
                 viewname='resource',
                 kwargs={'target_name': self.context.get('target_name'),
-                    'resource_id': instance['id'], 'resource_format': 'zip'})
+                        'resource_id': instance['id'], 'resource_format': 'zip'})
             link_data = {"name": "Download", "link": self.context['request'].build_absolute_uri(
                 reversed_download), "method": "GET"}
             resource_links.append(link_data)
