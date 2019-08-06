@@ -141,8 +141,6 @@ def target_checker(target_name):
                 resource_download = target['supported_actions']['resource_download']
                 resource_upload = target['supported_actions']['resource_upload']
             else:
-                resource_detail = False
-                resource_download = False
-                resource_upload = False
+                pass
     
     return resource_detail, resource_download, resource_upload

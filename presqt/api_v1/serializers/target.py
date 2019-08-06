@@ -30,7 +30,7 @@ class TargetsSerializer(serializers.Serializer):
 
         Returns
         -------
-        Hyperlink url for Target detail API endpoint
+        A list of hyperlink urls for Target detail API endpoint
         """
         links = []
 
@@ -62,7 +62,7 @@ class TargetSerializer(serializers.Serializer):
 
         Returns
         -------
-        Hyperlink url for Target detail API endpoint
+        A list of hyperlink urls for Target detail API endpoint
         """
         links = []
         reversed_collection = reverse('resource_collection', kwargs={
