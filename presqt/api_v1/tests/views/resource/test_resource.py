@@ -56,7 +56,7 @@ class TestResourceGETJSON(TestCase):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': TEST_USER_TOKEN}
         self.keys = ['kind', 'kind_name', 'id', 'title', 'date_created',
-                     'date_modified', 'size', 'hashes', 'extra', 'download_url']
+                     'date_modified', 'size', 'hashes', 'extra', 'links']
 
     def test_get_success_osf_project(self):
         """
