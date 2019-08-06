@@ -37,7 +37,7 @@ class TargetsSerializer(serializers.Serializer):
         if instance['supported_actions']['resource_detail'] is True:
             reversed_detail = reverse('target', kwargs={'target_name': instance['name']})
             links.append({
-                "name": 'detail',
+                "name": 'Detail',
                 "link": self.context['request'].build_absolute_uri(reversed_detail),
                 "method": "GET"})
         return links
@@ -69,7 +69,7 @@ class TargetSerializer(serializers.Serializer):
             'target_name': instance['name']})
         if instance['supported_actions']['resource_collection'] is True:
             links.append({
-                "name": "collection",
+                "name": "Collection",
                 "link": self.context['request'].build_absolute_uri(reversed_collection),
                 "method": "GET"})
         

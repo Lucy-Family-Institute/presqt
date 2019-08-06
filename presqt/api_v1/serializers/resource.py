@@ -38,7 +38,7 @@ class ResourcesSerializer(serializers.Serializer):
                 kwargs={'target_name': self.context.get('target_name'),
                         'resource_id': instance['id']})
             links.append({
-                "name": "detail",
+                "name": "Detail",
                 "link": self.context['request'].build_absolute_uri(reversed_detail),
                 "method": "GET"})
 
@@ -48,14 +48,14 @@ class ResourcesSerializer(serializers.Serializer):
                 kwargs={'target_name': self.context.get('target_name'),
                         'resource_id': instance['id'], 'resource_format': 'zip'})
             links.append({
-                "name": "download",
+                "name": "Download",
                 "link": self.context['request'].build_absolute_uri(reversed_download),
                 "method": "GET"})
 
         if resource_upload is True:
             if instance['kind'] == 'container':
                 links.append({
-                    "name": "upload",
+                    "name": "Upload",
                     "link": self.context['request'].build_absolute_uri(reversed_detail),
                     "method": "POST"})
             else:
@@ -104,7 +104,7 @@ class ResourceSerializer(serializers.Serializer):
                     'resource_id': instance['id'],
                     'resource_format': 'zip'})
             links.append({
-                "name": "download",
+                "name": "Download",
                 "link": self.context['request'].build_absolute_uri(reverse_download),
                 "method": "GET"})
 
@@ -115,7 +115,7 @@ class ResourceSerializer(serializers.Serializer):
                     kwargs={'target_name': self.context.get('target_name'),
                             'resource_id': instance['id']})
                 links.append({
-                    "name": "upload",
+                    "name": "Upload",
                     "link": self.context['request'].build_absolute_uri(reversed_upload),
                     "method": "POST"})
 
