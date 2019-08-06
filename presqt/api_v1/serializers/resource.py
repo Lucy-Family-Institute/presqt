@@ -41,17 +41,17 @@ class ResourcesSerializer(serializers.Serializer):
                 "name": "detail",
                 "link": self.context['request'].build_absolute_uri(reversed_detail),
                 "method": "GET"})
-        
+
         if resource_download is True:
             reversed_download = reverse(
                 viewname='resource',
-                kwargs={'target_name': self.context.get('target_name'), 
-                'resource_id': instance['id'], 'resource_format': 'zip'})
+                kwargs={'target_name': self.context.get('target_name'),
+                        'resource_id': instance['id'], 'resource_format': 'zip'})
             links.append({
                 "name": "download",
                 "link": self.context['request'].build_absolute_uri(reversed_download),
                 "method": "GET"})
-        
+
         if resource_upload is True:
             if instance['kind'] == 'container':
                 links.append({
@@ -92,7 +92,7 @@ class ResourceSerializer(serializers.Serializer):
         Hyperlink url for Target detail API endpoint
         """
         links = []
-        
+
         resource_detail, resource_download, resource_upload = target_checker(
             self.context.get('target_name'))
 
@@ -129,7 +129,7 @@ def target_checker(target_name):
     Parameters
     ----------
     target_name: str
-    
+
     Returns
     -------
     """
@@ -142,5 +142,5 @@ def target_checker(target_name):
                 resource_upload = target['supported_actions']['resource_upload']
             else:
                 pass
-    
+
     return resource_detail, resource_download, resource_upload
