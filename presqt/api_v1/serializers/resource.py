@@ -45,8 +45,8 @@ class ResourcesSerializer(serializers.Serializer):
         if resource_download is True:
             reversed_download = reverse(
                 viewname='resource',
-                kwargs={'target_name': self.context.get('target_name'), 'resource_id': instance['id'],
-                        'resource_format': 'zip'})
+                kwargs={'target_name': self.context.get('target_name'), 
+                'resource_id': instance['id'], 'resource_format': 'zip'})
             links.append({
                 "name": "download",
                 "link": self.context['request'].build_absolute_uri(reversed_download),
