@@ -82,7 +82,7 @@ class TestResourceGETJSON(TestCase):
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('Test Project', response.data['title'])
         for link in response.data['links']:
-            if link['name'] == 'Downlaod':
+            if link['name'] == 'Download':
                 self.assertEqual(link['method'], 'GET')
             if link['name'] == 'Upload':
                 self.assertEqual(link['method'], 'POST')
