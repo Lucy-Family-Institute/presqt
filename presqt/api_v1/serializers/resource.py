@@ -29,7 +29,7 @@ class ResourcesSerializer(serializers.Serializer):
         Hyperlink url for Target detail API endpoint
         """
         list_of_actions = action_checker(self.context.get('target_name'))
-        # Build a list of actions for this endpoint and compare with list of actions
+        # Build a list of endpoint_actions and compare with list of actions
         endpoint_actions = ['resource_detail', 'resource_download', 'resource_upload']
         resources_actions = []
         for action in endpoint_actions:
@@ -68,7 +68,7 @@ class ResourceSerializer(serializers.Serializer):
         Hyperlink url for Target detail API endpoint
         """
         list_of_actions = action_checker(self.context.get('target_name'))
-        # Build a list of actions for this endpoint and compare with list_of_actions
+        # Build a list of endpoint_actions and compare with list_of_actions
         endpoint_actions = ['resource_download', 'resource_upload']
         resource_actions = []
         for action in endpoint_actions:
