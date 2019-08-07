@@ -1,4 +1,3 @@
-import json
 
 from rest_framework import serializers
 from django.urls import reverse
