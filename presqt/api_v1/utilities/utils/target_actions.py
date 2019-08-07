@@ -40,6 +40,19 @@ def action_checker(target_name):
 
 def link_builder(self, instance, list_of_actions, endpoint):
     """
+    Builds links to be displayed on the API.
+
+    Parameters
+    ----------
+    list_of_actions: list
+        The list of actions available for the target.
+
+    endpoint: str
+        The endpoint that is making the request.
+    
+    Returns
+    -------
+    Returns an array of links.
     """
     resource_links = []
     resource_collection_links = []
@@ -47,16 +60,14 @@ def link_builder(self, instance, list_of_actions, endpoint):
     if endpoint == 'targets':
         reversed_target_detail = reverse(
             'target', kwargs={'target_name': instance['name']})
-        targets_links = [{"name": 'Detail', "link": self.context['request'].build_absolute_uri(
+        return [{"name": 'Detail', "link": self.context['request'].build_absolute_uri(
             reversed_target_detail), "method": "GET"}]
-        return targets_links
 
     if endpoint == 'target':
         reversed_collection = reverse('resource_collection', kwargs={
             'target_name': instance['name']})
-        target_links = [{"name": "Collection", "link": self.context['request'].build_absolute_uri(
+        return [{"name": "Collection", "link": self.context['request'].build_absolute_uri(
             reversed_collection), "method": "GET"}]
-        return target_links
 
     for action in list_of_actions:
         if action == 'resource_detail':
