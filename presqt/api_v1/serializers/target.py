@@ -1,8 +1,6 @@
 from django.urls import reverse
 from rest_framework import serializers
 
-from presqt.api_v1.utilities import action_checker, link_builder
-
 
 class SupportedActions(serializers.Serializer):
     """
