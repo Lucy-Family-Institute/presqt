@@ -1,7 +1,7 @@
 
 from django.urls import reverse
 
-from presqt.api_v1.utilities import read_file
+from presqt.api_v1.utilities import get_target_data
 
 
 def action_checker(target_name):
@@ -16,58 +16,32 @@ def action_checker(target_name):
     -------
     A list of available actions for the target.
     """
-    target_json = read_file('presqt/targets.json', is_json=True)
-    for target in target_json:
-        if target['name'] == target_name:
-            resource_collection = target['supported_actions']['resource_collection']
-            resource_detail = target['supported_actions']['resource_detail']
-            resource_download = target['supported_actions']['resource_download']
-            resource_upload = target['supported_actions']['resource_upload']
-            break
+    target_json = get_target_data(target_name)
+    supported_actions = target_json['supported_actions']
 
-    list_of_actions = []
-    if resource_collection is True:
-        list_of_actions.append('resource_collection')
-    if resource_detail is True:
-        list_of_actions.append('resource_detail')
-    if resource_download is True:
-        list_of_actions.append('resource_download')
-    if resource_upload is True:
-        list_of_actions.append('resource_upload')
-
-    return list_of_actions
+    return [action for action, boolean in supported_actions.items() if boolean is True]
 
 
-def link_builder(self, instance, list_of_actions, endpoint):
+def link_builder(self, instance, list_of_actions):
     """
     Builds links to be displayed on the API.
 
     Parameters
     ----------
+    instance: instance
+        The Resource Obj instance.
+
     list_of_actions: list
         The list of actions available for the target.
 
     endpoint: str
         The endpoint that is making the request.
-    
+
     Returns
     -------
     Returns an array of links.
     """
-    resource_links = []
-    resource_collection_links = []
-
-    if endpoint == 'targets':
-        reversed_target_detail = reverse(
-            'target', kwargs={'target_name': instance['name']})
-        return [{"name": 'Detail', "link": self.context['request'].build_absolute_uri(
-            reversed_target_detail), "method": "GET"}]
-
-    if endpoint == 'target':
-        reversed_collection = reverse('resource_collection', kwargs={
-            'target_name': instance['name']})
-        return [{"name": "Collection", "link": self.context['request'].build_absolute_uri(
-            reversed_collection), "method": "GET"}]
+    links = []
 
     for action in list_of_actions:
         if action == 'resource_detail':
@@ -75,19 +49,16 @@ def link_builder(self, instance, list_of_actions, endpoint):
                 viewname='resource',
                 kwargs={'target_name': self.context.get('target_name'),
                         'resource_id': instance['id']})
-            resource_collection_links.append({
-                "name": "Detail", "link": self.context['request'].build_absolute_uri(
-                    reversed_detail), "method": "GET"})
+            links.append({"name": "Detail", "link": self.context['request'].build_absolute_uri(
+                reversed_detail), "method": "GET"})
 
         if action == 'resource_download':
             reversed_download = reverse(
                 viewname='resource',
                 kwargs={'target_name': self.context.get('target_name'),
                         'resource_id': instance['id'], 'resource_format': 'zip'})
-            link_data = {"name": "Download", "link": self.context['request'].build_absolute_uri(
-                reversed_download), "method": "GET"}
-            resource_links.append(link_data)
-            resource_collection_links.append(link_data)
+            links.append({"name": "Download", "link": self.context['request'].build_absolute_uri(
+                reversed_download), "method": "GET"})
 
         if action == 'resource_upload':
             if instance['kind'] == 'container':
@@ -95,13 +66,6 @@ def link_builder(self, instance, list_of_actions, endpoint):
                     viewname='resource',
                     kwargs={'target_name': self.context.get('target_name'),
                             'resource_id': instance['id']})
-                link_data = {"name": "Upload", "link": self.context['request'].build_absolute_uri(
-                    reversed_upload), "method": "POST"}
-                resource_links.append(link_data)
-                resource_collection_links.append(link_data)
-
-    if endpoint == 'resource':
-        return resource_links
-
-    if endpoint == 'resource_collection':
-        return resource_collection_links
+                links.append({"name": "Upload", "link": self.context['request'].build_absolute_uri(
+                    reversed_upload), "method": "POST"})
+    return links
