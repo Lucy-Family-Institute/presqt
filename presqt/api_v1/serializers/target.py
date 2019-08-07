@@ -35,10 +35,10 @@ class TargetsSerializer(serializers.Serializer):
         -------
         A list of hyperlink urls for Target detail API endpoint
         """
-        list_of_actions = action_checker(instance['name'])
-        links = link_builder(self, instance, list_of_actions, 'targets')
-
-        return links
+        reversed_target_detail = reverse(
+            'target', kwargs={'target_name': instance['name']})
+        return [{"name": 'Detail', "link": self.context['request'].build_absolute_uri(
+            reversed_target_detail), "method": "GET"}]
 
 
 class TargetSerializer(serializers.Serializer):
@@ -62,7 +62,7 @@ class TargetSerializer(serializers.Serializer):
         -------
         A list of hyperlink urls for Target detail API endpoint
         """
-        list_of_actions = action_checker(instance['name'])
-        links = link_builder(self, instance, list_of_actions, 'target')
-
-        return links
+        reversed_collection = reverse('resource_collection', kwargs={
+            'target_name': instance['name']})
+        return [{"name": "Collection", "link": self.context['request'].build_absolute_uri(
+            reversed_collection), "method": "GET"}]
