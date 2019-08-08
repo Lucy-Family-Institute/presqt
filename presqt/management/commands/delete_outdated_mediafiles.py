@@ -6,7 +6,7 @@ import shutil
 from django.core.management import BaseCommand
 from django.utils import timezone
 
-from presqt.api_v1.utilities.io.read_file import read_file
+from presqt.utilities import read_file
 
 
 class Command(BaseCommand):

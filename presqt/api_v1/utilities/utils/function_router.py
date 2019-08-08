@@ -1,6 +1,6 @@
-from presqt.osf.functions.fetch import osf_fetch_resources, osf_fetch_resource
-from presqt.osf.functions.download import osf_download_resource
-from presqt.osf.functions.upload import osf_upload_resource
+from presqt.targets.osf.functions.fetch import osf_fetch_resources, osf_fetch_resource
+from presqt.targets.osf.functions.download import osf_download_resource
+from presqt.targets.osf.functions.upload import osf_upload_resource
 
 
 class FunctionRouter(object):

@@ -4,7 +4,7 @@ from rest_framework.response import Response
 
 from presqt.api_v1.utilities import (get_destination_token, get_process_info_data,
                                      process_token_validation)
-from presqt.exceptions import PresQTValidationError
+from presqt.utilities import PresQTValidationError
 
 
 class UploadJob(APIView):

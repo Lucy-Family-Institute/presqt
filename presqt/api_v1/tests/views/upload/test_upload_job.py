@@ -8,7 +8,7 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from config.settings.base import UPLOAD_TEST_USER_TOKEN
-from presqt.api_v1.utilities import read_file, write_file
+from presqt.utilities import read_file, write_file
 
 
 class TestUploadJob(TestCase):
@@ -310,7 +310,7 @@ class TestUploadJob(TestCase):
         mock_req = MockResponse({'error': 'The server is down.'}, 500)
 
         # Mock the Session POST request to return a 500 server error when creating the project
-        with patch('presqt.osf.classes.base.OSFBase.post') as mock_request:
+        with patch('presqt.targets.osf.classes.base.OSFBase.post') as mock_request:
             mock_request.return_value = mock_req
             # Attempt to create the project (but the server is down from our mock!)
             self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
@@ -344,7 +344,7 @@ class TestUploadJob(TestCase):
         mock_req = MockResponse({'error': 'The server is down.'}, 500)
 
         # Mock the Session POST request to return a 500 server error when creating the folder
-        with patch('presqt.osf.classes.base.OSFBase.put') as mock_request:
+        with patch('presqt.targets.osf.classes.base.OSFBase.put') as mock_request:
             mock_request.return_value = mock_req
             # Attempt to create the folder (but the server is down from our mock!)
             self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
@@ -380,7 +380,7 @@ class TestUploadJob(TestCase):
         mock_req = MockResponse({'error': 'The server is down.'}, 500)
 
         # Mock the Session POST request to return a 500 server error when creating the file
-        with patch('presqt.osf.classes.base.OSFBase.put') as mock_request:
+        with patch('presqt.targets.osf.classes.base.OSFBase.put') as mock_request:
             mock_request.return_value = mock_req
             # Attempt to create the project (but the server is down from our mock!)
             self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
@@ -432,7 +432,7 @@ class TestUploadJob(TestCase):
                 break
 
         # Mock the Session POST request to return a 500 server error when creating the file
-        with patch('presqt.osf.classes.file.File.update') as mock_request:
+        with patch('presqt.targets.osf.classes.file.File.update') as mock_request:
             mock_request.return_value = mock_req
             # Attempt to create the project (but the server is down from our mock!)
             self.url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': node_id})

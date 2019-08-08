@@ -1,6 +1,6 @@
 from rest_framework import status
 
-from presqt.exceptions import PresQTValidationError
+from presqt.utilities import PresQTValidationError
 
 
 def process_token_validation(token, process_info, token_name):
