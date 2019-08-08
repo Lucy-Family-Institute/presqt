@@ -1,5 +1,8 @@
+
 from rest_framework import serializers
 from django.urls import reverse
+
+from presqt.api_v1.utilities import action_checker, compare_lists, link_builder
 
 
 class ResourcesSerializer(serializers.Serializer):
@@ -11,16 +14,28 @@ class ResourcesSerializer(serializers.Serializer):
     id = serializers.CharField(max_length=256)
     container = serializers.CharField(max_length=256)
     title = serializers.CharField(max_length=256)
-    detail = serializers.SerializerMethodField()
+    links = serializers.SerializerMethodField()
 
-    def get_detail(self, instance):
-        reversed_url = reverse(
-            viewname='resource',
-            kwargs={
-                'target_name': self.context.get('target_name'),
-                'resource_id': instance['id']})
+    def get_links(self, instance):
+        """
+        Translate the `links` property to a custom array of Hyperlink values.
 
-        return self.context['request'].build_absolute_uri(reversed_url)
+        Parameters
+        ----------
+        instance : Target Obj instance
+
+        Returns
+        -------
+        Hyperlink url for Target detail API endpoint
+        """
+        list_of_actions = action_checker(self.context.get('target_name'))
+        # Build a list of endpoint_actions and compare with list of actions
+        endpoint_actions = ['resource_detail', 'resource_download', 'resource_upload']
+        resources_actions = compare_lists(list_of_actions, endpoint_actions)
+
+        links = link_builder(self, instance, resources_actions)
+
+        return links
 
 
 class ResourceSerializer(serializers.Serializer):
@@ -36,14 +51,25 @@ class ResourceSerializer(serializers.Serializer):
     size = serializers.IntegerField()
     hashes = serializers.DictField()
     extra = serializers.DictField()
-    download_url = serializers.SerializerMethodField()
+    links = serializers.SerializerMethodField()
 
-    def get_download_url(self, instance):
-        reversed_url = reverse(
-            viewname='resource',
-            kwargs={
-                'target_name': self.context.get('target_name'),
-                'resource_id': instance['id'],
-                'resource_format': 'zip'})
+    def get_links(self, instance):
+        """
+        Translate the `links` property to a custom array of Hyperlink values.
 
-        return self.context['request'].build_absolute_uri(reversed_url)
+        Parameters
+        ----------
+        instance : Target Obj instance
+
+        Returns
+        -------
+        Hyperlink url for Target detail API endpoint
+        """
+        list_of_actions = action_checker(self.context.get('target_name'))
+        # Build a list of endpoint_actions and compare with list_of_actions
+        endpoint_actions = ['resource_download', 'resource_upload']
+        resource_actions = compare_lists(list_of_actions, endpoint_actions)
+
+        links = link_builder(self, instance, resource_actions)
+
+        return links

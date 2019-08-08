@@ -26,12 +26,19 @@ class TestResourceCollection(TestCase):
         # Verify the Status Code
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
-        keys = ['kind', 'kind_name', 'id', 'container', 'title', 'detail']
+        keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
         # Verify the count of resource objects is what we expect.
         self.assertEqual(69, len(response.data))
-    
+        for data in response.data:
+            # If the kind is a container, there should be links for Download, Upload and Detail.
+            if data['kind'] == 'container':
+                self.assertEqual(len(data['links']), 3)
+            # If the kind is an item, we should only display the Detail and Download links.
+            if data['kind'] == 'item':
+                self.assertEqual(len(data['links']), 2)
+
     def test_get_success_osf_fat_project(self):
         """
         Return a 200 if the GET method is successful when grabbing OSF resources.
@@ -41,11 +48,11 @@ class TestResourceCollection(TestCase):
         # Verify the Status Code
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
-        keys = ['kind', 'kind_name', 'id', 'container', 'title', 'detail']
+        keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
         # Verify the count of resource objects is what we expect.
-        self.assertEqual(100, len(response.data))
+        self.assertEqual(101, len(response.data))
 
     def test_get_error_400_missing_token_osf(self):
         """

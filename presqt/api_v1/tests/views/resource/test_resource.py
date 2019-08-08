@@ -56,7 +56,7 @@ class TestResourceGETJSON(TestCase):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': TEST_USER_TOKEN}
         self.keys = ['kind', 'kind_name', 'id', 'title', 'date_created',
-                     'date_modified', 'size', 'hashes', 'extra', 'download_url']
+                     'date_modified', 'size', 'hashes', 'extra', 'links']
 
     def test_get_success_osf_project(self):
         """
@@ -81,6 +81,12 @@ class TestResourceGETJSON(TestCase):
         self.assertEqual('project', response.data['kind_name'])
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('Test Project', response.data['title'])
+        for link in response.data['links']:
+            if link['name'] == 'Download':
+                self.assertEqual(link['method'], 'GET')
+            if link['name'] == 'Upload':
+                self.assertEqual(link['method'], 'POST')
+        self.assertEqual(len(response.data['links']), 2)
 
     def test_get_success_osf_file(self):
         """
@@ -103,6 +109,8 @@ class TestResourceGETJSON(TestCase):
         self.assertEqual('file', response.data['kind_name'])
         self.assertEqual('2017-01-27 PresQT Workshop Planning Meeting Items.docx',
                          response.data['title'])
+        self.assertEqual(len(response.data['links']), 1)
+        self.assertEqual(response.data['links'][0]['name'], 'Download')
 
     def test_get_success_osf_file_no_format(self):
         """
