@@ -1,6 +1,6 @@
 
 
-def compare_lists(list_one, list_two):
+def list_intersection(list_one, list_two):
     """
     Compares two lists and returns a list of shared values between them.
 

@@ -5,11 +5,11 @@ from presqt.utilities.io.read_file import read_file
 from presqt.utilities.io.remove_path_contents import remove_path_contents
 from presqt.utilities.io.write_file import write_file
 from presqt.utilities.io.zip_file import zip_directory
-from presqt.utilities.utils.compare_lists import  compare_lists
+from presqt.utilities.utils.list_intersection import  list_intersection
 
 
 __all__ = [
-    compare_lists,
+    list_intersection,
     PresQTError,
     PresQTInvalidTokenError,
     PresQTResponseException,
