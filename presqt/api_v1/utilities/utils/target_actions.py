@@ -52,7 +52,7 @@ def link_builder(self, instance, list_of_actions):
             links.append({"name": "Detail", "link": self.context['request'].build_absolute_uri(
                 reversed_detail), "method": "GET"})
 
-        if action == 'resource_download':
+        elif action == 'resource_download':
             reversed_download = reverse(
                 viewname='resource',
                 kwargs={'target_name': self.context.get('target_name'),
@@ -60,7 +60,7 @@ def link_builder(self, instance, list_of_actions):
             links.append({"name": "Download", "link": self.context['request'].build_absolute_uri(
                 reversed_download), "method": "GET"})
 
-        if action == 'resource_upload':
+        elif action == 'resource_upload':
             if instance['kind'] == 'container':
                 reversed_upload = reverse(
                     viewname='resource',
