@@ -1,3 +1,4 @@
+import aiohttp
 from rest_framework import status
 
 from presqt.exceptions import PresQTResponseException
@@ -30,6 +31,10 @@ class OSFBase(object):
             raise OSFNotFoundError(
                 "Response has status code 404 not 200.", status.HTTP_404_NOT_FOUND)
 
+    # @staticmethod
+    # async def main():
+    #     async with aiohttp.ClientSession() as session:
+
     def _follow_next(self, url):
         """
         Follow the 'next' link on paginated results.
@@ -51,6 +56,12 @@ class OSFBase(object):
             response_json = self._json(self.get(next_url))
             data.extend(response_json['data'])
             next_url = response_json['links']['next']
+
+        # Grab the total pages
+        # Build url list
+        # Send url list to main_boi
+        # Make main boi
+        # Make fetch boi
 
         return data
 
