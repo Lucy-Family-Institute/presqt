@@ -1,6 +1,6 @@
 from rest_framework import status
 
-from presqt.exceptions import PresQTInvalidTokenError, PresQTResponseException
+from presqt.exceptions import PresQTResponseException
 from presqt.osf.exceptions import OSFNotFoundError, OSFForbiddenError
 from presqt.session import PresQTSession
 
