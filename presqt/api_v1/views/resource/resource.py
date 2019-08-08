@@ -9,13 +9,12 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
 from presqt.api_v1.serializers.resource import ResourceSerializer
-from presqt.api_v1.utilities import (get_source_token, target_validation, FunctionRouter,
-                                     write_file, read_file,
-                                     zip_directory)
+from presqt.api_v1.utilities import get_source_token, target_validation, FunctionRouter
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
+from presqt.utilities import write_file, read_file, zip_directory
 from presqt.api_v1.views.resource.base_resource import BaseResource
-from presqt.exceptions import PresQTValidationError, PresQTResponseException
+from presqt.utilities import PresQTValidationError, PresQTResponseException
 
 
 class Resource(BaseResource):

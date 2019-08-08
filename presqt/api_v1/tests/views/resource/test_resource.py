@@ -14,9 +14,9 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from config.settings.base import TEST_USER_TOKEN, UPLOAD_TEST_USER_TOKEN
-from presqt.api_v1.utilities import write_file, read_file
+from presqt.utilities import write_file, read_file
 from presqt.api_v1.utilities.fixity.download_fixity_checker import download_fixity_checker
-from presqt.api_v1.utilities.io.remove_path_contents import remove_path_contents
+from presqt.utilities import remove_path_contents
 from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
 from presqt.api_v1.views.resource.base_resource import BaseResource
 from presqt.api_v1.views.resource.resource import Resource
@@ -944,7 +944,7 @@ class TestResourcePOST(TestCase):
 
         # Create bad hashes with the ticket number and run the upload function manually
         file_hashes = {'mediafiles/uploads/{}/BagItToUpload/data/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png'.format(ticket_number): '6d33275234b28d77348e4e1049f58b95a485a7a441684a9eb9175d01c7f141ea'}
-        with patch('presqt.osf.classes.storage_folder.ContainerMixin.create_directory') as fake_send:
+        with patch('presqt.targets.osf.classes.storage_folder.ContainerMixin.create_directory') as fake_send:
             fake_send.return_value = {'mediafiles/uploads/{}/BagItToUpload/data/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png'.format(ticket_number): {'sha256': 'bad_hash', 'md5': 'another_bad_hash'}}, [], []
 
             BaseResource._upload_resource(resource_main_dir, process_info_path,

@@ -1,7 +1,7 @@
 import bagit
 from rest_framework import status
 
-from presqt.exceptions import PresQTValidationError
+from presqt.utilities import PresQTValidationError
 
 
 def validate_bag(bag):

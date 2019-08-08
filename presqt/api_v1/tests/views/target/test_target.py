@@ -4,7 +4,7 @@ from django.test import TestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
-from presqt.api_v1.utilities import read_file
+from presqt.utilities import read_file
 
 
 class TestTargetCollection(TestCase):

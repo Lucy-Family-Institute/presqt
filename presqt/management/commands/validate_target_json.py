@@ -1,9 +1,8 @@
 from django.core.management import BaseCommand
 
-from presqt.api_v1.utilities import read_file
 from presqt.api_v1.utilities.utils.function_router import FunctionRouter
+from presqt.utilities import read_file
 from presqt.json_schemas.schema_handlers import schema_validator
-
 
 
 class Command(BaseCommand):

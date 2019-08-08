@@ -1,8 +1,8 @@
 from rest_framework import status
 
-from presqt.osf.classes.base import OSFBase
-from presqt.osf.classes.storage_folder import Storage
-from presqt.osf.exceptions import OSFNotFoundError
+from presqt.targets.osf.classes.base import OSFBase
+from presqt.targets.osf.classes.storage_folder import Storage
+from presqt.targets.osf.exceptions import OSFNotFoundError
 
 
 class Project(OSFBase):

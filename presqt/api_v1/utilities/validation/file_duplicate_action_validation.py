@@ -1,6 +1,6 @@
 from rest_framework import status
 
-from presqt.exceptions import PresQTValidationError
+from presqt.utilities import PresQTValidationError
 
 
 def file_duplicate_action_validation(request):

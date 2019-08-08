@@ -12,13 +12,13 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from presqt.api_v1.utilities import (target_validation, write_file, get_destination_token,
-                                     read_file, get_target_data, hash_generator,
+from presqt.api_v1.utilities import (target_validation, get_destination_token,
+                                     get_target_data, hash_generator,
                                      file_duplicate_action_validation, FunctionRouter)
 from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
-from presqt.exceptions import PresQTValidationError, PresQTResponseException
+from presqt.utilities import PresQTValidationError, PresQTResponseException, read_file, write_file
 
 
 class BaseResource(APIView):
