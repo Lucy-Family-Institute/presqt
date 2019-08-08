@@ -23,7 +23,7 @@ class TestTargetCollection(TestCase):
 
         # Verify that the first dictionary in the payload's array has the correct keys
         expected_keys = ['name', 'supported_actions',
-                         'supported_hash_algorithms', 'detail']
+                         'supported_hash_algorithms', 'links']
         expected_supported_keys = ['resource_collection', 'resource_detail', 'resource_download',
                                    'resource_upload']
         for dict_item in response.data:
@@ -54,7 +54,7 @@ class TestTarget(TestCase):
         # Making this variable so we can append detail to
         # the list in the test case.
         json_data_keys = list(json_data[0].keys())
-        json_data_keys.append('detail')
+        json_data_keys.append('links')
 
         url = reverse('target', kwargs={'target_name': target_name})
         response = self.client.get(url)
