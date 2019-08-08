@@ -1,4 +1,4 @@
-from presqt.api_v1.utilities import read_file
+from presqt.utilities import read_file
 
 
 def get_target_data(target_name):

@@ -1,4 +1,4 @@
-from presqt.osf.classes.base import OSFBase
+from presqt.targets.osf.classes.base import OSFBase
 
 
 class File(OSFBase):

@@ -1,7 +1,7 @@
 from rest_framework import status
 
-from presqt.api_v1.utilities import read_file
-from presqt.exceptions import PresQTValidationError
+from presqt.utilities import read_file
+from presqt.utilities import PresQTValidationError
 
 
 def get_process_info_data(action, ticket_number):

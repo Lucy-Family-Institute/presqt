@@ -1,9 +1,9 @@
 import aiohttp
 from rest_framework import status
 
-from presqt.exceptions import PresQTResponseException
-from presqt.osf.exceptions import OSFNotFoundError, OSFForbiddenError
-from presqt.session import PresQTSession
+from presqt.utilities import PresQTInvalidTokenError, PresQTResponseException
+from presqt.targets.osf.exceptions import OSFNotFoundError, OSFForbiddenError
+from presqt.targets.utilities.session import PresQTSession
 
 
 class OSFBase(object):

@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from presqt.api_v1.serializers.resource import ResourcesSerializer
 from presqt.api_v1.utilities import target_validation, FunctionRouter, get_source_token
 from presqt.api_v1.views.resource.base_resource import BaseResource
-from presqt.exceptions import PresQTValidationError, PresQTResponseException
+from presqt.utilities import PresQTValidationError, PresQTResponseException
 
 
 class ResourceCollection(BaseResource):

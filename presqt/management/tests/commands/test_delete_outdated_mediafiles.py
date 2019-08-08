@@ -10,8 +10,7 @@ from django.conf import settings
 from django.test.testcases import TestCase
 from django.utils import timezone
 
-from presqt.api_v1.utilities import write_file
-from presqt.api_v1.utilities.io.read_file import read_file
+from presqt.utilities import read_file, write_file
 from presqt.api_v1.views.resource.resource import Resource
 
 

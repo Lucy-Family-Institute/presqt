@@ -1,8 +1,8 @@
 from rest_framework import status
 
-from presqt.exceptions import PresQTResponseException, PresQTInvalidTokenError
-from presqt.osf.classes.main import OSF
-from presqt.osf.helpers import get_osf_resource
+from presqt.utilities import PresQTResponseException, PresQTInvalidTokenError
+from presqt.targets.osf.classes.main import OSF
+from presqt.targets.osf.helpers import get_osf_resource
 
 
 def osf_download_resource(token, resource_id):

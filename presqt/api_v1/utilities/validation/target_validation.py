@@ -1,7 +1,6 @@
 from rest_framework import status
 
-from presqt.api_v1.utilities import read_file
-from presqt.exceptions import PresQTValidationError
+from presqt.utilities import PresQTValidationError, read_file
 
 
 def target_validation(target_name, action):

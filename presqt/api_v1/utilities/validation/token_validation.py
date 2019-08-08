@@ -1,6 +1,6 @@
 from rest_framework import status
 
-from presqt.exceptions import PresQTValidationError
+from presqt.utilities import PresQTValidationError
 
 
 def get_source_token(request):

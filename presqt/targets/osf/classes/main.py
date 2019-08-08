@@ -3,11 +3,11 @@ import json
 import requests
 from rest_framework import status
 
-from presqt.exceptions import PresQTResponseException, PresQTInvalidTokenError
-from presqt.osf.classes.base import OSFBase
-from presqt.osf.classes.file import File
-from presqt.osf.classes.project import Project
-from presqt.osf.classes.storage_folder import Folder
+from presqt.utilities import PresQTResponseException, PresQTInvalidTokenError
+from presqt.targets.osf.classes.base import OSFBase
+from presqt.targets.osf.classes.file import File
+from presqt.targets.osf.classes.project import Project
+from presqt.targets.osf.classes.storage_folder import Folder
 
 
 class OSF(OSFBase):

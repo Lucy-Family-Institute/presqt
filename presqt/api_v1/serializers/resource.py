@@ -2,7 +2,8 @@
 from rest_framework import serializers
 from django.urls import reverse
 
-from presqt.api_v1.utilities import action_checker, compare_lists, link_builder
+from presqt.api_v1.utilities import action_checker, link_builder
+from presqt.utilities import compare_lists
 
 
 class ResourcesSerializer(serializers.Serializer):

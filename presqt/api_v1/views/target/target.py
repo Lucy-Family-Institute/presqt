@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from presqt.api_v1.serializers.target import TargetsSerializer, TargetSerializer
-from presqt.api_v1.utilities import read_file
+from presqt.utilities import read_file
 
 
 class TargetCollection(APIView):

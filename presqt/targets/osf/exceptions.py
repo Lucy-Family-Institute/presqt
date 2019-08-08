@@ -1,4 +1,4 @@
-from presqt.exceptions import PresQTResponseException
+from presqt.utilities import PresQTResponseException
 
 
 class OSFNotFoundError(PresQTResponseException):

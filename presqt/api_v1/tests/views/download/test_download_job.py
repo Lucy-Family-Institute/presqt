@@ -8,7 +8,7 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from config.settings.base import TEST_USER_TOKEN
-from presqt.api_v1.utilities import write_file, read_file
+from presqt.utilities import write_file, read_file
 from presqt.api_v1.utilities.fixity.download_fixity_checker import download_fixity_checker
 
 

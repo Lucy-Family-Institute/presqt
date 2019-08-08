@@ -1,7 +1,7 @@
 from time import sleep
 
-from presqt.api_v1.utilities import write_file
-from presqt.api_v1.utilities.io.read_file import read_file
+from presqt.utilities import read_file, write_file
+
 
 def process_watchdog(process_function, process_info_path, process_time, process_state):
     """

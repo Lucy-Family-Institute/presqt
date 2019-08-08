@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 
 from presqt.api_v1.utilities import (get_source_token, get_process_info_data,
                                      process_token_validation)
-from presqt.exceptions import PresQTValidationError
+from presqt.utilities import PresQTValidationError
 
 
 class DownloadJob(APIView):
