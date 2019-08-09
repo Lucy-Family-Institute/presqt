@@ -3,11 +3,11 @@ import json
 import requests
 from rest_framework import status
 
-from presqt.exceptions import PresQTResponseException, PresQTInvalidTokenError
-from presqt.osf.classes.base import OSFBase
-from presqt.osf.classes.file import File
-from presqt.osf.classes.project import Project
-from presqt.osf.classes.storage_folder import Folder
+from presqt.utilities import PresQTResponseException, PresQTInvalidTokenError
+from presqt.targets.osf.classes.base import OSFBase
+from presqt.targets.osf.classes.file import File
+from presqt.targets.osf.classes.project import Project
+from presqt.targets.osf.classes.storage_folder import Folder
 
 
 class OSF(OSFBase):
@@ -79,8 +79,8 @@ class OSF(OSFBase):
         Fetch all projects for this user.
         """
         url = self.session.build_url('users', 'me', 'nodes')
-        response_json = self._json(self.get(url))
-        node_urls = [self.session.build_url('nodes', node['id']) for node in response_json['data']]
+        response_data = self._follow_next(url)
+        node_urls = [self.session.build_url('nodes', node['id']) for node in response_data]
 
         projects = [Project(self._json(self.get(node_url)), self.session) for node_url in node_urls]
         return projects

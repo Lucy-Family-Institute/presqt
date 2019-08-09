@@ -8,7 +8,7 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from config.settings.base import UPLOAD_TEST_USER_TOKEN
-from presqt.api_v1.utilities import read_file, write_file
+from presqt.utilities import read_file, write_file
 
 
 class TestUploadJob(TestCase):
@@ -202,7 +202,7 @@ class TestUploadJob(TestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
 
-    def test_get_error_500_401_not_container_osf(self):
+    def test_get_error_500_400_not_container_osf(self):
         """
         Return a 500 if the BaseResource._upload_resource method running on the server gets a 401 error because the resource_id provided is not a container
         """
@@ -231,7 +231,7 @@ class TestUploadJob(TestCase):
         # Verify the status code and content
         self.assertEqual(response.status_code, 500)
         self.assertEqual(response.data,
-                         {'message': "The Resource provided, {}, is not a container".format(file_id),'status_code': 401})
+                         {'message': "The Resource provided, {}, is not a container".format(file_id),'status_code': 400})
 
         # Delete the newly created project in OSF
         self.delete_osf_project('NewProject')
@@ -310,7 +310,7 @@ class TestUploadJob(TestCase):
         mock_req = MockResponse({'error': 'The server is down.'}, 500)
 
         # Mock the Session POST request to return a 500 server error when creating the project
-        with patch('presqt.osf.classes.base.OSFBase.post') as mock_request:
+        with patch('presqt.targets.osf.classes.base.OSFBase.post') as mock_request:
             mock_request.return_value = mock_req
             # Attempt to create the project (but the server is down from our mock!)
             self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
@@ -344,7 +344,7 @@ class TestUploadJob(TestCase):
         mock_req = MockResponse({'error': 'The server is down.'}, 500)
 
         # Mock the Session POST request to return a 500 server error when creating the folder
-        with patch('presqt.osf.classes.base.OSFBase.put') as mock_request:
+        with patch('presqt.targets.osf.classes.base.OSFBase.put') as mock_request:
             mock_request.return_value = mock_req
             # Attempt to create the folder (but the server is down from our mock!)
             self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
@@ -380,7 +380,7 @@ class TestUploadJob(TestCase):
         mock_req = MockResponse({'error': 'The server is down.'}, 500)
 
         # Mock the Session POST request to return a 500 server error when creating the file
-        with patch('presqt.osf.classes.base.OSFBase.put') as mock_request:
+        with patch('presqt.targets.osf.classes.base.OSFBase.put') as mock_request:
             mock_request.return_value = mock_req
             # Attempt to create the project (but the server is down from our mock!)
             self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
@@ -432,7 +432,7 @@ class TestUploadJob(TestCase):
                 break
 
         # Mock the Session POST request to return a 500 server error when creating the file
-        with patch('presqt.osf.classes.file.File.update') as mock_request:
+        with patch('presqt.targets.osf.classes.file.File.update') as mock_request:
             mock_request.return_value = mock_req
             # Attempt to create the project (but the server is down from our mock!)
             self.url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': node_id})
@@ -453,7 +453,7 @@ class TestUploadJob(TestCase):
         # Delete corresponding folders
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
 
-    def test_get_error_500_401_bad_project_format_multiple_folders_osf(self):
+    def test_get_error_500_400_bad_project_format_multiple_folders_osf(self):
         """
         Return a 500 if the BaseResource._upload_resource function running on the server gets a
         401 error because a bad project format given with there being multiple top level folders.
@@ -468,7 +468,7 @@ class TestUploadJob(TestCase):
         self.assertEqual(response.status_code, 500)
         self.assertEqual(response.data,
                          {'message': "Project is not formatted correctly. Multiple directories exist at the top level.",
-                          'status_code': 401})
+                          'status_code': 400})
 
         # Delete the project
         self.delete_osf_project('NewProject')
@@ -476,7 +476,7 @@ class TestUploadJob(TestCase):
         # Delete corresponding folders
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
 
-    def test_get_error_500_401_bad_project_format_file_exists_osf(self):
+    def test_get_error_500_400_bad_project_format_file_exists_osf(self):
         """
         Return a 500 if the BaseResource._upload_resource function running on the server gets a
         401 error because a bad project format given with there a file at the top level.
@@ -491,7 +491,7 @@ class TestUploadJob(TestCase):
         self.assertEqual(response.status_code, 500)
         self.assertEqual(response.data,
                          {'message': "Project is not formatted correctly. Files exist at the top level.",
-                          'status_code': 401})
+                          'status_code': 400})
 
         # Delete the project
         self.delete_osf_project('NewProject')

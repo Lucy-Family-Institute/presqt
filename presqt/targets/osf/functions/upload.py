@@ -2,15 +2,15 @@ import os
 
 from rest_framework import status
 
-from presqt.exceptions import PresQTInvalidTokenError, PresQTResponseException
-from presqt.osf.classes.main import OSF
-from presqt.osf.helpers import get_osf_resource
+from presqt.utilities import PresQTInvalidTokenError, PresQTResponseException
+from presqt.targets.osf.classes.main import OSF
+from presqt.targets.osf.helpers import get_osf_resource
 
 
 def osf_upload_resource(token, resource_id, resource_main_dir,
                         hash_algorithm, file_duplicate_action):
     """
-    Upload the files found in the resource_main_dir to the target.
+    Upload the files found in the resource_main_dir to OSF.
 
     Parameters
     ----------
@@ -28,7 +28,7 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
     Returns
     -------
     final_file_hashes : dict
-        Dictionary of file hashes obtained from the target
+        Dictionary of file hashes obtained from OSF
     files_ignored : array
         Array of file paths of files that were ignored when uploading the resource
     files_updated : array
@@ -53,7 +53,7 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
         if resource.kind_name == 'file':
             raise PresQTResponseException(
                 "The Resource provided, {}, is not a container".format(resource_id),
-                status.HTTP_401_UNAUTHORIZED)
+                status.HTTP_400_BAD_REQUEST)
         elif resource.kind_name == 'project':
             hashes, files_ignored, files_updated = resource.storage('osfstorage').create_directory(
                 resource_main_dir, file_duplicate_action, hashes, files_ignored, files_updated)
@@ -71,11 +71,11 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
         if len(os_path[1]) > 1:
             raise PresQTResponseException(
                 'Project is not formatted correctly. Multiple directories exist at the top level.',
-                status.HTTP_401_UNAUTHORIZED)
+                status.HTTP_400_BAD_REQUEST)
         elif len(os_path[2]) > 0:
             raise PresQTResponseException(
                 'Project is not formatted correctly. Files exist at the top level.',
-                status.HTTP_401_UNAUTHORIZED)
+                status.HTTP_400_BAD_REQUEST)
 
         # Create a new project with the name being the top level directory's name.
         project = osf_instance.create_project(os_path[1][0])

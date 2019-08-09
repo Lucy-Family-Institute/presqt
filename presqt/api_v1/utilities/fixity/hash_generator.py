@@ -7,7 +7,7 @@ def hash_generator(file, hash_algorithm):
 
     Parameters
     ----------
-    file : binary file
+    file : bytes
         File to be ran through the hash algorithm
     hash_algorithm : str
         Hash algorithm to use

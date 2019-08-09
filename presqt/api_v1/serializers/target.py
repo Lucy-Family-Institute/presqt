@@ -1,6 +1,7 @@
 from django.urls import reverse
 from rest_framework import serializers
 
+
 class SupportedActions(serializers.Serializer):
     """
     Serializer for supported_actions objects inside the Target JSON.
@@ -18,11 +19,11 @@ class TargetsSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=256)
     supported_actions = SupportedActions()
     supported_hash_algorithms = serializers.StringRelatedField(many=True)
-    detail = serializers.SerializerMethodField()
+    links = serializers.SerializerMethodField()
 
-    def get_detail(self, instance):
+    def get_links(self, instance):
         """
-        Translate the `detail` property to a custom Hyperlink value.
+        Translate the `links` property to a custom array of Hyperlink values.
 
         Parameters
         ----------
@@ -30,11 +31,12 @@ class TargetsSerializer(serializers.Serializer):
 
         Returns
         -------
-        Hyperlink url for Target detail API endpoint
+        A list of hyperlink urls for Target detail API endpoint
         """
-        reversed_url = reverse('target', kwargs={'target_name': instance['name']})
-        hyperlink = self.context['request'].build_absolute_uri(reversed_url)
-        return hyperlink
+        reversed_target_detail = reverse(
+            'target', kwargs={'target_name': instance['name']})
+        return [{"name": 'Detail', "link": self.context['request'].build_absolute_uri(
+            reversed_target_detail), "method": "GET"}]
 
 
 class TargetSerializer(serializers.Serializer):
@@ -44,3 +46,21 @@ class TargetSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=256)
     supported_actions = SupportedActions()
     supported_hash_algorithms = serializers.StringRelatedField(many=True)
+    links = serializers.SerializerMethodField()
+
+    def get_links(self, instance):
+        """
+        Translate the `links` property to a custom array of Hyperlink values.
+
+        Parameters
+        ----------
+        instance : Target Obj instance
+
+        Returns
+        -------
+        A list of hyperlink urls for Target detail API endpoint
+        """
+        reversed_collection = reverse('resource_collection', kwargs={
+            'target_name': instance['name']})
+        return [{"name": "Collection", "link": self.context['request'].build_absolute_uri(
+            reversed_collection), "method": "GET"}]

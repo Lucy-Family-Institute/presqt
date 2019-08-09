@@ -3,10 +3,11 @@ import os
 from requests.exceptions import ConnectionError
 from rest_framework import status
 
-from presqt.api_v1.utilities import read_file, hash_generator
-from presqt.exceptions import PresQTResponseException
-from presqt.osf.classes.base import OSFBase
-from presqt.osf.classes.file import File
+from presqt.api_v1.utilities import hash_generator
+from presqt.utilities import read_file
+from presqt.utilities import PresQTResponseException
+from presqt.targets.osf.classes.base import OSFBase
+from presqt.targets.osf.classes.file import File
 
 class ContainerMixin:
     def get_resources_objects(self, container):
@@ -164,7 +165,7 @@ class ContainerMixin:
         ----------
         file_name : str
             Name of the file to create.
-        file_to_write : binary file
+        file_to_write : bytes
             File to create.
         file_duplicate_action : str
             Flag for how to handle the case of the file already existing.

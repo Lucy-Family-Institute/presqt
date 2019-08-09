@@ -2,9 +2,9 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from presqt.api_v1.utilities import (destination_token_validation, get_process_info_data,
+from presqt.api_v1.utilities import (get_destination_token, get_process_info_data,
                                      process_token_validation)
-from presqt.exceptions import PresQTValidationError
+from presqt.utilities import PresQTValidationError
 
 
 class UploadJob(APIView):
@@ -64,7 +64,7 @@ class UploadJob(APIView):
         """
         # Perform token validation. Read data from the process_info file.
         try:
-            token = destination_token_validation(request)
+            token = get_destination_token(request)
             process_data = get_process_info_data('uploads', ticket_number)
             process_token_validation(token, process_data, 'presqt-destination-token')
         except PresQTValidationError as e:

@@ -2,9 +2,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from presqt.api_v1.serializers.resource import ResourcesSerializer
-from presqt.api_v1.utilities import target_validation, FunctionRouter, source_token_validation
+from presqt.api_v1.utilities import target_validation, FunctionRouter, get_source_token
 from presqt.api_v1.views.resource.base_resource import BaseResource
-from presqt.exceptions import PresQTValidationError, PresQTResponseException
+from presqt.utilities import PresQTValidationError, PresQTResponseException
 
 
 class ResourceCollection(BaseResource):
@@ -73,7 +73,7 @@ class ResourceCollection(BaseResource):
 
         # Perform token, target, and action validation
         try:
-            token = source_token_validation(request)
+            token = get_source_token(request)
             target_validation(target_name, action)
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)

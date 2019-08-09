@@ -14,9 +14,9 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from config.settings.base import TEST_USER_TOKEN, UPLOAD_TEST_USER_TOKEN
-from presqt.api_v1.utilities import write_file, read_file
+from presqt.utilities import write_file, read_file
 from presqt.api_v1.utilities.fixity.download_fixity_checker import download_fixity_checker
-from presqt.api_v1.utilities.io.remove_path_contents import remove_path_contents
+from presqt.utilities import remove_path_contents
 from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
 from presqt.api_v1.views.resource.base_resource import BaseResource
 from presqt.api_v1.views.resource.resource import Resource
@@ -56,7 +56,7 @@ class TestResourceGETJSON(TestCase):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': TEST_USER_TOKEN}
         self.keys = ['kind', 'kind_name', 'id', 'title', 'date_created',
-                     'date_modified', 'size', 'hashes', 'extra', 'download_url']
+                     'date_modified', 'size', 'hashes', 'extra', 'links']
 
     def test_get_success_osf_project(self):
         """
@@ -81,6 +81,12 @@ class TestResourceGETJSON(TestCase):
         self.assertEqual('project', response.data['kind_name'])
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('Test Project', response.data['title'])
+        for link in response.data['links']:
+            if link['name'] == 'Download':
+                self.assertEqual(link['method'], 'GET')
+            if link['name'] == 'Upload':
+                self.assertEqual(link['method'], 'POST')
+        self.assertEqual(len(response.data['links']), 2)
 
     def test_get_success_osf_file(self):
         """
@@ -103,6 +109,8 @@ class TestResourceGETJSON(TestCase):
         self.assertEqual('file', response.data['kind_name'])
         self.assertEqual('2017-01-27 PresQT Workshop Planning Meeting Items.docx',
                          response.data['title'])
+        self.assertEqual(len(response.data['links']), 1)
+        self.assertEqual(response.data['links'][0]['name'], 'Download')
 
     def test_get_success_osf_file_no_format(self):
         """
@@ -673,7 +681,7 @@ class TestResourceGETZip(TestCase):
 
         # Grab the .jpg file in the zip and run it back through the fixity checker with bad hashes
         # So we can get a failed fixity. This fixity variable will be used later in our Patch.
-        fixity = download_fixity_checker(
+        fixity, fixity_match = download_fixity_checker(
             read_file('{}/{}/data/22776439564_7edbed7e10_o.jpg'.format(ticket_path, base_name)),
             hashes)
 
@@ -690,7 +698,7 @@ class TestResourceGETZip(TestCase):
         # Patch the fixity_checker() function to return our bad fixity dictionary.
         with patch('presqt.api_v1.utilities.fixity.download_fixity_checker.download_fixity_checker') as fake_send:
             # Manually verify the fixity_checker will fail
-            fake_send.return_value = fixity
+            fake_send.return_value = fixity, fixity_match
             process_state = multiprocessing.Value('b', 0)
             Resource._download_resource('osf', 'resource_download', TEST_USER_TOKEN,
                               resource_id, ticket_path, process_info_path, process_state)
@@ -698,6 +706,8 @@ class TestResourceGETZip(TestCase):
         final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         # Verify the final status in the process_info file is 'finished'
         self.assertEqual(final_process_info['status'], 'finished')
+        # Verify that the message is what is expected if fixity has failed.
+        self.assertEqual(final_process_info['message'], 'Download successful with fixity errors')
         # Verify zip file exists and has the proper amount of resources in it.
         base_name = 'osf_download_{}'.format(resource_id)
         zip_path = '{}/{}.zip'.format(ticket_path, base_name)
@@ -934,7 +944,7 @@ class TestResourcePOST(TestCase):
 
         # Create bad hashes with the ticket number and run the upload function manually
         file_hashes = {'mediafiles/uploads/{}/BagItToUpload/data/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png'.format(ticket_number): '6d33275234b28d77348e4e1049f58b95a485a7a441684a9eb9175d01c7f141ea'}
-        with patch('presqt.osf.classes.storage_folder.ContainerMixin.create_directory') as fake_send:
+        with patch('presqt.targets.osf.classes.storage_folder.ContainerMixin.create_directory') as fake_send:
             fake_send.return_value = {'mediafiles/uploads/{}/BagItToUpload/data/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png'.format(ticket_number): {'sha256': 'bad_hash', 'md5': 'another_bad_hash'}}, [], []
 
             BaseResource._upload_resource(resource_main_dir, process_info_path,
