@@ -1,15 +1,16 @@
-Django==2.2.3
+Django==2.2.4
 gunicorn==19.9.0
 psycopg2==2.7.6.1
 pytz==2018.9
 requests==2.22.0
 jsonschema==3.0.1                   # An implementation of JSON Schema for Python
-python-dateutil==2.8.0              # The dateutil module provides powerful extensions to the standard datetime module, available in Python.
+python-dateutil==2.8.0              # The dateutil module provides powerful extensions to the standard datetime module, available in Python
+aiohttp==3.5.4                      # Asynchronous HTTP Client/Server for asyncio and Python
+bagit==1.7.0                        # Utility for working with BagIt style packages
 
 # Requirements for RESTful API Support
 djangorestframework==3.9.2          # Latest version of DRF
 django-cors-headers==2.5.2          # Allows cross-domain HTTP communication
 Markdown==3.1                       # Markdown support for browsable API
 coreapi==2.3.3                      # Schema generation support for API
-bagit==1.7.0                        # Utility for working with BagIt style packages.
-aiohttp==3.5.4
+

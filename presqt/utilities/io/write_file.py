@@ -18,7 +18,7 @@ def write_file(file_path, contents, is_json=False):
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     if is_json:
         with open(file_path, 'w') as outfile:
-            json.dump(contents, outfile)
+            json.dump(contents, outfile, indent=4)
     else:
         with open(file_path, 'wb') as outfile:
             outfile.write(contents)

@@ -15,7 +15,7 @@ coverage_html/
 .coverage.*
 
 # OSF API JSON
-presqt/osf/osf_api.json
+presqt/targets/osf/osf_api.json
 
 # Media Files directory
 mediafiles/downloads/
