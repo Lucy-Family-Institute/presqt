@@ -1,5 +1,4 @@
 import asyncio
-import datetime
 
 import aiohttp
 from rest_framework import status
