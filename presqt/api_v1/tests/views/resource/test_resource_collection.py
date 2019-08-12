@@ -15,7 +15,7 @@ class TestResourceCollection(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': TEST_USER_TOKEN}
-        self.fat_header = {'HTTP_PRESQT_SOURCE_TOKEN': PRESQT_FORK_TOKEN}
+        self.large_project_header = {'HTTP_PRESQT_SOURCE_TOKEN': PRESQT_FORK_TOKEN}
 
     def test_get_success_osf(self):
         """
@@ -39,12 +39,12 @@ class TestResourceCollection(TestCase):
             if data['kind'] == 'item':
                 self.assertEqual(len(data['links']), 2)
 
-    def test_get_success_osf_fat_project(self):
+    def test_get_success_osf_large_project(self):
         """
         Return a 200 if the GET method is successful when grabbing OSF resources.
         """
         url = reverse('resource_collection', kwargs={'target_name': 'osf'})
-        response = self.client.get(url, **self.fat_header)
+        response = self.client.get(url, **self.large_project_header)
         # Verify the Status Code
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect

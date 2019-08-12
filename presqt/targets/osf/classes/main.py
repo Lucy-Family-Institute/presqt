@@ -179,6 +179,7 @@ class OSF(OSFBase):
                 folder_data.append({'url': folder._files_url,
                                      'id': folder.id,
                                      'path': folder.materialized_path})
+
         # Asynchronously call all folder file urls to get the folder's top level resources.
         folder_urls = [folder_dict['url'] for folder_dict in folder_data]
         folder_resources = self.run_urls_async(folder_urls)
@@ -188,7 +189,7 @@ class OSF(OSFBase):
         children_urls = self._get_follow_next_urls(folder_resources)
         folder_resources.extend(self.run_urls_async(children_urls))
 
-        # Get the resources' container_id and recursively get that resource's resources
+        # For each resource, get it's container_id and resources
         for folder_resource in folder_resources:
             resource_attr = folder_resource['data'][0]['attributes']
             parent_path = resource_attr['materialized_path'][:-len(resource_attr['name'])]

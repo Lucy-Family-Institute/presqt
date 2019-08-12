@@ -16,5 +16,6 @@ def get_dictionary_from_list(list_to_search, key, search_value):
     Dictionary object we are searching for
     """
     for the_dict in list_to_search:
+        # print(the_dict, search_value)
         if the_dict[key] == search_value:
             return the_dict

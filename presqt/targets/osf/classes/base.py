@@ -96,7 +96,7 @@ class OSFBase(object):
 
         Returns
         -------
-        The data returned from the async call.
+        The data returned from the async call
         """
         loop = asyncio.new_event_loop()
         data = loop.run_until_complete(self.async_main(url_list))
