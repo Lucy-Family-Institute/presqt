@@ -27,6 +27,10 @@ BASE_DIR = Path(os.path.abspath(__file__)).parents[2]
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ['SECRET_KEY']
 
+# configure your proxy to set a custom HTTP header that tells Django whether the request came
+# in via HTTPS, and set SECURE_PROXY_SSL_HEADER so that Django knows what header to look for.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 DEBUG = False
 ALLOWED_HOSTS = []
 

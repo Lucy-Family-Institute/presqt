@@ -21,5 +21,8 @@ presqt/targets/osf/osf_api.json
 mediafiles/downloads/
 mediafiles/uploads/
 
+# SSL certs and private keys
+config/ssl/certs/
+config/ssl/private/
 .DS_Store
 
