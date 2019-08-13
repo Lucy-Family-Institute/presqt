@@ -48,8 +48,8 @@ class Project(OSFBase):
         """
         Iterate over all storages for this project.
         """
-        stores_json = self._json(self.get(self._storages_url))
-        for store in stores_json['data']:
+        stores_json = self._follow_next(self._storages_url)
+        for store in stores_json:
             yield Storage(store, self.session)
 
     def storage(self, storage):
@@ -71,43 +71,6 @@ class Project(OSFBase):
         else:
             raise OSFNotFoundError("Project has no storage provider '{}'".format(storage),
                                     status.HTTP_404_NOT_FOUND)
-
-    def get_resources(self, resources):
-        """
-        Get all project resources. Return in the structure expected for the PresQT API.
-
-        Parameters
-        ----------
-        resources : list
-            Reference to the list of resources we want to add to.
-
-        Returns
-        -------
-        List of project resources.
-        """
-        node_obj = {
-            'kind': 'container',
-            'kind_name': 'project',
-            'id': self.id,
-            'container': None,
-            'title': self.title
-        }
-        resources.append(node_obj)
-
-        for storage in self.storages():
-            storage_obj = {
-                'kind': 'container',
-                'kind_name': 'storage',
-                'id': storage.id,
-                'container': self.id,
-                'title': storage.title
-            }
-            resources.append(storage_obj)
-
-            for resource in storage.get_resources_objects(storage.id):
-                resources.append(resource)
-
-        return resources
 
     def get_all_files(self):
         files = []

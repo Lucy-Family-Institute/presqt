@@ -10,52 +10,6 @@ from presqt.targets.osf.classes.base import OSFBase
 from presqt.targets.osf.classes.file import File
 
 class ContainerMixin:
-    def get_resources_objects(self, container):
-        """
-        Get all resources for this container including the original container.
-        This exists so we can get all resources in the structure we want for our API payloads.
-
-        Parameters
-        ----------
-        container : str
-            ID of the resource's container
-
-        Returns
-        -------
-        List of resource dictionaries.
-        """
-        resource_list = []
-        children = self._follow_next(self._files_url)
-
-        while children:
-            child = children.pop()
-            kind = child['attributes']['kind']
-            if kind == 'file':
-                file = File(child, self.session)
-                file_obj = {
-                    'kind': file.kind,
-                    'kind_name': file.kind_name,
-                    'id': file.id,
-                    'container': container,
-                    'title': file.title
-                }
-                resource_list.append(file_obj)
-            elif kind == 'folder':
-                folder = Folder(child, self.session)
-                folder_obj = {
-                    'kind': folder.kind,
-                    'kind_name': folder.kind_name,
-                    'id': folder.id,
-                    'container': container,
-                    'title': folder.title
-                }
-                resource_list.append(folder_obj)
-
-                for resource in folder.get_resources_objects(folder.id):
-                   resource_list.append(resource)
-
-        return resource_list
-
     def get_all_files(self):
         """
         Recursively gets all files for a given container.
