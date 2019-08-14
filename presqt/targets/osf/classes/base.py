@@ -119,8 +119,12 @@ class OSFBase(object):
         Response JSON
         """
         async with session.get(url, headers=self.session.headers) as response:
-            assert response.status == 200
-            return await response.json()
+            if response.status == 200:
+                return await response.json()
+            else:
+                raise PresQTResponseException(
+                    'OSF returned response status {}.'.format(response.status),
+                    status.HTTP_400_BAD_REQUEST)
 
 
     async def async_main(self, url_list):
@@ -153,12 +157,24 @@ class OSFBase(object):
         -------
         HTTP Response object
         """
-        response =  self.session.get(url, *args, **kwargs)
+        response = self.session.get(url, *args, **kwargs)
 
-        if response.status_code == 410:
+        if response.status_code == 200:
+            return response
+        elif response.status_code == 410:
             raise PresQTResponseException("The requested resource is no longer available.",
                                           status.HTTP_410_GONE)
-        return response
+        elif response.status_code == 404:
+            raise OSFNotFoundError("Resource not found.", status.HTTP_404_NOT_FOUND)
+        elif response.status_code == 403:
+            raise OSFForbiddenError(
+                "User does not have access to this resource with the token provided.",
+                status.HTTP_403_FORBIDDEN)
+        else:
+            raise PresQTResponseException(
+                "The request returned a status {}".format(response.status_code),
+                status.HTTP_400_BAD_REQUEST)
+
 
     def put(self, url, *args, **kwargs):
         """

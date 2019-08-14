@@ -1,4 +1,7 @@
+from rest_framework import status
+
 from presqt.targets.osf.classes.base import OSFBase
+from presqt.utilities import PresQTResponseException
 
 
 class File(OSFBase):
@@ -48,7 +51,12 @@ class File(OSFBase):
         The requested file in byte format.
         """
         response = self.get(self.download_url)
-        return response.content
+        if response.status_code == '200':
+            return response.content
+        else:
+            raise PresQTResponseException(
+                'Download request returned the status code, {}.'.format(response.status_code),
+                status.HTTP_400_BAD_REQUEST)
 
     def update(self, file_to_write):
         """

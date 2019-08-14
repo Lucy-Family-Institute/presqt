@@ -28,9 +28,13 @@ async def async_get(url, session, token):
     Response JSON
     """
     async with session.get(url, headers={'Authorization': 'Bearer {}'.format(token)}) as response:
-        assert response.status == 200
-        content =  await response.read()
-        return {'url': url, 'binary_content': content}
+        if response.status == 200:
+            content =  await response.read()
+            return {'url': url, 'binary_content': content}
+        else:
+            raise PresQTResponseException(
+                'OSF returned response status {}.'.format(response.status),
+                status.HTTP_400_BAD_REQUEST)
 
 
 async def async_main(url_list, token):
@@ -81,14 +85,18 @@ def osf_download_resource(token, resource_id):
     # path should be the resource.
     files = []
     if resource.kind_name == 'file':
-        binary_file = resource.download()
-        files.append({
-            'file': binary_file,
-            'hashes': resource.hashes,
-            'title': resource.title,
-            # If the file is the only resource we are downloading then we don't need it's full path
-            'path': '/{}'.format(resource.title)
-        })
+        try:
+            binary_file = resource.download()
+        except PresQTResponseException as e:
+            raise PresQTResponseException(e.data, e.status_code)
+        else:
+            files.append({
+                'file': binary_file,
+                'hashes': resource.hashes,
+                'title': resource.title,
+                # If the file is the only resource we are downloading then we don't need it's full path
+                'path': '/{}'.format(resource.title)
+            })
     else:
         file_data = []
         file_urls = []
