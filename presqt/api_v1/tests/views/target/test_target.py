@@ -1,5 +1,3 @@
-import json
-
 from django.test import TestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
@@ -22,7 +20,7 @@ class TestTargetCollection(TestCase):
         self.assertEqual(response.status_code, 200)
 
         # Verify that the first dictionary in the payload's array has the correct keys
-        expected_keys = ['name', 'supported_actions',
+        expected_keys = ['name', 'readable_name', 'supported_actions',
                          'supported_hash_algorithms', 'links']
         expected_supported_keys = ['resource_collection', 'resource_detail', 'resource_download',
                                    'resource_upload']
