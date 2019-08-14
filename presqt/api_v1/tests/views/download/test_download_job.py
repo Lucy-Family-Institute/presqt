@@ -186,11 +186,29 @@ class TestDownloadJob(TestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
 
-    def test_get_error_500_403_unauthorized_resource_osf(self):
+    def test_get_error_500_403_unauthorized_container_resource_osf(self):
         """
         Return a 500 if the Resource._download_resource() function running on the server gets a 403 error
         """
         self.resource_id = 'q5xmw'
+        self.call_get_resource_zip()
+
+        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
+        response = self.client.get(url, **self.header)
+
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.data,
+                         {'message': "User does not have access to this resource with the token provided.",
+                          'status_code': 403})
+
+        # Delete corresponding folder
+        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
+
+    def test_get_error_500_403_unauthorized_item_resource_osf(self):
+        """
+        Return a 500 if the Resource._download_resource() function running on the server gets a 403 error
+        """
+        self.resource_id = '5cd98c2cf244ec0020e4d9d1'
         self.call_get_resource_zip()
 
         url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})

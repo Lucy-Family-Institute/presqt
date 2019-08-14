@@ -22,17 +22,9 @@ class OSFBase(object):
 
     def _json(self, response):
         """
-        Extract JSON from response if `status_code` is 200.
+        Extract JSON from response.
         """
-        if response.status_code == 200:
-            return response.json()
-        elif response.status_code == 403:
-            raise OSFForbiddenError(
-                "User does not have access to this resource with the token provided.",
-                status.HTTP_403_FORBIDDEN)
-        elif response.status_code == 404:
-            raise OSFNotFoundError(
-                "Response has status code 404 not 200.", status.HTTP_404_NOT_FOUND)
+        return response.json()
 
     def _follow_next(self, url):
         """
@@ -153,12 +145,17 @@ class OSFBase(object):
         -------
         HTTP Response object
         """
-        response =  self.session.get(url, *args, **kwargs)
+        response = self.session.get(url, *args, **kwargs)
+        if response.status_code == 200:
+            return response
+        elif response.status_code == 410:
+            raise PresQTResponseException("The requested resource is no longer available.", status.HTTP_410_GONE)
+        elif response.status_code == 404:
+            raise OSFNotFoundError("Resource not found.", status.HTTP_404_NOT_FOUND)
+        elif response.status_code == 403:
+            raise OSFForbiddenError(
+                "User does not have access to this resource with the token provided.", status.HTTP_403_FORBIDDEN)
 
-        if response.status_code == 410:
-            raise PresQTResponseException("The requested resource is no longer available.",
-                                          status.HTTP_410_GONE)
-        return response
 
     def put(self, url, *args, **kwargs):
         """
