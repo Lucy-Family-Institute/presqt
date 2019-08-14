@@ -22,7 +22,7 @@ class OSFBase(object):
 
     def _json(self, response):
         """
-        Extract JSON from response if `status_code` is 200.
+        Extract JSON from response.
         """
         return response.json()
 
