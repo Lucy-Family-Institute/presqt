@@ -51,12 +51,7 @@ class File(OSFBase):
         The requested file in byte format.
         """
         response = self.get(self.download_url)
-        if response.status_code == '200':
-            return response.content
-        else:
-            raise PresQTResponseException(
-                'Download request returned the status code, {}.'.format(response.status_code),
-                status.HTTP_400_BAD_REQUEST)
+        return response.content
 
     def update(self, file_to_write):
         """
