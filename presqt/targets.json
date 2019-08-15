@@ -1,6 +1,7 @@
 [
   {
     "name": "osf",
+    "readable_name": "OSF",
     "supported_actions": {
           "resource_collection": true,
           "resource_detail": true,

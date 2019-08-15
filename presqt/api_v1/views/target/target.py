@@ -27,6 +27,7 @@ class TargetCollection(APIView):
         [
             {
                 "name": "osf",
+                "readable_name": "OSF",
                 "supported_actions": {
                     "resource_collection": true,
                     "resource_detail": true,
@@ -41,6 +42,7 @@ class TargetCollection(APIView):
             },
             {
                 "name": "curate_nd",
+                "readable_name": "CurateND",
                 "supported_actions": {
                     "resource_collection": true,
                     "resource_detail": true,
@@ -85,6 +87,7 @@ class Target(APIView):
         A dictionary like JSON representation of the requested Target resource.
         {
             "name": "osf",
+            "readable_name": "OSF",
             "supported_actions": {
                 "resource_collection": true,
                 "resource_detail": true,

@@ -1,6 +1,7 @@
 [
   {
     "name": "test",
+    "readable_name": "Test",
     "supported_actions": {
           "resource_collection": false,
           "resource_detail": false,
