@@ -29,8 +29,13 @@ class TestUploadJob(TestCase):
         # Verify the status code
         self.assertEqual(response.status_code, 202)
         self.ticket_number = response.data['ticket_number']
+        self.upload_job = response.data['upload_job']
         self.process_info_path = 'mediafiles/uploads/{}/process_info.json'.format(self.ticket_number)
         process_info = read_file(self.process_info_path, True)
+
+        # Verify the upload_job link is what we expect
+        self.assertEqual(self.upload_job, ('http://testserver{}'.format(reverse(
+            'upload_job', kwargs={'ticket_number': self.ticket_number}))))
 
         # Save initial process data that we can use to rewrite to the process_info file for testing
         self.initial_process_info = process_info
