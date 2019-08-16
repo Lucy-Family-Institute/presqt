@@ -41,8 +41,7 @@ class OSF(OSFBase):
         response = requests.get('https://api.osf.io/v2/users/me/',
                                 headers={'Authorization': 'Bearer {}'.format(token)})
         if response.status_code == 401:
-            raise PresQTInvalidTokenError(
-                "Token is invalid. Response returned a 401 status code.")
+            raise PresQTInvalidTokenError("Token is invalid. Response returned a 401 status code.")
 
     def project(self, project_id):
         """
@@ -136,8 +135,7 @@ class OSF(OSFBase):
                 # Calculate the given resource's container_id
                 parent_project_id = resource['data'][0]["relationships"]['node']['data']["id"]
                 parent_provider = resource['data'][0]['attributes']['provider']
-                container_id = '{}:{}'.format(
-                    parent_project_id, parent_provider)
+                container_id = '{}:{}'.format(parent_project_id, parent_provider)
 
                 self.get_resources_objects(resource, resources, container_id)
         return resources
