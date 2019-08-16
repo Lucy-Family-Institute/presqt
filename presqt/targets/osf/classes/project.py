@@ -1,8 +1,11 @@
+import json
+
 from rest_framework import status
 
 from presqt.targets.osf.classes.base import OSFBase
 from presqt.targets.osf.classes.storage_folder import Storage
 from presqt.targets.osf.exceptions import OSFNotFoundError
+from presqt.utilities import write_file
 
 
 class Project(OSFBase):
@@ -43,6 +46,10 @@ class Project(OSFBase):
         self.size = None
         self.sha256 = None
         self.md5 = None
+        try:
+            self.parent_node = project['relationships']['parent']['data']['id']
+        except KeyError:
+            self.parent_node = None
 
     def storages(self):
         """

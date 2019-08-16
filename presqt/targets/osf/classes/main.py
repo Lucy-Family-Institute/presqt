@@ -4,7 +4,7 @@ import requests
 from rest_framework import status
 
 from presqt.utilities import (PresQTResponseException, PresQTInvalidTokenError,
-                              get_dictionary_from_list)
+                              get_dictionary_from_list, list_differences)
 from presqt.targets.osf.classes.base import OSFBase
 from presqt.targets.osf.classes.file import File
 from presqt.targets.osf.classes.project import Project
@@ -77,11 +77,23 @@ class OSF(OSFBase):
 
     def projects(self):
         """
-        Fetch all projects for this user.
+        Fetch all top level projects for this user.
         """
         url = self.session.build_url('users', 'me', 'nodes')
         response_data = self._follow_next(url)
-        return [Project({'data': project_json}, self.session) for project_json in response_data]
+
+        projects = [Project({'data': project_json}, self.session) for project_json in response_data]
+
+        project_ids = [project.id for project in projects]
+        top_level_project_ids = [project.parent_node for project in projects]
+        unique_project_ids = list(set(list_differences(top_level_project_ids, project_ids)))
+
+        # projects = [Project({'data': project_json}, self.session) for project_json in response_data]
+        # project_ids = [project.id for project in projects]
+        # top_level_project_ids = [project.parent_node for project in projects]
+        # unique_project_ids = list(set(list_differences(top_level_project_ids, project_ids)))
+
+        return [project for project in projects if project.parent_node in unique_project_ids]
 
     def get_user_resources(self):
         """
@@ -102,6 +114,8 @@ class OSF(OSFBase):
                 'container': None,
                 'title': project.title
             })
+
+            # Get sub projects
 
             for storage in project.storages():
                 resources.append({
