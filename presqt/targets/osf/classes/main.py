@@ -1,6 +1,10 @@
+import fnmatch
 import json
-
+import re
 import requests
+
+from natsort import natsorted
+
 from rest_framework import status
 
 from presqt.utilities import (PresQTResponseException, PresQTInvalidTokenError,
@@ -17,6 +21,7 @@ class OSF(OSFBase):
     This is the main point of contact for interactions with the OSF.
     Use the methods of this class to find projects, login to the OSF, etc.
     """
+
     def __init__(self, token):
         super(OSF, self).__init__({})
         self.login(token)
@@ -36,7 +41,8 @@ class OSF(OSFBase):
         response = requests.get('https://api.osf.io/v2/users/me/',
                                 headers={'Authorization': 'Bearer {}'.format(token)})
         if response.status_code == 401:
-            raise PresQTInvalidTokenError("Token is invalid. Response returned a 401 status code.")
+            raise PresQTInvalidTokenError(
+                "Token is invalid. Response returned a 401 status code.")
 
     def project(self, project_id):
         """
@@ -130,7 +136,8 @@ class OSF(OSFBase):
                 # Calculate the given resource's container_id
                 parent_project_id = resource['data'][0]["relationships"]['node']['data']["id"]
                 parent_provider = resource['data'][0]['attributes']['provider']
-                container_id = '{}:{}'.format(parent_project_id, parent_provider)
+                container_id = '{}:{}'.format(
+                    parent_project_id, parent_provider)
 
                 self.get_resources_objects(resource, resources, container_id)
         return resources
@@ -177,8 +184,8 @@ class OSF(OSFBase):
 
                 # Keep track of all folders' file urls that need to be called.
                 folder_data.append({'url': folder._files_url,
-                                     'id': folder.id,
-                                     'path': folder.materialized_path})
+                                    'id': folder.id,
+                                    'path': folder.materialized_path})
 
         # Asynchronously call all folder file urls to get the folder's top level resources.
         folder_urls = [folder_dict['url'] for folder_dict in folder_data]
@@ -192,16 +199,38 @@ class OSF(OSFBase):
         # For each resource, get it's container_id and resources
         for folder_resource in folder_resources:
             resource_attr = folder_resource['data'][0]['attributes']
-            parent_path = resource_attr['materialized_path'][:-len(resource_attr['name'])]
+            parent_path = resource_attr['materialized_path'][:-
+                                                             len(resource_attr['name'])]
             # Find the corresponding parent_path in the folder_data list of dictionaries so we
             # can get the container id for this resource.
-            container_id = get_dictionary_from_list(folder_data, 'path', parent_path)['id']
-            self.get_resources_objects(folder_resource, resources, container_id)
+            container_id = get_dictionary_from_list(
+                folder_data, 'path', parent_path)['id']
+            self.get_resources_objects(
+                folder_resource, resources, container_id)
 
     def create_project(self, title):
         """-
         Create a project for this user.
         """
+        titles = []
+        # Check that a project with this title doesn't already exist
+        for project in self.projects():
+            titles.append(project.title)
+        # Check for an exact match and all potential duplicates
+        exact_match = [entry for entry in titles if entry == title]
+        duplicate_titles = [duplicate for duplicate in titles if duplicate.startswith(title)]
+        # Find only matches to the formatting that's expected in our duplicate list
+        duplicate_project_pattern = "{} (PresQT*)".format(title)
+        duplicate_project_list = fnmatch.filter(duplicate_titles, duplicate_project_pattern)
+
+        if exact_match and not duplicate_project_list:
+            title = "{} (PresQT1)".format(title)
+
+        elif exact_match and duplicate_project_list:
+            highest_duplicate_project = natsorted(duplicate_project_list)
+            highest_number = int(re.findall(r'\d+', highest_duplicate_project[-1])[0])
+            title = "{} (PresQT{})".format(title, str(highest_number+1))
+
         project_payload = {
             "data": {
                 "type": "nodes",
