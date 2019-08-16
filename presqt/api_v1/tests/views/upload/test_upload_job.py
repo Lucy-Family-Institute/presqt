@@ -112,6 +112,12 @@ class TestUploadJob(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['message'], 'Upload successful')
 
+        response = requests.get('http://api.osf.io/v2/users/me/nodes', headers=self.headers).json()
+        expected_titles = ['NewProject', 'NewProject (PresQT1)', 'NewProject (PresQT2)']
+        titles = [node['attributes']['title'] for node in response]
+
+        self.assertItemsEqual(sorted(expected_titles), sorted(titles))
+
         # Delete corresponding folder
         shutil.rmtree('mediafiles/uploads/{}'.format(ticket_one))
         shutil.rmtree('mediafiles/uploads/{}'.format(ticket_two))
