@@ -9,6 +9,7 @@ from rest_framework.test import APIClient
 
 from config.settings.base import UPLOAD_TEST_USER_TOKEN
 from presqt.utilities import read_file, write_file
+from presqt.targets.osf.utilities import delete_users_projects
 
 
 class TestUploadJob(TestCase):
@@ -18,7 +19,14 @@ class TestUploadJob(TestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': UPLOAD_TEST_USER_TOKEN, 'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+        self.token = UPLOAD_TEST_USER_TOKEN
+        self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token, 'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+
+    def tearDown(self):
+        """
+        This should run at the end of this test class
+        """
+        delete_users_projects(self.token)
 
     def call_upload_resources(self):
         """
@@ -51,16 +59,6 @@ class TestUploadJob(TestCase):
         self.assertNotEqual(process_info['status'], 'in_progress')
 
     @staticmethod
-    def delete_osf_project(project_name):
-        """
-        Find an OSF project by name and delete it.
-        """
-        headers = {'Authorization': 'Bearer {}'.format(UPLOAD_TEST_USER_TOKEN)}
-        for node in requests.get('http://api.osf.io/v2/users/me/nodes', headers=headers).json()['data']:
-            if node['attributes']['title'] == project_name:
-                requests.delete('http://api.osf.io/v2/nodes/{}'.format(node['id']), headers=headers)
-
-    @staticmethod
     def process_wait(process_info, ticket_path):
         # Wait until the spawned off process finishes in the background to do further validation
         while process_info['status'] == 'in_progress':
@@ -70,6 +68,62 @@ class TestUploadJob(TestCase):
                 # Pass while the process_info file is being written to
                 pass
 
+    def test_get_success_multiple_duplicate_projects_osf(self):
+        """
+        Return a 200 if the GET was successful and the resources were uploaded.
+        Ensure proper naming conventions of duplicate projects
+        """
+        # First Project
+        self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
+        self.call_upload_resources()
+
+        url = reverse('upload_job', kwargs={'ticket_number': self.ticket_number})
+        response = self.client.get(url, **self.headers)
+        ticket_one = self.ticket_number
+        # Verify the status code and data
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['message'], 'Upload successful')
+        self.assertEqual(response.data['failed_fixity'], [])
+        self.assertEqual(response.data['duplicate_files_ignored'], [])
+        self.assertEqual(response.data['duplicate_files_updated'], [])
+
+        # Second Project
+        self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
+        self.call_upload_resources()
+
+        url = reverse('upload_job', kwargs={'ticket_number': self.ticket_number})
+        response = self.client.get(url, **self.headers)
+        ticket_two = self.ticket_number
+        # Verify the status code and data
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['message'], 'Upload successful')
+        
+        # Third Project
+        self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
+        self.call_upload_resources()
+
+        url = reverse('upload_job', kwargs={'ticket_number': self.ticket_number})
+        response = self.client.get(url, **self.headers)
+        ticket_three = self.ticket_number
+        # Verify the status code and data
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['message'], 'Upload successful')
+
+        response = requests.get('http://api.osf.io/v2/users/me/nodes', 
+                                headers={'Authorization': 'Bearer {}'.format(self.token)}).json()
+        expected_titles = ['NewProject', 'NewProject (PresQT1)', 'NewProject (PresQT2)']
+        titles = [node['attributes']['title'] for node in response['data']]
+
+        self.assertEqual(sorted(expected_titles), sorted(titles))
+
+        # Delete corresponding folder
+        shutil.rmtree('mediafiles/uploads/{}'.format(ticket_one))
+        shutil.rmtree('mediafiles/uploads/{}'.format(ticket_two))
+        shutil.rmtree('mediafiles/uploads/{}'.format(ticket_three))
+    
     def test_get_success_osf(self):
         """
         Return a 200 if the GET was successful and the resources were uploaded.
@@ -87,9 +141,6 @@ class TestUploadJob(TestCase):
         self.assertEqual(response.data['failed_fixity'], [])
         self.assertEqual(response.data['duplicate_files_ignored'], [])
         self.assertEqual(response.data['duplicate_files_updated'], [])
-
-        # Delete the newly created project in OSF
-        self.delete_osf_project('NewProject')
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
@@ -113,9 +164,6 @@ class TestUploadJob(TestCase):
         self.assertEqual(response.data, {'message': 'Upload is being processed on the server',
                                          'status_code': None})
 
-        # Delete the newly created project in OSF
-        self.delete_osf_project('NewProject')
-
         # Delete corresponding folder
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
 
@@ -135,9 +183,6 @@ class TestUploadJob(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['error'],
                          "'presqt-destination-token' missing in the request headers.")
-
-        # Delete the newly created project in OSF
-        self.delete_osf_project('NewProject')
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
@@ -160,9 +205,6 @@ class TestUploadJob(TestCase):
         self.assertEqual(response.data['error'],
                          "Header 'presqt-destination-token' does not match the 'presqt-destination-token' for this server process.")
 
-        # Delete the newly created project in OSF
-        self.delete_osf_project('NewProject')
-
         # Delete corresponding folder
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
 
@@ -180,9 +222,6 @@ class TestUploadJob(TestCase):
         # Verify the status code and content
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.data['error'], "Invalid ticket number, 'bad_ticket'.")
-
-        # Delete the newly created project in OSF
-        self.delete_osf_project('NewProject')
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
@@ -237,9 +276,6 @@ class TestUploadJob(TestCase):
         self.assertEqual(response.status_code, 500)
         self.assertEqual(response.data,
                          {'message': "The Resource provided, {}, is not a container".format(file_id),'status_code': 400})
-
-        # Delete the newly created project in OSF
-        self.delete_osf_project('NewProject')
 
         # Delete corresponding folders
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
@@ -330,9 +366,6 @@ class TestUploadJob(TestCase):
                          {'message': "Response has status code 500 while creating project NewProject",
                           'status_code': 400})
 
-        # Delete the project
-        self.delete_osf_project('NewProject')
-
         # Delete corresponding folders
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
 
@@ -363,9 +396,6 @@ class TestUploadJob(TestCase):
         self.assertEqual(response.data,
                          {'message': "Response has status code 500 while creating folder funnyfunnyimages",
                           'status_code': 400})
-
-        # Delete the project
-        self.delete_osf_project('NewProject')
 
         # Delete corresponding folders
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
@@ -399,9 +429,6 @@ class TestUploadJob(TestCase):
             self.assertEqual(response.data,
                              {'message': "Response has status code 500 while creating file Screen Shot 2019-07-15 at 3.51.13 PM.png",
                               'status_code': 400})
-
-            # Delete the project
-            self.delete_osf_project('NewProject')
 
             # Delete corresponding folders
             shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
@@ -452,9 +479,6 @@ class TestUploadJob(TestCase):
                          {'message': "Response has status code 500 while updating file Screen Shot 2019-07-15 at 3.51.13 PM.png",
                              'status_code': 400})
 
-        # Delete the project
-        self.delete_osf_project('NewProject')
-
         # Delete corresponding folders
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
 
@@ -475,9 +499,6 @@ class TestUploadJob(TestCase):
                          {'message': "Project is not formatted correctly. Multiple directories exist at the top level.",
                           'status_code': 400})
 
-        # Delete the project
-        self.delete_osf_project('NewProject')
-
         # Delete corresponding folders
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
 
@@ -497,9 +518,6 @@ class TestUploadJob(TestCase):
         self.assertEqual(response.data,
                          {'message': "Project is not formatted correctly. Files exist at the top level.",
                           'status_code': 400})
-
-        # Delete the project
-        self.delete_osf_project('NewProject')
 
         # Delete corresponding folders
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))

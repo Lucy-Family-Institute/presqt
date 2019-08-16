@@ -1,6 +1,10 @@
+import fnmatch
 import json
-
+import re
 import requests
+
+from natsort import natsorted
+
 from rest_framework import status
 
 from presqt.utilities import (PresQTResponseException, PresQTInvalidTokenError,
@@ -17,6 +21,7 @@ class OSF(OSFBase):
     This is the main point of contact for interactions with the OSF.
     Use the methods of this class to find projects, login to the OSF, etc.
     """
+
     def __init__(self, token):
         super(OSF, self).__init__({})
         self.login(token)
@@ -177,8 +182,8 @@ class OSF(OSFBase):
 
                 # Keep track of all folders' file urls that need to be called.
                 folder_data.append({'url': folder._files_url,
-                                     'id': folder.id,
-                                     'path': folder.materialized_path})
+                                    'id': folder.id,
+                                    'path': folder.materialized_path})
 
         # Asynchronously call all folder file urls to get the folder's top level resources.
         folder_urls = [folder_dict['url'] for folder_dict in folder_data]
@@ -202,6 +207,27 @@ class OSF(OSFBase):
         """-
         Create a project for this user.
         """
+        titles = []
+        # Check that a project with this title doesn't already exist
+        for project in self.projects():
+            titles.append(project.title)
+        # Check for an exact match
+        exact_match = title in titles
+        # Find only matches to the formatting that's expected in our title list
+        duplicate_project_pattern = "{} (PresQT*)".format(title)
+        duplicate_project_list = fnmatch.filter(titles, duplicate_project_pattern)
+
+        if exact_match and not duplicate_project_list:
+            title = "{} (PresQT1)".format(title)
+
+        elif duplicate_project_list:
+            highest_duplicate_project = natsorted(duplicate_project_list)
+            # findall takes a regular expression and a string, here we pass it the last number in
+            # highest duplicate project, and it is returned as a list. int requires a string as an 
+            # argument, so the [0] is grabbing the only number in the list and converting it.
+            highest_number = int(re.findall(r'\d+', highest_duplicate_project[-1])[0])
+            title = "{} (PresQT{})".format(title, highest_number+1)
+
         project_payload = {
             "data": {
                 "type": "nodes",
