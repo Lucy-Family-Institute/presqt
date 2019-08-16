@@ -73,6 +73,58 @@ class TestUploadJob(TestCase):
     def test_get_success_osf(self):
         """
         Return a 200 if the GET was successful and the resources were uploaded.
+        Ensure proper naming conventions of duplicate projects
+        """
+        # First Project
+        self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
+        self.call_upload_resources()
+
+        url = reverse('upload_job', kwargs={'ticket_number': self.ticket_number})
+        response = self.client.get(url, **self.headers)
+        ticket_one = self.ticket_number
+        # Verify the status code and data
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['message'], 'Upload successful')
+        self.assertEqual(response.data['failed_fixity'], [])
+        self.assertEqual(response.data['duplicate_files_ignored'], [])
+        self.assertEqual(response.data['duplicate_files_updated'], [])
+
+        # Second Project
+        self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
+        self.call_upload_resources()
+
+        url = reverse('upload_job', kwargs={'ticket_number': self.ticket_number})
+        response = self.client.get(url, **self.headers)
+        ticket_two = self.ticket_number
+        # Verify the status code and data
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['message'], 'Upload successful')
+        
+        # Third Project
+        self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
+        self.call_upload_resources()
+
+        url = reverse('upload_job', kwargs={'ticket_number': self.ticket_number})
+        response = self.client.get(url, **self.headers)
+        ticket_three = self.ticket_number
+        # Verify the status code and data
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['message'], 'Upload successful')
+        # Delete the newly created projects in OSF
+        self.delete_osf_project('NewProject')
+        self.delete_osf_project('NewProject (PresQT1)')
+        self.delete_osf_project('NewProject (PresQT2)')
+        # # Delete corresponding folder
+        shutil.rmtree('mediafiles/uploads/{}'.format(ticket_one))
+        shutil.rmtree('mediafiles/uploads/{}'.format(ticket_two))
+        shutil.rmtree('mediafiles/uploads/{}'.format(ticket_three))
+    
+    def test_get_success_multiple_duplicate_projects_osf(self):
+        """
+        Return a 200 if the GET was successful and the resources were uploaded.
         """
         self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
         self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
