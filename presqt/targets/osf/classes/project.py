@@ -16,7 +16,6 @@ class Project(OSFBase):
         super(Project, self).__init__(project, session)
 
         # Add attributes to the class based on the JSON provided in the API call
-        project = project['data']
         self.id = project['id']
         # Links
         self._endpoint = project['links']['self']
@@ -47,9 +46,10 @@ class Project(OSFBase):
         self.sha256 = None
         self.md5 = None
         try:
-            self.parent_node = project['relationships']['parent']['data']['id']
+            self.parent_node_id = project['relationships']['parent']['data']['id']
         except KeyError:
-            self.parent_node = None
+            self.parent_node_id = None
+        self.children_link = project['relationships']['children']['links']['related']['href']
 
     def storages(self):
         """
@@ -84,3 +84,24 @@ class Project(OSFBase):
         for storage in self.storages():
             [files.append(file) for file in storage.get_all_files()]
         return files
+
+    def get_sub_projects(self):
+        """
+        Get a project's sub-projects
+
+        Parameters
+        ----------
+        project: Project class
+            Instance of the project class we want to get sub projects for
+
+        Returns
+        -------
+        List of Project classes
+        """
+        children_json = self._follow_next(self.children_link)
+
+        children_projects = []
+        for child in children_json:
+            children_projects.append(Project(child, self.session))
+
+        return children_projects

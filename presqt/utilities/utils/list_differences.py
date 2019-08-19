@@ -13,4 +13,4 @@ def list_differences(list_one, list_two):
     A list of differences between the two given lists.
     """
 
-    return [entry for entry in list_one if entry not in list_two]
+    return list(set([entry for entry in list_one if entry not in list_two]))

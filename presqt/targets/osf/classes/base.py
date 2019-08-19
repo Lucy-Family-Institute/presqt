@@ -110,6 +110,7 @@ class OSFBase(object):
         -------
         Response JSON
         """
+        print('async: ', url)
         async with session.get(url, headers=self.session.headers) as response:
             assert response.status == 200
             return await response.json()
@@ -129,6 +130,7 @@ class OSFBase(object):
         -------
         List of data brought back from each coroutine called.
         """
+        print('**********')
         async with aiohttp.ClientSession() as session:
             return await asyncio.gather(*[self.async_get(url, session) for url in url_list])
 
@@ -145,6 +147,7 @@ class OSFBase(object):
         -------
         HTTP Response object
         """
+        print('get: ', url)
         response = self.session.get(url, *args, **kwargs)
         if response.status_code == 200:
             return response

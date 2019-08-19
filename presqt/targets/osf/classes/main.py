@@ -8,11 +8,11 @@ from natsort import natsorted
 from rest_framework import status
 
 from presqt.utilities import (PresQTResponseException, PresQTInvalidTokenError,
-                              get_dictionary_from_list, list_differences)
+                              get_dictionary_from_list, list_differences, write_file)
 from presqt.targets.osf.classes.base import OSFBase
 from presqt.targets.osf.classes.file import File
 from presqt.targets.osf.classes.project import Project
-from presqt.targets.osf.classes.storage_folder import Folder
+from presqt.targets.osf.classes.storage_folder import Folder, Storage
 
 
 class OSF(OSFBase):
@@ -85,54 +85,84 @@ class OSF(OSFBase):
         Fetch all top level projects for this user.
         """
         url = self.session.build_url('users', 'me', 'nodes')
-        response_data = self._follow_next(url)
 
-        projects = [Project({'data': project_json}, self.session) for project_json in response_data]
+        projects = []
+        project_ids = []
+        parent_project_ids = []
+        for project_json in self._follow_next(url):
+            project = Project(project_json, self.session)
+            projects.append(project)
+            project_ids.append(project.id)
+            parent_project_ids.append(project.parent_node_id)
 
-        project_ids = [project.id for project in projects]
-        top_level_project_ids = [project.parent_node for project in projects]
-        unique_project_ids = list(set(list_differences(top_level_project_ids, project_ids)))
-
-        # projects = [Project({'data': project_json}, self.session) for project_json in response_data]
-        # project_ids = [project.id for project in projects]
-        # top_level_project_ids = [project.parent_node for project in projects]
-        # unique_project_ids = list(set(list_differences(top_level_project_ids, project_ids)))
-
-        return [project for project in projects if project.parent_node in unique_project_ids]
+        unique_project_ids = list_differences(parent_project_ids, project_ids)
+        return [project for project in projects if project.parent_node_id in unique_project_ids]
 
     def get_user_resources(self):
-        """
-        Get all of the user's resources. Return in the structure expected for the PresQT API.
-
-        Returns
-        -------
-        List of all resources.
-        """
         resources = []
-        user_storages = []
+        all_projects = self.projects()
+        self.get_project_hierarchy(all_projects, all_projects, resources)
+        self.get_project_storages(all_projects, resources)
+        return resources
 
-        for project in self.projects():
+    def get_project_hierarchy(self, all_projects, projects, resources):
+        children_links = []
+
+        # It's possible for a project to be a subproject while the user does not have access to the
+        # parent project. Check if the current project has a parent project owned by the user.
+        for project in projects:
+            for proj in all_projects:
+                if proj.id == project.parent_node_id:
+                    container_id = proj.id
+                    break
+            else:
+                container_id = None
+
+            # Add the project to the resource list
             resources.append({
                 'kind': 'container',
                 'kind_name': 'project',
                 'id': project.id,
-                'container': None,
+                'container': container_id,
                 'title': project.title
             })
+            children_links.append(project.children_link)
 
-            # Get sub projects
+        children_data = self.run_urls_async(children_links)
+        get_children_next = self._get_follow_next_urls(children_data)
+        children_data.extend(self.run_urls_async(get_children_next))
 
-            for storage in project.storages():
-                resources.append({
-                    'kind': 'container',
-                    'kind_name': 'storage',
-                    'id': storage.id,
-                    'container': project.id,
-                    'title': storage.title
-                })
+        children_projects = []
+        for child_data in children_data:
+            for child in child_data['data']:
+                project_obj = Project(child, self.session)
+                children_projects.append(project_obj)
+                all_projects.append(project_obj)
 
-                # Keep track of all storage file urls that need to be called.
-                user_storages.append(storage._files_url)
+        if children_projects:
+            self.get_project_hierarchy(all_projects, children_projects, resources)
+
+    def get_project_storages(self, projects, resources):
+        user_storages = []
+        storages_urls = [project._storages_url for project in projects]
+        storages = self.run_urls_async((storages_urls))
+        children_urls = self._get_follow_next_urls(storages)
+        storages.extend(self.run_urls_async(children_urls))
+        storage_objs = []
+        for proj_storage in storages:
+            for storage in proj_storage['data']:
+                storage_objs.append(Storage(storage, self.session))
+
+        for storage in storage_objs:
+            resources.append({
+                'kind': 'container',
+                'kind_name': 'storage',
+                'id': storage.id,
+                'container': storage.node,
+                'title': storage.title
+            })
+            # Keep track of all storage file urls that need to be called.
+            user_storages.append(storage._files_url)
 
         # Asynchronously call all storage file urls to get the storage's top level resources.
         storage_data = self.run_urls_async(user_storages)
@@ -155,19 +185,6 @@ class OSF(OSFBase):
         return resources
 
     def get_resources_objects(self, resource, resources, container_id):
-        """
-        Get all resources for this container.
-        This exists so we can get all resources in the structure we want for our API payloads.
-
-        Parameters
-        ----------
-        resource: dict
-            The resource who's inner resources we want to get.
-        resources: list
-            Main list of resources to append each inner resource to. Essentially the API payload.
-        container_id: str
-            The container ID the resources belong to.
-        """
         folder_data = []
         for data in resource['data']:
             kind = data['attributes']['kind']
