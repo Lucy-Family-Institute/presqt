@@ -17,6 +17,7 @@ class TargetsSerializer(serializers.Serializer):
     Serializer for multiple Target objects.
     """
     name = serializers.CharField(max_length=256)
+    readable_name = serializers.CharField(max_length=256)
     supported_actions = SupportedActions()
     supported_hash_algorithms = serializers.StringRelatedField(many=True)
     links = serializers.SerializerMethodField()
@@ -44,6 +45,7 @@ class TargetSerializer(serializers.Serializer):
     Serializer for a Target object.
     """
     name = serializers.CharField(max_length=256)
+    readable_name = serializers.CharField(max_length=256)
     supported_actions = SupportedActions()
     supported_hash_algorithms = serializers.StringRelatedField(many=True)
     links = serializers.SerializerMethodField()

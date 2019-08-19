@@ -10,6 +10,7 @@ from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 
 from presqt.api_v1.utilities import (target_validation, get_destination_token,
@@ -190,9 +191,13 @@ class BaseResource(APIView):
                                                   process_state])
         watch_dog.start()
 
+        reversed_url = reverse('upload_job', kwargs={'ticket_number': ticket_number})
+        upload_hyperlink = request.build_absolute_uri(reversed_url)
+
         return Response(status=status.HTTP_202_ACCEPTED,
                         data={'ticket_number': ticket_number,
-                              'message': 'The server is processing the request.'})
+                              'message': 'The server is processing the request.',
+                              'upload_job': upload_hyperlink})
 
     @staticmethod
     def _upload_resource(resource_main_dir, process_info_path, target_name, action, token,

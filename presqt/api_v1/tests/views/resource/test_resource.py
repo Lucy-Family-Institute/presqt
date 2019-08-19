@@ -20,6 +20,7 @@ from presqt.utilities import remove_path_contents
 from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
 from presqt.api_v1.views.resource.base_resource import BaseResource
 from presqt.api_v1.views.resource.resource import Resource
+from presqt.targets.osf.utilities import delete_users_projects
 
 
 class TestResourceGET(TestCase):
@@ -782,8 +783,15 @@ class TestResourcePOST(TestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': UPLOAD_TEST_USER_TOKEN, 'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+        self.token = UPLOAD_TEST_USER_TOKEN
+        self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token, 'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
         self.good_zip_file = 'presqt/api_v1/tests/resources/upload/GoodBagIt.zip'
+    
+    def tearDown(self):
+        """
+        This should run at the end of this test class
+        """
+        delete_users_projects(self.token)
 
     @staticmethod
     def process_wait(process_info, ticket_path):
@@ -914,9 +922,6 @@ class TestResourcePOST(TestCase):
         # delete upload folder
         shutil.rmtree(self.ticket_path)
 
-        # Delete project from OSF
-        requests.delete('http://api.osf.io/v2/nodes/{}'.format(node_id), headers=headers)
-
     def test_post_success_202_upload_fixity_failed_osf(self):
         """
         Get a 202 if POST succeeds but with fixity errors.
@@ -955,12 +960,6 @@ class TestResourcePOST(TestCase):
             process_info = read_file(process_info_path, True)
             self.assertEqual(process_info['message'], 'Upload successful but fixity failed.')
             self.assertEqual(process_info['failed_fixity'], ['data/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png'])
-
-            # Delete the projects that were created
-            headers = {'Authorization': 'Bearer {}'.format(UPLOAD_TEST_USER_TOKEN)}
-            for node in requests.get('http://api.osf.io/v2/users/me/nodes', headers=headers).json()['data']:
-                if node['attributes']['title'] == 'NewProject':
-                    requests.delete('http://api.osf.io/v2/nodes/{}'.format(node['id']), headers=headers)
 
             # Delete corresponding folder
             shutil.rmtree('mediafiles/uploads/{}'.format(ticket_number))
@@ -1031,9 +1030,6 @@ class TestResourcePOST(TestCase):
 
         # delete upload folder
         shutil.rmtree(ticket_path)
-
-        # Delete project from OSF
-        requests.delete('http://api.osf.io/v2/nodes/{}'.format(node_id), headers=headers)
 
     def test_get_error_400_target_not_supported_test_target(self):
         """

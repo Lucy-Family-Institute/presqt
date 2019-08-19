@@ -32,7 +32,6 @@ async def async_get(url, session, token):
         content =  await response.read()
         return {'url': url, 'binary_content': content}
 
-
 async def async_main(url_list, token):
     """
     Main coroutine method that will gather the url calls to be made and will make them
