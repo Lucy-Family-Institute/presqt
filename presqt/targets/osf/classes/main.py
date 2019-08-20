@@ -213,7 +213,7 @@ class OSF(OSFBase):
         Create a project for this user.
         """
         titles = []
-        # Check that a project with this title doesn't already exist
+        # Loop through projects and add titles to list
         for project in self.projects():
             titles.append(project.title)
         # Check for an exact match
@@ -228,7 +228,7 @@ class OSF(OSFBase):
         elif duplicate_project_list:
             highest_duplicate_project = natsorted(duplicate_project_list)
             # findall takes a regular expression and a string, here we pass it the last number in
-            # highest duplicate project, and it is returned as a list. int requires a string as an 
+            # highest duplicate project, and it is returned as a list. int requires a string as an
             # argument, so the [0] is grabbing the only number in the list and converting it.
             highest_number = int(re.findall(r'\d+', highest_duplicate_project[-1])[0])
             title = "{} (PresQT{})".format(title, highest_number+1)
