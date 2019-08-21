@@ -1,5 +1,5 @@
+from presqt.targets.osf.utilities import OSFNotFoundError
 from presqt.utilities import PresQTResponseException
-from presqt.targets.osf.exceptions import OSFNotFoundError
 
 
 def get_osf_resource(resource_id, osf_instance):

@@ -3,9 +3,9 @@ import asyncio
 import aiohttp
 from rest_framework import status
 
+from presqt.targets.osf.utilities import OSFForbiddenError, OSFNotFoundError
 from presqt.targets.utilities import get_page_total
 from presqt.utilities import PresQTResponseException
-from presqt.targets.osf.exceptions import OSFNotFoundError, OSFForbiddenError
 from presqt.targets.utilities.session import PresQTSession
 
 
@@ -94,6 +94,26 @@ class OSFBase(object):
         data = loop.run_until_complete(self.async_main(url_list))
         return data
 
+    def run_urls_async_with_pagination(self, url_list):
+        """
+        Open an async loop and begin async calls.
+        Also get all paginated pages and run them asynchronously.
+
+        Parameters
+        ----------
+        url_list: list
+            List of urls to call asynchronously.
+
+        Returns
+        -------
+        The data returned from the async call
+        """
+        async_data = self.run_urls_async(url_list)
+        async_next_data = self._get_follow_next_urls(async_data)
+        async_data.extend(self.run_urls_async(async_next_data))
+
+        return async_data
+
     async def async_get(self, url, session):
         """
         Coroutine that uses aiohttp to make a GET request. This is the method that will be called
@@ -110,7 +130,6 @@ class OSFBase(object):
         -------
         Response JSON
         """
-        print('async: ', url)
         async with session.get(url, headers=self.session.headers) as response:
             assert response.status == 200
             return await response.json()
@@ -130,7 +149,6 @@ class OSFBase(object):
         -------
         List of data brought back from each coroutine called.
         """
-        print('**********')
         async with aiohttp.ClientSession() as session:
             return await asyncio.gather(*[self.async_get(url, session) for url in url_list])
 
@@ -147,7 +165,6 @@ class OSFBase(object):
         -------
         HTTP Response object
         """
-        print('get: ', url)
         response = self.session.get(url, *args, **kwargs)
         if response.status_code == 200:
             return response

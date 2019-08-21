@@ -57,7 +57,7 @@ class OSF(OSFBase):
         Instance of the desired Project.
         """
         url = self.session.build_url('nodes', project_id)
-        return Project(self._json(self.get(url)), self.session)
+        return Project(self._json(self.get(url))['data'], self.session)
 
     def resource(self, resource_id):
         """
@@ -82,13 +82,17 @@ class OSF(OSFBase):
 
     def projects(self):
         """
-        Fetch all top level projects for this user.
+        Fetch all projects for this user. Returns both top level projects and the full list of
+        sub projects.
         """
         url = self.session.build_url('users', 'me', 'nodes')
 
         projects = []
         project_ids = []
         parent_project_ids = []
+        # Since a user can collaborate on a subproject without having access to the parent project,
+        # We need to get all top level projects who either have a parent_node of 'None' or whose
+        # parent_node id isn't in our list of projects.
         for project_json in self._follow_next(url):
             project = Project(project_json, self.session)
             projects.append(project)
@@ -96,21 +100,40 @@ class OSF(OSFBase):
             parent_project_ids.append(project.parent_node_id)
 
         unique_project_ids = list_differences(parent_project_ids, project_ids)
-        return [project for project in projects if project.parent_node_id in unique_project_ids]
+        top_level_projects = [project for project in projects if project.parent_node_id in unique_project_ids]
+        return projects, top_level_projects
 
     def get_user_resources(self):
         resources = []
-        all_projects = self.projects()
-        self.get_project_hierarchy(all_projects, all_projects, resources)
-        self.get_project_storages(all_projects, resources)
+
+        all_projects, top_level_projects = self.projects()
+
+        # Add all top level projects and subprojects to the resources list
+        self.iter_project_hierarchy(all_projects, top_level_projects, resources)
+
+        # Add all storages to the resource list
+        storage_resources = self.iter_project_storages(all_projects, resources)
+
+        # Loop through the storage resources to either add them to the main resources list or
+        # traverse further down the tree to get their children resources.
+        for resource in storage_resources:
+            if resource['data']:
+                # Calculate the given resource's container_id
+                parent_project_id = resource['data'][0]["relationships"]['node']['data']["id"]
+                parent_provider = resource['data'][0]['attributes']['provider']
+                container_id = '{}:{}'.format(parent_project_id, parent_provider)
+
+                self.iter_resources_objects(resource, resources, container_id)
+
         return resources
 
-    def get_project_hierarchy(self, all_projects, projects, resources):
-        children_links = []
+    def iter_project_hierarchy(self, all_projects, current_level_projects, resources):
+        # Keep track of every project's children links so we can call them asynchronously
+        child_projects_links = []
 
-        # It's possible for a project to be a subproject while the user does not have access to the
-        # parent project. Check if the current project has a parent project owned by the user.
-        for project in projects:
+        for project in current_level_projects:
+            # It's possible for a project to be a subproject while the user does not have access to the
+            # parent project. Check if the current project has a parent project owned by the user.
             for proj in all_projects:
                 if proj.id == project.parent_node_id:
                     container_id = proj.id
@@ -126,28 +149,27 @@ class OSF(OSFBase):
                 'container': container_id,
                 'title': project.title
             })
-            children_links.append(project.children_link)
+            child_projects_links.append(project.children_link)
 
-        children_data = self.run_urls_async(children_links)
-        get_children_next = self._get_follow_next_urls(children_data)
-        children_data.extend(self.run_urls_async(get_children_next))
+        # Asynchronously get data for all child projects
+        child_projects_data = self.run_urls_async_with_pagination(child_projects_links)
 
+        # Create Project class instances for child projects
         children_projects = []
-        for child_data in children_data:
+        for child_data in child_projects_data:
             for child in child_data['data']:
-                project_obj = Project(child, self.session)
-                children_projects.append(project_obj)
-                all_projects.append(project_obj)
+                children_projects.append(Project(child, self.session))
 
+        # recursively call the iter_project_hierarchy for all child projects
         if children_projects:
-            self.get_project_hierarchy(all_projects, children_projects, resources)
+            self.iter_project_hierarchy(all_projects, children_projects, resources)
 
-    def get_project_storages(self, projects, resources):
-        user_storages = []
-        storages_urls = [project._storages_url for project in projects]
-        storages = self.run_urls_async((storages_urls))
-        children_urls = self._get_follow_next_urls(storages)
-        storages.extend(self.run_urls_async(children_urls))
+    def iter_project_storages(self, projects, resources):
+        user_storages_links = []
+
+        # Asynchronously get storage data for all projects
+        storages = self.run_urls_async_with_pagination([project._storages_url for project in projects])
+
         storage_objs = []
         for proj_storage in storages:
             for storage in proj_storage['data']:
@@ -162,29 +184,11 @@ class OSF(OSFBase):
                 'title': storage.title
             })
             # Keep track of all storage file urls that need to be called.
-            user_storages.append(storage._files_url)
+            user_storages_links.append(storage._files_url)
 
-        # Asynchronously call all storage file urls to get the storage's top level resources.
-        storage_data = self.run_urls_async(user_storages)
+        return self.run_urls_async_with_pagination(user_storages_links)
 
-        # If a storage has more than 10 resources then they will be paginated. Get all paginated
-        # file urls and call them asynchronously.
-        children_urls = self._get_follow_next_urls(storage_data)
-        storage_data.extend(self.run_urls_async(children_urls))
-
-        # Loop through the storage resources to either add them to the main resources list or
-        # traverse further down the tree to get their children resources.
-        for resource in storage_data:
-            if resource['data']:
-                # Calculate the given resource's container_id
-                parent_project_id = resource['data'][0]["relationships"]['node']['data']["id"]
-                parent_provider = resource['data'][0]['attributes']['provider']
-                container_id = '{}:{}'.format(parent_project_id, parent_provider)
-
-                self.get_resources_objects(resource, resources, container_id)
-        return resources
-
-    def get_resources_objects(self, resource, resources, container_id):
+    def iter_resources_objects(self, resource, resources, container_id):
         folder_data = []
         for data in resource['data']:
             kind = data['attributes']['kind']
@@ -217,13 +221,7 @@ class OSF(OSFBase):
                                     'path': folder.materialized_path})
 
         # Asynchronously call all folder file urls to get the folder's top level resources.
-        folder_urls = [folder_dict['url'] for folder_dict in folder_data]
-        folder_resources = self.run_urls_async(folder_urls)
-
-        # If a folder has more than 10 resources then they will be paginated. Get all paginated
-        # file urls and call them asynchronously.
-        children_urls = self._get_follow_next_urls(folder_resources)
-        folder_resources.extend(self.run_urls_async(children_urls))
+        folder_resources = self.run_urls_async_with_pagination([folder_dict['url'] for folder_dict in folder_data])
 
         # For each resource, get it's container_id and resources
         for folder_resource in folder_resources:
@@ -232,7 +230,7 @@ class OSF(OSFBase):
             # Find the corresponding parent_path in the folder_data list of dictionaries so we
             # can get the container id for this resource.
             container_id = get_dictionary_from_list(folder_data, 'path', parent_path)['id']
-            self.get_resources_objects(folder_resource, resources, container_id)
+            self.iter_resources_objects(folder_resource, resources, container_id)
 
     def create_project(self, title):
         """-
@@ -240,7 +238,7 @@ class OSF(OSFBase):
         """
         titles = []
         # Check that a project with this title doesn't already exist
-        for project in self.projects():
+        for project in self.projects()[1]:
             titles.append(project.title)
         # Check for an exact match
         exact_match = title in titles
