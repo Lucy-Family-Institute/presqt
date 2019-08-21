@@ -21,7 +21,7 @@ def curate_nd_fetch_resources(token):
     try:
         curate_instance = CurateND(token)
     except PresQTInvalidTokenError:
-        raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
+        raise PresQTResponseException("Token is invalid. Response returned a 403 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
     resources = curate_instance.get_user_resources()

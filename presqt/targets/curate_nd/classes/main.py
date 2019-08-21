@@ -4,6 +4,7 @@ import requests
 from rest_framework import status
 
 from presqt.targets.curate_nd.classes.base import CurateNDBase
+from presqt.targets.curate_nd.classes.item import Item
 from presqt.utilities import (PresQTResponseException, PresQTInvalidTokenError,
                               get_dictionary_from_list)
 
@@ -50,3 +51,4 @@ class CurateND(CurateNDBase):
         Instance of the desired Item.
         """
         url = self.session.build_url(item_id)
+        return Item(self.__json(self.get(url), self.session))
