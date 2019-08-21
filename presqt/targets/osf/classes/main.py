@@ -104,6 +104,10 @@ class OSF(OSFBase):
         return projects, top_level_projects
 
     def get_user_resources(self):
+        """
+        Get all of the user's resources. To batch calls together asynchronously we will group calls
+        together by projects, then storages, then each storage's resources.
+        """
         resources = []
 
         all_projects, top_level_projects = self.projects()
@@ -128,9 +132,13 @@ class OSF(OSFBase):
         return resources
 
     def iter_project_hierarchy(self, all_projects, current_level_projects, resources):
+        """
+        Recursive function to add project data to the resources list.
+        """
         # Keep track of every project's children links so we can call them asynchronously
         child_projects_links = []
 
+        # Add each project to the resource list
         for project in current_level_projects:
             # It's possible for a project to be a subproject while the user does not have access to the
             # parent project. Check if the current project has a parent project owned by the user.
@@ -141,7 +149,6 @@ class OSF(OSFBase):
             else:
                 container_id = None
 
-            # Add the project to the resource list
             resources.append({
                 'kind': 'container',
                 'kind_name': 'project',
@@ -165,30 +172,34 @@ class OSF(OSFBase):
             self.iter_project_hierarchy(all_projects, children_projects, resources)
 
     def iter_project_storages(self, projects, resources):
+        """
+        Recursive function to add storage data to the resources list.
+        """
+        # Keep track of all storage file urls that need to be called.
         user_storages_links = []
 
         # Asynchronously get storage data for all projects
         storages = self.run_urls_async_with_pagination([project._storages_url for project in projects])
 
+        # Add each storage to the resource list
         storage_objs = []
         for proj_storage in storages:
             for storage in proj_storage['data']:
-                storage_objs.append(Storage(storage, self.session))
-
-        for storage in storage_objs:
-            resources.append({
-                'kind': 'container',
-                'kind_name': 'storage',
-                'id': storage.id,
-                'container': storage.node,
-                'title': storage.title
-            })
-            # Keep track of all storage file urls that need to be called.
-            user_storages_links.append(storage._files_url)
-
+                storage_obj = Storage(storage, self.session)
+                resources.append({
+                    'kind': 'container',
+                    'kind_name': 'storage',
+                    'id': storage_obj.id,
+                    'container': storage_obj.node,
+                    'title': storage_obj.title
+                })
+                user_storages_links.append(storage_obj._files_url)
         return self.run_urls_async_with_pagination(user_storages_links)
 
     def iter_resources_objects(self, resource, resources, container_id):
+        """
+        Recursive function to add resource data to the resources list.
+        """
         folder_data = []
         for data in resource['data']:
             kind = data['attributes']['kind']
