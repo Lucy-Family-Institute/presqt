@@ -3,10 +3,10 @@ import asyncio
 import aiohttp
 from rest_framework import status
 
+from presqt.targets.osf.utilities import get_osf_resource
 from presqt.utilities import (PresQTResponseException, PresQTInvalidTokenError,
                               get_dictionary_from_list)
 from presqt.targets.osf.classes.main import OSF
-from presqt.targets.osf.helpers import get_osf_resource
 
 
 async def async_get(url, session, token):

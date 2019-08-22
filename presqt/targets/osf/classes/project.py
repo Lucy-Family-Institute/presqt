@@ -2,7 +2,7 @@ from rest_framework import status
 
 from presqt.targets.osf.classes.base import OSFBase
 from presqt.targets.osf.classes.storage_folder import Storage
-from presqt.targets.osf.exceptions import OSFNotFoundError
+from presqt.targets.osf.utilities import OSFNotFoundError
 
 
 class Project(OSFBase):
@@ -13,7 +13,6 @@ class Project(OSFBase):
         super(Project, self).__init__(project, session)
 
         # Add attributes to the class based on the JSON provided in the API call
-        project = project['data']
         self.id = project['id']
         # Links
         self._endpoint = project['links']['self']
@@ -43,6 +42,11 @@ class Project(OSFBase):
         self.size = None
         self.sha256 = None
         self.md5 = None
+        try:
+            self.parent_node_id = project['relationships']['parent']['data']['id']
+        except KeyError:
+            self.parent_node_id = None
+        self.children_link = project['relationships']['children']['links']['related']['href']
 
     def storages(self):
         """
