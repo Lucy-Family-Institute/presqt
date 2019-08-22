@@ -81,24 +81,3 @@ class Project(OSFBase):
         for storage in self.storages():
             [files.append(file) for file in storage.get_all_files()]
         return files
-
-    def get_sub_projects(self):
-        """
-        Get a project's sub-projects
-
-        Parameters
-        ----------
-        project: Project class
-            Instance of the project class we want to get sub projects for
-
-        Returns
-        -------
-        List of Project classes
-        """
-        children_json = self._follow_next(self.children_link)
-
-        children_projects = []
-        for child in children_json:
-            children_projects.append(Project(child, self.session))
-
-        return children_projects

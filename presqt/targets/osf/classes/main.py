@@ -116,18 +116,20 @@ class OSF(OSFBase):
         self.iter_project_hierarchy(all_projects, top_level_projects, resources)
 
         # Add all storages to the resource list
-        storage_resources = self.iter_project_storages(all_projects, resources)
+        user_storages_links = self.iter_project_storages(all_projects, resources)
 
+        # Get initial resources for all storages
+        all_storages_resources = self.run_urls_async_with_pagination(user_storages_links)
         # Loop through the storage resources to either add them to the main resources list or
         # traverse further down the tree to get their children resources.
-        for resource in storage_resources:
-            if resource['data']:
+        for storage_resources in all_storages_resources:
+            if storage_resources['data']:
                 # Calculate the given resource's container_id
-                parent_project_id = resource['data'][0]["relationships"]['node']['data']["id"]
-                parent_provider = resource['data'][0]['attributes']['provider']
-                container_id = '{}:{}'.format(parent_project_id, parent_provider)
+                parent_project_id = storage_resources['data'][0]['relationships']['node']['data']['id']
+                parent_storage = storage_resources['data'][0]['attributes']['provider']
+                container_id = '{}:{}'.format(parent_project_id, parent_storage)
 
-                self.iter_resources_objects(resource, resources, container_id)
+                self.iter_resources_objects(storage_resources, resources, container_id)
 
         return resources
 
@@ -173,7 +175,7 @@ class OSF(OSFBase):
 
     def iter_project_storages(self, projects, resources):
         """
-        Recursive function to add storage data to the resources list.
+        Function to add storage data to the resources list.
         """
         # Keep track of all storage file urls that need to be called.
         user_storages_links = []
@@ -194,18 +196,18 @@ class OSF(OSFBase):
                     'title': storage_obj.title
                 })
                 user_storages_links.append(storage_obj._files_url)
-        return self.run_urls_async_with_pagination(user_storages_links)
+        return user_storages_links
 
-    def iter_resources_objects(self, resource, resources, container_id):
+    def iter_resources_objects(self, container_resource, resources, container_id):
         """
         Recursive function to add resource data to the resources list.
         """
         folder_data = []
-        for data in resource['data']:
-            kind = data['attributes']['kind']
+        for resource in container_resource['data']:
+            kind = resource['attributes']['kind']
 
             if kind == 'file':
-                file = File(data, self.session)
+                file = File(resource, self.session)
                 file_obj = {
                     'kind': file.kind,
                     'kind_name': file.kind_name,
@@ -216,7 +218,7 @@ class OSF(OSFBase):
                 resources.append(file_obj)
 
             elif kind == 'folder':
-                folder = Folder(data, self.session)
+                folder = Folder(resource, self.session)
                 folder_obj = {
                     'kind': folder.kind,
                     'kind_name': folder.kind_name,
@@ -232,16 +234,16 @@ class OSF(OSFBase):
                                     'path': folder.materialized_path})
 
         # Asynchronously call all folder file urls to get the folder's top level resources.
-        folder_resources = self.run_urls_async_with_pagination([folder_dict['url'] for folder_dict in folder_data])
+        all_folders_resources = self.run_urls_async_with_pagination([folder_dict['url'] for folder_dict in folder_data])
 
-        # For each resource, get it's container_id and resources
-        for folder_resource in folder_resources:
-            resource_attr = folder_resource['data'][0]['attributes']
+        # For each folder, get it's container_id and resources
+        for folder_resources in all_folders_resources:
+            resource_attr = folder_resources['data'][0]['attributes']
             parent_path = resource_attr['materialized_path'][:-len(resource_attr['name'])]
             # Find the corresponding parent_path in the folder_data list of dictionaries so we
             # can get the container id for this resource.
             container_id = get_dictionary_from_list(folder_data, 'path', parent_path)['id']
-            self.iter_resources_objects(folder_resource, resources, container_id)
+            self.iter_resources_objects(folder_resources, resources, container_id)
 
     def create_project(self, title):
         """-
