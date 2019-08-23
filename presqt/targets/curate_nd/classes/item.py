@@ -18,16 +18,19 @@ class Item(CurateNDBase):
         self.kind_name = 'item'
         self.title = item['title']
         self.date_submitted = item['dateSubmitted']
-        self.creator = item['creator']
-        self.created = item['created']
-        self.creator_administrative_unit = item['creator#administrative_unit']
-        self.rights = item['rights']
+        try:
+            self.creator = item['creator']
+        except:
+            self.creator = item['creator#author']
+        # self.created = item['created']
+        # self.creator_administrative_unit = item['creator#administrative_unit']
+        # self.rights = item['rights']
         self.modified = item['modified']
         self.access = item['access']
         self.depositor = item['depositor']
         self.owner = item['owner']
         self.has_model = item['hasModel']
-        self.representative = item['representative']
+        # self.representative = item['representative']
         self.contained_files = item['containedFiles']
         self.size = None
         self.sha256 = None
