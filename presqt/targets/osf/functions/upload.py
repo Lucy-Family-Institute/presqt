@@ -2,9 +2,9 @@ import os
 
 from rest_framework import status
 
+from presqt.targets.osf.utilities import get_osf_resource
 from presqt.utilities import PresQTInvalidTokenError, PresQTResponseException
 from presqt.targets.osf.classes.main import OSF
-from presqt.targets.osf.helpers import get_osf_resource
 
 
 def osf_upload_resource(token, resource_id, resource_main_dir,

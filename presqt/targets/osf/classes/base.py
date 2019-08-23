@@ -3,9 +3,9 @@ import asyncio
 import aiohttp
 from rest_framework import status
 
+from presqt.targets.osf.utilities import OSFForbiddenError, OSFNotFoundError
 from presqt.targets.utilities import get_page_total
 from presqt.utilities import PresQTResponseException
-from presqt.targets.osf.exceptions import OSFNotFoundError, OSFForbiddenError
 from presqt.targets.utilities.session import PresQTSession
 
 
@@ -93,6 +93,26 @@ class OSFBase(object):
         loop = asyncio.new_event_loop()
         data = loop.run_until_complete(self.async_main(url_list))
         return data
+
+    def run_urls_async_with_pagination(self, url_list):
+        """
+        Open an async loop and begin async calls.
+        Also get all paginated pages and run them asynchronously.
+
+        Parameters
+        ----------
+        url_list: list
+            List of urls to call asynchronously.
+
+        Returns
+        -------
+        The data returned from the async call
+        """
+        async_data = self.run_urls_async(url_list)
+        async_next_data = self._get_follow_next_urls(async_data)
+        async_data.extend(self.run_urls_async(async_next_data))
+
+        return async_data
 
     async def async_get(self, url, session):
         """
