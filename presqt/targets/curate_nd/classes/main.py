@@ -4,10 +4,10 @@ import requests
 from rest_framework import status
 
 from presqt.targets.curate_nd.classes.base import CurateNDBase
+from presqt.targets.curate_nd.classes.file import File
 from presqt.targets.curate_nd.classes.item import Item
 from presqt.utilities import (PresQTResponseException, PresQTInvalidTokenError,
                               get_dictionary_from_list)
-from presqt.utilities import write_file
 
 
 class CurateND(CurateNDBase):
@@ -51,7 +51,7 @@ class CurateND(CurateNDBase):
         -------
         Instance of the desired Item.
         """
-        url = self.session.build_urls()
+        url = self.session.base_url
         response_data = self._follow_next(url)
         item_urls = []
         for response in response_data:
@@ -77,12 +77,28 @@ class CurateND(CurateNDBase):
         -------
         Instance of the desired Item.
         """
-        print('Im in!')
         url = self.session.build_url(item_id)
         response_data = self.get(url)
-        print(response_data.json())
 
         return Item(response_data.json(), self.session)
+
+    def file(self, file_id):
+        """
+        Get file with the given file_id.
+
+        Parameters
+        ----------
+        file_id : str
+            id of the File we want to fetch.
+
+        Returns
+        -------
+        Instance of the desired File.
+        """
+        url = self.session.build_url(file_id)
+        response_data = self.get(url)
+
+        return File(response_data.json(), self.session)
 
     def get_user_items(self):
         """
@@ -94,11 +110,22 @@ class CurateND(CurateNDBase):
         """
         resources = []
         for item in self.items():
+            # Items
             resources.append({
                 'kind': 'container',
                 'kind_name': 'item',
                 'id': item.id,
                 'container': None,
                 'title': item.title})
+            # Files
+            for file in item.extra['containedFiles']:
+                container_url_length = len(file['isPartOf'])
+                resources.append({
+                    'kind': 'item',
+                    'kind_name': 'file',
+                    'id': file['id'],
+                    # A bit of slicing here so the container equals the id we expect
+                    'container': file['isPartOf'][container_url_length-11:container_url_length],
+                    'title': file['label']})
 
         return resources
