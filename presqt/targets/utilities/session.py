@@ -44,7 +44,3 @@ class PresQTSession(requests.Session):
         parts.extend(args)
         # canonical URLs end with a slash
         return '/'.join(parts) + '/'
-
-    def build_urls(self, *args):
-        parts = [self.base_url]
-        return '/'.join(parts)
