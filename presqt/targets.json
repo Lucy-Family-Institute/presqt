@@ -14,8 +14,8 @@
     "name": "curate_nd",
     "readable_name": "CurateND",
     "supported_actions": {
-        "resource_collection": false,
-        "resource_detail": false,
+        "resource_collection": true,
+        "resource_detail": true,
         "resource_download": false,
         "resource_upload": false
     },

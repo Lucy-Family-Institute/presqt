@@ -28,6 +28,7 @@ def osf_fetch_resources(token):
     resources = osf_instance.get_user_resources()
     return resources
 
+
 def osf_fetch_resource(token, resource_id):
     """
     Fetch the OSF resource matching the resource_id given.
