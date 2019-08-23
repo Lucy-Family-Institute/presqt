@@ -1,3 +1,4 @@
+import json
 from rest_framework import status
 
 from presqt.targets.curate_nd.classes.base import CurateNDBase
@@ -13,27 +14,31 @@ class File(CurateNDBase):
 
         # Add attributes to the class based on the JSON provided in the API call.
         self.id = file['id']
+        
         # Links
         self.endpoint = file['requestUrl']
         self.download_url = file['downloadUrl']
-        self.thumbnail_url = file['thumnailUrl']
-
+        
         # Attributes
         self.kind = 'item'
         self.kind_name = 'file'
-        self.title = file['title']
+        self.title = file['label']
         self.date_submitted = file['dateSubmitted']
-        self.modified_date = file['modified']
-        self.creator = file['creator']
-        self.depositor = file['depositor']
-        self.has_model = file['hasModel']
-        self.is_part_of = file['isPartOf']
-        self.characterization = file['characterization']
-
-        # Extra
-        self.hashes = []
+        self.modified = file['modified']
+        self.size = 0
         self.md5 = None
         self.sha256 = None
+        self.extra = {}
+        
+        
+        # Curate's API has inconsistent payloads, to get around a bunch of try/excepts, we will just
+        # add these unknown fields to the extra...
+        for key, value in file.items():
+            if key not in ['id', 'requestUrl', 'downloadUrl', 'label', 'dateSubmitted', 'modified']:
+                try:
+                    self.extra[key].append(value)
+                except KeyError:
+                    self.extra[key] = value
 
     def download(self):
         """
