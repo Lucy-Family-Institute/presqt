@@ -3,10 +3,10 @@ import asyncio
 
 from rest_framework import status
 
+from presqt.targets.curate_nd.utilities import CurateNDNotFoundError, CurateNDForbiddenError
+from presqt.targets.utilities import get_page_total, PresQTSession
+
 from presqt.utilities import PresQTResponseException
-from presqt.targets.curate_nd.exceptions import CurateNDNotFoundError, CurateNDForbiddenError
-from presqt.targets.utilities import get_page_total
-from presqt.targets.utilities.session import PresQTSession
 
 
 class CurateNDBase(object):
@@ -44,10 +44,10 @@ class CurateNDBase(object):
         # Get initial data
         response_json = self._json(self.get(url))
         data = response_json['results']
-        meta = response_json['pagination']
+        pagination = response_json['pagination']
 
         # Calculate pagination pages
-        page_total = get_page_total(meta['totalResults'], meta['itemsPerPage'])
+        page_total = get_page_total(pagination['totalResults'], pagination['itemsPerPage'])
         url_list = ['{}?page={}'.format(url, number)
                     for number in range(2, page_total + 1)]
 
@@ -72,11 +72,11 @@ class CurateNDBase(object):
         """
         url_list = []
         for data in data_list:
-            meta = data['pagination']
-            next_url = meta['nextPage']
+            pagination = data['pagination']
+            next_url = pagination['nextPage']
             if next_url:
                 page_total = get_page_total(
-                    meta['totalResults'], meta['itemsPerPage'])
+                    pagination['totalResults'], pagination['itemsPerPage'])
                 [url_list.append('{}{}'.format(
                     next_url[:-1], number)) for number in range(2, page_total + 1)]
         return url_list
