@@ -2,7 +2,7 @@ from rest_framework import status
 
 from presqt.utilities import PresQTResponseException, PresQTInvalidTokenError
 from presqt.targets.curate_nd.classes.main import CurateND
-from presqt.targets.curate_nd.helpers import get_curate_nd_resource
+from presqt.targets.curate_nd.utilities import get_curate_nd_resource
 
 
 def curate_nd_fetch_resources(token):
@@ -28,6 +28,7 @@ def curate_nd_fetch_resources(token):
     resources = curate_instance.get_user_items()
     return resources
 
+
 def curate_nd_fetch_resource(token, resource_id):
     """
     Fetch a single CurateND resource matching the resource id given.
@@ -36,10 +37,10 @@ def curate_nd_fetch_resource(token, resource_id):
     ----------
     token : str
         User's CurateND token
-    
+
     resource_id : str
         ID of the resource requested.
-    
+
     Returns
     -------
     A dictionary object that represents the CurateND resource.
@@ -62,17 +63,7 @@ def curate_nd_fetch_resource(token, resource_id):
             'hashes': {
                 'md5': resource_object.md5,
                 'sha256': resource_object.sha256},
-            'extra': {}}
-
-        if resource_object.kind_name == 'item':
-            resource_object_obj['extra'] = {
-                'creator': resource_object.creator,
-                'access': resource_object.access,
-                'depositor': resource_object.depositor,
-                'owner': resource_object.owner,
-                'has_model': resource_object.has_model,
-                'contained_files': resource_object.contained_files}
-
+            'extra': resource_object.extra}
         return resource_object_obj
 
     # Get the resource
