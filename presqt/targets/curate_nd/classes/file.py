@@ -14,11 +14,11 @@ class File(CurateNDBase):
 
         # Add attributes to the class based on the JSON provided in the API call.
         self.id = file['id']
-        
+
         # Links
         self.endpoint = file['requestUrl']
         self.download_url = file['downloadUrl']
-        
+
         # Attributes
         self.kind = 'item'
         self.kind_name = 'file'
@@ -29,8 +29,7 @@ class File(CurateNDBase):
         self.md5 = None
         self.sha256 = None
         self.extra = {}
-        
-        
+
         # Curate's API has inconsistent payloads, to get around a bunch of try/excepts, we will just
         # add these unknown fields to the extra...
         for key, value in file.items():
