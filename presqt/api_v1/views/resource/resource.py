@@ -307,8 +307,9 @@ class Resource(BaseResource):
             # Save the file to the disk.
             write_file('{}{}'.format(base_directory, resource['path']), resource['file'])
 
+        # Write empty containers to disk
         for container in empty_containers:
-                os.makedirs(os.path.dirname('{}{}'.format(base_directory, container)))
+            os.makedirs(os.path.dirname('{}{}'.format(base_directory, container)))
 
         # Add the fixity file to the disk directory
         write_file('{}/fixity_info.json'.format(base_directory),fixity_info, True)

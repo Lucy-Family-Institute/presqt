@@ -27,7 +27,7 @@ async def async_get(url, session, token):
     -------
     Response JSON
     """
-    async with session.get(url) as response:
+    async with session.get(url, headers={'Authorization': 'Bearer {}'.format(token)}) as response:
         assert response.status == 200
         content =  await response.read()
         return {'url': url, 'binary_content': content}
@@ -112,6 +112,6 @@ def osf_download_resource(token, resource_id):
 
         # Go through the file dictionaries and replace the file class with the binary_content
         for file in files:
-            file['file'] = get_dictionary_from_list(download_data,'url', file.pop('file').download_url)['binary_content']
+            file['file'] = get_dictionary_from_list(download_data,'url', file['file'].download_url)['binary_content']
 
     return files, empty_containers
