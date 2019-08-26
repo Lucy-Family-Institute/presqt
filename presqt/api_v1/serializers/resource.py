@@ -49,7 +49,6 @@ class ResourceSerializer(serializers.Serializer):
     title = serializers.CharField(max_length=256)
     date_created = serializers.DateField()
     date_modified = serializers.DateField()
-    size = serializers.IntegerField()
     hashes = serializers.DictField()
     extra = serializers.DictField()
     links = serializers.SerializerMethodField()
