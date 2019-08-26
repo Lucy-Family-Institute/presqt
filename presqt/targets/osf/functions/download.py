@@ -27,7 +27,7 @@ async def async_get(url, session, token):
     -------
     Response JSON
     """
-    async with session.get(url, headers={'Authorization': 'Bearer {}'.format(token)}) as response:
+    async with session.get(url) as response:
         assert response.status == 200
         content =  await response.read()
         return {'url': url, 'binary_content': content}
@@ -72,6 +72,7 @@ def osf_download_resource(token, resource_id):
     except PresQTInvalidTokenError:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
+
     # Get the resource
     resource = get_osf_resource(resource_id, osf_instance)
 
@@ -79,6 +80,7 @@ def osf_download_resource(token, resource_id):
     # The 'path' value will be the path that the file is eventually saved in. The root of the
     # path should be the resource.
     files = []
+    empty_containers = []
     if resource.kind_name == 'file':
         binary_file = resource.download()
         files.append({
@@ -89,41 +91,27 @@ def osf_download_resource(token, resource_id):
             'path': '/{}'.format(resource.title)
         })
     else:
-        file_data = []
-        file_urls = []
-        for file in resource.get_all_files():
-            # Calculate the full file path with the resource as the root of the path.
-            if resource.kind_name == 'project':
-                # File path needs the project and storage names prepended to it.
-                file_path = '/{}/{}/{}'.format(resource.title,
-                                               file.provider, file.materialized_path)
-            elif resource.kind_name == 'storage':
-                # File path needs the storage name prepended to it.
-                file_path = '/{}/{}'.format(file.provider, file.materialized_path)
-            else: # elif project
+        if resource.kind_name == 'project':
+            resource.get_all_files('', files, empty_containers)
+        if resource.kind_name == 'storage':
+            resource.get_all_files('/{}/'.format(resource.title), files, empty_containers)
+        elif resource.kind_name == 'folder':
+            resource.get_all_files('', files, empty_containers)
+            for file in files:
                 # File Path needs to start at the folder and strip everything before it.
                 # Example: If the resource is 'Docs2' and the starting path is
                 # '/Project/Storage/Docs1/Docs2/file.jpeg' then the final path
                 # needs to be '/Docs2/file.jpeg'
-                path_to_strip = resource.materialized_path[:-(len(resource.title)+2)]
-                file_path = file.materialized_path[len(path_to_strip):]
-
-            # Append the url and file data dictionary so we can asynchronously call all downloads.
-            file_urls.append(file.download_url)
-            file_data.append({'url': file.download_url, 'file': file, 'file_path': file_path})
+                path_to_strip = resource.materialized_path[:-(len(resource.title) + 2)]
+                file['path'] = file['file'].materialized_path[len(path_to_strip):]
 
         # Asynchronously make all download requests
+        file_urls = [file['file'].download_url for file in files]
         loop = asyncio.new_event_loop()
         download_data = loop.run_until_complete(async_main(file_urls, token))
 
-        # Go through the data returned from the asynchronous calls and match it with the file_data
-        # gathered earlier. Create dictionaries of data to send back to the view.
-        for download in download_data:
-            file_dict = get_dictionary_from_list(file_data, 'url', download['url'])
-            files.append({
-                'file': download['binary_content'],
-                'hashes': file_dict['file'].hashes,
-                'title': file_dict['file'].title,
-                'path': file_dict['file_path']
-            })
-    return files
+        # Go through the file dictionaries and replace the file class with the binary_content
+        for file in files:
+            file['file'] = get_dictionary_from_list(download_data,'url', file.pop('file').download_url)['binary_content']
+
+    return files, empty_containers

@@ -238,12 +238,13 @@ class OSF(OSFBase):
 
         # For each folder, get it's container_id and resources
         for folder_resources in all_folders_resources:
-            resource_attr = folder_resources['data'][0]['attributes']
-            parent_path = resource_attr['materialized_path'][:-len(resource_attr['name'])]
-            # Find the corresponding parent_path in the folder_data list of dictionaries so we
-            # can get the container id for this resource.
-            container_id = get_dictionary_from_list(folder_data, 'path', parent_path)['id']
-            self.iter_resources_objects(folder_resources, resources, container_id)
+            if folder_resources['data']:
+                resource_attr = folder_resources['data'][0]['attributes']
+                parent_path = resource_attr['materialized_path'][:-len(resource_attr['name'])]
+                # Find the corresponding parent_path in the folder_data list of dictionaries so we
+                # can get the container id for this resource.
+                container_id = get_dictionary_from_list(folder_data, 'path', parent_path)['id']
+                self.iter_resources_objects(folder_resources, resources, container_id)
 
     def create_project(self, title):
         """-

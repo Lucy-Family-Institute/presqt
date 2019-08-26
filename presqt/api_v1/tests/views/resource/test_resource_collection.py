@@ -1,3 +1,4 @@
+import json
 from unittest.mock import patch
 
 from django.test import TestCase
@@ -30,7 +31,7 @@ class TestResourceCollection(TestCase):
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
         # Verify the count of resource objects is what we expect.
-        self.assertEqual(69, len(response.data))
+        self.assertEqual(72, len(response.data))
         for data in response.data:
             # If the kind is a container, there should be links for Download, Upload and Detail.
             if data['kind'] == 'container':
