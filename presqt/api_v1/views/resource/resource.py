@@ -58,7 +58,6 @@ class Resource(BaseResource):
             "title": "23296359282_934200ec59_o.jpg",
             "date_created": "2019-05-13T14:54:17.129170Z",
             "date_modified": "2019-05-13T14:54:17.129170Z",
-            "size": 1773294,
             "hashes": {
                 "md5": "aaca7ef067dcab7cb8d79c36243823e4",
                 "sha256": "ea94ce54261720c16abb508c6dcd1fd481c30c09b7f2f5ab0b79e3199b7e2b55"
