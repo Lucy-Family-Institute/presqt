@@ -10,25 +10,37 @@ from presqt.targets.osf.classes.base import OSFBase
 from presqt.targets.osf.classes.file import File
 
 class ContainerMixin:
-    def get_all_files(self):
+    def get_all_files(self, initial_path, files, empty_containers):
         """
         Recursively gets all files for a given container.
         """
-        file_list = []
         children = self._follow_next(self._files_url)
+
+        # If this is an empty container then we need to update the empty_containers list
+        if not children:
+            if self.kind_name == 'folder':
+                path = '{}/{}/'.format(initial_path, self.title)
+            else:
+                path = '{}/'.format(initial_path)
+            empty_containers.append(path)
+
         while children:
             child = children.pop()
             kind = child['attributes']['kind']
 
             if kind == 'file':
-                file_list.append(File(child, self.session))
+                file = File(child, self.session)
+                files.append({
+                    'file': file,
+                    'hashes': file.hashes,
+                    'title': file.title,
+                    'path': '{}{}'.format(initial_path, file.materialized_path)
+                })
             elif kind == 'folder':
                 folder = Folder(child, self.session)
 
-                for file in folder.get_all_files():
-                    file_list.append(file)
+                folder.get_all_files(initial_path, files, empty_containers)
 
-        return file_list
 
     def iter_children(self, url, kind, klass):
         """
