@@ -28,12 +28,12 @@ class Item(CurateNDBase):
         # Curate's API has inconsistent payloads, to get around a bunch of try/excepts, we will just
         # add these unknown fields to the extra...
         for key, value in item.items():
-            if key not in ['id', 'requestUrl', 'downloadUrl', 'label', 'dateSubmitted', 'modified']:
+            if key not in ['id', 'title', 'requestUrl', 'downloadUrl', 'dateSubmitted', 'modified']:
                 try:
                     self.extra[key].append(value)
                 except KeyError:
                     self.extra[key] = value
 
-        def get_all_files(self):
-            files = [file for file in self.contained_files]
-            return files
+        # def get_all_files(self):
+        #     files = [file for file in self.extra['containedFiles']]
+        #     return files
