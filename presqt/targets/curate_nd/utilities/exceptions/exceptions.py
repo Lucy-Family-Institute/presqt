@@ -7,3 +7,7 @@ class CurateNDNotFoundError(PresQTResponseException):
 
 class CurateNDForbiddenError(PresQTResponseException):
     pass
+
+
+class CurateNDServerError(PresQTResponseException):
+    pass

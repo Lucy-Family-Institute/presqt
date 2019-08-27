@@ -22,8 +22,8 @@ def curate_nd_fetch_resources(token):
     try:
         curate_instance = CurateND(token)
     except PresQTInvalidTokenError:
-        raise PresQTResponseException("Token is invalid. Response returned a 403 status code.",
-                                      status.HTTP_403_FORBIDDEN)
+        raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
+                                      status.HTTP_401_UNAUTHORIZED)
 
     resources = curate_instance.get_user_items()
     return resources
@@ -48,7 +48,7 @@ def curate_nd_fetch_resource(token, resource_id):
     try:
         curate_instance = CurateND(token)
     except PresQTInvalidTokenError:
-        raise PresQTResponseException("Token is invalid. Response returned a 403 status code.",
+        raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
     def create_object(resource_object):
@@ -59,7 +59,6 @@ def curate_nd_fetch_resource(token, resource_id):
             'title': resource_object.title,
             'date_created': resource_object.date_submitted,
             'date_modified': resource_object.modified,
-            'size': resource_object.size,
             'hashes': {
                 'md5': resource_object.md5,
                 'sha256': resource_object.sha256},

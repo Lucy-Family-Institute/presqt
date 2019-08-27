@@ -9,6 +9,7 @@ class File(CurateNDBase):
     """
     Class that represents a File in the CurateND API.
     """
+
     def __init__(self, file, session):
         super(File, self).__init__(file, session)
 
@@ -25,7 +26,6 @@ class File(CurateNDBase):
         self.title = file['label']
         self.date_submitted = file['dateSubmitted']
         self.modified = file['modified']
-        self.size = 0
         self.md5 = None
         self.sha256 = None
         self.extra = {}

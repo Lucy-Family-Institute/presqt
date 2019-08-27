@@ -20,7 +20,6 @@ class Item(CurateNDBase):
         self.title = item['title']
         self.date_submitted = item['dateSubmitted']
         self.modified = item['modified']
-        self.size = None
         self.sha256 = None
         self.md5 = None
         self.extra = {}
