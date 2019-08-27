@@ -48,22 +48,24 @@ class TestTarget(TestCase):
         Return a 200 if the GET method is successful
         """
         json_data = read_file('presqt/targets.json', True)
-        target_name = json_data[0]['name']
-        # Making this variable so we can append detail to
-        # the list in the test case.
-        json_data_keys = list(json_data[0].keys())
-        json_data_keys.append('links')
 
-        url = reverse('target', kwargs={'target_name': target_name})
-        response = self.client.get(url)
+        for target in json_data:
+            # Looping through targets and running tests on each one.
+            target_name = target['name']
+            # Making this variable so we can append detail to
+            # the list in the test case.
+            target_keys = list(target.keys())
+            target_keys.append('links')
 
-        # Verify the Status Code
-        self.assertEqual(response.status_code, 200)
-        # Verify that the payload keys are the same as the original target's json keys
-        self.assertListEqual(list(response.data.keys()),
-                             json_data_keys)
-        self.assertListEqual(list(response.data['supported_actions'].keys()),
-                             list(json_data[0]['supported_actions'].keys()))
+            url = reverse('target', kwargs={'target_name': target_name})
+            response = self.client.get(url)
+
+            # Verify the Status Code
+            self.assertEqual(response.status_code, 200)
+            # Verify that the payload keys are the same as the original target's json keys
+            self.assertListEqual(list(response.data.keys()), target_keys)
+            self.assertListEqual(list(response.data['supported_actions'].keys()),
+                                 list(target['supported_actions'].keys()))
 
     def test_get_failure(self):
         """

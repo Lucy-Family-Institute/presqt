@@ -566,8 +566,8 @@ class TestResourceGETZip(TestCase):
                 mock_file.return_value = json_file
                 url = reverse(
                     'resource', kwargs={'target_name': 'test',
-                                                'resource_id': '5cd98510f244ec001fe5632f',
-                                                'resource_format': 'zip'})
+                                        'resource_id': '5cd98510f244ec001fe5632f',
+                                        'resource_format': 'zip'})
                 response = self.client.get(url, **self.header)
                 # Verify the error status code and message
                 self.assertEqual(response.status_code, 400)
