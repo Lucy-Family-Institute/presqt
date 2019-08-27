@@ -51,7 +51,7 @@ class CurateND(CurateNDBase):
         -------
         Instance of the desired Item.
         """
-        url = self.session.base_url
+        url = 'https://libvirt6.library.nd.edu/api/items?editor=self'
         response_data = self._follow_next(url)
         item_urls = []
         for response in response_data:
@@ -64,41 +64,30 @@ class CurateND(CurateNDBase):
 
         return [Item(item_json, self.session) for item_json in data]
 
-    def item(self, item_id):
+    def resource(self, resource_id):
         """
-        Get an item with the given item_id.
+        Get an item or file with the given resource_id.
 
         Parameters
         ----------
-        item_id : str
-            id of the Item we want to fetch.
+        resource_id : str
+            id of the resource we want to fetch.
 
         Returns
         -------
-        Instance of the desired Item.
+        Instance of the desired resource.
         """
-        url = self.session.build_url(item_id)
+        url = self.session.build_url(resource_id)
         response_data = self.get(url)
+        response_json = response_data.json()
 
-        return Item(response_data.json(), self.session)
-
-    def file(self, file_id):
-        """
-        Get file with the given file_id.
-
-        Parameters
-        ----------
-        file_id : str
-            id of the File we want to fetch.
-
-        Returns
-        -------
-        Instance of the desired File.
-        """
-        url = self.session.build_url(file_id)
-        response_data = self.get(url)
-
-        return File(response_data.json(), self.session)
+        try:
+            contained_files = response_json['containedFiles']
+        except KeyError:
+            # If the containedFiles key is not in the payload, we are creating a file.
+            return File(response_data.json(), self.session)
+        else:
+            return Item(response_data.json(), self.session)
 
     def get_user_items(self):
         """
