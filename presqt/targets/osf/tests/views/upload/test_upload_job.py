@@ -7,7 +7,7 @@ from django.test import TestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
-from config.settings.base import UPLOAD_TEST_USER_TOKEN
+from config.settings.base import OSF_UPLOAD_TEST_USER_TOKEN
 from presqt.utilities import read_file, write_file
 from presqt.targets.osf.utilities import delete_users_projects
 
@@ -19,8 +19,9 @@ class TestUploadJob(TestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.token = UPLOAD_TEST_USER_TOKEN
-        self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token, 'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+        self.token = OSF_UPLOAD_TEST_USER_TOKEN
+        self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token,
+                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
 
     def tearDown(self):
         """
@@ -32,13 +33,15 @@ class TestUploadJob(TestCase):
         """
         Make a POST request to `resource` to begin uploading a resource
         """
-        response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+        response = self.client.post(
+            self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
 
         # Verify the status code
         self.assertEqual(response.status_code, 202)
         self.ticket_number = response.data['ticket_number']
         self.upload_job = response.data['upload_job']
-        self.process_info_path = 'mediafiles/uploads/{}/process_info.json'.format(self.ticket_number)
+        self.process_info_path = 'mediafiles/uploads/{}/process_info.json'.format(
+            self.ticket_number)
         process_info = read_file(self.process_info_path, True)
 
         # Verify the upload_job link is what we expect
@@ -99,7 +102,7 @@ class TestUploadJob(TestCase):
         # Verify the status code and data
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['message'], 'Upload successful')
-        
+
         # Third Project
         self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
         self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
@@ -112,7 +115,7 @@ class TestUploadJob(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['message'], 'Upload successful')
 
-        response = requests.get('http://api.osf.io/v2/users/me/nodes', 
+        response = requests.get('http://api.osf.io/v2/users/me/nodes',
                                 headers={'Authorization': 'Bearer {}'.format(self.token)}).json()
         expected_titles = ['NewProject', 'NewProject (PresQT1)', 'NewProject (PresQT2)']
         titles = [node['attributes']['title'] for node in response['data']]
@@ -123,7 +126,7 @@ class TestUploadJob(TestCase):
         shutil.rmtree('mediafiles/uploads/{}'.format(ticket_one))
         shutil.rmtree('mediafiles/uploads/{}'.format(ticket_two))
         shutil.rmtree('mediafiles/uploads/{}'.format(ticket_three))
-    
+
     def test_get_success_osf(self):
         """
         Return a 200 if the GET was successful and the resources were uploaded.
@@ -240,8 +243,8 @@ class TestUploadJob(TestCase):
 
         self.assertEqual(response.status_code, 500)
         self.assertEqual(response.data,
-                     {'message': "Token is invalid. Response returned a 401 status code.",
-                      'status_code': 401})
+                         {'message': "Token is invalid. Response returned a 401 status code.",
+                          'status_code': 401})
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
@@ -254,12 +257,15 @@ class TestUploadJob(TestCase):
         self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
         self.call_upload_resources()
 
-        headers = {'Authorization': 'Bearer {}'.format(UPLOAD_TEST_USER_TOKEN)}
+        headers = {'Authorization': 'Bearer {}'.format(OSF_UPLOAD_TEST_USER_TOKEN)}
         for node in requests.get('http://api.osf.io/v2/users/me/nodes', headers=headers).json()['data']:
             if node['attributes']['title'] == 'NewProject':
-                storage_data = requests.get(node['relationships']['files']['links']['related']['href'], headers=headers).json()
-                folder_data = requests.get(storage_data['data'][0]['relationships']['files']['links']['related']['href'], headers=headers).json()
-                file_data = requests.get(folder_data['data'][0]['relationships']['files']['links']['related']['href'], headers=headers).json()
+                storage_data = requests.get(
+                    node['relationships']['files']['links']['related']['href'], headers=headers).json()
+                folder_data = requests.get(
+                    storage_data['data'][0]['relationships']['files']['links']['related']['href'], headers=headers).json()
+                file_data = requests.get(
+                    folder_data['data'][0]['relationships']['files']['links']['related']['href'], headers=headers).json()
                 break
 
         ticket_number = self.ticket_number
@@ -275,7 +281,7 @@ class TestUploadJob(TestCase):
         # Verify the status code and content
         self.assertEqual(response.status_code, 500)
         self.assertEqual(response.data,
-                         {'message': "The Resource provided, {}, is not a container".format(file_id),'status_code': 400})
+                         {'message': "The Resource provided, {}, is not a container".format(file_id), 'status_code': 400})
 
         # Delete corresponding folders
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
@@ -313,8 +319,8 @@ class TestUploadJob(TestCase):
 
         self.assertEqual(response.status_code, 500)
         self.assertEqual(response.data,
-                        {'message': "Resource with id 'bad_id' not found for this user.",
-                         'status_code': 404})
+                         {'message': "Resource with id 'bad_id' not found for this user.",
+                          'status_code': 404})
 
         # Delete corresponding folders
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
@@ -456,9 +462,9 @@ class TestUploadJob(TestCase):
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
 
         # Get the project id so we can attempt to upload the file to it.
-        headers = {'Authorization': 'Bearer {}'.format(UPLOAD_TEST_USER_TOKEN)}
+        headers = {'Authorization': 'Bearer {}'.format(OSF_UPLOAD_TEST_USER_TOKEN)}
         for node in requests.get('http://api.osf.io/v2/users/me/nodes', headers=headers).json()[
-            'data']:
+                'data']:
             if node['attributes']['title'] == 'NewProject':
                 node_id = node['id']
                 break

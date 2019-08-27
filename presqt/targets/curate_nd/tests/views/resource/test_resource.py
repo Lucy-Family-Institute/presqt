@@ -5,7 +5,7 @@ from django.test import TestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
-from config.settings.base import CND_TEST
+from config.settings.base import CURATE_ND_TEST_TOKEN
 
 
 class TestResourceGETJSON(TestCase):
@@ -15,7 +15,7 @@ class TestResourceGETJSON(TestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': CND_TEST}
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': CURATE_ND_TEST_TOKEN}
         self.keys = ['kind', 'kind_name', 'id', 'title', 'date_created', 'date_modified', 'hashes',
                      'extra', 'links']
 

@@ -4,19 +4,21 @@ from django.test import TestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
-from config.settings.base import CND_TEST
+from config.settings.base import CURATE_ND_TEST_TOKEN
 
 
 class TestResourceCollection(TestCase):
     """
     Test the 'api_v1/targets/curate_nd/resources' endpoint's GET method.
+
+    Testing Curate ND integration.
     """
 
     def setUp(self):
         self.client = APIClient()
-        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': CND_TEST}
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': CURATE_ND_TEST_TOKEN}
 
-    def test_get_success_curate_nd(self):
+    def test_success_curate_nd(self):
         """
         Return a 200 if the GET method is successful when grabbing CurateND resources.
         """
@@ -35,11 +37,7 @@ class TestResourceCollection(TestCase):
             # Since Curate for now only supports details, there should only be one link for each object.
             self.assertEqual(len(data['links']), 1)
 
-    def test_get_all_items(self):
-        """
-        """
-
-    def test_get_error_400_missing_token_curate_nd(self):
+    def test_error_400_missing_token_curate_nd(self):
         """
         Return a 400 if the GET method fails because the presqt-source-token was not provided.
         """
@@ -50,7 +48,7 @@ class TestResourceCollection(TestCase):
         self.assertEqual(response.data,
                          {'error': "'presqt-source-token' missing in the request headers."})
 
-    def test_get_error_401_invalid_token_curate_nd(self):
+    def test_error_401_invalid_token_curate_nd(self):
         """
 `       Return a 401 if the token provided is not a valid token.
         """

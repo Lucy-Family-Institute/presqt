@@ -28,7 +28,7 @@ class TestDeleteMediaFiles(TestCase):
 
         # Download file into test directory
         process_state = multiprocessing.Value('b', 0)
-        Resource._download_resource('osf', 'resource_download', settings.PRIVATE_USER_TOKEN,
+        Resource._download_resource('osf', 'resource_download', settings.OSF_PRIVATE_USER_TOKEN,
                           '5cd98978f244ec001ee86609', self.directory, '{}process_info.json'.format(
                               self.directory), process_state)
 
