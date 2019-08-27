@@ -48,38 +48,13 @@ class CurateNDBase(object):
 
         # Calculate pagination pages
         page_total = get_page_total(pagination['totalResults'], pagination['itemsPerPage'])
-        url_list = ['{}?page={}'.format(url, number)
+        url_list = ['{}&page={}'.format(url, number)
                     for number in range(2, page_total + 1)]
 
         # Call all pagination pages asynchronously
         children_data = self.run_urls_async(url_list)
         [data.extend(child['results']) for child in children_data]
         return data
-
-    @staticmethod
-    def _get_follow_next_urls(data_list):
-        """
-        Get a list of 'next' urls to run asynchronously.
-
-        Parameters
-        ----------
-        data_list: list
-            List of json data.
-
-        Returns
-        -------
-        List of urls
-        """
-        url_list = []
-        for data in data_list:
-            pagination = data['pagination']
-            next_url = pagination['nextPage']
-            if next_url:
-                page_total = get_page_total(
-                    pagination['totalResults'], pagination['itemsPerPage'])
-                [url_list.append('{}{}'.format(
-                    next_url[:-1], number)) for number in range(2, page_total + 1)]
-        return url_list
 
     def run_urls_async(self, url_list):
         """
@@ -149,46 +124,10 @@ class CurateNDBase(object):
         response = self.session.get(url, *args, **kwargs)
         if response.status_code == 200:
             return response
-        elif response.status_code == 410:
-            raise PresQTResponseException("The requested resource is no longer available.",
-                                          status.HTTP_410_GONE)
-        elif response.status_code == 404:
-            raise CurateNDNotFoundError(
-                "Resource not found.", status.HTTP_404_NOT_FOUND)
         elif response.status_code == 403:
             raise CurateNDForbiddenError(
                 "User does not have access to this resource with the token provided.",
                 status.HTTP_403_FORBIDDEN)
-
-    def put(self, url, *args, **kwargs):
-        """
-        Handle any errors that may pop up while making PUT requests through the session.
-
-        Parameters
-        ----------
-        url: str
-            URL to make the PUT request to.
-
-        Returns
-        -------
-        HTTP Response object
-
-        """
-        response = self.session.put(url, *args, **kwargs)
-        return response
-
-    def post(self, url, *args, **kwargs):
-        """
-        Handle any errors that may pop up while making POST requests through the session.
-
-        Parameters
-        ----------
-        url: str
-            URL to make the POST request to.
-
-        Returns
-        -------
-        HTTP Response object
-        """
-        response = self.session.post(url, *args, **kwargs)
-        return response
+        elif response.status_code == 404:
+            raise CurateNDNotFoundError(
+                "Resource not found.", status.HTTP_404_NOT_FOUND)
