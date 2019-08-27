@@ -39,13 +39,13 @@ class File(CurateNDBase):
                 except KeyError:
                     self.extra[key] = value
 
-    def download(self):
-        """
-        Download the file using the download url.
+    # def download(self):
+    #     """
+    #     Download the file using the download url.
 
-        Returns
-        -------
-        The requesed file in byte format.
-        """
-        response = self.get(self.download_url)
-        return response.content
+    #     Returns
+    #     -------
+    #     The requesed file in byte format.
+    #     """
+    #     response = self.get(self.download_url)
+    #     return response.content
