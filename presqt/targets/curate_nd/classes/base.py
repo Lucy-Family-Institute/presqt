@@ -3,7 +3,8 @@ import asyncio
 
 from rest_framework import status
 
-from presqt.targets.curate_nd.utilities import CurateNDNotFoundError, CurateNDForbiddenError
+from presqt.targets.curate_nd.utilities import (
+    CurateNDNotFoundError, CurateNDForbiddenError, CurateNDServerError)
 from presqt.targets.utilities import get_page_total, PresQTSession
 
 from presqt.utilities import PresQTResponseException
@@ -131,3 +132,6 @@ class CurateNDBase(object):
         elif response.status_code == 404:
             raise CurateNDNotFoundError(
                 "Resource not found.", status.HTTP_404_NOT_FOUND)
+        elif response.status_code == 500:
+            raise CurateNDServerError(
+                "CurateND returned a 500 server error.", status.HTTP_500_INTERNAL_SERVER_ERROR)

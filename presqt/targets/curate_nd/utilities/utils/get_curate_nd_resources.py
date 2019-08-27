@@ -22,6 +22,6 @@ def get_curate_nd_resource(resource_id, curate_nd_instance):
         resource = curate_nd_instance.resource(resource_id)
     except CurateNDForbiddenError as e:
         raise PresQTResponseException(
-            "Resource with id '{}' not found for this user.".format(resource_id), e.status_code)
+            "User does not have access to this resource with the token provided.", e.status_code)
     else:
         return resource
