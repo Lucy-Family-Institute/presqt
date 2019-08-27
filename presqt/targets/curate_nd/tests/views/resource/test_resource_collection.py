@@ -30,7 +30,7 @@ class TestResourceCollection(TestCase):
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
         # Verify the count of resource objects is what we expect.
-        self.assertEqual(26, len(response.data))
+        self.assertEqual(27, len(response.data))
         for data in response.data:
             # Since Curate for now only supports details, there should only be one link for each object.
             self.assertEqual(len(data['links']), 1)
@@ -50,15 +50,15 @@ class TestResourceCollection(TestCase):
         self.assertEqual(response.data,
                          {'error': "'presqt-source-token' missing in the request headers."})
 
-    def test_get_error_403_invalid_token_curate_nd(self):
+    def test_get_error_401_invalid_token_curate_nd(self):
         """
-`       Return a 403 if the token provided is not a valid token.
+`       Return a 401 if the token provided is not a valid token.
         """
         client = APIClient()
         header = {'HTTP_PRESQT_SOURCE_TOKEN': 'eggyboi'}
         url = reverse('resource_collection', kwargs={'target_name': 'curate_nd'})
         response = client.get(url, **header)
-        # Verify the error status code and message. Curate returns a 403 if token is invalid.
-        self.assertEqual(response.status_code, 403)
+        # Verify the error status code and message.
+        self.assertEqual(response.status_code, 401)
         self.assertEqual(response.data,
-                         {'error': "Token is invalid. Response returned a 403 status code."})
+                         {'error': "Token is invalid. Response returned a 401 status code."})

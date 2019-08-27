@@ -1,6 +1,6 @@
 import json
 import requests
-
+from unittest.mock import patch
 from django.test import TestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
@@ -16,8 +16,8 @@ class TestResourceGETJSON(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': CND_TEST}
-        self.keys = ['kind', 'kind_name', 'id', 'title', 'date_created',
-                     'date_modified', 'size', 'hashes', 'extra', 'links']
+        self.keys = ['kind', 'kind_name', 'id', 'title', 'date_created', 'date_modified', 'hashes',
+                     'extra', 'links']
 
     def test_get_success_curate_nd_item(self):
         """
@@ -78,7 +78,7 @@ class TestResourceGETJSON(TestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
-            response.data, {'error': "Resource with id 'ns064458c6g' not found for this user."})
+            response.data, {'error': "User does not have access to this resource with the token provided."})
 
     def test_get_error_404_not_found_curate_nd(self):
         """
@@ -104,4 +104,25 @@ class TestResourceGETJSON(TestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 401)
         self.assertEqual(
-            response.data, {'error': "Token is invalid. Response returned a 403 status code."})
+            response.data, {'error': "Token is invalid. Response returned a 401 status code."})
+
+    def test_get_error_500_server_curate_nd(self):
+        """
+        Return a 500 if the GET method fails because of a 500 error on Curate.
+        """
+        class MockResponse:
+            def __init__(self, json_data, status_code):
+                self.json_data = json_data
+                self.status_code = status_code
+        mock_req = MockResponse({'error': 'The server is down.'}, 500)
+
+        with patch('requests.Session.get') as fake_get:
+            fake_get.return_value = mock_req
+            url = reverse('resource', kwargs={'target_name': 'curate_nd',
+                                              'resource_id': '1n79h418f06',
+                                              'resource_format': 'json'})
+            response = self.client.get(url, **self.header)
+            # Verify the status code
+            self.assertEqual(response.status_code, 500)
+            # Verify the response message
+            self.assertEqual(response.data, {'error': "CurateND returned a 500 server error."})
