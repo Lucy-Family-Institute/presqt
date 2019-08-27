@@ -60,7 +60,6 @@ def osf_fetch_resource(token, resource_id):
             'title': resource_object.title,
             'date_created': resource_object.date_created,
             'date_modified': resource_object.date_modified,
-            'size': resource_object.size,
             'hashes': {
                 'md5': resource_object.md5,
                 'sha256': resource_object.sha256
@@ -78,7 +77,8 @@ def osf_fetch_resource(token, resource_id):
                 'current_user_can_comment': resource_object.current_user_can_comment,
                 'guid': resource_object.guid,
                 'checkout': resource_object.checkout,
-                'tags': resource_object.tags
+                'tags': resource_object.tags,
+                'size': resource_object.size
             }
         elif resource_object.kind_name == 'project':
             resource_object_obj['extra'] = {
@@ -95,7 +95,8 @@ def osf_fetch_resource(token, resource_id):
                 'current_user_can_comment': resource_object.current_user_can_comment,
                 'wiki_enabled': resource_object.wiki_enabled,
                 'node_license': resource_object.node_license,
-                'tags': resource_object.tags
+                'tags': resource_object.tags,
+                'size': resource_object.size
             }
         return resource_object_obj
 

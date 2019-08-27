@@ -57,7 +57,7 @@ class TestResourceGETJSON(TestCase):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': TEST_USER_TOKEN}
         self.keys = ['kind', 'kind_name', 'id', 'title', 'date_created',
-                     'date_modified', 'size', 'hashes', 'extra', 'links']
+                     'date_modified', 'hashes', 'extra', 'links']
 
     def test_get_success_osf_project(self):
         """
@@ -67,7 +67,7 @@ class TestResourceGETJSON(TestCase):
         extra_keys = ['category', 'fork', 'current_user_is_contributor', 'preprint',
                        'current_user_permissions', 'custom_citation', 'collection', 'public',
                       'subjects', 'registration', 'current_user_can_comment', 'wiki_enabled',
-                      'node_license', 'tags']
+                      'node_license', 'tags', 'size']
 
         url = reverse('resource', kwargs={'target_name': 'osf',
                                           'resource_id': resource_id,
@@ -95,7 +95,7 @@ class TestResourceGETJSON(TestCase):
         """
         resource_id = '5cd9831c054f5b001a5ca2af'
         extra_keys = ['last_touched', 'materialized_path', 'current_version', 'provider', 'path',
-                      'current_user_can_comment', 'guid', 'checkout', 'tags']
+                      'current_user_can_comment', 'guid', 'checkout', 'tags', 'size']
         url = reverse('resource', kwargs={'target_name': 'osf',
                                           'resource_id': resource_id,
                                           'resource_format': 'json'})
@@ -119,7 +119,7 @@ class TestResourceGETJSON(TestCase):
         """
         resource_id = '5cd9831c054f5b001a5ca2af'
         extra_keys = ['last_touched', 'materialized_path', 'current_version', 'provider', 'path',
-                      'current_user_can_comment', 'guid', 'checkout', 'tags']
+                      'current_user_can_comment', 'guid', 'checkout', 'tags', 'size']
         url = reverse('resource', kwargs={'target_name': 'osf',
                                           'resource_id': resource_id})
         response = self.client.get(url, **self.header)
@@ -140,7 +140,7 @@ class TestResourceGETJSON(TestCase):
         """
         resource_id = '5cd9895b840cae001a708c31'
         extra_keys = ['last_touched', 'materialized_path', 'current_version', 'provider', 'path',
-                      'current_user_can_comment', 'guid', 'checkout', 'tags']
+                      'current_user_can_comment', 'guid', 'checkout', 'tags', 'size']
         url = reverse('resource', kwargs={'target_name': 'osf',
                                           'resource_id': resource_id,
                                           'resource_format': 'json'})

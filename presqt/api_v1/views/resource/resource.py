@@ -1,4 +1,5 @@
 import multiprocessing
+import os
 from uuid import uuid4
 
 import bagit
@@ -57,7 +58,6 @@ class Resource(BaseResource):
             "title": "23296359282_934200ec59_o.jpg",
             "date_created": "2019-05-13T14:54:17.129170Z",
             "date_modified": "2019-05-13T14:54:17.129170Z",
-            "size": 1773294,
             "hashes": {
                 "md5": "aaca7ef067dcab7cb8d79c36243823e4",
                 "sha256": "ea94ce54261720c16abb508c6dcd1fd481c30c09b7f2f5ab0b79e3199b7e2b55"
@@ -214,6 +214,7 @@ class Resource(BaseResource):
         ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
         process_info_path = '{}/process_info.json'.format(ticket_path)
         write_file(process_info_path, process_info_obj, True)
+
         # Create a shared memory map that the watchdog monitors to see if the spawned
         # off process has finished
         process_state = multiprocessing.Value('b', 0)
@@ -226,6 +227,7 @@ class Resource(BaseResource):
                                             args=[function_process, process_info_path,
                                                   3600, process_state])
         watch_dog.start()
+
         # Get the download url
         reversed_url = reverse('download_job', kwargs={'ticket_number': ticket_number})
         download_hyperlink = request.build_absolute_uri(reversed_url)
@@ -271,7 +273,7 @@ class Resource(BaseResource):
         # 'title': resource_title,
         # 'path': /some/path/to/resource}
         try:
-            resources = func(token, resource_id)
+            resources, empty_containers = func(token, resource_id)
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch.
             # Update the server process_info file appropriately.
@@ -285,12 +287,14 @@ class Resource(BaseResource):
             #  Update the shared memory map so the watchdog process can stop running.
             process_state.value = 1
             return
+
         # The directory all files should be saved in.
         base_file_name = '{}_download_{}'.format(target_name, resource_id)
         base_directory = '{}/{}'.format(ticket_path, base_file_name)
 
         # For each resource, perform fixity check, and save to disk.
         fixity_info = []
+        fixity_match = True
         for resource in resources:
             # Perform the fixity check and add extra info to the returned fixity object.
             fixity_obj, fixity_match = download_fixity_checker.download_fixity_checker(
@@ -301,6 +305,10 @@ class Resource(BaseResource):
 
             # Save the file to the disk.
             write_file('{}{}'.format(base_directory, resource['path']), resource['file'])
+
+        # Write empty containers to disk
+        for container in empty_containers:
+            os.makedirs(os.path.dirname('{}{}'.format(base_directory, container)))
 
         # Add the fixity file to the disk directory
         write_file('{}/fixity_info.json'.format(base_directory),fixity_info, True)

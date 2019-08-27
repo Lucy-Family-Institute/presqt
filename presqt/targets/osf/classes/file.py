@@ -15,7 +15,7 @@ class File(OSFBase):
         self.id = file['id']
         # Links
         self.endpoint = file['links']['self']
-        self.download_url = file['links']['download']
+        self.download_url = file['links']['move']
         self.upload_url = file['links']['upload']
         self.delete_url = file['links']['delete']
 

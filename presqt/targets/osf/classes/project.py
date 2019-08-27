@@ -76,8 +76,12 @@ class Project(OSFBase):
             raise OSFNotFoundError("Project has no storage provider '{}'".format(storage),
                                     status.HTTP_404_NOT_FOUND)
 
-    def get_all_files(self):
-        files = []
+    def get_all_files(self, initial_path, files, empty_containers):
         for storage in self.storages():
-            [files.append(file) for file in storage.get_all_files()]
-        return files
+            storage.get_all_files('{}/{}/{}'.format(initial_path, self.title, storage.title), files, empty_containers)
+
+        children_data = self._follow_next(self.children_link)
+        if children_data:
+            for child_data in children_data:
+                child_project = Project(child_data, self.session)
+                child_project.get_all_files('{}/{}'.format(initial_path, self.title), files, empty_containers)
