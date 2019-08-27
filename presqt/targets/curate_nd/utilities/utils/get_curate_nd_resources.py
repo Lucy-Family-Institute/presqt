@@ -18,20 +18,10 @@ def get_curate_nd_resource(resource_id, curate_nd_instance):
     -------
     The class object for the resource requested.
     """
-    # Item
     try:
-        resource = curate_nd_instance.item(resource_id)
+        resource = curate_nd_instance.resource(resource_id)
     except CurateNDForbiddenError as e:
         raise PresQTResponseException(
             "Resource with id '{}' not found for this user.".format(resource_id), e.status_code)
-    else:
-        return resource
-
-    # File
-    try:
-        resource = curate_nd_instance.file(resource_id)
-    except CurateNDForbiddenError as e:
-        raise PresQTResponseException(
-            "Resource with id '{}' not available for this user.".format(resource_id), e.status_code)
     else:
         return resource
