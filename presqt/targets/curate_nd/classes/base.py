@@ -7,19 +7,16 @@ from presqt.targets.curate_nd.utilities import (
     CurateNDNotFoundError, CurateNDForbiddenError, CurateNDServerError)
 from presqt.targets.utilities import get_page_total, PresQTSession
 
-from presqt.utilities import PresQTResponseException
-
 
 class CurateNDBase(object):
     """
-    Base class for all OSF classes and the main Curate ND.
+    Base class for all Curate ND classes.
     """
 
     def __init__(self, json, session=None):
         # Set the session attribute with the existing session or a new one if one doesn't exist.
         if session is None:
-            self.session = PresQTSession(
-                'https://libvirt6.library.nd.edu/api/items')
+            self.session = PresQTSession('https://libvirt6.library.nd.edu/api/items')
         else:
             self.session = session
 
@@ -29,9 +26,9 @@ class CurateNDBase(object):
         """
         return response.json()
 
-    def _follow_next(self, url):
+    def _get_all_paginated_data(self, url):
         """
-        Follow the 'next' link on paginated results.
+        Get all data for the requesting user.
 
         Parameters
         ----------
@@ -49,8 +46,7 @@ class CurateNDBase(object):
 
         # Calculate pagination pages
         page_total = get_page_total(pagination['totalResults'], pagination['itemsPerPage'])
-        url_list = ['{}&page={}'.format(url, number)
-                    for number in range(2, page_total + 1)]
+        url_list = ['{}&page={}'.format(url, number) for number in range(2, page_total + 1)]
 
         # Call all pagination pages asynchronously
         children_data = self.run_urls_async(url_list)
@@ -130,8 +126,7 @@ class CurateNDBase(object):
                 "User does not have access to this resource with the token provided.",
                 status.HTTP_403_FORBIDDEN)
         elif response.status_code == 404:
-            raise CurateNDNotFoundError(
-                "Resource not found.", status.HTTP_404_NOT_FOUND)
+            raise CurateNDNotFoundError("Resource not found.", status.HTTP_404_NOT_FOUND)
         elif response.status_code == 500:
             raise CurateNDServerError(
                 "CurateND returned a 500 server error.", status.HTTP_500_INTERNAL_SERVER_ERROR)

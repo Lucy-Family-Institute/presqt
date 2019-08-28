@@ -1,4 +1,3 @@
-import json
 import requests
 
 from rest_framework import status
@@ -6,8 +5,7 @@ from rest_framework import status
 from presqt.targets.curate_nd.classes.base import CurateNDBase
 from presqt.targets.curate_nd.classes.file import File
 from presqt.targets.curate_nd.classes.item import Item
-from presqt.utilities import (PresQTResponseException, PresQTInvalidTokenError,
-                              get_dictionary_from_list)
+from presqt.utilities import PresQTInvalidTokenError
 
 
 class CurateND(CurateNDBase):
@@ -35,8 +33,7 @@ class CurateND(CurateNDBase):
         response = requests.get('https://libvirt6.library.nd.edu/api/items?editor=self',
                                 headers={'X-Api-Token': '{}'.format(token)})
         if response.status_code == 500:
-            raise PresQTInvalidTokenError(
-                "Token is invalid. Response returned a 500 error.")
+            raise PresQTInvalidTokenError("Token is invalid. Response returned a 500 error.")
 
     def items(self):
         """
@@ -52,7 +49,7 @@ class CurateND(CurateNDBase):
         Instance of the desired Item.
         """
         url = 'https://libvirt6.library.nd.edu/api/items?editor=self'
-        response_data = self._follow_next(url)
+        response_data = self._get_all_paginated_data(url)
         item_urls = []
         for response in response_data:
             if response['type'] == 'Person':
@@ -89,9 +86,9 @@ class CurateND(CurateNDBase):
         else:
             return Item(response_data.json(), self.session)
 
-    def get_user_items(self):
+    def get_user_resources(self):
         """
-        Get all of the user's items. Return in the structure expected for the PresQT API.
+        Get all of the user's resources. Return in the structure expected for the PresQT API.
 
         Returns
         -------
@@ -108,13 +105,12 @@ class CurateND(CurateNDBase):
                 'title': item.title})
             # Files
             for file in item.extra['containedFiles']:
-                container_url_length = len(file['isPartOf'])
+                container_id = file['isPartOf'][len(self.session.base_url)+1:]
                 resources.append({
                     'kind': 'item',
                     'kind_name': 'file',
                     'id': file['id'],
-                    # A bit of slicing here so the container equals the id we expect
-                    'container': file['isPartOf'][container_url_length-11:container_url_length],
+                    'container': container_id,
                     'title': file['label']})
 
         return resources

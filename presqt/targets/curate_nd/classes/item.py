@@ -3,7 +3,7 @@ from presqt.targets.curate_nd.classes.base import CurateNDBase
 
 class Item(CurateNDBase):
     """
-    Class that represents an item in the Curate ND API.
+    Class that represents an Item in the CurateND API.
     """
 
     def __init__(self, item, session):
@@ -28,11 +28,4 @@ class Item(CurateNDBase):
         # add these unknown fields to the extra...
         for key, value in item.items():
             if key not in ['id', 'title', 'requestUrl', 'downloadUrl', 'dateSubmitted', 'modified']:
-                try:
-                    self.extra[key].append(value)
-                except KeyError:
-                    self.extra[key] = value
-
-        # def get_all_files(self):
-        #     files = [file for file in self.extra['containedFiles']]
-        #     return files
+                self.extra[key] = value
