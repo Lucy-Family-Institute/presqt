@@ -1,6 +1,6 @@
 def get_dictionary_from_list(list_to_search, key, search_value):
     """
-    Find a dictionary in a list of dictionaries based on a certain key's value.
+    Find a dictionary in a list of dictionaries based on a certain key's value
 
     Parameters
     ----------

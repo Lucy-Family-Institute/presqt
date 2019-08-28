@@ -1,3 +1,5 @@
+from presqt.targets.curate_nd.functions.fetch import (
+    curate_nd_fetch_resources, curate_nd_fetch_resource)
 from presqt.targets.osf.functions.fetch import osf_fetch_resources, osf_fetch_resource
 from presqt.targets.osf.functions.download import osf_download_resource
 from presqt.targets.osf.functions.upload import osf_upload_resource
@@ -14,10 +16,13 @@ class FunctionRouter(object):
         {target_name}_resource_collection
 
     Target Resource Detail:
-        {target_name}_detail
+        {target_name}_resource_detail
 
     Target Resource Download:
-        {target_name}_download
+        {target_name}_resource_download
+
+    Target Resource Upload:
+        {target_name}_resource_upload
 
     """
     @classmethod
@@ -32,3 +37,6 @@ class FunctionRouter(object):
     osf_resource_detail = osf_fetch_resource
     osf_resource_download = osf_download_resource
     osf_resource_upload = osf_upload_resource
+
+    curate_nd_resource_collection = curate_nd_fetch_resources
+    curate_nd_resource_detail = curate_nd_fetch_resource

@@ -36,12 +36,13 @@ class OSF(OSFBase):
             Token of the user performing the request.
 
         """
-        self.session.token_auth(token)
+        self.session.token_auth({'Authorization': 'Bearer {}'.format(token)})
         # Verify that the token provided is a valid one.
         response = requests.get('https://api.osf.io/v2/users/me/',
                                 headers={'Authorization': 'Bearer {}'.format(token)})
         if response.status_code == 401:
-            raise PresQTInvalidTokenError("Token is invalid. Response returned a 401 status code.")
+            raise PresQTInvalidTokenError(
+                "Token is invalid. Response returned a 401 status code.")
 
     def project(self, project_id):
         """
@@ -266,7 +267,7 @@ class OSF(OSFBase):
         elif duplicate_project_list:
             highest_duplicate_project = natsorted(duplicate_project_list)
             # findall takes a regular expression and a string, here we pass it the last number in
-            # highest duplicate project, and it is returned as a list. int requires a string as an 
+            # highest duplicate project, and it is returned as a list. int requires a string as an
             # argument, so the [0] is grabbing the only number in the list and converting it.
             highest_number = int(re.findall(r'\d+', highest_duplicate_project[-1])[0])
             title = "{} (PresQT{})".format(title, highest_number+1)

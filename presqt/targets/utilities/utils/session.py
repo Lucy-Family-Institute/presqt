@@ -22,16 +22,16 @@ class PresQTSession(requests.Session):
         super(PresQTSession, self).__init__()
         self.base_url = base_url
 
-    def token_auth(self, token):
+    def token_auth(self, header_dict):
         """
         Add the user's API token to the header for authorization.
 
         Parameters
         ----------
-        token : str
-            User's token
+        header_dict : dict
+            Dictionary containing what's expected for the partner endpoints
         """
-        self.headers.update({'Authorization': 'Bearer {}'.format(token)})
+        self.headers.update(header_dict)
 
     def build_url(self, *args):
         """

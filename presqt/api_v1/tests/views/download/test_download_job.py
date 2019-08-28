@@ -7,20 +7,23 @@ from django.test import TestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
-from config.settings.base import TEST_USER_TOKEN
-from presqt.utilities import write_file, read_file
+from config.settings.base import OSF_TEST_USER_TOKEN
 from presqt.api_v1.utilities.fixity.download_fixity_checker import download_fixity_checker
+from presqt.utilities import write_file, read_file
 
 
 class TestDownloadJob(TestCase):
     """
     Test the `api_v1/downloads/<ticket_id>/` endpoint's GET method.
+
+    Testing only PresQT core code.
     """
 
     def setUp(self):
         self.client = APIClient()
-        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': TEST_USER_TOKEN}
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN}
         self.resource_id = '5cd98510f244ec001fe5632f'
+        self.target_name = 'osf'
 
     def call_get_resource_zip(self):
         """
@@ -31,14 +34,15 @@ class TestDownloadJob(TestCase):
             "md5": "9e79fdd9032629743fca52634ecdfd86"
         }
 
-        url = reverse('resource', kwargs={'target_name': 'osf', 
+        url = reverse('resource', kwargs={'target_name': self.target_name,
                                           'resource_id': self.resource_id,
                                           'resource_format': 'zip'})
         response = self.client.get(url, **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 202)
         self.ticket_number = response.data['ticket_number']
-        self.process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(self.ticket_number)
+        self.process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(
+            self.ticket_number)
         process_info = read_file(self.process_info_path, True)
 
         # Save initial process data that we can use to rewrite to the process_info file for testing
@@ -53,7 +57,7 @@ class TestDownloadJob(TestCase):
                 pass
         self.assertNotEqual(process_info['status'], 'in_progress')
 
-    def test_get_success_200_osf(self):
+    def test_success_200(self):
         """
         Return a 200 along with a zip file of the resource requested.
         """
@@ -78,7 +82,8 @@ class TestDownloadJob(TestCase):
         with zip_file.open('osf_download_{}/data/fixity_info.json'.format(self.resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)[0]
             self.assertEqual(zip_json['fixity'], True)
-            self.assertEqual(zip_json['fixity_details'], 'Source Hash and PresQT Calculated hash matched.')
+            self.assertEqual(zip_json['fixity_details'],
+                             'Source Hash and PresQT Calculated hash matched.')
             self.assertEqual(zip_json['hash_algorithm'], 'sha256')
             self.assertEqual(zip_json['presqt_hash'], self.hashes['sha256'])
 
@@ -91,7 +96,7 @@ class TestDownloadJob(TestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
 
-    def test_get_success_202_osf(self):
+    def test_success_202(self):
         """
         Return a 202 if the resource has not finished being prepared on the server.
         """
@@ -105,7 +110,8 @@ class TestDownloadJob(TestCase):
 
         # Verify the status code and content
         self.assertEqual(response.status_code, 202)
-        self.assertEqual(response.data, {'message': 'Download is being processed on the server', 'status_code': None})
+        self.assertEqual(
+            response.data, {'message': 'Download is being processed on the server', 'status_code': None})
 
         # Verify the status of the process_info file is 'in_progress'
         process_info = read_file(self.process_info_path, True)
@@ -114,7 +120,7 @@ class TestDownloadJob(TestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
 
-    def test_get_error_400_osf(self):
+    def test_error_400(self):
         """
         Return a 400 if the 'presqt-source-token' is missing in the headers
         """
@@ -132,7 +138,7 @@ class TestDownloadJob(TestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
 
-    def test_get_error_401_osf(self):
+    def test_error_401(self):
         """
         Return a 401 if the 'presqt-source-token' provided in the header does not match
         the 'presqt-source-token' in the process_info file.
@@ -152,7 +158,7 @@ class TestDownloadJob(TestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
 
-    def test_get_error_404_osf(self):
+    def test_error_404(self):
         """
         Return a 404 if the ticket_number provided is not a valid ticket number.
         """
@@ -168,7 +174,7 @@ class TestDownloadJob(TestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
 
-    def test_get_error_500_401_token_invalid_osf(self):
+    def test_error_500_401_token_invalid(self):
         """
         Return a 500 if the Resource._download_resource() method running on the server gets a 401 error
         """
@@ -186,7 +192,7 @@ class TestDownloadJob(TestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
 
-    def test_get_error_500_403_unauthorized_container_resource_osf(self):
+    def test_error_500_403_unauthorized_container_resource(self):
         """
         Return a 500 if the Resource._download_resource() function running on the server gets a 403 error
         """
@@ -204,7 +210,7 @@ class TestDownloadJob(TestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
 
-    def test_get_error_500_403_unauthorized_item_resource_osf(self):
+    def test_error_500_403_unauthorized_item_resource(self):
         """
         Return a 500 if the Resource._download_resource() function running on the server gets a 403 error
         """
@@ -222,7 +228,7 @@ class TestDownloadJob(TestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
 
-    def test_get_error_500_404_resource_not_found_osf(self):
+    def test_error_500_404_resource_not_found(self):
         """
         Return a 500 if the Resource._download_resource() function running on the server gets a 404 error
         """
@@ -240,7 +246,7 @@ class TestDownloadJob(TestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
 
-    def test_get_error_500_410_gone_osf(self):
+    def test_error_500_410_gone(self):
         """
         Return a 500 if the Resource._download_resource() function running on the server gets a 410 error
         """
