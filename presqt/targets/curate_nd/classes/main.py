@@ -5,6 +5,7 @@ from rest_framework import status
 from presqt.targets.curate_nd.classes.base import CurateNDBase
 from presqt.targets.curate_nd.classes.file import File
 from presqt.targets.curate_nd.classes.item import Item
+from presqt.targets.utilities import run_urls_async
 from presqt.utilities import PresQTInvalidTokenError
 
 
@@ -57,7 +58,7 @@ class CurateND(CurateNDBase):
             else:
                 item_urls.append(response['itemUrl'])
 
-        data = self.run_urls_async(item_urls)
+        data = run_urls_async(self, item_urls)
 
         return [Item(item_json, self.session) for item_json in data]
 

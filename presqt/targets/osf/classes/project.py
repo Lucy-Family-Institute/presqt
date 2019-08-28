@@ -52,7 +52,7 @@ class Project(OSFBase):
         """
         Iterate over all storages for this project.
         """
-        stores_json = self._follow_next(self._storages_url)
+        stores_json = self._get_all_paginated_data(self._storages_url)
         for store in stores_json:
             yield Storage(store, self.session)
 
@@ -80,7 +80,7 @@ class Project(OSFBase):
         for storage in self.storages():
             storage.get_all_files('{}/{}/{}'.format(initial_path, self.title, storage.title), files, empty_containers)
 
-        children_data = self._follow_next(self.children_link)
+        children_data = self._get_all_paginated_data(self.children_link)
         if children_data:
             for child_data in children_data:
                 child_project = Project(child_data, self.session)
