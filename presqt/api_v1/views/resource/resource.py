@@ -307,8 +307,14 @@ class Resource(BaseResource):
             write_file('{}{}'.format(base_directory, resource['path']), resource['file'])
 
         # Write empty containers to disk
-        for container in empty_containers:
-            os.makedirs(os.path.dirname('{}{}'.format(base_directory, container)))
+        for container_path in empty_containers:
+            # Make sure the container_path has a '/' and the beginning and end
+            if container_path[-1] != '/':
+                container_path += '/'
+            if container_path[0] != '/':
+                container_path = '/' + container_path
+
+            os.makedirs(os.path.dirname('{}{}'.format(base_directory, container_path)))
 
         # Add the fixity file to the disk directory
         write_file('{}/fixity_info.json'.format(base_directory),fixity_info, True)

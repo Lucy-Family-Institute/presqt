@@ -4,7 +4,7 @@ import aiohttp
 from rest_framework import status
 
 from presqt.targets.osf.utilities import OSFForbiddenError, OSFNotFoundError
-from presqt.targets.utilities import get_page_total
+from presqt.targets.utilities import get_page_total, run_urls_async
 from presqt.utilities import PresQTResponseException
 from presqt.targets.utilities.utils.session import PresQTSession
 
@@ -26,9 +26,9 @@ class OSFBase(object):
         """
         return response.json()
 
-    def _follow_next(self, url):
+    def _get_all_paginated_data(self, url):
         """
-        Follow the 'next' link on paginated results.
+        Get all data for the requesting user.
 
         Parameters
         ----------
@@ -49,7 +49,7 @@ class OSFBase(object):
         url_list = ['{}?page={}'.format(url, number) for number in range(2, page_total + 1)]
 
         # Call all pagination pages asynchronously
-        children_data = self.run_urls_async(url_list)
+        children_data = run_urls_async(self, url_list)
         [data.extend(child['data']) for child in children_data]
         return data
 
@@ -76,81 +76,6 @@ class OSFBase(object):
                 [url_list.append('{}{}'.format(
                     next_url[:-1], number)) for number in range(2, page_total + 1)]
         return url_list
-
-    def run_urls_async(self, url_list):
-        """
-        Open an async loop and begin async calls.
-
-        Parameters
-        ----------
-        url_list: list
-            List of urls to call asynchronously
-
-        Returns
-        -------
-        The data returned from the async call
-        """
-        loop = asyncio.new_event_loop()
-        data = loop.run_until_complete(self.async_main(url_list))
-        return data
-
-    def run_urls_async_with_pagination(self, url_list):
-        """
-        Open an async loop and begin async calls.
-        Also get all paginated pages and run them asynchronously.
-
-        Parameters
-        ----------
-        url_list: list
-            List of urls to call asynchronously.
-
-        Returns
-        -------
-        The data returned from the async call
-        """
-        async_data = self.run_urls_async(url_list)
-        async_next_data = self._get_follow_next_urls(async_data)
-        async_data.extend(self.run_urls_async(async_next_data))
-
-        return async_data
-
-    async def async_get(self, url, session):
-        """
-        Coroutine that uses aiohttp to make a GET request. This is the method that will be called
-        asynchronously with other GETs.
-
-        Parameters
-        ----------
-        url: str
-            URL to call
-        session: ClientSession object
-            aiohttp ClientSession Object
-
-        Returns
-        -------
-        Response JSON
-        """
-        async with session.get(url, headers=self.session.headers) as response:
-            assert response.status == 200
-            return await response.json()
-
-
-    async def async_main(self, url_list):
-        """
-        Main coroutine method that will gather the url calls to be made and will make them
-        asynchronously.
-
-        Parameters
-        ----------
-        url_list: list
-            List of urls to call
-
-        Returns
-        -------
-        List of data brought back from each coroutine called.
-        """
-        async with aiohttp.ClientSession() as session:
-            return await asyncio.gather(*[self.async_get(url, session) for url in url_list])
 
     def get(self, url, *args, **kwargs):
         """
