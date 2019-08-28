@@ -9,6 +9,8 @@ from config.settings.base import CURATE_ND_TEST_TOKEN
 class TestResourceGETJSON(TestCase):
     """
     Test the `api_v1/targets/curate_nd/resources/{resource_id}.json/` endpoint's GET method.
+
+    Testing Curate ND integration.
     """
 
     def setUp(self):
@@ -17,7 +19,7 @@ class TestResourceGETJSON(TestCase):
         self.keys = ['kind', 'kind_name', 'id', 'title', 'date_created', 'date_modified', 'hashes',
                      'extra', 'links']
 
-    def test_get_success_curate_nd_item(self):
+    def test_success_item(self):
         """
         Returns a 200 if the GET method is successful when getting a CurateND `item`.
         """
@@ -41,7 +43,7 @@ class TestResourceGETJSON(TestCase):
         # Since Download/Upload aren't ready `links` should be empty.
         self.assertEqual(len(response.data['links']), 0)
 
-    def test_get_success_curate_nd_file(self):
+    def test_success_file(self):
         """
         Returns a 200 if the GET method is successful when getting a CurateND `file`.
         """
@@ -65,7 +67,7 @@ class TestResourceGETJSON(TestCase):
         # Since Download/Upload aren't ready `links` should be empty.
         self.assertEqual(len(response.data['links']), 0)
 
-    def test_get_error_403_not_authorized_curate_nd(self):
+    def test_error_403_not_authorized(self):
         """
         Return a 403 if the GET method fails because the user doesn't have access to this resource.
         """
@@ -78,7 +80,7 @@ class TestResourceGETJSON(TestCase):
         self.assertEqual(
             response.data, {'error': "User does not have access to this resource with the token provided."})
 
-    def test_get_error_404_not_found_curate_nd(self):
+    def test_error_404_not_found(self):
         """
         Return a 404 if the GET method fails because the resource doesn't exist.
         """
@@ -91,7 +93,7 @@ class TestResourceGETJSON(TestCase):
         self.assertEqual(
             response.data, {'error': "Resource not found."})
 
-    def test_get_error_401_not_authorized_token_curate_nd(self):
+    def test_error_401_not_authorized_token(self):
         """
         Return a 401 if the GET method fails because the token is invalid.
         """
@@ -104,7 +106,7 @@ class TestResourceGETJSON(TestCase):
         self.assertEqual(
             response.data, {'error': "Token is invalid. Response returned a 401 status code."})
 
-    def test_get_error_500_server_curate_nd(self):
+    def test_error_500_server(self):
         """
         Return a 500 if the GET method fails because of a 500 error on Curate.
         """

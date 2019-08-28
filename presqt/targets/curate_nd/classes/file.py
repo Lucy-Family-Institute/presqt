@@ -1,8 +1,6 @@
-import json
 from rest_framework import status
 
 from presqt.targets.curate_nd.classes.base import CurateNDBase
-from presqt.utilities import PresQTResponseException
 
 
 class File(CurateNDBase):
@@ -34,18 +32,4 @@ class File(CurateNDBase):
         # add these unknown fields to the extra...
         for key, value in file.items():
             if key not in ['id', 'requestUrl', 'downloadUrl', 'label', 'dateSubmitted', 'modified']:
-                try:
-                    self.extra[key].append(value)
-                except KeyError:
-                    self.extra[key] = value
-
-    # def download(self):
-    #     """
-    #     Download the file using the download url.
-
-    #     Returns
-    #     -------
-    #     The requesed file in byte format.
-    #     """
-    #     response = self.get(self.download_url)
-    #     return response.content
+                self.extra[key] = value
