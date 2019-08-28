@@ -6,6 +6,10 @@ omit =
         presqt/management/tests/*
         presqt/api_v1/tests/*
         presqt/json_schemas/tests/*
+        presqt/targets/osf/tests/*
+        presqt/targets/curate_nd/tests/*
+        presqt/targets/utilities/tests/*
+
 
 # A list of packages or directories, the source to measure during execution.
 source = presqt

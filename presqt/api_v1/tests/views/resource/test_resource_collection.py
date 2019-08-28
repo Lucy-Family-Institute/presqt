@@ -11,6 +11,8 @@ class TestResourceCollection(TestCase):
     """
     Test the 'api_v1/targets/{target_name}/resources/' endpoint's GET method.
     Only checking PresQT Core code.
+
+    Testing only PresQT core code.
     """
 
     def setUp(self):

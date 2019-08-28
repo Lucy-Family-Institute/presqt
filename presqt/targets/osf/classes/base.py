@@ -6,7 +6,7 @@ from rest_framework import status
 from presqt.targets.osf.utilities import OSFForbiddenError, OSFNotFoundError
 from presqt.targets.utilities import get_page_total
 from presqt.utilities import PresQTResponseException
-from presqt.targets.utilities.session import PresQTSession
+from presqt.targets.utilities.utils.session import PresQTSession
 
 
 class OSFBase(object):

@@ -1,26 +1,16 @@
-import json
 import multiprocessing
 import os
 import shutil
-import uuid
-import zipfile
 from unittest.mock import patch
 
-import requests
-from dateutil.relativedelta import relativedelta
 from django.test import TestCase
-from django.utils import timezone
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from config.settings.base import OSF_TEST_USER_TOKEN, OSF_UPLOAD_TEST_USER_TOKEN
-from presqt.utilities import write_file, read_file
-from presqt.api_v1.utilities.fixity.download_fixity_checker import download_fixity_checker
-from presqt.utilities import remove_path_contents
-from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
+from presqt.targets.utilities import process_wait
+from presqt.utilities import read_file
 from presqt.api_v1.views.resource.base_resource import BaseResource
-from presqt.api_v1.views.resource.resource import Resource
-from presqt.api_v1.targets.utilities import shared_upload_function, process_wait
 from presqt.targets.osf.utilities import delete_users_projects
 
 

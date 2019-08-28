@@ -120,36 +120,3 @@ def shared_get_success_function_202_with_error(test_case_instance):
 
     # Delete corresponding folder
     shutil.rmtree(ticket_path)
-
-
-def call_get_resource_zip(test_case_instance):
-    """
-    Call the resource endpoint first to download the resources
-    """
-    test_case_instance.hashes = {
-        "sha256": "3e517cda95ddbfcb270ab273201517f5ae0ee1190a9c5f6f7e6662f97868366f",
-        "md5": "9e79fdd9032629743fca52634ecdfd86"
-    }
-
-    url = reverse('resource', kwargs={'target_name': test_case_instance.target_name,
-                                      'resource_id': test_case_instance.resource_id,
-                                      'resource_format': 'zip'})
-    response = test_case_instance.client.get(url, **test_case_instance.header)
-    # Verify the status code
-    test_case_instance.assertEqual(response.status_code, 202)
-    test_case_instance.ticket_number = response.data['ticket_number']
-    test_case_instance.process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(
-        test_case_instance.ticket_number)
-    process_info = read_file(test_case_instance.process_info_path, True)
-
-    # Save initial process data that we can use to rewrite to the process_info file for testing
-    test_case_instance.initial_process_info = process_info
-
-    # Wait until the spawned off process finishes in the background
-    while process_info['status'] == 'in_progress':
-        try:
-            process_info = read_file(test_case_instance.process_info_path, True)
-        except json.decoder.JSONDecodeError:
-            # Pass while the process_info file is being written to
-            pass
-    test_case_instance.assertNotEqual(process_info['status'], 'in_progress')

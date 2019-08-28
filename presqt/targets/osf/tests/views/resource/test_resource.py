@@ -14,16 +14,14 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from config.settings.base import OSF_TEST_USER_TOKEN, OSF_UPLOAD_TEST_USER_TOKEN
+from presqt.targets.utilities import (shared_get_success_function_202,
+                                      shared_get_success_function_202_with_error, process_wait,
+                                      shared_upload_function)
 from presqt.utilities import write_file, read_file
 from presqt.api_v1.utilities.fixity.download_fixity_checker import download_fixity_checker
 from presqt.utilities import remove_path_contents
 from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
-from presqt.api_v1.views.resource.base_resource import BaseResource
 from presqt.api_v1.views.resource.resource import Resource
-from presqt.api_v1.targets.utilities import (
-    shared_get_success_function_202, shared_get_success_function_202_with_error)
-from presqt.api_v1.tests.utilities.shared_upload_test_functions import (
-    shared_upload_function, process_wait)
 from presqt.targets.osf.utilities import delete_users_projects
 
 

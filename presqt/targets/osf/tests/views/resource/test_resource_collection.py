@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 from django.test import TestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
@@ -16,8 +14,8 @@ class TestResourceCollection(TestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': TEST_USER_TOKEN}
-        self.large_project_header = {'HTTP_PRESQT_SOURCE_TOKEN': PRESQT_FORK_TOKEN}
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN}
+        self.large_project_header = {'HTTP_PRESQT_SOURCE_TOKEN': OSF_PRESQT_FORK_TOKEN}
     
     def test_success(self):
         """
