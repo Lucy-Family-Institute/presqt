@@ -1,3 +1,5 @@
+from presqt.targets.utilities.utils.async_functions import (run_urls_async,
+                                                            run_urls_async_with_pagination)
 from presqt.targets.utilities.utils.session import PresQTSession
 from presqt.targets.utilities.utils.get_page_total import get_page_total
 from presqt.targets.utilities.tests.shared_download_test_functions import (
@@ -12,4 +14,6 @@ __all__ = [
     shared_get_success_function_202_with_error,
     shared_upload_function,
     process_wait,
+    run_urls_async,
+    run_urls_async_with_pagination
 ]

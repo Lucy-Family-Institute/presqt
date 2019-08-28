@@ -14,7 +14,7 @@ class ContainerMixin:
         """
         Recursively gets all files for a given container.
         """
-        children = self._follow_next(self._files_url)
+        children = self._get_all_paginated_data(self._files_url)
 
         # If this is an empty container then we need to update the empty_containers list
         if not children:
@@ -55,7 +55,7 @@ class ContainerMixin:
         klass :str
             The resource's kind associated class
         """
-        children = self._follow_next(url)
+        children = self._get_all_paginated_data(url)
 
         while children:
             child = children.pop()

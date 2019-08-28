@@ -7,6 +7,7 @@ from natsort import natsorted
 
 from rest_framework import status
 
+from presqt.targets.utilities import run_urls_async_with_pagination
 from presqt.utilities import (PresQTResponseException, PresQTInvalidTokenError,
                               get_dictionary_from_list, list_differences, write_file)
 from presqt.targets.osf.classes.base import OSFBase
@@ -94,7 +95,7 @@ class OSF(OSFBase):
         # Since a user can collaborate on a subproject without having access to the parent project,
         # We need to get all top level projects who either have a parent_node of 'None' or whose
         # parent_node id isn't in our list of projects.
-        for project_json in self._follow_next(url):
+        for project_json in self._get_all_paginated_data(url):
             project = Project(project_json, self.session)
             projects.append(project)
             project_ids.append(project.id)
@@ -120,7 +121,7 @@ class OSF(OSFBase):
         user_storages_links = self.iter_project_storages(all_projects, resources)
 
         # Get initial resources for all storages
-        all_storages_resources = self.run_urls_async_with_pagination(user_storages_links)
+        all_storages_resources = run_urls_async_with_pagination(self, user_storages_links)
         # Loop through the storage resources to either add them to the main resources list or
         # traverse further down the tree to get their children resources.
         for storage_resources in all_storages_resources:
@@ -162,7 +163,7 @@ class OSF(OSFBase):
             child_projects_links.append(project.children_link)
 
         # Asynchronously get data for all child projects
-        child_projects_data = self.run_urls_async_with_pagination(child_projects_links)
+        child_projects_data = run_urls_async_with_pagination(self, child_projects_links)
 
         # Create Project class instances for child projects
         children_projects = []
@@ -182,7 +183,7 @@ class OSF(OSFBase):
         user_storages_links = []
 
         # Asynchronously get storage data for all projects
-        storages = self.run_urls_async_with_pagination([project._storages_url for project in projects])
+        storages = run_urls_async_with_pagination(self, [project._storages_url for project in projects])
 
         # Add each storage to the resource list
         storage_objs = []
@@ -235,7 +236,7 @@ class OSF(OSFBase):
                                     'path': folder.materialized_path})
 
         # Asynchronously call all folder file urls to get the folder's top level resources.
-        all_folders_resources = self.run_urls_async_with_pagination([folder_dict['url'] for folder_dict in folder_data])
+        all_folders_resources = run_urls_async_with_pagination(self, [folder_dict['url'] for folder_dict in folder_data])
 
         # For each folder, get it's container_id and resources
         for folder_resources in all_folders_resources:

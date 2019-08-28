@@ -5,7 +5,7 @@ from rest_framework import status
 
 from presqt.targets.curate_nd.utilities import (
     CurateNDNotFoundError, CurateNDForbiddenError, CurateNDServerError)
-from presqt.targets.utilities import get_page_total, PresQTSession
+from presqt.targets.utilities import get_page_total, PresQTSession, run_urls_async
 
 
 class CurateNDBase(object):
@@ -49,63 +49,9 @@ class CurateNDBase(object):
         url_list = ['{}&page={}'.format(url, number) for number in range(2, page_total + 1)]
 
         # Call all pagination pages asynchronously
-        children_data = self.run_urls_async(url_list)
+        children_data = run_urls_async(self, url_list)
         [data.extend(child['results']) for child in children_data]
         return data
-
-    def run_urls_async(self, url_list):
-        """
-        Open an async loop and begin async calls.
-
-        Parameters
-        ----------
-        url_list: list
-            List of urls to call asynchronously
-
-        Returns
-        -------
-        The data returned from the async call
-        """
-        loop = asyncio.new_event_loop()
-        data = loop.run_until_complete(self.async_main(url_list))
-        return data
-
-    async def async_get(self, url, session):
-        """
-        Coroutine that uses aiohttp to make a GET request. This is the method that will be called
-        asynchronously with other GETs.
-
-        Parameters
-        ----------
-        url: str
-            URL to call
-        session: ClientSession object
-            aiohttp ClientSession Object
-
-        Returns
-        -------
-        Response JSON
-        """
-        async with session.get(url, headers=self.session.headers) as response:
-            assert response.status == 200
-            return await response.json()
-
-    async def async_main(self, url_list):
-        """
-        Main coroutine method that will gather the url calls to be made and will make them
-        asynchronously.
-
-        Parameters
-        ----------
-        url_list: list
-            List of urls to call
-
-        Returns
-        -------
-        List of data brought back from each coroutine called.
-        """
-        async with aiohttp.ClientSession() as session:
-            return await asyncio.gather(*[self.async_get(url, session) for url in url_list])
 
     def get(self, url, *args, **kwargs):
         """
