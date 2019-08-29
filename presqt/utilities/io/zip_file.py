@@ -20,9 +20,9 @@ def zip_directory(source_path, destination_path, to_strip=None):
         if not files:
             # writestr takes the path and data as arguments, if data is empty it will create the
             # empty directory we expect.
-            my_zip_file.writestr((root[len(to_strip) + 1 :] + "/"), "")
+            my_zip_file.writestr((root[len(to_strip)+1:] + "/"), "")
         for file in files:
             # Change file path to write to.
-            new_path = os.path.join(root, file)[len(to_strip) + 1 :]
+            new_path = os.path.join(root, file)[len(to_strip)+1:]
             my_zip_file.write(os.path.join(root, file), new_path)
     my_zip_file.close()
