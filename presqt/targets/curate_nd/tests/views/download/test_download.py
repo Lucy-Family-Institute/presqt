@@ -143,7 +143,7 @@ class TestDownload(TestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
 
-    def test_error_500(self):
+    def test_error_500_401(self):
         """
         Return a 500 if an invalid token is provided.
         """
@@ -205,25 +205,6 @@ class TestDownload(TestCase):
         self.assertEqual(response.data,
                          {'message': "Resource not found.",
                           'status_code': 404})
-
-        # Delete corresponding folder
-        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
-
-    def test_error_500_401_token_invalid(self):
-        """
-        Return a 500 if the Resource._download_resource() method running on the server gets a 401 error
-        """
-        self.resource_id = 'hq37vm4432z'
-        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': '1234'}
-        shared_call_get_resource_zip(self, self.resource_id)
-
-        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
-        response = self.client.get(url, **self.header)
-
-        self.assertEqual(response.status_code, 500)
-        self.assertEqual(response.data,
-                         {'message': "Token is invalid. Response returned a 401 status code.",
-                          'status_code': 401})
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
