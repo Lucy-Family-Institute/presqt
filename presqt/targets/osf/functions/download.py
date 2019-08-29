@@ -65,7 +65,17 @@ def osf_download_resource(token, resource_id):
 
     Returns
     -------
-    List of dictionary objects that each hold a file and its information
+    - List of dictionary objects that each hold a file and its information.
+        Dictionary must be in the following format:
+        {
+            'file': binary_file,
+            'hashes': {'md5': 'the_hash},
+            'title': 'file.jpg',
+            'path': '/path/to/file
+        }
+        See https://app.gitbook.com/@crc-nd/s/presqt/project-description/developer-documentation/code-documentation/resource-download for details
+    - List of string paths representing empty containers that must be written.
+        Example: ['empty/folder/to/write/', 'another/empty/folder/]
     """
     try:
         osf_instance = OSF(token)

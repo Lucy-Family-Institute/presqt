@@ -1,24 +1,29 @@
 [
-  {
-    "name": "osf",
-    "readable_name": "OSF",
-    "supported_actions": {
-        "resource_collection": true,
-        "resource_detail": true,
-        "resource_download": true,
-        "resource_upload": true
+    {
+        "name": "osf",
+        "readable_name": "OSF",
+        "supported_actions": {
+            "resource_collection": true,
+            "resource_detail": true,
+            "resource_download": true,
+            "resource_upload": true
+        },
+        "supported_hash_algorithms": [
+            "sha256",
+            "md5"
+        ]
     },
-    "supported_hash_algorithms": ["sha256", "md5"]
-  },
-  {
-    "name": "curate_nd",
-    "readable_name": "CurateND",
-    "supported_actions": {
-        "resource_collection": true,
-        "resource_detail": true,
-        "resource_download": false,
-        "resource_upload": false
-    },
-    "supported_hash_algorithms": ["md5"]
-  }
+    {
+        "name": "curate_nd",
+        "readable_name": "CurateND",
+        "supported_actions": {
+            "resource_collection": true,
+            "resource_detail": true,
+            "resource_download": false,
+            "resource_upload": false
+        },
+        "supported_hash_algorithms": [
+            "md5"
+        ]
+    }
 ]

@@ -29,10 +29,21 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
     -------
     final_file_hashes : dict
         Dictionary of file hashes obtained from OSF
+        Example:
+        {
+            'mediafiles/uploads/25/BagItToUpload/data/NewProj/funnyimages/Screen.png':
+            '6d33275234b28d77348e4e1049f58b95a485a7a441684a9eb9175d01c7f141ea',
+            'mediafiles/uploads/25/BagItToUpload/data/NewProj/funnyimages/Screen2.png':
+            '6d33275234b28d77348e4e1049f58b95a485a7a441684a9eb9175d01c7f141eb',
+         }
     files_ignored : array
-        Array of file paths of files that were ignored when uploading the resource
+        Array of string file paths of files that were ignored when uploading the resource
+        ['path/to/ignored/file.pg', 'another/ignored/file.jpg]
+
     files_updated : array
-        Array of file paths of files that were updated when uploading the resource
+        Array of string file paths of files that were updated when uploading the resource
+        ['path/to/updated/file.jpg']
+    See https://app.gitbook.com/@crc-nd/s/presqt/project-description/developer-documentation/code-documentation/upload-endpoints for details
     """
     try:
         osf_instance = OSF(token)
@@ -88,5 +99,7 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
     final_file_hashes = {}
     for key, value in hashes.items():
         final_file_hashes[key] = value[hash_algorithm]
-
+    print(final_file_hashes)
+    print(files_ignored)
+    print(files_updated)
     return final_file_hashes, files_ignored, files_updated
