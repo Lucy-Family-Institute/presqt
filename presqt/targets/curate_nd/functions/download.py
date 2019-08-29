@@ -19,7 +19,7 @@ async def async_get(url, session, token):
     session: ClientSession object
         aiohttp ClientSession Object
     token: str
-        User's OSF token
+        User's CurateND token
 
     Returns
     -------
@@ -41,7 +41,7 @@ async def async_main(url_list, token):
     url_list: list
         List of urls to call
     token: str
-        User's OSF token
+        User's CurateND token
 
     Returns
     -------
@@ -59,13 +59,23 @@ def curate_nd_download_resource(token, resource_id):
     ----------
     token : str
         User's CurateND token
-
     resource_id : str
         ID of the resource requested
 
     Returns
     -------
-    List of dictionary objects that each hold a file and its information
+    - List of dictionary objects that each hold a file and its information.
+        Dictionary must be in the following format:
+        {
+            'file': binary_file,
+            'hashes': {'md5': 'the_hash},
+            'title': 'file.jpg',
+            'path': '/path/to/file
+        }
+        See https://app.gitbook.com/@crc-nd/s/presqt/project-description/developer-documentation/code-documentation/resource-download for details
+    - List of string paths representing empty containers that must be written.
+        Example: ['empty/folder/to/write/', 'another/empty/folder/]
+
     """
     try:
         curate_instance = CurateND(token)

@@ -172,3 +172,58 @@ class TestDownload(TestCase):
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(ticket_number))
+
+    def test_error_500_403_unauthorized_item_resource(self):
+        """
+        Return a 500 if the Resource._download_resource() function running on the server gets a 403 error
+        """
+        self.resource_id = 'ns064458c6g'
+        shared_call_get_resource_zip(self, self.resource_id)
+
+        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
+        response = self.client.get(url, **self.header)
+
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.data,
+                         {'message': "User does not have access to this resource with the token provided.",
+                          'status_code': 403})
+
+        # Delete corresponding folder
+        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
+
+    def test_error_500_404_resource_not_found(self):
+        """
+        Return a 500 if the Resource._download_resource() function running on the server gets a 404 error
+        """
+        self.resource_id = 'bad_id'
+        shared_call_get_resource_zip(self, self.resource_id)
+
+        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
+        response = self.client.get(url, **self.header)
+
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.data,
+                         {'message': "Resource not found.",
+                          'status_code': 404})
+
+        # Delete corresponding folder
+        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
+
+    def test_error_500_401_token_invalid(self):
+        """
+        Return a 500 if the Resource._download_resource() method running on the server gets a 401 error
+        """
+        self.resource_id = 'hq37vm4432z'
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': '1234'}
+        shared_call_get_resource_zip(self, self.resource_id)
+
+        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
+        response = self.client.get(url, **self.header)
+
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.data,
+                         {'message': "Token is invalid. Response returned a 401 status code.",
+                          'status_code': 401})
+
+        # Delete corresponding folder
+        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
