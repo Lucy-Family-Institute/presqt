@@ -1,12 +1,11 @@
 import asyncio
 import aiohttp
-import requests
 
 from rest_framework import status
 
 from presqt.targets.curate_nd.utilities import get_curate_nd_resource
 from presqt.targets.curate_nd.classes.main import CurateND
-from presqt.utilities import PresQTInvalidTokenError, PresQTResponseException
+from presqt.utilities import PresQTInvalidTokenError, PresQTValidationError
 
 async def async_get(url, session, token):
     """
@@ -58,7 +57,7 @@ def curate_nd_download_resource(token, resource_id):
     try:
         curate_instance = CurateND(token)
     except PresQTInvalidTokenError:
-        raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
+        raise PresQTValidationError("Token is invalid. Response returned a 401 status code.",
             status.HTTP_401_UNAUTHORIZED)
 
     # Get the resource
@@ -68,10 +67,10 @@ def curate_nd_download_resource(token, resource_id):
     files = []
     empty_containers = []
     if resource.kind_name == 'file':
-        binary_file = resource.download()
+        binary_file, curate_hash = resource.download()
         files.append({
             'file': binary_file,
-            'hashes': {'md5': resource.md5},
+            'hashes': {'md5': curate_hash},
             'title': resource.title,
             # If the file is the only resource we are downloading then we don't need it's full path.
             'path': '/{}'.format(resource.title)})
