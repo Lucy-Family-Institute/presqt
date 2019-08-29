@@ -1,8 +1,7 @@
-from presqt.targets.curate_nd.functions.fetch import (
-    curate_nd_fetch_resources, curate_nd_fetch_resource)
-from presqt.targets.osf.functions.fetch import osf_fetch_resources, osf_fetch_resource
-from presqt.targets.osf.functions.download import osf_download_resource
-from presqt.targets.osf.functions.upload import osf_upload_resource
+import importlib
+import inspect
+import os
+from os import path
 
 
 class FunctionRouter(object):
@@ -25,18 +24,52 @@ class FunctionRouter(object):
         {target_name}_resource_upload
 
     """
+    __lookup_table = {}
+
+    @classmethod
+    def _load_lookup_table(cls):
+        import presqt.targets
+        targets_dir = path.dirname(inspect.getfile(presqt.targets))
+        for target_name in os.listdir(path.join(targets_dir)):
+
+            # checking for target_name.functions filters out '__pycache__', '__init__.py', and 'utilities'
+            try:
+                importlib.import_module('presqt.targets.{}.functions'.format(target_name))
+            except ModuleNotFoundError:
+                continue
+
+            temp = {}
+            try:
+                fetch = importlib.import_module('presqt.targets.{}.functions.fetch'.format(target_name))
+                temp['resource_collection'] = getattr(fetch, target_name + '_fetch_resources')
+            except (ModuleNotFoundError, AttributeError):
+                pass
+            try:
+                fetch = importlib.import_module('presqt.targets.{}.functions.fetch'.format(target_name))
+                temp['resource_detail'] = getattr(fetch, target_name + '_fetch_resource')
+            except (ModuleNotFoundError, AttributeError):
+                pass
+            try:
+                download = importlib.import_module('presqt.targets.{}.functions.download'.format(target_name))
+                temp['resource_download'] = getattr(download, target_name + '_download_resource')
+            except (ModuleNotFoundError, AttributeError):
+                pass
+            try:
+                upload = importlib.import_module('presqt.targets.{}.functions.upload'.format(target_name))
+                temp['resource_upload'] = getattr(upload, target_name + '_upload_resource')
+            except (ModuleNotFoundError, AttributeError):
+                pass
+
+            cls.__lookup_table[target_name] = temp
+
+
     @classmethod
     def get_function(cls, target_name, action):
         """
         Extracts the getattr() function call to this class method so the code using this class
         is easier to work with.
         """
-        return getattr(cls, '{}_{}'.format(target_name, action))
+        return FunctionRouter.__lookup_table[target_name][action]
 
-    osf_resource_collection = osf_fetch_resources
-    osf_resource_detail = osf_fetch_resource
-    osf_resource_download = osf_download_resource
-    osf_resource_upload = osf_upload_resource
 
-    curate_nd_resource_collection = curate_nd_fetch_resources
-    curate_nd_resource_detail = curate_nd_fetch_resource
+FunctionRouter._load_lookup_table()
