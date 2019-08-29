@@ -53,6 +53,19 @@ async def async_main(url_list, token):
 
 def curate_nd_download_resource(token, resource_id):
     """
+    Fetch the requested resource from CurateND along with its hash information.
+
+    Parameters
+    ----------
+    token : str
+        User's CurateND token
+
+    resource_id : str
+        ID of the resource requested
+
+    Returns
+    -------
+    List of dictionary objects that each hold a file and its information
     """
     try:
         curate_instance = CurateND(token)
