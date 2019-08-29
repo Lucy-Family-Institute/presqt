@@ -33,7 +33,7 @@ class TestResourceCollection(TestCase):
         self.assertEqual(28, len(response.data))
         for data in response.data:
             # Since Curate for now only supports details, there should only be one link for each object.
-            self.assertEqual(len(data['links']), 1)
+            self.assertEqual(len(data['links']), 2)
 
     def test_error_400_missing_token_curate_nd(self):
         """
