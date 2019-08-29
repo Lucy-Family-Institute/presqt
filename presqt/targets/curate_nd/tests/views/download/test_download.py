@@ -3,12 +3,12 @@ import json
 import shutil
 import zipfile
 import time
+import os
 
 from django.test import TestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
-from config.settings.base import CURATE_ND_TEST_TOKEN
 from presqt.api_v1.utilities.fixity.download_fixity_checker import download_fixity_checker
 from presqt.utilities import read_file
 from presqt.targets.utilities import shared_call_get_resource_zip
@@ -22,7 +22,7 @@ class TestDownload(TestCase):
     """
     def setUp(self):
         self.client = APIClient()
-        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': CURATE_ND_TEST_TOKEN}
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': os.environ['CURATE_ND_TEST_TOKEN']}
         self.target_name = 'curate_nd'
 
     def test_success_empty_item(self):
