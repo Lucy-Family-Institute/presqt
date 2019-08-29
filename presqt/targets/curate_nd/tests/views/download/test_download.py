@@ -3,12 +3,12 @@ import json
 import shutil
 import zipfile
 import time
+import os
 
 from django.test import TestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
-from config.settings.base import CURATE_ND_TEST_TOKEN
 from presqt.api_v1.utilities.fixity.download_fixity_checker import download_fixity_checker
 from presqt.utilities import read_file
 from presqt.targets.utilities import shared_call_get_resource_zip
@@ -22,7 +22,7 @@ class TestDownload(TestCase):
     """
     def setUp(self):
         self.client = APIClient()
-        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': CURATE_ND_TEST_TOKEN}
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': os.environ['CURATE_ND_TEST_TOKEN']}
         self.target_name = 'curate_nd'
 
     def test_success_empty_item(self):
@@ -46,12 +46,20 @@ class TestDownload(TestCase):
         # Verify content type
         self.assertEqual(response._headers['content-type'][1], 'application/zip')
         # Verify the number of resources in the zip is correct
-        self.assertEqual(len(zip_file.namelist()), 11)
+        self.assertEqual(len(zip_file.namelist()), 12)
 
         # Verify the fixity file is empty as there was nothing to check.
         with zip_file.open('curate_nd_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 0)
+
+        empty_folder_path = "{}_download_{}/data/No Files/".format(self.target_name, resource_id)
+        # Verify that the empty folder exists
+        self.assertIn(empty_folder_path, zip_file.namelist())
+
+        # Verify there is only one entry that contains this folder
+        count_of_empty_folder_references = zip_file.namelist().count(empty_folder_path)
+        self.assertEqual(count_of_empty_folder_references, 1)
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))

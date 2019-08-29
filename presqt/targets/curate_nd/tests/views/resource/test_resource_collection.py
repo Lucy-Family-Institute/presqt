@@ -1,8 +1,8 @@
+import os
+
 from django.test import TestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
-
-from config.settings.base import CURATE_ND_TEST_TOKEN
 
 
 class TestResourceCollection(TestCase):
@@ -14,7 +14,7 @@ class TestResourceCollection(TestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': CURATE_ND_TEST_TOKEN}
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': os.environ['CURATE_ND_TEST_TOKEN']}
 
     def test_success_curate_nd(self):
         """

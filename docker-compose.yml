@@ -41,6 +41,7 @@ services:
     depends_on:
       - presqt_postgres
     environment:
+      CURATE_ND_TEST_TOKEN: $CURATE_ND_TEST_TOKEN
       POSTGRES_USER: $POSTGRES_USER
       POSTGRES_PASSWORD: $POSTGRES_PASSWORD
       POSTGRES_DB: $POSTGRES_DB

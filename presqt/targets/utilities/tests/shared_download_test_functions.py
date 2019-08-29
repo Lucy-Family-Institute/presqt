@@ -53,9 +53,9 @@ def shared_get_success_function_202(test_case_instance):
     base_name = '{}_download_{}'.format(
         test_case_instance.target_name, test_case_instance.resource_id)
     zip_path = '{}/{}.zip'.format(ticket_path, base_name)
-    zip_file = zipfile.ZipFile(zip_path)
+    test_case_instance.zip_file = zipfile.ZipFile(zip_path)
     test_case_instance.assertEqual(os.path.isfile(zip_path), True)
-    test_case_instance.assertEqual(len(zip_file.namelist()), test_case_instance.file_number)
+    test_case_instance.assertEqual(len(test_case_instance.zip_file.namelist()), test_case_instance.file_number)
 
     # Verify that the resource we expect is there.
     test_case_instance.assertEqual(os.path.isfile('{}/{}/data/{}'.format(
@@ -65,7 +65,7 @@ def shared_get_success_function_202(test_case_instance):
     shutil.rmtree(ticket_path)
 
     # Return fixity info JSON
-    fixity_file = zip_file.open('{}/data/fixity_info.json'.format(base_name))
+    fixity_file = test_case_instance.zip_file.open('{}/data/fixity_info.json'.format(base_name))
     return json.load(fixity_file)
 
 

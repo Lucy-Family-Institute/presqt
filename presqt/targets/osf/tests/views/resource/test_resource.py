@@ -378,9 +378,15 @@ class TestResourceGETZip(TestCase):
         """
         self.resource_id = 'cmn5z'
         self.target_name = 'osf'
-        self.file_number = 71
+        self.file_number = 75
         self.file_name = 'Test Project/osfstorage/Docs/Docs2/Docs3/CODE_OF_CONDUCT.md'
         shared_get_success_function_202(self)
+
+        # Verify empty folders have been written to zip file
+        list_of_empty_folders = ['osf_download_cmn5z/data/Test Project/osfstorage/Empty Folder/', 
+                                 'osf_download_cmn5z/data/Test Project/Sub Test Project/osfstorage/']
+        for empty_folder in list_of_empty_folders:
+            self.assertIn(empty_folder, self.zip_file.namelist())
 
     def test_202_downloadresource_fails_file_id_doesnt_exist(self):
         """
