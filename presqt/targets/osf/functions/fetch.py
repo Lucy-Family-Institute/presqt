@@ -7,8 +7,7 @@ from presqt.targets.osf.classes.main import OSF
 
 def osf_fetch_resources(token):
     """
-    Fetch all OSF resources (projects/nodes, folders, files) for the user connected
-    to the given 'token'.
+    Fetch all OSF resources for the user connected to the given token.
 
     Parameters
     ----------
@@ -17,7 +16,16 @@ def osf_fetch_resources(token):
 
     Returns
     -------
-    List of dictionary objects that represent an OSF resources.
+    List of dictionary objects that represent OSF resources.
+    Dictionary must be in the following format:
+        {
+            "kind": "container",
+            "kind_name": "folder",
+            "id": "12345",
+            "container": "None",
+            "title": "Folder Name",
+        }
+    See https://app.gitbook.com/@crc-nd/s/presqt/project-description/developer-documentation/code-documentation/resources for details.
     """
     try:
         osf_instance = OSF(token)
@@ -44,8 +52,24 @@ def osf_fetch_resource(token, resource_id):
     Returns
     -------
     A dictionary object that represents the OSF resource.
+    Dictionary must be in the following format:
+    {
+        "kind": "item",
+        "kind_name": "file",
+        "id": "12345",
+        "title": "23296359282_934200ec59_o.jpg",
+        "date_created": "2019-05-13T14:54:17.129170Z",
+        "date_modified": "2019-05-13T14:54:17.129170Z",
+        "hashes": {
+            "md5": "aaca7ef067dcab7cb8d79c36243823e4",
+            "sha256": "ea94ce54261720c16abb508c6dcd1fd481c30c09b7f2f5ab0b79e3199b7e2b55"
+        },
+        "extra": {
+            "any": extra,
+            "values": here
+        }
+    }
     """
-
     try:
         osf_instance = OSF(token)
     except PresQTInvalidTokenError:
