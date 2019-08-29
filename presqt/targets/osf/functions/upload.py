@@ -99,7 +99,4 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
     final_file_hashes = {}
     for key, value in hashes.items():
         final_file_hashes[key] = value[hash_algorithm]
-    print(final_file_hashes)
-    print(files_ignored)
-    print(files_updated)
     return final_file_hashes, files_ignored, files_updated
