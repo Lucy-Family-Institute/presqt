@@ -40,8 +40,8 @@ class TestResourceGETJSON(TestCase):
         self.assertEqual('item', response.data['kind_name'])
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('Funny Pic', response.data['title'])
-        # Since Download/Upload aren't ready `links` should be empty.
-        self.assertEqual(len(response.data['links']), 0)
+        # Download Link
+        self.assertEqual(len(response.data['links']), 1)
 
     def test_success_file(self):
         """
@@ -64,8 +64,8 @@ class TestResourceGETJSON(TestCase):
         self.assertEqual('file', response.data['kind_name'])
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('DrZ3gwlX0AIbee-.png', response.data['title'])
-        # Since Download/Upload aren't ready `links` should be empty.
-        self.assertEqual(len(response.data['links']), 0)
+        # Download Link
+        self.assertEqual(len(response.data['links']), 1)
 
     def test_error_403_not_authorized(self):
         """

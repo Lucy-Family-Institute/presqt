@@ -10,6 +10,7 @@ from rest_framework.test import APIClient
 from config.settings.base import OSF_TEST_USER_TOKEN
 from presqt.api_v1.utilities.fixity.download_fixity_checker import download_fixity_checker
 from presqt.utilities import write_file, read_file
+from presqt.targets.utilities import shared_call_get_resource_zip
 
 
 class TestDownloadJob(TestCase):
@@ -24,44 +25,15 @@ class TestDownloadJob(TestCase):
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN}
         self.resource_id = '5cd98510f244ec001fe5632f'
         self.target_name = 'osf'
-
-    def call_get_resource_zip(self):
-        """
-        Call the resource endpoint first to download the resources
-        """
         self.hashes = {
             "sha256": "3e517cda95ddbfcb270ab273201517f5ae0ee1190a9c5f6f7e6662f97868366f",
-            "md5": "9e79fdd9032629743fca52634ecdfd86"
-        }
-
-        url = reverse('resource', kwargs={'target_name': self.target_name,
-                                          'resource_id': self.resource_id,
-                                          'resource_format': 'zip'})
-        response = self.client.get(url, **self.header)
-        # Verify the status code
-        self.assertEqual(response.status_code, 202)
-        self.ticket_number = response.data['ticket_number']
-        self.process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(
-            self.ticket_number)
-        process_info = read_file(self.process_info_path, True)
-
-        # Save initial process data that we can use to rewrite to the process_info file for testing
-        self.initial_process_info = process_info
-
-        # Wait until the spawned off process finishes in the background
-        while process_info['status'] == 'in_progress':
-            try:
-                process_info = read_file(self.process_info_path, True)
-            except json.decoder.JSONDecodeError:
-                # Pass while the process_info file is being written to
-                pass
-        self.assertNotEqual(process_info['status'], 'in_progress')
+            "md5": "9e79fdd9032629743fca52634ecdfd86"}
 
     def test_success_200(self):
         """
         Return a 200 along with a zip file of the resource requested.
         """
-        self.call_get_resource_zip()
+        shared_call_get_resource_zip(self, self.resource_id)
 
         url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
         response = self.client.get(url, **self.header)
@@ -100,7 +72,7 @@ class TestDownloadJob(TestCase):
         """
         Return a 202 if the resource has not finished being prepared on the server.
         """
-        self.call_get_resource_zip()
+        shared_call_get_resource_zip(self, self.resource_id)
 
         # Update the fixity_info.json to say the resource hasn't finished processing
         write_file(self.process_info_path, self.initial_process_info, True)
@@ -124,7 +96,7 @@ class TestDownloadJob(TestCase):
         """
         Return a 400 if the 'presqt-source-token' is missing in the headers
         """
-        self.call_get_resource_zip()
+        shared_call_get_resource_zip(self, self.resource_id)
 
         header = {}
         url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
@@ -143,7 +115,7 @@ class TestDownloadJob(TestCase):
         Return a 401 if the 'presqt-source-token' provided in the header does not match
         the 'presqt-source-token' in the process_info file.
         """
-        self.call_get_resource_zip()
+        shared_call_get_resource_zip(self, self.resource_id)
 
         url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
         headers = {'HTTP_PRESQT_SOURCE_TOKEN': '1234'}
@@ -162,7 +134,7 @@ class TestDownloadJob(TestCase):
         """
         Return a 404 if the ticket_number provided is not a valid ticket number.
         """
-        self.call_get_resource_zip()
+        shared_call_get_resource_zip(self, self.resource_id)
 
         url = reverse('download_job', kwargs={'ticket_number': 'bad_ticket'})
         response = self.client.get(url, **self.header)
@@ -179,7 +151,7 @@ class TestDownloadJob(TestCase):
         Return a 500 if the Resource._download_resource() method running on the server gets a 401 error
         """
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': '1234'}
-        self.call_get_resource_zip()
+        shared_call_get_resource_zip(self, self.resource_id)
 
         url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
         response = self.client.get(url, **self.header)
@@ -197,7 +169,7 @@ class TestDownloadJob(TestCase):
         Return a 500 if the Resource._download_resource() function running on the server gets a 403 error
         """
         self.resource_id = 'q5xmw'
-        self.call_get_resource_zip()
+        shared_call_get_resource_zip(self, self.resource_id)
 
         url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
         response = self.client.get(url, **self.header)
@@ -215,7 +187,7 @@ class TestDownloadJob(TestCase):
         Return a 500 if the Resource._download_resource() function running on the server gets a 403 error
         """
         self.resource_id = '5cd98c2cf244ec0020e4d9d1'
-        self.call_get_resource_zip()
+        shared_call_get_resource_zip(self, self.resource_id)
 
         url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
         response = self.client.get(url, **self.header)
@@ -233,7 +205,7 @@ class TestDownloadJob(TestCase):
         Return a 500 if the Resource._download_resource() function running on the server gets a 404 error
         """
         self.resource_id = 'bad_id'
-        self.call_get_resource_zip()
+        shared_call_get_resource_zip(self, self.resource_id)
 
         url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
         response = self.client.get(url, **self.header)
@@ -251,7 +223,7 @@ class TestDownloadJob(TestCase):
         Return a 500 if the Resource._download_resource() function running on the server gets a 410 error
         """
         self.resource_id = '5cd989c5f8214b00188af9b5'
-        self.call_get_resource_zip()
+        shared_call_get_resource_zip(self, self.resource_id)
 
         url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
         response = self.client.get(url, **self.header)

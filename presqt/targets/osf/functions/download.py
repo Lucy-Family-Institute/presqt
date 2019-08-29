@@ -1,6 +1,6 @@
 import asyncio
-
 import aiohttp
+
 from rest_framework import status
 
 from presqt.targets.osf.utilities import get_osf_resource
