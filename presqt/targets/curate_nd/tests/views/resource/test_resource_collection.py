@@ -1,11 +1,11 @@
 import os
 
-from django.test import TestCase
+from django.test import SimpleTestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 
-class TestResourceCollection(TestCase):
+class TestResourceCollection(SimpleTestCase):
     """
     Test the 'api_v1/targets/curate_nd/resources' endpoint's GET method.
 

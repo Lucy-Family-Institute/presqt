@@ -3,7 +3,7 @@ import os
 import shutil
 from unittest.mock import patch
 
-from django.test import TestCase
+from django.test import SimpleTestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
@@ -14,7 +14,7 @@ from presqt.api_v1.views.resource.base_resource import BaseResource
 from presqt.targets.osf.utilities import delete_users_projects
 
 
-class TestResourceGET(TestCase):
+class TestResourceGET(SimpleTestCase):
     """
     Test the endpoint's GET method for
     `api_v1/targets/{target_name}/resources/{resource_id}.{resource_format}/`
@@ -85,7 +85,7 @@ class TestResourceGET(TestCase):
         self.assertEqual(response.data, {'error': "'bad_name' is not a valid Target name."})
 
 
-class TestResourceGETZip(TestCase):
+class TestResourceGETZip(SimpleTestCase):
     """
     Test the `api_v1/targets/{target_name}/resources/{resource_id}.zip/` endpoint's GET method.
 
@@ -141,7 +141,7 @@ class TestResourceGETZip(TestCase):
                          {'error': "'presqt-source-token' missing in the request headers."})
 
 
-class TestResourcePOST(TestCase):
+class TestResourcePOST(SimpleTestCase):
     """
     Test the endpoint's POST method for resource uploads:
          `api_v1/targets/{target_name}/resources/{resource_id}/`

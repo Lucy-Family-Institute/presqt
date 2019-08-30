@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import requests
 from dateutil.relativedelta import relativedelta
-from django.test import TestCase
+from django.test import SimpleTestCase
 from django.utils import timezone
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
@@ -25,7 +25,7 @@ from presqt.api_v1.views.resource.resource import Resource
 from presqt.targets.osf.utilities import delete_users_projects
 
 
-class TestResourceGETJSON(TestCase):
+class TestResourceGETJSON(SimpleTestCase):
     """
     Test the `api_v1/targets/osf/resources/{resource_id}.json/` endpoint's GET method.
 
@@ -224,7 +224,7 @@ class TestResourceGETJSON(TestCase):
                          {'error': "The requested resource is no longer available."})
 
 
-class TestResourceGETZip(TestCase):
+class TestResourceGETZip(SimpleTestCase):
     """
     Test the `api_v1/targets/osf/resources/{resource_id}.zip/` endpoint's GET method.
 
@@ -576,7 +576,7 @@ class TestResourceGETZip(TestCase):
         shutil.rmtree(ticket_path)
 
 
-class TestResourcePOST(TestCase):
+class TestResourcePOST(SimpleTestCase):
     """
     Test the endpoint's POST method for resource uploads:
          `api_v1/targets/{target_name}/resources/{resource_id}/`

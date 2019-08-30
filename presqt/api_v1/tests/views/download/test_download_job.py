@@ -3,7 +3,7 @@ import json
 import shutil
 import zipfile
 
-from django.test import TestCase
+from django.test import SimpleTestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
@@ -13,7 +13,7 @@ from presqt.utilities import write_file, read_file
 from presqt.targets.utilities import shared_call_get_resource_zip
 
 
-class TestDownloadJob(TestCase):
+class TestDownloadJob(SimpleTestCase):
     """
     Test the `api_v1/downloads/<ticket_id>/` endpoint's GET method.
 

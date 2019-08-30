@@ -1,11 +1,11 @@
-from django.test import TestCase
+from django.test import SimpleTestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from presqt.utilities import read_file
 
 
-class TestTargetCollection(TestCase):
+class TestTargetCollection(SimpleTestCase):
     """
     Test the `api_v1/targets/` endpoint's GET method.
     """
@@ -35,7 +35,7 @@ class TestTargetCollection(TestCase):
         self.assertEqual(len(json_data), len(response.data))
 
 
-class TestTarget(TestCase):
+class TestTarget(SimpleTestCase):
     """
     Test the `api_v1/targets/{target_name}/` endpoint's GET method.
     """

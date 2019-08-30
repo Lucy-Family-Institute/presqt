@@ -7,14 +7,14 @@ from dateutil.relativedelta import relativedelta
 
 from django.core.management import call_command
 from django.conf import settings
-from django.test.testcases import TestCase
+from django.test import SimpleTestCase
 from django.utils import timezone
 
 from presqt.utilities import read_file, write_file
 from presqt.api_v1.views.resource.resource import Resource
 
 
-class TestDeleteMediaFiles(TestCase):
+class TestDeleteMediaFiles(SimpleTestCase):
     def setUp(self):
         self.directory = 'mediafiles/downloads/test_command/'
         if not os.path.exists(self.directory):

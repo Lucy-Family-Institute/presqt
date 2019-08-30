@@ -3,7 +3,7 @@ import shutil
 from unittest.mock import patch
 
 import requests
-from django.test import TestCase
+from django.test import SimpleTestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
@@ -12,7 +12,7 @@ from presqt.utilities import read_file, write_file
 from presqt.targets.osf.utilities import delete_users_projects
 
 
-class TestUploadJob(TestCase):
+class TestUploadJob(SimpleTestCase):
     """
     Test the `api_v1/downloads/<ticket_id>/` endpoint's GET method.
     """

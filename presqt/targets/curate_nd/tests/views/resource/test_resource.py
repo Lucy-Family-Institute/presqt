@@ -1,12 +1,12 @@
 import os
 from unittest.mock import patch
 
-from django.test import TestCase
+from django.test import SimpleTestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 
-class TestResourceGETJSON(TestCase):
+class TestResourceGETJSON(SimpleTestCase):
     """
     Test the `api_v1/targets/curate_nd/resources/{resource_id}.json/` endpoint's GET method.
 
