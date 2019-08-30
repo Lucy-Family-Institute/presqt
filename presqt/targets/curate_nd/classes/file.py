@@ -24,8 +24,6 @@ class File(CurateNDBase):
         self.title = file['label']
         self.date_submitted = file['dateSubmitted']
         self.modified = file['modified']
-        self.md5 = None
-        self.sha256 = None
         self.extra = {}
 
         # Curate's API has inconsistent payloads, to get around a bunch of try/excepts, we will just
