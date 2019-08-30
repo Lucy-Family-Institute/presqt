@@ -38,13 +38,8 @@ services:
       # make this clear.
       args:
         BUILD_ENVIRONMENT: ${ENVIRONMENT:-production}
-    depends_on:
-      - presqt_postgres
     environment:
       CURATE_ND_TEST_TOKEN: $CURATE_ND_TEST_TOKEN
-      POSTGRES_USER: $POSTGRES_USER
-      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
-      POSTGRES_DB: $POSTGRES_DB
       SECRET_KEY: $SECRET_KEY
       ENVIRONMENT: ${ENVIRONMENT:-production}
       DJANGO_SETTINGS_MODULE: config.settings.${ENVIRONMENT:-production}
@@ -56,29 +51,6 @@ services:
       - frontend
       - backend
 
-  # This will create a Postgres container with persistent
-  # storage on the host. It's important to note that unless
-  # you delete the persistant storage volume, the password
-  # set via environment variable at the first run of docker-compose
-  # will also persist, even if you change the environment
-  # variable value in between docker-compose invocations.
-  presqt_postgres:
-    image: postgres:11-alpine
-    environment:
-      POSTGRES_USER: $POSTGRES_USER
-      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
-      POSTGRES_DB: $POSTGRES_DB
-    networks:
-      - backend
-    ports:
-      # Expose Postgres to the host for connections via IDE
-      # This may be something you want to avoid in deployment
-      # environments. We will have to see.
-      - 127.0.0.1:5432:5432
-    restart: always
-    volumes:
-      - presqt_postgres_volume:/var/lib/postgresql/data
-
 # We create two top-level networks to provide some isolation
 # of concerns / greater security. In our case, we use this to
 # disallow direct connections between the NGINX container and
@@ -88,7 +60,6 @@ networks:
   backend:
 
 volumes:
-  presqt_postgres_volume:
   presqt_static_volume:
   presqt_media_volume:
   presqt_ui_volume:

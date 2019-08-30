@@ -1,10 +1,10 @@
-from django.test import TestCase
+from django.test import SimpleTestCase
 from rest_framework.test import APIRequestFactory
 
 from presqt.api_v1 import api_root
 
 
-class TestApiRoot(TestCase):
+class TestApiRoot(SimpleTestCase):
     """
     Test the endpoint `api_v1/`
     """

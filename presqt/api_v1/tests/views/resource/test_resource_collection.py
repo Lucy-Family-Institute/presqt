@@ -1,13 +1,13 @@
 from unittest.mock import patch
 
-from django.test import TestCase
+from django.test import SimpleTestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from config.settings.base import OSF_TEST_USER_TOKEN
 
 
-class TestResourceCollection(TestCase):
+class TestResourceCollection(SimpleTestCase):
     """
     Test the 'api_v1/targets/{target_name}/resources/' endpoint's GET method.
     Only checking PresQT Core code.

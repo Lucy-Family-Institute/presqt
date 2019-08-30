@@ -1,13 +1,13 @@
 import json
 import os
 
-from django.test import TestCase
+from django.test import SimpleTestCase
 from rest_framework.exceptions import ValidationError
 
 from presqt.json_schemas.schema_handlers import schema_validator
 
 
-class TestSchemaValidator(TestCase):
+class TestSchemaValidator(SimpleTestCase):
     """
     Test the function `schema_validator()`
     """

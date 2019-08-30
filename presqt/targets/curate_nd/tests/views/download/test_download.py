@@ -5,7 +5,7 @@ import zipfile
 import time
 import os
 
-from django.test import TestCase
+from django.test import SimpleTestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
@@ -14,7 +14,7 @@ from presqt.utilities import read_file
 from presqt.targets.utilities import shared_call_get_resource_zip
 
 
-class TestDownload(TestCase):
+class TestDownload(SimpleTestCase):
     """
     Test the 'api_v1/downloads/<ticket_id>/' endpoint's GET method.
 
