@@ -34,13 +34,22 @@ class File(CurateNDBase):
             if key not in ['id', 'requestUrl', 'downloadUrl', 'label', 'dateSubmitted', 'modified']:
                 self.extra[key] = value
 
+        # Pulling the md5 checksum out of the payload
+        try:
+            md5_end = '</md5checksum>'
+            md5_hash_check = self.extra['characterization'].partition(md5_end)[0]
+            # Md5 hashes are 32 characters...
+            self.md5 = md5_hash_check[len(md5_hash_check)-32:]
+        except KeyError:  # pragma: no cover
+            self.md5 = None
+
     def download(self):
         """
         Download the file using the download url.
     ​
         Returns
         -------
-        The requesed file in byte format.
+        The requested file in byte format and the file hash.
         """
         response = self.get(self.download_url)
         return response.content, response.headers['Content-Md5']
