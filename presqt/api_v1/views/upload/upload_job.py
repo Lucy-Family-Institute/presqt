@@ -70,16 +70,16 @@ class UploadJob(APIView):
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
-        download_status = process_data['status']
+        upload_status = process_data['status']
         data = {'status_code': process_data['status_code'], 'message': process_data['message']}
 
-        if download_status == 'finished':
+        if upload_status == 'finished':
             http_status = status.HTTP_200_OK
             data['failed_fixity'] = process_data['failed_fixity']
             data['duplicate_files_ignored'] = process_data['duplicate_files_ignored']
             data['duplicate_files_updated'] = process_data['duplicate_files_updated']
         else:
-            if download_status == 'in_progress':
+            if upload_status == 'in_progress':
                 http_status = status.HTTP_202_ACCEPTED
             else:
                 http_status = status.HTTP_500_INTERNAL_SERVER_ERROR

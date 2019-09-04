@@ -447,9 +447,9 @@ class BaseResource(APIView):
 
             # Save the current hash to be compared with the hashes after upload
             if shared_hash_algorithm == fixity_obj['hash_algorithm']:
-                file_hashes[resource_path] = {shared_hash_algorithm: fixity_obj['presqt_hash']}
+                file_hashes[resource_path] = fixity_obj['presqt_hash']
             else:
-                file_hashes[resource_path] = {shared_hash_algorithm: hash_generator(resource['file'], shared_hash_algorithm)}
+                file_hashes[resource_path] = hash_generator(resource['file'], shared_hash_algorithm)
 
             # Save the file to the disk.
             write_file(resource_path, resource['file'])
@@ -499,8 +499,10 @@ class BaseResource(APIView):
         process_info_data['failed_fixity'] = []
         process_info_data['duplicate_files_ignored'] = []
         process_info_data['duplicate_files_updated'] = []
+
         # Create a hash dictionary to compare with the hashes returned from the target after upload
         # Check if fixity fails on any files. If so, then update the process_info_data file.
+        print(file_hashes, uploaded_file_hashes)
         if file_hashes != uploaded_file_hashes:
             process_info_data['message'] = 'Upload successful but fixity failed.'
             for key, value in file_hashes.items():
@@ -518,13 +520,10 @@ class BaseResource(APIView):
         process_info_data['status_code'] = '200'
         process_info_data['status'] = 'finished'
         if fixity_match is True:
-            process_info_data['message'] = 'Download successful'
+            process_info_data['message'] = 'Transfer successful'
         else:
-            process_info_data['message'] = 'Download successful with fixity errors'
-        print('About to write process_info')
-        print(process_info_data)
+            process_info_data['message'] = 'Transfer successful with fixity errors'
         write_file(process_info_path, process_info_data, True)
-        print()
 
         # Update the shared memory map so the watchdog process can stop running.
         process_state.value = 1

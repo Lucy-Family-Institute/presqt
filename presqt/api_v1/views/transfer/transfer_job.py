@@ -16,12 +16,12 @@ class TransferJob(APIView):
     """
     def get(self, request, ticket_number):
         """
-        Check in on the resource's upload process state.
+        Check in on the resource's transfer process state.
 
         Parameters
         ----------
         ticket_number : str
-            The ticket number of the upload being prepared.
+            The ticket number of the transfer being prepared.
 
         Returns
         -------
@@ -35,16 +35,16 @@ class TransferJob(APIView):
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
         
-        download_status = process_data['status']
+        transfer_status = process_data['status']
         data = {'status_code': process_data['status_code'], 'message': process_data['message']}
 
-        if download_status == 'finished':
+        if transfer_status == 'finished':
             http_status = status.HTTP_200_OK
             data['failed_fixity'] = process_data['failed_fixity']
             data['duplicate_files_ignored'] = process_data['duplicate_files_ignored']
             data['duplicate_files_updated'] = process_data['duplicate_files_updated']
         else:
-            if download_status == 'in_progress':
+            if transfer_status == 'in_progress':
                 http_status = status.HTTP_202_ACCEPTED
             else:
                 http_status = status.HTTP_500_INTERNAL_SERVER_ERROR
