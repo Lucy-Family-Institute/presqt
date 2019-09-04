@@ -60,6 +60,17 @@ class Command(BaseCommand):
                 else:
                     resource_upload = False
                 break
+        
+        while True:
+            resource_transfer = input('Does your target support the Resource Transfer endpoint? (Y or N): ')
+            if resource_transfer not in ['Y', 'y', 'N', 'n']:
+                print('Must input Y or N')
+            else:
+                if resource_transfer in ['Y', 'y']:
+                    resource_transfer = True
+                else:
+                    resource_transfer = False
+                break
 
         while True:
             hash_algorithms = input('Enter your supported hash algorithms (comma separated list with no spaces): ')
@@ -161,7 +172,8 @@ class Command(BaseCommand):
                 "resource_collection": resource_collection,
                 "resource_detail": resource_detail,
                 "resource_download": resource_download,
-                "resource_upload": resource_upload
+                "resource_upload": resource_upload,
+                "resource_transfer": resource_transfer
             },
             "supported_hash_algorithms": hash_algorithms
         }

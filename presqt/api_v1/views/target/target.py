@@ -32,7 +32,8 @@ class TargetCollection(APIView):
                     "resource_collection": true,
                     "resource_detail": true,
                     "resource_download": true,
-                    "resource_upload": true
+                    "resource_upload": true,
+                    "resource_transfer": true
                 },
                 "supported_hash_algorithms": [
                     "sha256",
@@ -46,7 +47,9 @@ class TargetCollection(APIView):
                 "supported_actions": {
                     "resource_collection": true,
                     "resource_detail": true,
-                    "resource_download": false
+                    "resource_download": true,
+                    "resource_upload": false,
+                    "resource_transfer": true
                 },
                 "supported_hash_algorithms": [
                     "sha256",
@@ -92,7 +95,8 @@ class Target(APIView):
                 "resource_collection": true,
                 "resource_detail": true,
                 "resource_download": true,
-                "resource_upload": true
+                "resource_upload": true,
+                "resource_transfer": true
             },
             "supported_hash_algorithms": [
                 "sha256",
