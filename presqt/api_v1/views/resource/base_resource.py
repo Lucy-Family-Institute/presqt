@@ -379,9 +379,13 @@ class BaseResource(APIView):
                                                   3600, process_state])
         watch_dog.start()
 
+        reversed_url = reverse('transfer_job', kwargs={'ticket_number': ticket_number})
+        transfer_hyperlink = request.build_absolute_uri(reversed_url)
+
         return Response(status=status.HTTP_202_ACCEPTED,
                         data={'ticket_number': ticket_number,
-                              'message': 'The server is processing the request.'})
+                              'message': 'The server is processing the request.',
+                              'transfer_job': transfer_hyperlink})
         pass
 
     @staticmethod
@@ -492,6 +496,9 @@ class BaseResource(APIView):
             process_state.value = 1
             return
 
+        process_info_data['failed_fixity'] = []
+        process_info_data['duplicate_files_ignored'] = []
+        process_info_data['duplicate_files_updated'] = []
         # Create a hash dictionary to compare with the hashes returned from the target after upload
         # Check if fixity fails on any files. If so, then update the process_info_data file.
         if file_hashes != uploaded_file_hashes:
@@ -514,7 +521,10 @@ class BaseResource(APIView):
             process_info_data['message'] = 'Download successful'
         else:
             process_info_data['message'] = 'Download successful with fixity errors'
+        print('About to write process_info')
+        print(process_info_data)
         write_file(process_info_path, process_info_data, True)
+        print()
 
         # Update the shared memory map so the watchdog process can stop running.
         process_state.value = 1
