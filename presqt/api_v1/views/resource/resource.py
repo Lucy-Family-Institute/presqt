@@ -289,8 +289,8 @@ class Resource(BaseResource):
             return
 
         # The directory all files should be saved in.
-        base_file_name = '{}_download_{}'.format(target_name, resource_id)
-        base_directory = '{}/{}'.format(ticket_path, base_file_name)
+        base_directory_name = '{}_download_{}'.format(target_name, resource_id)
+        base_directory = '{}/{}'.format(ticket_path, base_directory_name)
 
         # For each resource, perform fixity check, and save to disk.
         fixity_info = []
@@ -323,7 +323,7 @@ class Resource(BaseResource):
         bagit.make_bag(base_directory, checksums=['md5', 'sha1', 'sha256', 'sha512'])
 
         # Zip the BagIt 'bag' to send forward.
-        zip_directory(base_directory, "{}/{}.zip".format(ticket_path, base_file_name), ticket_path)
+        zip_directory(base_directory, "{}/{}.zip".format(ticket_path, base_directory_name), ticket_path)
 
         # Everything was a success so update the server metadata file.
         process_info_data['status_code'] = '200'
@@ -332,7 +332,7 @@ class Resource(BaseResource):
             process_info_data['message'] = 'Download successful'
         else:
             process_info_data['message'] = 'Download successful with fixity errors'
-        process_info_data['zip_name'] = '{}.zip'.format(base_file_name)
+        process_info_data['zip_name'] = '{}.zip'.format(base_directory_name)
         write_file(process_info_path, process_info_data, True)
 
         # Update the shared memory map so the watchdog process can stop running.

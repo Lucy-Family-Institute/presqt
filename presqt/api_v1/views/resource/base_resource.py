@@ -1,4 +1,4 @@
-import io
+import json
 import multiprocessing
 import os
 import shutil
@@ -15,11 +15,14 @@ from rest_framework.views import APIView
 
 from presqt.api_v1.utilities import (target_validation, get_destination_token,
                                      get_target_data, hash_generator,
-                                     file_duplicate_action_validation, FunctionRouter)
+                                     file_duplicate_action_validation, FunctionRouter,
+                                     get_source_token, transfer_post_body_validation)
+from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
-from presqt.utilities import PresQTValidationError, PresQTResponseException, read_file, write_file
+from presqt.utilities import (PresQTValidationError, PresQTResponseException, read_file, write_file,
+                              list_intersection)
 
 
 class BaseResource(APIView):
@@ -28,7 +31,7 @@ class BaseResource(APIView):
     """
     def post(self, request, target_name, resource_id=None):
         """
-        Upload resources to a specific resource.
+        Upload resources to a specific resource or create a new resource.
 
         Parameters
         ----------
@@ -107,6 +110,27 @@ class BaseResource(APIView):
         {
             "error": "The requested resource is no longer available."
         }
+        """
+        if request.FILES:
+            return self.upload_post(request, target_name, resource_id)
+        else:
+            return self.transfer_post(request, target_name, resource_id)
+
+    def upload_post(self, request, target_name, resource_id):
+        """
+        Upload resources to a specific existing target resource or create a new target resource.
+
+        Parameters
+        ----------
+        request : HTTP Request Object
+        target_name : str
+            The name of the Target to upload to.
+        resource_id : str
+            The id of the Resource to upload to.
+
+        Returns
+        -------
+        Response object in JSON format
         """
         action = 'resource_upload'
         # Perform token, header, target, action, and resource validation
@@ -286,6 +310,210 @@ class BaseResource(APIView):
         for file in files_updated:
             process_info_data['duplicate_files_updated'].append(file[len(resource_main_dir)+1:])
 
+        write_file(process_info_path, process_info_data, True)
+
+        # Update the shared memory map so the watchdog process can stop running.
+        process_state.value = 1
+        return
+
+    def transfer_post(self, request, destination_target_name, destination_resource_id):
+        """
+        Transfer resources to a specific existing target resource or create a new target resource.
+
+        Parameters
+        ----------
+        request : HTTP Request Object
+        destination_target_name : str
+            The name of the Target to transfer to.
+        resource_id : str
+            The id of the Resource to upload to.
+
+        Returns
+        -------
+        Response object in JSON format
+        """
+        action = 'resource_transfer'
+        try:
+            destination_token = get_destination_token(request)
+            source_token = get_source_token(request)
+            file_duplicate_action = file_duplicate_action_validation(request)
+            source_target_name, source_resource_id = transfer_post_body_validation(request)
+            target_validation(destination_target_name, action)
+            target_validation(source_target_name, action)
+            ############# VALIDATION TO ADD #############
+            # CHECK THAT source_target_name CAN TRANSFER TO destination_target_name
+        except PresQTValidationError as e:
+            return Response(data={'error': e.data}, status=e.status_code)
+
+        # Generate ticket number
+        ticket_number = uuid4()
+
+        # Create directory and process_info json file
+        process_info_obj = {
+            'presqt-source-token': source_token,
+            'presqt-destination-token': destination_token,
+            'status': 'in_progress',
+            'expiration': str(timezone.now() + relativedelta(days=5)),
+            'message': 'Transfer is being processed on the server',
+            'status_code': None
+        }
+        ticket_path = 'mediafiles/transfers/{}'.format(ticket_number)
+        process_info_path = '{}/process_info.json'.format(ticket_path)
+        write_file(process_info_path, process_info_obj, True)
+
+        # Create a shared memory map that the watchdog monitors to see if the spawned
+        # off process has finished
+        process_state = multiprocessing.Value('b', 0)
+        # Spawn job separate from request memory thread
+        function_process = multiprocessing.Process(target=BaseResource._transfer_resource,
+                                                   args=[source_target_name, source_token,
+                                                         source_resource_id,
+                                                         destination_target_name, destination_token,
+                                                         destination_resource_id, process_info_path,
+                                                         process_state, ticket_path,
+                                                         file_duplicate_action])
+        function_process.start()
+        # Start the watchdog process that will monitor the spawned off process
+        watch_dog = multiprocessing.Process(target=process_watchdog,
+                                            args=[function_process, process_info_path,
+                                                  3600, process_state])
+        watch_dog.start()
+
+        return Response(status=status.HTTP_202_ACCEPTED,
+                        data={'ticket_number': ticket_number,
+                              'message': 'The server is processing the request.'})
+        pass
+
+    @staticmethod
+    def _transfer_resource(source_target_name, source_token, source_resource_id,
+                           destination_target_name, destination_token, destination_resource_id,
+                           process_info_path, process_state, ticket_path, file_duplicate_action):
+        ### DOWNLOAD THE RESOURCES ###
+        # Fetch the proper download function to call
+        download_func = FunctionRouter.get_function(source_target_name, 'resource_download')
+
+        # Get the current process_info.json data to be used throughout the file
+        process_info_data = read_file(process_info_path, True)
+
+        # Fetch the resources. 'resources' will be a list of the following dictionary:
+        # {'file': binary_file,
+        # 'hashes': {'some_hash': value, 'other_hash': value},
+        # 'title': resource_title,
+        # 'path': /some/path/to/resource}
+        try:
+            resources, empty_containers = download_func(source_token, source_resource_id)
+        except PresQTResponseException as e:
+            # Catch any errors that happen within the target fetch.
+            # Update the server process_info file appropriately.
+            process_info_data['status_code'] = e.status_code
+            process_info_data['status'] = 'failed'
+            process_info_data['message'] = e.data
+            # Update the expiration from 5 days to 1 hour from now. We can delete this faster because
+            # it's an incomplete/failed directory.
+            process_info_data['expiration'] = str(timezone.now() + relativedelta(hours=1))
+            write_file(process_info_path, process_info_data, True)
+            #  Update the shared memory map so the watchdog process can stop running.
+            process_state.value = 1
+            return
+
+        # The directory all files should be saved in.
+        base_directory_name = '{}_{}_transfer_{}'.format(source_target_name,
+                                                    destination_target_name,
+                                                    source_resource_id)
+        base_directory = '{}/{}'.format(ticket_path, base_directory_name)
+
+        # For each resource, perform fixity check, and save to disk.
+        fixity_failed = []
+        fixity_match = True
+        file_hashes = {}
+        destination_target_supported_algorithms = get_target_data(destination_target_name)['supported_hash_algorithms']
+        source_target_supported_algorithms = get_target_data(source_target_name)['supported_hash_algorithms']
+        try:
+            shared_hash_algorithm = list_intersection(destination_target_supported_algorithms, source_target_supported_algorithms)[0]
+        except KeyError:
+            shared_hash_algorithm = destination_target_supported_algorithms[0]
+
+        for resource in resources:
+            resource_path = '{}{}'.format(base_directory, resource['path'])
+            # Perform the fixity check and add extra info to the returned fixity object.
+            fixity_obj, fixity_match = download_fixity_checker.download_fixity_checker(
+                resource['file'], resource['hashes'])
+            if not fixity_match:
+                fixity_failed.append(resource.path)
+
+            # Save the current hash to be compared with the hashes after upload
+            if shared_hash_algorithm == fixity_obj['hash_algorithm']:
+                file_hashes[resource_path] = {shared_hash_algorithm: fixity_obj['presqt_hash']}
+            else:
+                file_hashes[resource_path] = {shared_hash_algorithm: hash_generator(resource['file'], shared_hash_algorithm)}
+
+            # Save the file to the disk.
+            write_file(resource_path, resource['file'])
+
+        # Write empty containers to disk
+        for container_path in empty_containers:
+            # Make sure the container_path has a '/' and the beginning and end
+            if container_path[-1] != '/':
+                container_path += '/'
+            if container_path[0] != '/':
+                container_path = '/' + container_path
+
+            os.makedirs(os.path.dirname('{}{}'.format(base_directory, container_path)))
+
+        ### UPLOAD THE RESOURCES ###
+        # Fetch the proper function to call
+        upload_func = FunctionRouter.get_function(destination_target_name, 'resource_upload')
+
+        # Upload the resources
+        # 'uploaded_file_hashes' should be a dictionary of files and their hashes according to the
+        # hash_algorithm we are using. For example, if hash_algorithm == sha256:
+        #     {'mediafiles/uploads/66e7b906-63f0/osf_download_5cd98b0af244/data/fixity_info.json':
+        #         'a48df41bb55c7f9e1fa41b02197477ff0eccb550ed1244155048ef5750993ce7',
+        #     'mediafiles/uploads/66e7b906-63f0/osf_download_5cd98b0af244e/data/Docs2/02.mp3':
+        #         'fe3e904fbd549a3ac014bc26fb3d5042d58759f639f24e745dba3580ea316850'
+        #     }
+        # 'files_ignored' should be a list of file paths of files that were ignored while uploading
+        # 'files_updated' should be a list of file paths of files that were updated while uploading
+        try:
+            uploaded_file_hashes, files_ignored, files_updated = upload_func(
+                destination_token, destination_resource_id, base_directory, shared_hash_algorithm,
+                file_duplicate_action)
+        except PresQTResponseException as e:
+            # Catch any errors that happen within the target fetch.
+            # Update the server process_info file appropriately.
+            process_info_data['status_code'] = e.status_code
+            process_info_data['status'] = 'failed'
+            process_info_data['message'] = e.data
+            # Update the expiration from 5 days to 1 hour from now. We can delete this faster because
+            # it's an incomplete/failed directory.
+            process_info_data['expiration'] = str(timezone.now() + relativedelta(hours=1))
+            write_file(process_info_path, process_info_data, True)
+            #  Update the shared memory map so the watchdog process can stop running.
+            process_state.value = 1
+            return
+
+        # Create a hash dictionary to compare with the hashes returned from the target after upload
+        # Check if fixity fails on any files. If so, then update the process_info_data file.
+        if file_hashes != uploaded_file_hashes:
+            process_info_data['message'] = 'Upload successful but fixity failed.'
+            for key, value in file_hashes.items():
+                if value != uploaded_file_hashes[key] and key not in files_ignored:
+                    process_info_data['failed_fixity'].append(key[len(base_directory) + 1:])
+
+        # Strip the server created directory prefix of the file paths for ignored and updated files
+        for file in files_ignored:
+            process_info_data['duplicate_files_ignored'].append(file[len(base_directory)+1:])
+        for file in files_updated:
+            process_info_data['duplicate_files_updated'].append(file[len(base_directory)+1:])
+
+        ### TRANSFER COMPLETE ###
+        # Everything was a success so update the server metadata file.
+        process_info_data['status_code'] = '200'
+        process_info_data['status'] = 'finished'
+        if fixity_match is True:
+            process_info_data['message'] = 'Download successful'
+        else:
+            process_info_data['message'] = 'Download successful with fixity errors'
         write_file(process_info_path, process_info_data, True)
 
         # Update the shared memory map so the watchdog process can stop running.
