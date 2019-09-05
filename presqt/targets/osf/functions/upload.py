@@ -38,12 +38,11 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
          }
     files_ignored : array
         Array of string file paths of files that were ignored when uploading the resource
-        ['path/to/ignored/file.pg', 'another/ignored/file.jpg]
+        ['path/to/ignored/file.pg', 'another/ignored/file.jpg']
 
     files_updated : array
         Array of string file paths of files that were updated when uploading the resource
         ['path/to/updated/file.jpg']
-    See https://app.gitbook.com/@crc-nd/s/presqt/project-description/developer-documentation/code-documentation/upload-endpoints for details
     """
     try:
         osf_instance = OSF(token)

@@ -502,7 +502,6 @@ class BaseResource(APIView):
 
         # Create a hash dictionary to compare with the hashes returned from the target after upload
         # Check if fixity fails on any files. If so, then update the process_info_data file.
-        print(file_hashes, uploaded_file_hashes)
         if file_hashes != uploaded_file_hashes:
             process_info_data['message'] = 'Upload successful but fixity failed.'
             for key, value in file_hashes.items():

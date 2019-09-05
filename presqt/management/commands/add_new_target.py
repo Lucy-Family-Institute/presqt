@@ -11,7 +11,7 @@ class Command(BaseCommand):
         ##### Get Input From User #####
         while True:
             target_name = input('Enter target name (use underscores not spaces): ').lower()
-            if set('[~! @#$%^&*()_+{}":;[],.<>`=+-\']+$\\').intersection(target_name):
+            if set('[~! @#$%^&*()+{}":;[],.<>`=+-\']+$\\').intersection(target_name):
                 print("Target name can't contain special characters or spaces")
             else:
                 break

@@ -69,11 +69,11 @@ def osf_download_resource(token, resource_id):
         Dictionary must be in the following format:
         {
             'file': binary_file,
-            'hashes': {'md5': 'the_hash},
+            'hashes': {'md5': 'the_hash'},
             'title': 'file.jpg',
-            'path': '/path/to/file
+            'path': '/path/to/file'
         }
-        See https://app.gitbook.com/@crc-nd/s/presqt/project-description/developer-documentation/code-documentation/resource-download for details
+
     - List of string paths representing empty containers that must be written.
         Example: ['empty/folder/to/write/', 'another/empty/folder/]
     """
