@@ -373,6 +373,7 @@ class BaseResource(APIView):
                                                          process_state, ticket_path,
                                                          file_duplicate_action])
         function_process.start()
+
         # Start the watchdog process that will monitor the spawned off process
         watch_dog = multiprocessing.Process(target=process_watchdog,
                                             args=[function_process, process_info_path,
@@ -392,6 +393,32 @@ class BaseResource(APIView):
     def _transfer_resource(source_target_name, source_token, source_resource_id,
                            destination_target_name, destination_token, destination_resource_id,
                            process_info_path, process_state, ticket_path, file_duplicate_action):
+        """
+        Transfer resources from the source target to the destination target.
+
+        Parameters
+        ----------
+        source_target_name : str
+            Name of the target to transfer from
+        source_token : str
+            User's token for the source target
+        source_resource_id : str
+            Id of the resource to transfer
+        destination_target_name : str
+            Name of the target to transfer to
+        destination_token : str
+            User's token for the destination target
+        destination_resource_id : str
+            Id of the resource to transfer to
+        process_info_path : str
+            Path to the process info file
+        process_state : memory_map object
+            Shared memory map object that the watchdog process will monitor.
+        ticket_path: str
+            Path to the ticket directory for the resource being transferred.
+        file_duplicate_action : str
+            Action for how to handle any duplicate files we find.
+        """
         ### DOWNLOAD THE RESOURCES ###
         # Fetch the proper download function to call
         download_func = FunctionRouter.get_function(source_target_name, 'resource_download')
@@ -407,8 +434,7 @@ class BaseResource(APIView):
         try:
             resources, empty_containers = download_func(source_token, source_resource_id)
         except PresQTResponseException as e:
-            # Catch any errors that happen within the target fetch.
-            # Update the server process_info file appropriately.
+            # Catch any errors that happen within the target fetch. Update server process_info file.
             process_info_data['status_code'] = e.status_code
             process_info_data['status'] = 'failed'
             process_info_data['message'] = e.data
@@ -429,6 +455,7 @@ class BaseResource(APIView):
         # For each resource, perform fixity check, and save to disk.
         fixity_failed = []
         fixity_match = True
+        # Keep track of the file hashes using a destination supported hash algorithm
         file_hashes = {}
         destination_target_supported_algorithms = get_target_data(destination_target_name)['supported_hash_algorithms']
         source_target_supported_algorithms = get_target_data(source_target_name)['supported_hash_algorithms']
@@ -483,8 +510,7 @@ class BaseResource(APIView):
                 destination_token, destination_resource_id, base_directory, shared_hash_algorithm,
                 file_duplicate_action)
         except PresQTResponseException as e:
-            # Catch any errors that happen within the target fetch.
-            # Update the server process_info file appropriately.
+            # Catch any errors that happen within the target fetch. Update server process_info file.
             process_info_data['status_code'] = e.status_code
             process_info_data['status'] = 'failed'
             process_info_data['message'] = e.data
@@ -496,12 +522,8 @@ class BaseResource(APIView):
             process_state.value = 1
             return
 
-        process_info_data['failed_fixity'] = []
-        process_info_data['duplicate_files_ignored'] = []
-        process_info_data['duplicate_files_updated'] = []
-
-        # Create a hash dictionary to compare with the hashes returned from the target after upload
         # Check if fixity fails on any files. If so, then update the process_info_data file.
+        process_info_data['failed_fixity'] = []
         if file_hashes != uploaded_file_hashes:
             process_info_data['message'] = 'Upload successful but fixity failed.'
             for key, value in file_hashes.items():
@@ -509,6 +531,8 @@ class BaseResource(APIView):
                     process_info_data['failed_fixity'].append(key[len(base_directory) + 1:])
 
         # Strip the server created directory prefix of the file paths for ignored and updated files
+        process_info_data['duplicate_files_ignored'] = []
+        process_info_data['duplicate_files_updated'] = []
         for file in files_ignored:
             process_info_data['duplicate_files_ignored'].append(file[len(base_directory)+1:])
         for file in files_updated:
