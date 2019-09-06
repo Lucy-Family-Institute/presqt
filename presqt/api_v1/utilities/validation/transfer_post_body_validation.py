@@ -1,5 +1,3 @@
-import json
-
 from rest_framework import status
 
 from presqt.utilities import PresQTValidationError

@@ -1,4 +1,3 @@
-import json
 import multiprocessing
 import os
 import shutil
@@ -325,7 +324,7 @@ class BaseResource(APIView):
         request : HTTP Request Object
         destination_target_name : str
             The name of the Target to transfer to.
-        resource_id : str
+        destination_resource_id : str
             The id of the Resource to upload to.
 
         Returns
@@ -337,6 +336,7 @@ class BaseResource(APIView):
             destination_token = get_destination_token(request)
             source_token = get_source_token(request)
             file_duplicate_action = file_duplicate_action_validation(request)
+            ############# ADD transfer_post_body_validation errors to docsting! #############
             source_target_name, source_resource_id = transfer_post_body_validation(request)
             target_validation(destination_target_name, action)
             target_validation(source_target_name, action)
@@ -365,7 +365,7 @@ class BaseResource(APIView):
         # off process has finished
         process_state = multiprocessing.Value('b', 0)
         # Spawn job separate from request memory thread
-        function_process = multiprocessing.Process(target=BaseResource._transfer_resource,
+        function_process = multiprocessing.Process(target=self._transfer_resource,
                                                    args=[source_target_name, source_token,
                                                          source_resource_id,
                                                          destination_target_name, destination_token,

@@ -141,7 +141,7 @@ class TestResourceGETZip(SimpleTestCase):
                          {'error': "'presqt-source-token' missing in the request headers."})
 
 
-class TestResourcePOST(SimpleTestCase):
+class TestResourcePOSTWithFile(SimpleTestCase):
     """
     Test the endpoint's POST method for resource uploads:
          `api_v1/targets/{target_name}/resources/{resource_id}/`
@@ -308,3 +308,20 @@ class TestResourcePOST(SimpleTestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data, {'error': "data/fixity_info.json exists in manifest but was not found on filesystem"})
+
+# class TestResourcePOSTWithBody(SimpleTestCase):
+    # def test_success_202_upload_fixity_failed(self):
+    # def test_error_400_missing_destination_token(self):
+    # def test_error_400_missing_source_token(self):
+    # def test_error_400_duplicate_action_missing(self):
+    # def test_error_400_duplicate_action_missing(self):
+    # def test_error_400_invalid_action(self):
+    # def test_error_400_source_target_name_missing(self):
+    # def test_error_400_source_resource_id_missing(self):
+    # def test_error_400_source_target_name_missing(self):
+    # def test_error_400_source_id_cant_be_none(self):
+    # def test_error_400_source_target_not_action(self):
+    # def test_error_400_destination_target_not_action(self):
+    # def test_error_404_source_target_name_invalid(self):
+    # def test_error_404_destination_target_name_invalid(self):
+
