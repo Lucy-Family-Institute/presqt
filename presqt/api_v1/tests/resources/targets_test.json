@@ -6,7 +6,20 @@
           "resource_collection": false,
           "resource_detail": false,
           "resource_download": false,
-          "resource_upload": false
+          "resource_upload": false,
+          "resource_transfer": false
+    },
+    "supported_hash_algorithms": ["sha256", "md5"]
+  },
+  {
+    "name": "test2",
+    "readable_name": "Test2",
+    "supported_actions": {
+          "resource_collection": false,
+          "resource_detail": false,
+          "resource_download": false,
+          "resource_upload": false,
+          "resource_transfer": true
     },
     "supported_hash_algorithms": ["sha256", "md5"]
   }

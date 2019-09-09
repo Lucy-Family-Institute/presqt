@@ -34,6 +34,6 @@ def transfer_post_body_validation(request):
 
     if source_resource_id is None or source_resource_id == "":
         raise PresQTValidationError(
-            "source_resource_id can't be None.", status.HTTP_400_BAD_REQUEST)
+            "source_resource_id can't be None or blank.", status.HTTP_400_BAD_REQUEST)
 
     return source_target, source_resource_id

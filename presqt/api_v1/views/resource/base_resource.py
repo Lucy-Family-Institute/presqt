@@ -387,7 +387,6 @@ class BaseResource(APIView):
                         data={'ticket_number': ticket_number,
                               'message': 'The server is processing the request.',
                               'transfer_job': transfer_hyperlink})
-        pass
 
     @staticmethod
     def _transfer_resource(source_target_name, source_token, source_resource_id,
