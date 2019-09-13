@@ -241,7 +241,7 @@ class TestResourcePOSTWithFile(SimpleTestCase):
         Return a 400 if the POST method fails because presqt-file was not provided in the request.
         """
         url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': 'resource_id'})
-        response = self.client.post(url, **self.headers)
+        response = self.client.post(url, {'wrong-file-name': open('presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip', 'rb')}, **self.headers)
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data, {'error': "The file, 'presqt-file', is not found in the body of the request."})
