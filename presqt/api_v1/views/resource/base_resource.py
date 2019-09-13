@@ -89,6 +89,18 @@ class BaseResource(APIView):
         {
             "error": "Project is not formatted correctly. Files exist at the top level."
         }
+        or
+        {
+        "error": "source_resource_id can't be None or blank."
+        }
+        or
+        {
+        "error": "source_resource_id was not found in the request body."
+        }
+        or
+        {
+        "error": "source_target_name was not found in the request body."
+        }
 
         401: Unauthorized
         {
@@ -336,7 +348,6 @@ class BaseResource(APIView):
             destination_token = get_destination_token(request)
             source_token = get_source_token(request)
             file_duplicate_action = file_duplicate_action_validation(request)
-            ############# ADD transfer_post_body_validation errors to docsting! #############
             source_target_name, source_resource_id = transfer_post_body_validation(request)
             target_validation(destination_target_name, action)
             target_validation(source_target_name, action)
