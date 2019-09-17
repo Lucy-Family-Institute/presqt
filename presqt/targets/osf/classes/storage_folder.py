@@ -200,7 +200,7 @@ class ContainerMixin:
 
         Returns
         -------
-            Returns same file_hashes, files ignored, files_updated parameters.
+        Returns same file_hashes, files ignored, files_updated parameters.
         """
         directory, folders, files = next(os.walk(directory_path))
 

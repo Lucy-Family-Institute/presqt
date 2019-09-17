@@ -6,7 +6,8 @@
         "resource_collection": true,
         "resource_detail": true,
         "resource_download": true,
-        "resource_upload": true
+        "resource_upload": true,
+        "resource_transfer": true
     },
     "supported_hash_algorithms": ["sha256", "md5"]
   },
@@ -17,7 +18,8 @@
         "resource_collection": true,
         "resource_detail": true,
         "resource_download": true,
-        "resource_upload": false
+        "resource_upload": false,
+        "resource_transfer": true
     },
     "supported_hash_algorithms": ["md5"]
   }

@@ -11,7 +11,7 @@ class Command(BaseCommand):
         ##### Get Input From User #####
         while True:
             target_name = input('Enter target name (use underscores not spaces): ').lower()
-            if set('[~! @#$%^&*()_+{}":;[],.<>`=+-\']+$\\').intersection(target_name):
+            if set('[~! @#$%^&*()+{}":;[],.<>`=+-\']+$\\').intersection(target_name):
                 print("Target name can't contain special characters or spaces")
             else:
                 break
@@ -59,6 +59,17 @@ class Command(BaseCommand):
                     resource_upload = True
                 else:
                     resource_upload = False
+                break
+        
+        while True:
+            resource_transfer = input('Does your target support the Resource Transfer endpoint? (Y or N): ')
+            if resource_transfer not in ['Y', 'y', 'N', 'n']:
+                print('Must input Y or N')
+            else:
+                if resource_transfer in ['Y', 'y']:
+                    resource_transfer = True
+                else:
+                    resource_transfer = False
                 break
 
         while True:
@@ -161,7 +172,8 @@ class Command(BaseCommand):
                 "resource_collection": resource_collection,
                 "resource_detail": resource_detail,
                 "resource_download": resource_download,
-                "resource_upload": resource_upload
+                "resource_upload": resource_upload,
+                "resource_transfer": resource_transfer
             },
             "supported_hash_algorithms": hash_algorithms
         }

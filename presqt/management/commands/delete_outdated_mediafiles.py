@@ -16,7 +16,8 @@ class Command(BaseCommand):
         """
         directories_list = [
             'mediafiles/downloads/*/',
-            'mediafiles/uploads/*/'
+            'mediafiles/uploads/*/',
+            'mediafiles/transfers/*/'
         ]
         directories = []
         [directories.extend(glob(directory)) for directory in directories_list]
