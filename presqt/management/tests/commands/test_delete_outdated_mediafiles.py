@@ -59,3 +59,15 @@ class TestDeleteMediaFiles(SimpleTestCase):
         # Check that the folder has been deleted
         data_post_command = glob.glob('mediafiles/downloads/test_command/')
         self.assertEqual(len(data_post_command), 0)
+
+        # Test that a directory without a process_info.json file gets deleted
+        os.makedirs(self.directory)
+
+        data_pre_command = glob.glob('mediafiles/downloads/test_command/')
+        self.assertEqual(len(data_pre_command), 1)
+
+        call_command('delete_outdated_mediafiles')
+
+        # Check that the folder has been deleted
+        data_post_command = glob.glob('mediafiles/downloads/test_command/')
+        self.assertEqual(len(data_post_command), 0)

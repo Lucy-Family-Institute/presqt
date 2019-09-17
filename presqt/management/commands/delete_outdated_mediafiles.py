@@ -23,12 +23,16 @@ class Command(BaseCommand):
         [directories.extend(glob(directory)) for directory in directories_list]
 
         for directory in directories:
-            data = read_file('{}process_info.json'.format(directory), True)
-
-            expiration = parse(data['expiration'])
-
-            if expiration <= timezone.now():
+            try:
+                data = read_file('{}process_info.json'.format(directory), True)
+            except FileNotFoundError:
                 shutil.rmtree(directory)
-                print('{} has been deleted.'.format(directory))
+                print('{} has been deleted. No process_info.json file found'.format(directory))
             else:
-                print('{} has been retained.'.format(directory))
+                expiration = parse(data['expiration'])
+
+                if expiration <= timezone.now():
+                    shutil.rmtree(directory)
+                    print('{} has been deleted.'.format(directory))
+                else:
+                    print('{} has been retained.'.format(directory))
