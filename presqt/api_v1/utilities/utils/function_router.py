@@ -1,3 +1,5 @@
+from presqt.targets.github.functions.fetch import github_fetch_resources, github_fetch_resource
+from presqt.targets.github.functions.download import github_download_resource 
 from presqt.targets.curate_nd.functions.fetch import (
     curate_nd_fetch_resources, curate_nd_fetch_resource)
 from presqt.targets.curate_nd.functions.download import curate_nd_download_resource
@@ -42,3 +44,7 @@ class FunctionRouter(object):
     curate_nd_resource_collection = curate_nd_fetch_resources
     curate_nd_resource_detail = curate_nd_fetch_resource
     curate_nd_resource_download = curate_nd_download_resource
+
+    github_resource_collection = github_fetch_resources
+    github_resource_detail = github_fetch_resource
+    github_resource_download = github_download_resource
