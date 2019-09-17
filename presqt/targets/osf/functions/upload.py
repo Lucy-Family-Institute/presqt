@@ -28,7 +28,8 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
     Returns
     -------
     final_file_hashes : dict
-        Dictionary of file hashes obtained from OSF
+        Dictionary of file hashes obtained from OSF calculated using the provided hash_algorithm.
+        Key path must have the same base as resource_main_dir.
         Example:
         {
             'mediafiles/uploads/25/BagItToUpload/data/NewProj/funnyimages/Screen.png':
@@ -37,11 +38,13 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
             '6d33275234b28d77348e4e1049f58b95a485a7a441684a9eb9175d01c7f141eb',
          }
     files_ignored : array
-        Array of string file paths of files that were ignored when uploading the resource
+        Array of string file paths of files that were ignored when uploading the resource.
+        Path should have the same base as resource_main_dir.
         ['path/to/ignored/file.pg', 'another/ignored/file.jpg']
 
     files_updated : array
-        Array of string file paths of files that were updated when uploading the resource
+        Array of string file paths of files that were updated when uploading the resource.
+        Path should have the same base as resource_main_dir.
         ['path/to/updated/file.jpg']
     """
     try:
@@ -74,7 +77,7 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
     else:
         os_path = next(os.walk(resource_main_dir))
 
-          # Verify that the top level directory to upload only has one folder and no files.
+        # Verify that the top level directory to upload only has one folder and no files.
         # This one folder will be the project title and the base for project upload.
         if len(os_path[1]) > 1:
             raise PresQTResponseException(
@@ -99,4 +102,5 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
     final_file_hashes = {}
     for key, value in hashes.items():
         final_file_hashes[key] = value[hash_algorithm]
+
     return final_file_hashes, files_ignored, files_updated

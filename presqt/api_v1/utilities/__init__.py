@@ -1,4 +1,7 @@
+from presqt.api_v1.utilities.fixity.get_or_create_hashes_from_bag import \
+    get_or_create_hashes_from_bag
 from presqt.api_v1.utilities.fixity.hash_generator import hash_generator
+from presqt.api_v1.utilities.multiprocess.spawn_action_process import spawn_action_process
 from presqt.api_v1.utilities.utils.get_target_data import get_target_data
 from presqt.api_v1.utilities.utils.function_router import FunctionRouter
 from presqt.api_v1.utilities.utils.target_actions import (
@@ -25,5 +28,7 @@ __all__ = [
     file_duplicate_action_validation,
     get_process_info_data,
     process_token_validation,
-    transfer_post_body_validation
+    transfer_post_body_validation,
+    spawn_action_process,
+    get_or_create_hashes_from_bag
 ]

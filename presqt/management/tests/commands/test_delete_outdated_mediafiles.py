@@ -1,17 +1,14 @@
 import glob
 import json
-import multiprocessing
 import os
 
 from dateutil.relativedelta import relativedelta
 
 from django.core.management import call_command
-from django.conf import settings
 from django.test import SimpleTestCase
 from django.utils import timezone
 
 from presqt.utilities import read_file, write_file
-from presqt.api_v1.views.resource.resource import Resource
 
 
 class TestDeleteMediaFiles(SimpleTestCase):
@@ -25,12 +22,6 @@ class TestDeleteMediaFiles(SimpleTestCase):
                       "zip_name": "test.zip"})
         with open('{}process_info.json'.format(self.directory), 'w+') as file:
             json.dump(self.data, file)
-
-        # Download file into test directory
-        process_state = multiprocessing.Value('b', 0)
-        Resource._download_resource('osf', 'resource_download', settings.OSF_PRIVATE_USER_TOKEN,
-                          '5cd98978f244ec001ee86609', self.directory, '{}process_info.json'.format(
-                              self.directory), process_state)
 
     def test_files_to_be_retained(self):
         """

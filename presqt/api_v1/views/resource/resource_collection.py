@@ -1,5 +1,4 @@
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from presqt.api_v1.serializers.resource import ResourcesSerializer
 from presqt.api_v1.utilities import target_validation, FunctionRouter, get_source_token
@@ -16,8 +15,6 @@ class ResourceCollection(BaseResource):
     * POST
         -  Upload a top level resource for a user.
     """
-    required_scopes = ['read']
-
     def get(self, request, target_name):
         """
         Retrieve all Resources.

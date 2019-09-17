@@ -196,15 +196,26 @@ class TestResourcePOSTWithFile(SimpleTestCase):
             fake_send.return_value = {'mediafiles/uploads/{}/BagItToUpload/data/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png'.format(
                 ticket_number): {'sha256': 'bad_hash', 'md5': 'another_bad_hash'}}, [], []
 
-            BaseResource._upload_resource(resource_main_dir, process_info_path,
-                                          'osf', 'resource_upload', OSF_UPLOAD_TEST_USER_TOKEN, None,
-                                          process_state, 'sha256', file_hashes, 'ignore',
-                                          process_info)
+            # Create an instance of the BaseResource and add all of the appropriate class attributes
+            # needed for _upload_resource()
+            resource_instance = BaseResource()
+            resource_instance.resource_main_dir = resource_main_dir
+            resource_instance.process_info_path = process_info_path
+            resource_instance.destination_target_name = 'osf'
+            resource_instance.action = 'resource_upload'
+            resource_instance.destination_token = OSF_UPLOAD_TEST_USER_TOKEN
+            resource_instance.process_state = process_state
+            resource_instance.hash_algorithm = 'sha256'
+            resource_instance.file_hashes = file_hashes
+            resource_instance.file_duplicate_action = 'ignore'
+            resource_instance.destination_resource_id = None
+            resource_instance.process_info_obj = {}
+            resource_instance._upload_resource()
 
             process_info = read_file(process_info_path, True)
             self.assertEqual(process_info['message'], 'Upload successful but fixity failed.')
             self.assertEqual(process_info['failed_fixity'], [
-                             'data/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png'])
+                             'NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png'])
 
             # Delete corresponding folder
             shutil.rmtree('mediafiles/uploads/{}'.format(ticket_number))
@@ -328,7 +339,6 @@ class TestResourcePOSTWithBody(SimpleTestCase):
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
 
-    # def test_success_202_upload_fixity_failed(self):
     def test_error_400_missing_destination_token(self):
         """
         Return a 400 if the POST method fails because the presqt-destination-token was not provided.
