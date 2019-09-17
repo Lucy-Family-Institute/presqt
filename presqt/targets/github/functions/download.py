@@ -34,7 +34,7 @@ def github_download_resource(token, resource_id):
         raise PresQTResponseException('The response returned a 401 unauthorized status code.',
                                       status.HTTP_401_UNAUTHORIZED)
 
-    data = github_pagination(username, header)
+    data = github_paginated_data(username, header)
 
     for entry in data:
         if entry['id'] == int(resource_id):
