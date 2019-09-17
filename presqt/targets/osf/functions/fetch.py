@@ -25,7 +25,6 @@ def osf_fetch_resources(token):
             "container": "None",
             "title": "Folder Name",
         }
-    See https://app.gitbook.com/@crc-nd/s/presqt/project-description/developer-documentation/code-documentation/resources for details.
     """
     try:
         osf_instance = OSF(token)
@@ -65,8 +64,8 @@ def osf_fetch_resource(token, resource_id):
             "sha256": "ea94ce54261720c16abb508c6dcd1fd481c30c09b7f2f5ab0b79e3199b7e2b55"
         },
         "extra": {
-            "any": extra,
-            "values": here
+            "any": "extra",
+            "values": "here"
         }
     }
     """

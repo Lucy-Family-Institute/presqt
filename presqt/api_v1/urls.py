@@ -5,6 +5,7 @@ from presqt.api_v1.views.download.download_job import DownloadJob
 from presqt.api_v1.views.resource.resource import Resource
 from presqt.api_v1.views.resource.resource_collection import ResourceCollection
 from presqt.api_v1.views.target.target import TargetCollection, Target
+from presqt.api_v1.views.transfer.transfer_job import TransferJob
 from presqt.api_v1.views.upload.upload_job import UploadJob
 
 api_v1_endpoints = [
@@ -26,5 +27,8 @@ api_v1_endpoints = [
     path('downloads/<str:ticket_number>/', DownloadJob.as_view(), name='download_job'),
 
     # Uploads
-    path('uploads/<str:ticket_number>/', UploadJob.as_view(), name='upload_job')
+    path('uploads/<str:ticket_number>/', UploadJob.as_view(), name='upload_job'),
+
+    # Transfers
+    path('transfers/<str:ticket_number>/', TransferJob.as_view(), name='transfer_job')
 ]

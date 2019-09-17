@@ -7,7 +7,8 @@ from django.test import SimpleTestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
-from config.settings.base import OSF_TEST_USER_TOKEN, OSF_UPLOAD_TEST_USER_TOKEN
+from config.settings.base import (OSF_TEST_USER_TOKEN, OSF_UPLOAD_TEST_USER_TOKEN,
+                                  CURATE_ND_TEST_TOKEN)
 from presqt.targets.utilities import process_wait
 from presqt.utilities import read_file
 from presqt.api_v1.views.resource.base_resource import BaseResource
@@ -141,9 +142,9 @@ class TestResourceGETZip(SimpleTestCase):
                          {'error': "'presqt-source-token' missing in the request headers."})
 
 
-class TestResourcePOST(SimpleTestCase):
+class TestResourcePOSTWithFile(SimpleTestCase):
     """
-    Test the endpoint's POST method for resource uploads:
+    Test the endpoint's POST method for resource uploads when providing a file:
          `api_v1/targets/{target_name}/resources/{resource_id}/`
          `api_v1/targets/{target_name}/resources/`
 
@@ -195,15 +196,26 @@ class TestResourcePOST(SimpleTestCase):
             fake_send.return_value = {'mediafiles/uploads/{}/BagItToUpload/data/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png'.format(
                 ticket_number): {'sha256': 'bad_hash', 'md5': 'another_bad_hash'}}, [], []
 
-            BaseResource._upload_resource(resource_main_dir, process_info_path,
-                                          'osf', 'resource_upload', OSF_UPLOAD_TEST_USER_TOKEN, None,
-                                          process_state, 'sha256', file_hashes, 'ignore',
-                                          process_info)
+            # Create an instance of the BaseResource and add all of the appropriate class attributes
+            # needed for _upload_resource()
+            resource_instance = BaseResource()
+            resource_instance.resource_main_dir = resource_main_dir
+            resource_instance.process_info_path = process_info_path
+            resource_instance.destination_target_name = 'osf'
+            resource_instance.action = 'resource_upload'
+            resource_instance.destination_token = OSF_UPLOAD_TEST_USER_TOKEN
+            resource_instance.process_state = process_state
+            resource_instance.hash_algorithm = 'sha256'
+            resource_instance.file_hashes = file_hashes
+            resource_instance.file_duplicate_action = 'ignore'
+            resource_instance.destination_resource_id = None
+            resource_instance.process_info_obj = {}
+            resource_instance._upload_resource()
 
             process_info = read_file(process_info_path, True)
             self.assertEqual(process_info['message'], 'Upload successful but fixity failed.')
             self.assertEqual(process_info['failed_fixity'], [
-                             'data/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png'])
+                             'NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png'])
 
             # Delete corresponding folder
             shutil.rmtree('mediafiles/uploads/{}'.format(ticket_number))
@@ -240,7 +252,7 @@ class TestResourcePOST(SimpleTestCase):
         Return a 400 if the POST method fails because presqt-file was not provided in the request.
         """
         url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': 'resource_id'})
-        response = self.client.post(url, **self.headers)
+        response = self.client.post(url, {'wrong-file-name': open('presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip', 'rb')}, **self.headers)
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data, {'error': "The file, 'presqt-file', is not found in the body of the request."})
@@ -308,3 +320,148 @@ class TestResourcePOST(SimpleTestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data, {'error': "data/fixity_info.json exists in manifest but was not found on filesystem"})
+
+
+class TestResourcePOSTWithBody(SimpleTestCase):
+    """
+    Test the endpoint's POST method for resource uploads when providing source target to get it from
+         `api_v1/targets/{target_name}/resources/{resource_id}/`
+         `api_v1/targets/{target_name}/resources/`
+
+    Testing only PresQT Core code.
+    """
+
+    def setUp(self):
+        self.client = APIClient()
+        self.source_token = CURATE_ND_TEST_TOKEN
+        self.destination_token = OSF_UPLOAD_TEST_USER_TOKEN
+        self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.destination_token,
+                        'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
+                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+
+    def test_error_400_missing_destination_token(self):
+        """
+        Return a 400 if the POST method fails because the presqt-destination-token was not provided.
+        """
+        headers = self.headers
+        headers.pop('HTTP_PRESQT_DESTINATION_TOKEN')
+        url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        response = self.client.post(url, {"source_target_name":"curate_nd", "source_resource_id": "dj52w379504"}, **headers)
+        # Verify the error status code and message
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data,
+                         {'error': "'presqt-destination-token' missing in the request headers."})
+
+    def test_error_400_missing_source_token(self):
+        """
+        Return a 400 if the POST method fails because the presqt-destination-token was not provided.
+        """
+        headers = self.headers
+        headers.pop('HTTP_PRESQT_SOURCE_TOKEN')
+        url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        response = self.client.post(url, {"source_target_name": "curate_nd",
+                                          "source_resource_id": "dj52w379504"}, **headers)
+        # Verify the error status code and message
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data,
+                         {'error': "'presqt-source-token' missing in the request headers."})
+
+    def test_error_400_duplicate_action_missing(self):
+        """
+        Return a 400 if the POST fails because "'presqt-file-duplicate-action' missing in headers.
+        """
+        headers = self.headers
+        headers.pop('HTTP_PRESQT_FILE_DUPLICATE_ACTION')
+        url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        response = self.client.post(url, {"source_target_name": "curate_nd",
+                                          "source_resource_id": "dj52w379504"}, **headers)
+        # Verify the error status code and message
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data,
+                         {'error': "'presqt-file-duplicate-action' missing in the request headers."})
+
+    def test_error_400_invalid_action(self):
+        """
+        Return a 400 if the POST fails because an invalid 'file_duplicate_action' header was given.
+        """
+        headers = self.headers
+        headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = 'bad_action'
+        url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        response = self.client.post(url, {"source_target_name": "curate_nd",
+                                          "source_resource_id": "dj52w379504"}, **headers)
+        # Verify the error status code and message
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data, {
+            'error': "'bad_action' is not a valid file_duplicate_action. The options are 'ignore' or 'update'."})
+
+    def test_error_400_source_target_name_missing(self):
+        """
+        Return a 400 if the POST fails because the source_target_name is missing from the request body.
+        """
+        url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        response = self.client.post(url, {"source_resource_id": "dj52w379504"}, **self.headers)
+        # Verify the error status code and message
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data, {'error': "source_target_name was not found in the request body."})
+
+    def test_error_400_source_resource_id_missing(self):
+        """
+        Return a 400 if the POST fails because the source_resource_id is missing from the request body.
+        """
+        url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        response = self.client.post(url, {"source_target_name": "curate_nd"}, **self.headers)
+        # Verify the error status code and message
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data,
+                         {'error': "source_resource_id was not found in the request body."})
+
+    def test_error_400_source_id_cant_be_none(self):
+        """
+        Return a 400 if the POST fails because the source_resource_id is missing from the request body.
+        """
+        url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        response = self.client.post(url, {"source_target_name": "curate_nd", "source_resource_id": ""}, **self.headers)
+        # Verify the error status code and message
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data,
+                         {'error': "source_resource_id can't be None or blank."})
+
+    def test_error_404_source_target_name_invalid(self):
+        """
+        Returns a 404 if the source_target_name provided in the body is not a valid target name
+        """
+        url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        response = self.client.post(url, {"source_target_name": "bad_name", "source_resource_id": "dj52w379504"}, **self.headers)
+        # Verify the error status code and message
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.data, {'error': "'bad_name' is not a valid Target name."})
+
+    def test_error_404_destination_target_name_invalid(self):
+        """
+        Returns a 404 if the destination_target_name provided in the body is not a valid target name
+        """
+        url = reverse('resource_collection', kwargs={'target_name': 'bad_name'})
+        response = self.client.post(url, {"source_target_name": "osf",
+                                          "source_resource_id": "dj52w379504"}, **self.headers)
+        # Verify the error status code and message
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.data, {'error': "'bad_name' is not a valid Target name."})
+
+    def test_error_400_source_target_not_destination_action(self):
+        """
+        Return a 400 if the POST method fails because the destination_target_name requested does not supported
+        this endpoint's action
+        """
+        json_file =  open('presqt/api_v1/tests/resources/targets_test.json')
+
+        with patch("builtins.open") as mock_file:
+            mock_file.return_value = json_file
+            url = reverse('resource',
+                          kwargs={'target_name': 'test', 'resource_id': 'resource_id'})
+            response = self.client.post(url, {"source_target_name": "osf",
+                                              "source_resource_id": "dj52w379504"},
+                                        **self.headers)
+            # Verify the error status code and message
+            self.assertEqual(response.status_code, 400)
+            self.assertEqual(response.data,
+                             {'error': "'test' does not support the action 'resource_transfer'."})

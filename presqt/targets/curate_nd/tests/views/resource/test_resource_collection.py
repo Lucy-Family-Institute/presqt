@@ -30,7 +30,7 @@ class TestResourceCollection(SimpleTestCase):
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
         # Verify the count of resource objects is what we expect.
-        self.assertEqual(28, len(response.data))
+        self.assertEqual(32, len(response.data))
         for data in response.data:
             # Since Curate for now only supports details, there should only be one link for each object.
             self.assertEqual(len(data['links']), 2)

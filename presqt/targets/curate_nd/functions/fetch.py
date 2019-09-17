@@ -25,7 +25,6 @@ def curate_nd_fetch_resources(token):
             "container": "None",
             "title": "Folder Name",
         }
-    See https://app.gitbook.com/@crc-nd/s/presqt/project-description/developer-documentation/code-documentation/resources for details.
     """
     try:
         curate_instance = CurateND(token)

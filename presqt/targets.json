@@ -1,30 +1,25 @@
 [
-    {
-        "name": "osf",
-        "readable_name": "OSF",
-        "supported_actions": {
-            "resource_collection": true,
-            "resource_detail": true,
-            "resource_download": true,
-            "resource_upload": true
-        },
-        "supported_hash_algorithms": [
-            "sha256",
-            "md5"
-        ]
+  {
+    "name": "osf",
+    "readable_name": "OSF",
+    "supported_actions": {
+        "resource_collection": true,
+        "resource_detail": true,
+        "resource_download": true,
+        "resource_upload": true,
+        "resource_transfer": true
     },
-    {
-        "name": "curate_nd",
-        "readable_name": "CurateND",
-        "supported_actions": {
-            "resource_collection": true,
-            "resource_detail": true,
-            "resource_download": true,
-            "resource_upload": false
-        },
-        "supported_hash_algorithms": [
-            "md5"
-        ]
+    "supported_hash_algorithms": ["sha256", "md5"]
+  },
+  {
+    "name": "curate_nd",
+    "readable_name": "CurateND",
+    "supported_actions": {
+        "resource_collection": true,
+        "resource_detail": true,
+        "resource_download": true,
+        "resource_upload": false,
+        "resource_transfer": true
     },
     {
         "name": "github",
@@ -33,7 +28,8 @@
             "resource_collection": true,
             "resource_detail": true,
             "resource_download": true,
-            "resource_upload": false
+            "resource_upload": false,
+            "resource_transfer": true
         },
         "supported_hash_algorithms": [
             "sha256"

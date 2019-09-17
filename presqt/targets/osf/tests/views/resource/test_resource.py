@@ -14,6 +14,7 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from config.settings.base import OSF_TEST_USER_TOKEN, OSF_UPLOAD_TEST_USER_TOKEN
+from presqt.api_v1.views.resource.base_resource import BaseResource
 from presqt.targets.utilities import (shared_get_success_function_202,
                                       shared_get_success_function_202_with_error, process_wait,
                                       shared_upload_function)
@@ -21,7 +22,6 @@ from presqt.utilities import write_file, read_file
 from presqt.api_v1.utilities.fixity.download_fixity_checker import download_fixity_checker
 from presqt.utilities import remove_path_contents
 from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
-from presqt.api_v1.views.resource.resource import Resource
 from presqt.targets.osf.utilities import delete_users_projects
 
 
@@ -457,16 +457,14 @@ class TestResourceGETZip(SimpleTestCase):
         ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
 
         # Verify process_info file status is 'in_progress' initially
-        process_info = read_file(
-            'mediafiles/downloads/{}/process_info.json'.format(ticket_number), True)
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         self.assertEqual(process_info['status'], 'in_progress')
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
         while process_info['status'] == 'in_progress':
             try:
-                process_info = read_file(
-                    'mediafiles/downloads/{}/process_info.json'.format(ticket_number), True)
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
@@ -488,10 +486,6 @@ class TestResourceGETZip(SimpleTestCase):
             read_file('{}/{}/data/22776439564_7edbed7e10_o.jpg'.format(ticket_path, base_name)),
             hashes)
 
-        # Since the coverage package does not pick up the multiprocessing, we will run the
-        # 'Resource._download_resource' function manually with the same parameters that the
-        # multiprocess version ran. And run the same exact checks.
-
         # First we need to remove the contents of the ticket path except 'process_info.json'
         remove_path_contents(ticket_path, 'process_info.json')
         process_info_path = '{}/process_info.json'.format(ticket_path)
@@ -503,8 +497,21 @@ class TestResourceGETZip(SimpleTestCase):
             # Manually verify the fixity_checker will fail
             fake_send.return_value = fixity, fixity_match
             process_state = multiprocessing.Value('b', 0)
-            Resource._download_resource('osf', 'resource_download', OSF_TEST_USER_TOKEN,
-                                        resource_id, ticket_path, process_info_path, process_state)
+
+            # Create an instance of the BaseResource and add all of the appropriate class attributes
+            # needed for _download_resource()
+            resource_instance = BaseResource()
+            resource_instance.source_target_name = 'osf'
+            resource_instance.action = 'resource_download'
+            resource_instance.source_token = OSF_TEST_USER_TOKEN
+            resource_instance.source_resource_id = resource_id
+            resource_instance.ticket_path = ticket_path
+            resource_instance.resource_main_dir = '{}/{}'.format(ticket_path, base_name)
+            resource_instance.process_info_path = process_info_path
+            resource_instance.process_state = process_state
+            resource_instance.process_info_obj = {}
+            resource_instance.base_directory_name = base_name
+            resource_instance._download_resource()
 
         final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         # Verify the final status in the process_info file is 'finished'
@@ -545,6 +552,7 @@ class TestResourceGETZip(SimpleTestCase):
         resource_id = '5cd9832cf244ec0021e5f245'
         ticket_number = uuid.uuid4()
         ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
+        base_name = 'osf_download_{}'.format(resource_id)
         process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(ticket_number)
         process_info_obj = {
             'presqt-source-token': OSF_TEST_USER_TOKEN,
@@ -557,12 +565,22 @@ class TestResourceGETZip(SimpleTestCase):
 
         # Start the Resource._download_resource process manually
         process_state = multiprocessing.Value('b', 0)
-        function_process = multiprocessing.Process(target=Resource._download_resource, args=[
-            'osf', 'resource_download', OSF_TEST_USER_TOKEN, resource_id,
-            ticket_path, process_info_path, process_state])
+
+        resource_instance = BaseResource()
+        resource_instance.source_target_name = 'osf'
+        resource_instance.action = 'resource_download'
+        resource_instance.source_token = OSF_TEST_USER_TOKEN
+        resource_instance.source_resource_id = resource_id
+        resource_instance.ticket_path = ticket_path
+        resource_instance.resource_main_dir = '{}/{}'.format(ticket_path, base_name)
+        resource_instance.process_info_path = process_info_path
+        resource_instance.process_state = process_state
+        resource_instance.process_info_obj = {}
+        resource_instance.base_directory_name = base_name
+        function_process = multiprocessing.Process(target=resource_instance._download_resource)
         function_process.start()
 
-        # start watchdog function manually
+        # Start watchdog function manually
         process_watchdog(function_process, process_info_path, 1, process_state)
 
         # Make sure the process_watchdog reached a failure and updated the status to 'failed'
@@ -647,7 +665,7 @@ class TestResourcePOST(SimpleTestCase):
                            'target_name': 'osf', 'resource_id': self.resource_id})
         self.file = 'presqt/api_v1/tests/resources/upload/FolderBagItToUpload.zip'
         self.duplicate_files_ignored = [
-            'data/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
+            'funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
         self.duplicate_files_updated = []
         self.hash_algorithm = 'sha256'
         shared_upload_function(self)
@@ -670,8 +688,8 @@ class TestResourcePOST(SimpleTestCase):
         self.url = reverse('resource', kwargs={
                            'target_name': 'osf', 'resource_id': self.resource_id})
         self.file = 'presqt/api_v1/tests/resources/upload/FolderUpdateBagItToUpload.zip'
-        self.duplicate_files_ignored = ['data/Screen Shot 2019-07-15 at 3.51.13 PM.png']
-        self.duplicate_files_updated = ['data/Screen Shot 2019-07-15 at 3.26.49 PM.png']
+        self.duplicate_files_ignored = ['Screen Shot 2019-07-15 at 3.51.13 PM.png']
+        self.duplicate_files_updated = ['Screen Shot 2019-07-15 at 3.26.49 PM.png']
         self.hash_algorithm = 'sha256'
         shared_upload_function(self)
 

@@ -1,7 +1,4 @@
-from rest_framework import status
-
 from presqt.targets.osf.classes.base import OSFBase
-from presqt.utilities import PresQTResponseException
 
 
 class File(OSFBase):

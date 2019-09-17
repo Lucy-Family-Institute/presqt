@@ -10,6 +10,7 @@ class SupportedActions(serializers.Serializer):
     resource_detail = serializers.BooleanField()
     resource_download = serializers.BooleanField()
     resource_upload = serializers.BooleanField()
+    resource_transfer = serializers.BooleanField()
 
 
 class TargetsSerializer(serializers.Serializer):
