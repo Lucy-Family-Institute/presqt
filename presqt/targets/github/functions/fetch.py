@@ -31,7 +31,7 @@ def github_fetch_resources(token):
     try:
         username, header = validation_check(token)
     except PresQTResponseException:
-        raise PresQTResponseException('The response returned a 401 unauthorized status code.', 
+        raise PresQTResponseException('The response returned a 401 unauthorized status code.',
                                       status.HTTP_401_UNAUTHORIZED)
 
     data = github_paginated_data(username, header)

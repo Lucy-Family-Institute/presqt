@@ -5,6 +5,18 @@ from presqt.targets.github.utilities import get_page_total
 
 def github_paginated_data(username, header):
     """
+    For the given user, find and return all repo data.
+
+    Parameters
+    ----------
+    username : str
+        The user's GitHub username
+    header : dict
+        The GitHub Authorization header
+
+    Returns
+    -------
+    All paginated data.
     """
     base_url = "https://api.github.com/users/{}/repos".format(username)
     data = requests.get(base_url, headers=header).json()

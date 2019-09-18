@@ -1,6 +1,7 @@
 import requests
 
-from presqt.targets.github.utilities import get_page_total, validation_check, github_paginated_data
+from presqt.targets.github.utilities import (
+    get_page_total, validation_check, github_paginated_data, download_content)
 from presqt.utilities import PresQTInvalidTokenError, PresQTValidationError, PresQTResponseException
 
 
@@ -39,14 +40,9 @@ def github_download_resource(token, resource_id):
     for entry in data:
         if entry['id'] == int(resource_id):
             repo_name = entry['name']
+            break
+    # Get initial data from first page of data
+    initial_url = "https://api.github.com/repos/{}/{}/contents".format(username, repo_name)
+    files, empty_containers = download_content(initial_url, header, repo_name, [])
 
-    download_url = 'https://api.github.com/repos/{}/{}/zipball/master'.format(username, repo_name)
-    download_content = requests.get(download_url, headers=header).content
-
-    files = [{
-        'file': download_content,
-        'hashes': {'sha256': None},
-        'title': repo_name,
-        'path': '/{}.zip'.format(repo_name)}]
-
-    return files, []
+    return files, empty_containers

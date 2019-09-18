@@ -19,6 +19,7 @@ def validation_check(token):
     try:
         username = validation['login']
     except:
-        raise PresQTResponseException('You messed up.', status.HTTP_401_UNAUTHORIZED)
+        raise PresQTResponseException('Response returned a 401 unauthroized status.', 
+                                      status.HTTP_401_UNAUTHORIZED)
 
     return username, header
