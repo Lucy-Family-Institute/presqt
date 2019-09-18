@@ -5,6 +5,8 @@ from django.test import SimpleTestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
+from config.settings.base import GITHUB_TEST_USER_TOKEN
+
 
 class TestResourceGETJSON(SimpleTestCase):
     """
@@ -15,7 +17,7 @@ class TestResourceGETJSON(SimpleTestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': 'db5c285d3b7051c695b650156f462fe036839ea8'}
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}
         self.keys = ['kind', 'kind_name', 'id', 'title', 'date_created', 'date_modified', 'hashes',
                      'extra', 'links']
 

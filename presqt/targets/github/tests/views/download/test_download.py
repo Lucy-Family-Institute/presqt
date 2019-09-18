@@ -13,6 +13,8 @@ from presqt.api_v1.utilities.fixity.download_fixity_checker import download_fixi
 from presqt.utilities import read_file
 from presqt.targets.utilities import shared_call_get_resource_zip
 
+from config.settings.base import GITHUB_TEST_USER_TOKEN
+
 
 class TestDownload(SimpleTestCase):
     """
@@ -22,7 +24,7 @@ class TestDownload(SimpleTestCase):
     """
     def setUp(self):
         self.client = APIClient()
-        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': 'db5c285d3b7051c695b650156f462fe036839ea8'}
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}
         self.target_name = 'github'
 
     def test_success_download_private_repo(self):
