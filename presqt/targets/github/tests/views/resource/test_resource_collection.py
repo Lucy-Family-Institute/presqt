@@ -7,20 +7,20 @@ from rest_framework.test import APIClient
 
 class TestResourceCollection(SimpleTestCase):
     """
-    Test the 'api_v1/targets/curate_nd/resources' endpoint's GET method.
+    Test the 'api_v1/targets/github/resources' endpoint's GET method.
 
-    Testing Curate ND integration.
+    Testing GitHub integration.
     """
 
     def setUp(self):
         self.client = APIClient()
-        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': os.environ['CURATE_ND_TEST_TOKEN']}
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': 'db5c285d3b7051c695b650156f462fe036839ea8'}
 
-    def test_success_curate_nd(self):
+    def test_success_github(self):
         """
-        Return a 200 if the GET method is successful when grabbing CurateND resources.
+        Return a 200 if the GET method is successful when grabbing GitHub resources.
         """
-        url = reverse('resource_collection', kwargs={'target_name': 'curate_nd'})
+        url = reverse('resource_collection', kwargs={'target_name': 'github'})
         response = self.client.get(url, **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
@@ -30,31 +30,32 @@ class TestResourceCollection(SimpleTestCase):
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
         # Verify the count of resource objects is what we expect.
-        self.assertEqual(32, len(response.data))
+        self.assertEqual(len(response.data), 31)
+
         for data in response.data:
-            # Since Curate for now only supports details, there should only be one link for each object.
+            # Since GitHub for now only supports details and downloads, there should only be 2.
             self.assertEqual(len(data['links']), 2)
 
-    def test_error_400_missing_token_curate_nd(self):
+    def test_error_400_missing_token_github(self):
         """
         Return a 400 if the GET method fails because the presqt-source-token was not provided.
         """
-        url = reverse('resource_collection', kwargs={'target_name': 'curate_nd'})
+        url = reverse('resource_collection', kwargs={'target_name': 'github'})
         response = self.client.get(url)
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data,
                          {'error': "'presqt-source-token' missing in the request headers."})
 
-    def test_error_401_invalid_token_curate_nd(self):
+    def test_error_401_invalid_token_github(self):
         """
         Return a 401 if the token provided is not a valid token.
         """
         client = APIClient()
         header = {'HTTP_PRESQT_SOURCE_TOKEN': 'eggyboi'}
-        url = reverse('resource_collection', kwargs={'target_name': 'curate_nd'})
+        url = reverse('resource_collection', kwargs={'target_name': 'github'})
         response = client.get(url, **header)
         # Verify the error status code and message.
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.data,
-                         {'error': "Token is invalid. Response returned a 401 status code."})
+                         {'error': "The response returned a 401 unauthorized status code."})
