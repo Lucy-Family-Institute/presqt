@@ -2,7 +2,7 @@ import requests
 
 from rest_framework import status
 
-from presqt.targets.github.utilities import get_page_total, validation_check, github_paginated_data
+from presqt.targets.github.utilities import validation_check, github_paginated_data
 from presqt.utilities import PresQTResponseException
 
 
@@ -29,12 +29,12 @@ def github_fetch_resources(token):
     See https://app.gitbook.com/@crc-nd/s/presqt/project-description/developer-documentation/code-documentation/resources for details.
     """
     try:
-        username, header = validation_check(token)
+        validation_check(token)
     except PresQTResponseException:
         raise PresQTResponseException('The response returned a 401 unauthorized status code.',
                                       status.HTTP_401_UNAUTHORIZED)
 
-    data = github_paginated_data(username, token, header)
+    data = github_paginated_data(token)
 
     resources = []
 
@@ -83,12 +83,12 @@ def github_fetch_resource(token, resource_id):
     }
     """
     try:
-        username, header = validation_check(token)
+        validation_check(token)
     except PresQTResponseException:
         raise PresQTResponseException('The response returned a 401 unauthorized status code.',
                                       status.HTTP_401_UNAUTHORIZED)
 
-    data = github_paginated_data(username, token, header)
+    data = github_paginated_data(token)
 
     resource = {}
     for entry in data:
