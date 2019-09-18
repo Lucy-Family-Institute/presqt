@@ -1,5 +1,6 @@
 import requests
 
+from presqt.utilities import PresQTResponseException
 
 def validation_check(token):
     """

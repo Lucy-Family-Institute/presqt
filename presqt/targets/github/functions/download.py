@@ -1,11 +1,10 @@
 import asyncio
 import aiohttp
-import requests
 
-from presqt.targets.github.utilities import (
-    get_page_total, validation_check, github_paginated_data, download_content)
-from presqt.utilities import (PresQTInvalidTokenError, PresQTValidationError, 
-                              PresQTResponseException, get_dictionary_from_list)
+from rest_framework import status
+
+from presqt.targets.github.utilities import (validation_check, github_paginated_data, download_content)
+from presqt.utilities import PresQTResponseException, get_dictionary_from_list
 
 
 async def async_get(url, session, header):
@@ -28,7 +27,7 @@ async def async_get(url, session, header):
     """
     async with session.get(url, headers=header) as response:
         assert response.status == 200
-        content =  await response.read()
+        content = await response.read()
         return {'url': url, 'binary_content': content}
 
 
@@ -97,6 +96,6 @@ def github_download_resource(token, resource_id):
     download_data = loop.run_until_complete(async_main(file_urls, header))
     # Go through the file dictionaries and replace the file class with the binary_content
     for file in files:
-        file['file'] = get_dictionary_from_list(download_data,'url', file['file'])['binary_content']
+        file['file'] = get_dictionary_from_list(download_data, 'url', file['file'])['binary_content']
 
     return files, empty_containers
