@@ -40,6 +40,7 @@ services:
         BUILD_ENVIRONMENT: ${ENVIRONMENT:-production}
     environment:
       CURATE_ND_TEST_TOKEN: $CURATE_ND_TEST_TOKEN
+      GITHUB_TEST_USER_TOKEN: $GITHUB_TEST_USER_TOKEN
       SECRET_KEY: $SECRET_KEY
       ENVIRONMENT: ${ENVIRONMENT:-production}
       DJANGO_SETTINGS_MODULE: config.settings.${ENVIRONMENT:-production}
