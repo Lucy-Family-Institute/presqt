@@ -34,7 +34,7 @@ def github_fetch_resources(token):
         raise PresQTResponseException('The response returned a 401 unauthorized status code.',
                                       status.HTTP_401_UNAUTHORIZED)
 
-    data = github_paginated_data(username, header)
+    data = github_paginated_data(username, token, header)
 
     resources = []
 
@@ -88,7 +88,7 @@ def github_fetch_resource(token, resource_id):
         raise PresQTResponseException('The response returned a 401 unauthorized status code.',
                                       status.HTTP_401_UNAUTHORIZED)
 
-    data = github_paginated_data(username, header)
+    data = github_paginated_data(username, token, header)
 
     resource = {}
     for entry in data:
@@ -99,7 +99,7 @@ def github_fetch_resource(token, resource_id):
             resource['title'] = entry['name']
             resource['date_created'] = entry['created_at']
             resource['date_modified'] = entry['updated_at']
-            resource['hashes'] = {"sha256": None}
+            resource['hashes'] = {}
             resource['extra'] = {}
             for key, value in entry.items():
                 if '_url' in key:

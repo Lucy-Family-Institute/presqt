@@ -21,13 +21,13 @@ def download_content(url, header, repo_name, files):
     A list of files and a list of empty containers
     """
     inital_data = requests.get(url, headers=header).json()
-    # Loop through the inital data and build up file content and if the type is directory
+    # Loop through the inital data and build up the file urls and if the type is directory
     # recursively call function.
     for data in inital_data:
         if data['type'] == 'file':
             files.append({
-                'file': requests.get(data['download_url'], headers=header).content,
-                'hashes': {'sha1': data['sha']},
+                'file': data['download_url'],
+                'hashes': {},
                 'title': data['name'],
                 'path': '/{}/{}'.format(repo_name, data['path'])})
         else:
