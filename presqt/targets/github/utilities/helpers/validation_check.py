@@ -21,9 +21,9 @@ def validation_check(token):
     header = {"Authorization": "token {}".format(token)}
     validation = requests.get("https://api.github.com/user", headers=header).json()
     try:
-        username = validation['login']
+        validation['login']
     except:
-        raise PresQTResponseException('Response returned a 401 unauthroized status.', 
+        raise PresQTResponseException('The response returned a 401 unauthorized status code.', 
                                       status.HTTP_401_UNAUTHORIZED)
 
-    return username, header
+    return header

@@ -3,7 +3,8 @@ import aiohttp
 
 from rest_framework import status
 
-from presqt.targets.github.utilities import (validation_check, github_paginated_data, download_content)
+from presqt.targets.github.utilities import (
+    validation_check, github_paginated_data, download_content)
 from presqt.utilities import PresQTResponseException, get_dictionary_from_list
 
 
@@ -76,7 +77,7 @@ def github_download_resource(token, resource_id):
         Example: ['empty/folder/to/write/', 'another/empty/folder/]
     """
     try:
-        username, header = validation_check(token)
+        header = validation_check(token)
     except PresQTResponseException:
         raise PresQTResponseException('The response returned a 401 unauthorized status code.',
                                       status.HTTP_401_UNAUTHORIZED)
@@ -86,10 +87,13 @@ def github_download_resource(token, resource_id):
     for entry in data:
         if entry['id'] == int(resource_id):
             repo_name = entry['name']
+            # Strip off the uneccessarry {+path} that's included in the url
+            # Example: https://api.github.com/repos/eggyboi/djangoblog/contents/{+path} becomes
+            # https://api.github.com/repos/eggyboi/djangoblog/contents
+            contents_url = entry['contents_url'].partition('/{+path}')[0]
             break
-    # Get initial data from first page of data
-    initial_url = "https://api.github.com/repos/{}/{}/contents".format(username, repo_name)
-    files, empty_containers = download_content(initial_url, header, repo_name, [])
+
+    files, empty_containers = download_content(contents_url, header, repo_name, [])
     file_urls = [file['file'] for file in files]
 
     loop = asyncio.new_event_loop()
