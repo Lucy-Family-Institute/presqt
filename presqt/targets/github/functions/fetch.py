@@ -107,5 +107,8 @@ def github_fetch_resource(token, resource_id):
                 else:
                     resource['extra'][key] = value
             break
+    if resource == {}:
+        raise PresQTResponseException("The resource could not be found by the requesting user.",
+                                      status.HTTP_404_NOT_FOUND)
 
     return resource
