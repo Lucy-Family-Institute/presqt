@@ -181,7 +181,7 @@ class ContainerMixin:
 
 
     def create_directory(self, directory_path, file_duplicate_action, file_hashes,
-                         files_ignored, files_updated):
+                         resources_ignored, resources_updated):
         """
         Create a directory of folders and files found in the given directory_path.
 
@@ -193,14 +193,14 @@ class ContainerMixin:
             Flag for how to handle the case of the file already existing.
         file_hashes : dict
             Dictionary of uploaded file hashes.
-        files_ignored : list
-            List of duplicate files ignored.
-        files_updated : list
-            List of duplicate files updated.
+        resources_ignored : list
+            List of duplicate resources ignored.
+        resources_updated : list
+            List of duplicate resources updated.
 
         Returns
         -------
-        Returns same file_hashes, files ignored, files_updated parameters.
+        Returns same file_hashes, resources ignored, resources updated parameters.
         """
         directory, folders, files = next(os.walk(directory_path))
 
@@ -212,17 +212,17 @@ class ContainerMixin:
 
             file_hashes[file_path] = file.hashes
             if action == 'ignored':
-                files_ignored.append(file_path)
+                resources_ignored.append(file_path)
             elif action == 'updated':
-                files_updated.append(file_path)
+                resources_updated.append(file_path)
 
         for folder in folders:
             created_folder = self.create_folder(folder)
             created_folder.create_directory('{}/{}'.format(directory, folder),
                                             file_duplicate_action, file_hashes,
-                                            files_ignored, files_updated)
+                                            resources_ignored, resources_updated)
 
-        return file_hashes, files_ignored, files_updated
+        return file_hashes, resources_ignored, resources_updated
 
 
 class Storage(OSFBase, ContainerMixin):

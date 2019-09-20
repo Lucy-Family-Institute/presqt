@@ -37,13 +37,13 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
             'mediafiles/uploads/25/BagItToUpload/data/NewProj/funnyimages/Screen2.png':
             '6d33275234b28d77348e4e1049f58b95a485a7a441684a9eb9175d01c7f141eb',
          }
-    files_ignored : array
-        Array of string file paths of files that were ignored when uploading the resource.
+    resources_ignored : array
+        Array of string paths of resources that were ignored when uploading the resource.
         Path should have the same base as resource_main_dir.
         ['path/to/ignored/file.pg', 'another/ignored/file.jpg']
 
-    files_updated : array
-        Array of string file paths of files that were updated when uploading the resource.
+    resources_updated : array
+        Array of string paths of resources that were updated when uploading the resource.
         Path should have the same base as resource_main_dir.
         ['path/to/updated/file.jpg']
     """
@@ -54,8 +54,8 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
                                       status.HTTP_401_UNAUTHORIZED)
 
     hashes = {}
-    files_ignored = []
-    files_updated = []
+    resources_ignored = []
+    resources_updated = []
 
     # If we are uploading to an existing container
     if resource_id:
@@ -68,11 +68,13 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
                 "The Resource provided, {}, is not a container".format(resource_id),
                 status.HTTP_400_BAD_REQUEST)
         elif resource.kind_name == 'project':
-            hashes, files_ignored, files_updated = resource.storage('osfstorage').create_directory(
-                resource_main_dir, file_duplicate_action, hashes, files_ignored, files_updated)
+            hashes, resources_ignored, resources_updated = resource.storage('osfstorage').create_directory(
+                resource_main_dir, file_duplicate_action, hashes,
+                resources_ignored, resources_updated)
         else: # Folder or Storage
-            hashes, files_ignored, files_updated = resource.create_directory(
-                resource_main_dir, file_duplicate_action, hashes, files_ignored, files_updated)
+            hashes, resources_ignored, resources_updated = resource.create_directory(
+                resource_main_dir, file_duplicate_action, hashes,
+                resources_ignored, resources_updated)
     # else if we are uploading a new project
     else:
         os_path = next(os.walk(resource_main_dir))
@@ -95,12 +97,13 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
         project = osf_instance.create_project(os_path[1][0])
 
         # Upload resources into OSFStorage for the new project.
-        hashes, files_ignored, files_updated = project.storage('osfstorage').create_directory(
-            data_to_upload_path, file_duplicate_action, hashes, files_ignored, files_updated)
+        hashes, resources_ignored, resources_updated = project.storage('osfstorage').create_directory(
+            data_to_upload_path, file_duplicate_action, hashes,
+            resources_ignored, resources_updated)
 
     # Only send forward the hashes we need based on the hash_algorithm provided
     final_file_hashes = {}
     for key, value in hashes.items():
         final_file_hashes[key] = value[hash_algorithm]
 
-    return final_file_hashes, files_ignored, files_updated
+    return final_file_hashes, resources_ignored, resources_updated

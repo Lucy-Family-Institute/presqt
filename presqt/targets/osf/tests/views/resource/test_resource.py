@@ -631,8 +631,8 @@ class TestResourcePOST(SimpleTestCase):
         self.duplicate_action = 'ignore'
         self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
         self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
-        self.duplicate_files_ignored = []
-        self.duplicate_files_updated = []
+        self.resources_ignored = []
+        self.resources_updated = []
         self.hash_algorithm = 'sha256'
         shared_upload_function(self)
 
@@ -664,9 +664,9 @@ class TestResourcePOST(SimpleTestCase):
         self.url = reverse('resource', kwargs={
                            'target_name': 'osf', 'resource_id': self.resource_id})
         self.file = 'presqt/api_v1/tests/resources/upload/FolderBagItToUpload.zip'
-        self.duplicate_files_ignored = [
+        self.resources_ignored = [
             'funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
-        self.duplicate_files_updated = []
+        self.resources_updated = []
         self.hash_algorithm = 'sha256'
         shared_upload_function(self)
 
@@ -688,8 +688,8 @@ class TestResourcePOST(SimpleTestCase):
         self.url = reverse('resource', kwargs={
                            'target_name': 'osf', 'resource_id': self.resource_id})
         self.file = 'presqt/api_v1/tests/resources/upload/FolderUpdateBagItToUpload.zip'
-        self.duplicate_files_ignored = ['Screen Shot 2019-07-15 at 3.51.13 PM.png']
-        self.duplicate_files_updated = ['Screen Shot 2019-07-15 at 3.26.49 PM.png']
+        self.resources_ignored = ['Screen Shot 2019-07-15 at 3.51.13 PM.png']
+        self.resources_updated = ['Screen Shot 2019-07-15 at 3.26.49 PM.png']
         self.hash_algorithm = 'sha256'
         shared_upload_function(self)
 
@@ -715,8 +715,8 @@ class TestResourcePOST(SimpleTestCase):
         self.url = reverse('resource', kwargs={
                            'target_name': 'osf', 'resource_id': self.resource_id})
         self.file = 'presqt/api_v1/tests/resources/upload/GoodBagItsha512.zip'
-        self.duplicate_files_updated = []
-        self.duplicate_files_ignored = []
+        self.resources_updated = []
+        self.resources_ignored = []
         self.hash_algorithm = 'sha256'
         shared_upload_function(self)
 
