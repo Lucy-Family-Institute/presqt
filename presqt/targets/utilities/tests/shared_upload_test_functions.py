@@ -43,8 +43,8 @@ def shared_upload_function(test_case_instance):
     test_case_instance.assertEqual(process_info['status_code'], '200')
     test_case_instance.assertEqual(process_info['failed_fixity'], [])
     test_case_instance.assertEqual(
-        process_info['duplicate_files_ignored'], test_case_instance.duplicate_files_ignored)
+        process_info['resources_ignored'], test_case_instance.resources_ignored)
     test_case_instance.assertEqual(
-        process_info['duplicate_files_updated'], test_case_instance.duplicate_files_updated)
+        process_info['resources_updated'], test_case_instance.resources_updated)
     test_case_instance.assertEqual(
         process_info['hash_algorithm'], test_case_instance.hash_algorithm)

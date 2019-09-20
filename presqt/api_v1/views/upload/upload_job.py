@@ -30,8 +30,8 @@ class UploadJob(APIView):
             "status_code": "200",
             "message": "Upload successful",
             "failed_fixity": [],
-            "duplicate_files_ignored": [],
-            "duplicate_files_updated": []
+            "resources_ignored": [],
+            "resources_updated": []
         }
 
         202: Accepted
@@ -76,8 +76,8 @@ class UploadJob(APIView):
         if upload_status == 'finished':
             http_status = status.HTTP_200_OK
             data['failed_fixity'] = process_data['failed_fixity']
-            data['duplicate_files_ignored'] = process_data['duplicate_files_ignored']
-            data['duplicate_files_updated'] = process_data['duplicate_files_updated']
+            data['resources_ignored'] = process_data['resources_ignored']
+            data['resources_updated'] = process_data['resources_updated']
         else:
             if upload_status == 'in_progress':
                 http_status = status.HTTP_202_ACCEPTED

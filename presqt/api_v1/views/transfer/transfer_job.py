@@ -41,8 +41,8 @@ class TransferJob(APIView):
         if transfer_status == 'finished':
             http_status = status.HTTP_200_OK
             data['failed_fixity'] = process_data['failed_fixity']
-            data['duplicate_files_ignored'] = process_data['duplicate_files_ignored']
-            data['duplicate_files_updated'] = process_data['duplicate_files_updated']
+            data['resources_ignored'] = process_data['resources_ignored']
+            data['resources_updated'] = process_data['resources_updated']
         else:
             if transfer_status == 'in_progress':
                 http_status = status.HTTP_202_ACCEPTED

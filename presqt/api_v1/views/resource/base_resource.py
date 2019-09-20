@@ -318,10 +318,10 @@ class BaseResource(APIView):
         #     'mediafiles/uploads/66e7b906-63f0/osf_download_5cd98b0af244e/data/Docs2/02.mp3':
         #         'fe3e904fbd549a3ac014bc26fb3d5042d58759f639f24e745dba3580ea316850'
         #     }
-        # 'files_ignored' should be a list of file paths of files that were ignored while uploading
-        # 'files_updated' should be a list of file paths of files that were updated while uploading
+        # 'resources_ignored' is list of paths of resources that were ignored while uploading
+        # 'resources_updated' is list of paths of resources that were updated while uploading
         try:
-            uploaded_file_hashes, files_ignored, files_updated = func(
+            uploaded_file_hashes, resources_ignored, resources_updated = func(
                 self.destination_token, self.destination_resource_id, data_directory,
                 self.hash_algorithm, self.file_duplicate_action)
         except PresQTResponseException as e:
@@ -343,16 +343,16 @@ class BaseResource(APIView):
         if self.file_hashes != uploaded_file_hashes:
             self.process_info_obj['message'] = 'Upload successful but fixity failed.'
             for key, value in self.file_hashes.items():
-                if value != uploaded_file_hashes[key] and key not in files_ignored:
+                if value != uploaded_file_hashes[key] and key not in resources_ignored:
                     self.process_info_obj['failed_fixity'].append(key[len(data_directory)+1:])
         else:
             self.process_info_obj['message'] = 'Upload successful'
 
         # Strip the server created directory prefix of the file paths for ignored and updated files
-        self.process_info_obj['duplicate_files_ignored'] = [file[len(data_directory)+1:]
-                                                            for file in files_ignored]
-        self.process_info_obj['duplicate_files_updated'] = [file[len(data_directory)+1:]
-                                                            for file in files_updated]
+        self.process_info_obj['resources_ignored'] = [file[len(data_directory)+1:]
+                                                            for file in resources_ignored]
+        self.process_info_obj['resources_updated'] = [file[len(data_directory)+1:]
+                                                            for file in resources_updated]
 
         # If we are uploading only and not transferring then update the server process file
         if self.action == 'resource_upload':
