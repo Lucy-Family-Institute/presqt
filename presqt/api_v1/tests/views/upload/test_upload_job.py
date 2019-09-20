@@ -88,8 +88,8 @@ class TestUploadJob(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['message'], 'Upload successful')
         self.assertEqual(response.data['failed_fixity'], [])
-        self.assertEqual(response.data['duplicate_files_ignored'], [])
-        self.assertEqual(response.data['duplicate_files_updated'], [])
+        self.assertEqual(response.data['resources_ignored'], [])
+        self.assertEqual(response.data['resources_updated'], [])
 
         # Second Project
         self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
@@ -142,8 +142,8 @@ class TestUploadJob(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['message'], 'Upload successful')
         self.assertEqual(response.data['failed_fixity'], [])
-        self.assertEqual(response.data['duplicate_files_ignored'], [])
-        self.assertEqual(response.data['duplicate_files_updated'], [])
+        self.assertEqual(response.data['resources_ignored'], [])
+        self.assertEqual(response.data['resources_updated'], [])
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
