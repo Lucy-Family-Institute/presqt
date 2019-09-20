@@ -1,5 +1,7 @@
+import base64
 import json
 import os
+import requests
 
 from rest_framework import status
 
@@ -47,13 +49,16 @@ def github_upload_resource(token, resource_id, resource_main_dir,
         Path should have the same base as resource_main_dir.
         ['path/to/updated/file.jpg']
     """
+    import datetime
+    start = datetime.datetime.now()
+    print("Starting beefy upload.")
     # Uploading to an existing Github repository is not allowed
     if resource_id:
         raise PresQTResponseException("Can't upload to an existing Github repository.",
                                       status.HTTP_400_BAD_REQUEST)
 
     try:
-        username, header = validation_check(token)
+        header, username = validation_check(token)
     except PresQTResponseException:
         raise PresQTResponseException('The response returned a 401 unauthorized status code.',
                                       status.HTTP_401_UNAUTHORIZED)
@@ -71,18 +76,39 @@ def github_upload_resource(token, resource_id, resource_main_dir,
             'Repository is not formatted correctly. Files exist at the top level.',
             status.HTTP_400_BAD_REQUEST)
 
-    # Get the actual data we want to upload
-    data_to_upload_path = '{}/{}'.format(os_path[0], os_path[1][0])
-
     # Create a new repository with the name being the top level directory's name.
-    repository_json = create_repository(os_path[1][0], token)
+    # Note: GitHub doesn't allow spaces in repo_names
+    repo_title = os_path[1][0].replace(' ', '_')
+    create_repository(repo_title, token)
+    resources_ignored = []
+    file_dictionaries_list = []
+    for path, subdirs, files in os.walk(resource_main_dir):
+        if not subdirs and not files:
+            resources_ignored.append(path)
+        for name in files:
+            # Extract and encode the file bytes in the way expected by GitHub.
+            file_bytes = open(os.path.join(path, name), 'rb').read()
+            encoded_file = base64.b64encode(file_bytes).decode('utf-8')
+            # A relative path to the file is what is added to the GitHub PUT address
+            path_to_add_to_url = os.path.join(path.partition('/data/')[2], name)
 
-    print(json.dumps(repository_json))
+            file_dictionaries_list.append({
+                "content": encoded_file,
+                "url": "https://api.github.com/repos/{}/{}/contents/{}".format(
+                    username, repo_title, path_to_add_to_url.partition('/')[2].replace(' ', '_'))})
+
+    for file in file_dictionaries_list:
+        put_content = {
+            "message": "PresQT Transfer",
+            "committer": {
+                "name": "PresQT",
+                "email": "N/A"},
+            "content": file['content']}
+        requests.put(file['url'], headers=header, data=json.dumps(put_content))
 
     # Github does not have hashes and we don't deal with file duplication because uploading to
     # an existing resource is not allowed.
     hashes = {}
-    files_ignored = []
-    files_updated = []
-
-    return hashes, files_ignored, files_updated
+    resources_updated = []
+    print(datetime.datetime.now() - start)
+    return hashes, resources_ignored, resources_updated

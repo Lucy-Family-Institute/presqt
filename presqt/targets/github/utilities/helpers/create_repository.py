@@ -1,6 +1,6 @@
 import json
-
 import requests
+
 from rest_framework import status
 
 from presqt.utilities import PresQTResponseException
@@ -16,7 +16,7 @@ def create_repository(title, token):
 
     elif response.status_code == 422:
         raise PresQTResponseException(
-            "Repository, {},already exists on this account".format(title),
+            "Repository, {}, already exists on this account".format(title),
             status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     else:
@@ -24,3 +24,5 @@ def create_repository(title, token):
             "Response has status code {} while creating repository {}".format(response.status_code,
                                                                               title),
             status.HTTP_400_BAD_REQUEST)
+
+    return response.json()

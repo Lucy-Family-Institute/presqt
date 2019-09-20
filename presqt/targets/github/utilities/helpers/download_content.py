@@ -20,10 +20,10 @@ def download_content(url, header, repo_name, files):
     -------
     A list of files and a list of empty containers
     """
-    inital_data = requests.get(url, headers=header).json()
+    initial_data = requests.get(url, headers=header).json()
     # Loop through the inital data and build up the file urls and if the type is directory
     # recursively call function.
-    for data in inital_data:
+    for data in initial_data:
         if data['type'] == 'file':
             files.append({
                 'file': data['download_url'],

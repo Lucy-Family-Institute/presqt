@@ -77,7 +77,7 @@ def github_download_resource(token, resource_id):
         Example: ['empty/folder/to/write/', 'another/empty/folder/]
     """
     try:
-        header = validation_check(token)
+        header, username = validation_check(token)
     except PresQTResponseException:
         raise PresQTResponseException('The response returned a 401 unauthorized status code.',
                                       status.HTTP_401_UNAUTHORIZED)
