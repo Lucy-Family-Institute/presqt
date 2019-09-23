@@ -20,7 +20,7 @@ async def async_get(url, session, header):
     session: ClientSession object
         aiohttp ClientSession Object
     token: str
-        User's OSF token
+        User's GitHub token
 
     Returns
     -------
@@ -42,7 +42,7 @@ async def async_main(url_list, header):
     url_list: list
         List of urls to call
     token: str
-        User's OSF token
+        User's GitHub token
 
     Returns
     -------
@@ -58,7 +58,8 @@ def github_download_resource(token, resource_id):
 
     Parameters
     ----------
-    ˇ
+    token : str
+        User's GitHub token
     resource_id : str
         ID of the resource requested
 
@@ -72,9 +73,8 @@ def github_download_resource(token, resource_id):
             'title': 'file.jpg',
             'path': '/path/to/file
         }
-        See https://app.gitbook.com/@crc-nd/s/presqt/project-description/developer-documentation/code-documentation/resource-download for details
     - List of string paths representing empty containers that must be written.
-        Example: ['empty/folder/to/write/', 'another/empty/folder/]
+        Example: ['empty/folder/to/write/', 'another/empty/folder/']
     """
     try:
         header, username = validation_check(token)
@@ -98,7 +98,7 @@ def github_download_resource(token, resource_id):
 
     loop = asyncio.new_event_loop()
     download_data = loop.run_until_complete(async_main(file_urls, header))
-    # Go through the file dictionaries and replace the file class with the binary_content
+    # Go through the file dictionaries and replace the file path with the binary_content
     for file in files:
         file['file'] = get_dictionary_from_list(download_data, 'url', file['file'])['binary_content']
 

@@ -26,7 +26,6 @@ def github_fetch_resources(token):
             "container": "None",
             "title": "Folder Name",
         }
-    See https://app.gitbook.com/@crc-nd/s/presqt/project-description/developer-documentation/code-documentation/resources for details.
     """
     try:
         validation_check(token)
@@ -37,7 +36,6 @@ def github_fetch_resources(token):
     data = github_paginated_data(token)
 
     resources = []
-
     for repo in data:
         resource = {
             "kind": "container",
@@ -93,20 +91,25 @@ def github_fetch_resource(token, resource_id):
     resource = {}
     for entry in data:
         if entry['id'] == int(resource_id):
-            resource['kind'] = 'container'
-            resource['kind_name'] = 'repo'
-            resource['id'] = entry['id']
-            resource['title'] = entry['name']
-            resource['date_created'] = entry['created_at']
-            resource['date_modified'] = entry['updated_at']
-            resource['hashes'] = {}
-            resource['extra'] = {}
+            resource = {
+                "kind": "container",
+                "kind_name": "repo",
+                "id": entry['id'],
+                "title": entry['name'],
+                "date_created": entry['created_at'],
+                "date_modified": entry['updated_at'],
+                "hashes": {},
+                "extra": {}
+            }
             for key, value in entry.items():
                 if '_url' in key:
                     pass
                 else:
                     resource['extra'][key] = value
             break
+    else:
+        resource = {}
+
     if resource == {}:
         raise PresQTResponseException("The resource could not be found by the requesting user.",
                                       status.HTTP_404_NOT_FOUND)

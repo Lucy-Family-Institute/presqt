@@ -18,7 +18,7 @@ def download_content(url, header, repo_name, files):
 
     Returns
     -------
-    A list of files and a list of empty containers
+    A list of file dictionaries and a list of empty containers
     """
     initial_data = requests.get(url, headers=header).json()
     # Loop through the inital data and build up the file urls and if the type is directory

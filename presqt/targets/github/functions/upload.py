@@ -78,8 +78,6 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
     create_repository(repo_title, token)
 
     resources_ignored = []
-    put_dictionary_list = []
-
     for path, subdirs, files in os.walk(resource_main_dir):
         if not subdirs and not files:
             resources_ignored.append(path)
@@ -90,18 +88,16 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
             # A relative path to the file is what is added to the GitHub PUT address
             path_to_add_to_url = os.path.join(path.partition('/data/')[2], name)
 
-            put_dictionary_list.append({
-                "url": "https://api.github.com/repos/{}/{}/contents/{}".format(
-                    username, repo_title, path_to_add_to_url.partition('/')[2].replace(' ', '_')),
-                "data": {
-                    "message": "PresQT Upload",
-                    "committer": {
-                        "name": "PresQT",
-                        "email": "N/A"},
-                    "content": encoded_file}})
+            put_url = "https://api.github.com/repos/{}/{}/contents/{}".format(
+                username, repo_title, path_to_add_to_url.partition('/')[2].replace(' ', '_'))
+            data = {
+                "message": "PresQT Upload",
+                "committer": {
+                    "name": "PresQT",
+                    "email": "N/A"},
+                "content": encoded_file}
 
-    for put_dictionary in put_dictionary_list:
-        requests.put(put_dictionary['url'], headers=header, data=json.dumps(put_dictionary['data']))
+            requests.put(put_url, headers=header, data=json.dumps(data))
 
     # Github does not have hashes and we don't deal with file duplication because uploading to
     # an existing resource is not allowed.
