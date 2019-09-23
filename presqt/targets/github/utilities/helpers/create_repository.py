@@ -7,6 +7,16 @@ from presqt.utilities import PresQTResponseException
 
 
 def create_repository(title, token):
+    """
+    Create a GitHub repository.
+
+    Parameters
+    ----------
+    title : str
+        The title of the repo being created
+    token : str
+        The users GitHub API token.
+    """
     repository_payload = {"name": title}
     response = requests.post('https://api.github.com/user/repos?access_token={}'.format(token),
                              data=json.dumps(repository_payload))
@@ -24,5 +34,3 @@ def create_repository(title, token):
             "Response has status code {} while creating repository {}".format(response.status_code,
                                                                               title),
             status.HTTP_400_BAD_REQUEST)
-
-    return response.json()
