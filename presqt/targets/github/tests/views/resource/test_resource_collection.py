@@ -1,10 +1,15 @@
 import os
+import shutil
+import time
+from unittest.mock import patch
 
 from django.test import SimpleTestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from config.settings.base import GITHUB_TEST_USER_TOKEN
+from presqt.targets.github.utilities import delete_github_repo
+from presqt.targets.utilities import shared_upload_function
 
 class TestResourceCollection(SimpleTestCase):
     """
@@ -60,3 +65,225 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.data,
                          {'error': "The response returned a 401 unauthorized status code."})
+
+
+class TestResourceCollectionPOST(SimpleTestCase):
+    """
+    Test the endpoint's POST method for resource uploads:
+         `api_v1/targets/{target_name}/resources/{resource_id}/`
+         `api_v1/targets/{target_name}/resources/`
+
+    Testing GitHub integration.
+    """
+
+    def setUp(self):
+        self.client = APIClient()
+        self.token = GITHUB_TEST_USER_TOKEN
+        self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token,
+                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+        self.repo_title = 'NewProject'
+
+        self.resource_id = None
+        self.duplicate_action = 'ignore'
+        self.url = reverse('resource_collection', kwargs={'target_name': 'github'})
+        self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
+        self.resources_ignored = []
+        self.resources_updated = []
+        self.hash_algorithm = None
+
+    def tearDown(self):
+        """
+        This should run at the end of this test class
+        """
+        delete_github_repo('presqt-test-user', self.repo_title,
+                           {'Authorization': 'token {}'.format(GITHUB_TEST_USER_TOKEN)})
+
+    def test_success_202_upload(self):
+        """
+        Return a 202 when a file is uploading.
+        """
+        # 202 when uploading a new top level repo
+        shared_upload_function(self)
+
+        # Verify the new repo exists on the PresQT Resource Collection endpoint.
+        url = reverse('resource_collection', kwargs={'target_name': 'github'})
+        response_json = self.client.get(
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
+
+        repo_name_list = [repo['title'] for repo in response_json]
+        self.assertIn(self.repo_title, repo_name_list)
+
+        # Delete upload folder
+        shutil.rmtree(self.ticket_path)
+
+
+    def test_success_202_empty_folder(self):
+        """
+        If an empty directory is included in the uploaded project, we want to ensure the user is
+        made aware.
+        """
+        bag_with_empty_directory = 'presqt/api_v1/tests/resources/upload/Empty_Directory_Bag.zip'
+        self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
+        response = self.client.post(self.url, {'presqt-file': open(bag_with_empty_directory, 'rb')},
+                                    **self.headers)
+
+        ticket_number = response.data['ticket_number']
+        self.ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+
+        time.sleep(5)
+
+        upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
+
+        # Verify status code and message
+        self.assertEqual(upload_job_response.data['resources_ignored'], ['Egg/Empty_Folder'])
+
+        delete_github_repo('presqt-test-user', 'Egg',
+                           {'Authorization': 'token {}'.format(GITHUB_TEST_USER_TOKEN)})
+        # Delete upload folder
+        shutil.rmtree(self.ticket_path)
+
+
+    def test_422_error_upload(self):
+        """
+        If a repo with this name already exists for the user a 422 error will be returned.
+        """
+        # 202 when uploading a new top level repo
+        shared_upload_function(self)
+
+        # 422 when uploading an existing repo
+        self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
+        response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+
+        ticket_number = response.data['ticket_number']
+        self.ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+
+        time.sleep(3)
+
+        upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
+
+        # Verify status code and message
+        self.assertEqual(upload_job_response.data['status_code'], 422)
+        self.assertEqual(upload_job_response.data['message'],
+                         'Repository, NewProject, already exists on this account')
+
+        # Delete upload folder
+        shutil.rmtree(self.ticket_path)
+
+    def test_400_error_bad_request(self):
+        """
+        If the user attempts to post to an existing repo, return a 400.
+        """
+        # Attempt to post to an existing repo.
+        self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
+        response = self.client.post(self.url + ('209372336/'),
+                                    {'presqt-file': open(self.file, 'rb')}, **self.headers)
+
+        ticket_number = response.data['ticket_number']
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+
+        time.sleep(3)
+
+        upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
+        # Ensure the response is what we expect
+        self.assertEqual(upload_job_response.data['status_code'], 400)
+        self.assertEqual(upload_job_response.data['message'],
+                         "Can't upload to an existing Github repository.")
+
+        # Delete upload folder
+        shutil.rmtree(ticket_path)
+
+    def test_401_unauthorized_user(self):
+        """
+        If a user does not have a valid GitHub API token, we should return a 401 unauthorized status.
+        """
+        headers = {'HTTP_PRESQT_DESTINATION_TOKEN': 'eggyboi',
+                  'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+        response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **headers)
+
+        ticket_number = response.data['ticket_number']
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+
+        time.sleep(3)
+
+        upload_job_response = self.client.get(response.data['upload_job'], **headers)
+        # Ensure the response is what we expect
+        self.assertEqual(upload_job_response.data['status_code'], 401)
+        self.assertEqual(upload_job_response.data['message'],
+                         'The response returned a 401 unauthorized status code.')
+
+        # Delete upload folder
+        shutil.rmtree(ticket_path)
+
+    def test_400_bad_bag_format(self):
+        """
+        Test that we get 400 bad request status' when the bag to upload is not formatted correctly.
+        """
+        # First test is of multiple directories
+        bad_bag = 'presqt/api_v1/tests/resources/upload/BadProjectMultipleFolders.zip'
+        self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
+        response = self.client.post(self.url, {'presqt-file': open(bad_bag, 'rb')}, **self.headers)
+
+        ticket_number = response.data['ticket_number']
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+
+        time.sleep(3)
+
+        upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
+        # Ensure the response is what we expect
+        self.assertEqual(upload_job_response.data['status_code'], 400)
+        self.assertEqual(upload_job_response.data['message'],
+                         'Repository is not formatted correctly. Multiple directories exist at the top level.')
+
+        # Delete the upload folder
+        shutil.rmtree(ticket_path)
+
+        # Files at top level test
+        # First test is of multiple directories
+        bad_bag = 'presqt/api_v1/tests/resources/upload/SingleFileDuplicate.zip'
+        self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
+        response = self.client.post(self.url, {'presqt-file': open(bad_bag, 'rb')}, **self.headers)
+
+        ticket_number = response.data['ticket_number']
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+
+        time.sleep(3)
+
+        upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
+        # Ensure the response is what we expect
+        self.assertEqual(upload_job_response.data['status_code'], 400)
+        self.assertEqual(upload_job_response.data['message'],
+                         'Repository is not formatted correctly. Files exist at the top level.')
+
+        # Delete the upload folder
+        shutil.rmtree(ticket_path)
+
+    def test_500_server_error(self):
+        """
+        If GitHub is having server issues, we want to make the user aware.
+        """
+        class MockResponse:
+            def __init__(self, json_data, status_code):
+                self.json_data = json_data
+                self.status_code = status_code
+        mock_req = MockResponse({'error': 'The server is down.'}, 500)
+
+        with patch('requests.post') as fake_post:
+            fake_post.return_value = mock_req
+
+            self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
+            response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')},
+                                    **self.headers)
+
+            ticket_number = response.data['ticket_number']
+            ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+
+            time.sleep(3)
+
+            upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
+            self.assertEqual(upload_job_response.data['status_code'], 400)
+            self.assertEqual(upload_job_response.data['message'],
+                             'Response has status code 500 while creating repository {}'.format(
+                                 self.repo_title))
+
+            # Delete the upload folder
+            shutil.rmtree(ticket_path)
