@@ -48,7 +48,7 @@ class TestResourceCollection(SimpleTestCase):
 
     def test_error_401_invalid_token_curate_nd(self):
         """
-`       Return a 401 if the token provided is not a valid token.
+        Return a 401 if the token provided is not a valid token.
         """
         client = APIClient()
         header = {'HTTP_PRESQT_SOURCE_TOKEN': 'eggyboi'}

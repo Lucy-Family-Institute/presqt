@@ -22,5 +22,17 @@
         "resource_transfer": true
     },
     "supported_hash_algorithms": ["md5"]
-  }
+    },
+    {
+        "name": "github",
+        "readable_name": "GitHub",
+        "supported_actions": {
+            "resource_collection": true,
+            "resource_detail": true,
+            "resource_download": true,
+            "resource_upload": true,
+            "resource_transfer": true
+        },
+        "supported_hash_algorithms": []
+    }
 ]

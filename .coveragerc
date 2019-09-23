@@ -2,6 +2,7 @@
 # A list of file name patterns, the files to leave out of measurement or reporting.
 omit =
         # Omit this single file
+        presqt/management/commands/bag_zip.py
         presqt/management/commands/validate_target_json.py
         presqt/management/commands/add_new_target.py
         presqt/management/tests/*
