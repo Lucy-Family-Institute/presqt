@@ -9,8 +9,7 @@ from presqt.targets.github.utilities import validation_check, create_repository
 from presqt.utilities import PresQTResponseException
 
 
-def github_upload_resource(token, resource_id, resource_main_dir,
-                        hash_algorithm, file_duplicate_action):
+def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm, file_duplicate_action):
     """
     Upload the files found in the resource_main_dir to the target.
 
@@ -39,19 +38,16 @@ def github_upload_resource(token, resource_id, resource_main_dir,
             'mediafiles/uploads/25/BagItToUpload/data/NewProj/funnyimages/Screen2.png':
             '6d33275234b28d77348e4e1049f58b95a485a7a441684a9eb9175d01c7f141eb',
          }
-    files_ignored : array
+    resources_ignored : array
         Array of string file paths of files that were ignored when uploading the resource.
         Path should have the same base as resource_main_dir.
         ['path/to/ignored/file.pg', 'another/ignored/file.jpg']
 
-    files_updated : array
+    resources_updated : array
         Array of string file paths of files that were updated when uploading the resource.
         Path should have the same base as resource_main_dir.
         ['path/to/updated/file.jpg']
     """
-    import datetime
-    start = datetime.datetime.now()
-    print("Starting beefy upload.")
     # Uploading to an existing Github repository is not allowed
     if resource_id:
         raise PresQTResponseException("Can't upload to an existing Github repository.",
@@ -80,8 +76,10 @@ def github_upload_resource(token, resource_id, resource_main_dir,
     # Note: GitHub doesn't allow spaces in repo_names
     repo_title = os_path[1][0].replace(' ', '_')
     create_repository(repo_title, token)
+
     resources_ignored = []
-    file_dictionaries_list = []
+    put_dictionary_list = []
+
     for path, subdirs, files in os.walk(resource_main_dir):
         if not subdirs and not files:
             resources_ignored.append(path)
@@ -92,23 +90,22 @@ def github_upload_resource(token, resource_id, resource_main_dir,
             # A relative path to the file is what is added to the GitHub PUT address
             path_to_add_to_url = os.path.join(path.partition('/data/')[2], name)
 
-            file_dictionaries_list.append({
-                "content": encoded_file,
+            put_dictionary_list.append({
                 "url": "https://api.github.com/repos/{}/{}/contents/{}".format(
-                    username, repo_title, path_to_add_to_url.partition('/')[2].replace(' ', '_'))})
+                    username, repo_title, path_to_add_to_url.partition('/')[2].replace(' ', '_')),
+                "data": {
+                    "message": "PresQT Upload",
+                    "committer": {
+                        "name": "PresQT",
+                        "email": "N/A"},
+                    "content": encoded_file}})
 
-    for file in file_dictionaries_list:
-        put_content = {
-            "message": "PresQT Transfer",
-            "committer": {
-                "name": "PresQT",
-                "email": "N/A"},
-            "content": file['content']}
-        requests.put(file['url'], headers=header, data=json.dumps(put_content))
+    for put_dictionary in put_dictionary_list:
+        requests.put(put_dictionary['url'], headers=header, data=json.dumps(put_dictionary['data']))
 
     # Github does not have hashes and we don't deal with file duplication because uploading to
     # an existing resource is not allowed.
     hashes = {}
     resources_updated = []
-    print(datetime.datetime.now() - start)
+
     return hashes, resources_ignored, resources_updated
