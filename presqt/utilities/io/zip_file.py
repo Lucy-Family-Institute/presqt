@@ -2,7 +2,7 @@ import os
 import zipfile
 
 
-def zip_directory(source_path, destination_path, to_strip=None):
+def zip_directory(source_path, destination_path, to_strip=''):
     """
     Zip a directory to a specified path.
 
