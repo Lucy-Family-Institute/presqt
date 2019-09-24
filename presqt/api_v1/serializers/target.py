@@ -12,8 +12,15 @@ class SupportedActions(serializers.Serializer):
     resource_detail = serializers.BooleanField()
     resource_download = serializers.BooleanField()
     resource_upload = serializers.BooleanField()
-    resource_transfer = serializers.BooleanField()
+    resource_transfer_in = serializers.BooleanField()
+    resource_transfer_out = serializers.BooleanField()
 
+class SupportedTransferPartners(serializers.Serializer):
+    """
+    Serializer for supported_transfer_partners objects inside the Target JSON.
+    """
+    transfer_in = serializers.ListField(child=serializers.CharField())
+    transfer_out = serializers.ListField(child=serializers.CharField())
 
 class TargetsSerializer(serializers.Serializer):
     """
@@ -22,6 +29,7 @@ class TargetsSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=256)
     readable_name = serializers.CharField(max_length=256)
     supported_actions = SupportedActions()
+    supported_transfer_partners = SupportedTransferPartners()
     supported_hash_algorithms = serializers.StringRelatedField(many=True)
     links = serializers.SerializerMethodField()
 
@@ -68,7 +76,7 @@ class TargetSerializer(serializers.Serializer):
         """
         list_of_actions = action_checker(instance['name'])
         # Build a list of endpoint_actions to compare with list of actions
-        endpoint_actions = ['resource_collection', 'resource_upload', 'resource_transfer']
+        endpoint_actions = ['resource_collection', 'resource_upload', 'resource_transfer_in']
         resources_actions = list_intersection(list_of_actions, endpoint_actions)
 
         links = link_builder(self, instance, resources_actions)

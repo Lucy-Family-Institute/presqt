@@ -7,7 +7,12 @@
           "resource_detail": false,
           "resource_download": false,
           "resource_upload": false,
-          "resource_transfer": false
+          "resource_transfer_in": false,
+          "resource_transfer_out": true
+    },
+    "supported_transfer_targets": {
+      "transfer_in": [],
+      "transfer_out": []
     },
     "supported_hash_algorithms": ["sha256", "md5"]
   }

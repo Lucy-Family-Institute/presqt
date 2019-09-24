@@ -464,4 +464,4 @@ class TestResourcePOSTWithBody(SimpleTestCase):
             # Verify the error status code and message
             self.assertEqual(response.status_code, 400)
             self.assertEqual(response.data,
-                             {'error': "'test' does not support the action 'resource_transfer'."})
+                             {'error': "'test' does not support the action 'resource_transfer_in'."})

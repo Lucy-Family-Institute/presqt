@@ -19,12 +19,7 @@ def action_checker(target_name):
     target_json = get_target_data(target_name)
     supported_actions = target_json['supported_actions']
 
-    action_list = [action for action, boolean in supported_actions.items() if boolean is True]
-
-    if 'resource_transfer' in action_list and 'resource_upload' not in action_list:
-        action_list.remove('resource_transfer')
-
-    return action_list
+    return [action for action, boolean in supported_actions.items() if boolean is True]
 
 
 def link_builder(self, instance, list_of_actions):
@@ -90,7 +85,7 @@ def link_builder(self, instance, list_of_actions):
                     links.append({"name": "Upload", "link": self.context['request'].build_absolute_uri(
                         reversed_upload), "method": "POST"})
 
-        elif action == 'resource_transfer':
+        elif action == 'resource_transfer_in':
             try:
                 kind = instance['kind']
             except KeyError:

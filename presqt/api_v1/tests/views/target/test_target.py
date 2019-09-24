@@ -23,7 +23,7 @@ class TestTargetCollection(SimpleTestCase):
         expected_keys = ['name', 'readable_name', 'supported_actions',
                          'supported_hash_algorithms', 'links']
         expected_supported_keys = ['resource_collection', 'resource_detail', 'resource_download',
-                                   'resource_upload', 'resource_transfer']
+                                   'resource_upload', 'resource_transfer_in', 'resource_transfer_out']
         for dict_item in response.data:
             self.assertListEqual(list(dict_item.keys()), expected_keys)
             self.assertListEqual(list(dict_item['supported_actions'].keys()),
