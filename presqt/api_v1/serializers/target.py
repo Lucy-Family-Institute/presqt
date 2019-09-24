@@ -1,6 +1,8 @@
 from django.urls import reverse
 from rest_framework import serializers
 
+from presqt.api_v1.utilities import action_checker, link_builder
+from presqt.utilities import list_intersection
 
 class SupportedActions(serializers.Serializer):
     """
@@ -37,6 +39,7 @@ class TargetsSerializer(serializers.Serializer):
         """
         reversed_target_detail = reverse(
             'target', kwargs={'target_name': instance['name']})
+
         return [{"name": 'Detail', "link": self.context['request'].build_absolute_uri(
             reversed_target_detail), "method": "GET"}]
 
@@ -63,7 +66,11 @@ class TargetSerializer(serializers.Serializer):
         -------
         A list of hyperlink urls for Target detail API endpoint
         """
-        reversed_collection = reverse('resource_collection', kwargs={
-            'target_name': instance['name']})
-        return [{"name": "Collection", "link": self.context['request'].build_absolute_uri(
-            reversed_collection), "method": "GET"}]
+        list_of_actions = action_checker(instance['name'])
+        # Build a list of endpoint_actions to compare with list of actions
+        endpoint_actions = ['resource_collection', 'resource_upload', 'resource_transfer']
+        resources_actions = list_intersection(list_of_actions, endpoint_actions)
+
+        links = link_builder(self, instance, resources_actions)
+
+        return links
