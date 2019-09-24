@@ -113,7 +113,6 @@ class TestResourceCollectionPOST(SimpleTestCase):
 
         repo_name_list = [repo['title'] for repo in response_json]
         self.assertIn(self.repo_title, repo_name_list)
-
         # Delete upload folder
         shutil.rmtree(self.ticket_path)
 
@@ -149,12 +148,14 @@ class TestResourceCollectionPOST(SimpleTestCase):
         # 202 when uploading a new top level repo
         shared_upload_function(self)
 
+        shutil.rmtree(self.ticket_path)
+
         # 422 when uploading an existing repo
         self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
         response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
 
         ticket_number = response.data['ticket_number']
-        self.ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
         time.sleep(3)
 
@@ -166,7 +167,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
                          'Repository, NewProject, already exists on this account')
 
         # Delete upload folder
-        shutil.rmtree(self.ticket_path)
+        shutil.rmtree(ticket_path)
 
     def test_400_error_bad_request(self):
         """
