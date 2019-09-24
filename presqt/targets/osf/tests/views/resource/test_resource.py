@@ -66,7 +66,7 @@ class TestResourceGETJSON(SimpleTestCase):
                 self.assertEqual(link['method'], 'GET')
             if link['name'] == 'Upload':
                 self.assertEqual(link['method'], 'POST')
-        self.assertEqual(len(response.data['links']), 2)
+        self.assertEqual(len(response.data['links']), 3)
 
     def test_success_file(self):
         """

@@ -39,7 +39,8 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(len(response.data), 31)
 
         for data in response.data:
-            # Since GitHub for now only supports details and downloads, there should only be 2.
+            # Since GitHub for now only supports details and downloads on this level,
+            # there should only be 2.
             self.assertEqual(len(data['links']), 2)
 
     def test_error_400_missing_token_github(self):
@@ -116,7 +117,6 @@ class TestResourceCollectionPOST(SimpleTestCase):
         # Delete upload folder
         shutil.rmtree(self.ticket_path)
 
-
     def test_success_202_empty_folder(self):
         """
         If an empty directory is included in the uploaded project, we want to ensure the user is
@@ -141,7 +141,6 @@ class TestResourceCollectionPOST(SimpleTestCase):
                            {'Authorization': 'token {}'.format(GITHUB_TEST_USER_TOKEN)})
         # Delete upload folder
         shutil.rmtree(self.ticket_path)
-
 
     def test_422_error_upload(self):
         """

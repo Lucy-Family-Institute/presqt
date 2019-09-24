@@ -32,9 +32,9 @@ class TestResourceCollection(SimpleTestCase):
         # Verify the count of resource objects is what we expect.
         self.assertEqual(72, len(response.data))
         for data in response.data:
-            # If the kind is a container, there should be links for Download, Upload and Detail.
+            # If the kind is a container, there should be links for Download, Upload, Detail and Transfer.
             if data['kind'] == 'container':
-                self.assertEqual(len(data['links']), 3)
+                self.assertEqual(len(data['links']), 4)
             # If the kind is an item, we should only display the Detail and Download links.
             if data['kind'] == 'item':
                 self.assertEqual(len(data['links']), 2)
