@@ -51,7 +51,7 @@ def link_builder(self, instance, list_of_actions):
             links.append({"name": "Collection", "link": self.context['request'].build_absolute_uri(
                 reversed_collection), "method": "GET"})
 
-        if action == 'resource_detail':
+        elif action == 'resource_detail':
             reversed_detail = reverse(
                 viewname='resource',
                 kwargs={'target_name': self.context.get('target_name'),

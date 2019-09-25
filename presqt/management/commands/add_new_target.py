@@ -9,9 +9,14 @@ from presqt.utilities import write_file, read_file, get_dictionary_from_list
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         targets_json = read_file('presqt/targets.json', True)
-        list_of_existing_partners = []
+        list_of_partners_in = []
+        list_of_partners_out = []
         for target in targets_json:
-            list_of_existing_partners.append(target['name'])
+            if target['supported_actions']['resource_transfer_in'] == True:
+                list_of_partners_in.append(target['name'])
+            if target['supported_actions']['resource_transfer_out'] == True:
+                list_of_partners_out.append(target['name'])
+
         ##### Get Input From User #####
         while True:
             target_name = input('Enter target name (use underscores not spaces): ').lower()
@@ -88,27 +93,27 @@ class Command(BaseCommand):
                 break
 
         while True:
-            transfer_in = input("Which PresQT partners are you allowing to transfer into your service? (comma seperated list with no spaces (use underscores))\nOptions are {}: ".format(list_of_existing_partners))
+            transfer_in = input("Which PresQT partners are you allowing to transfer into your service? (comma seperated list with no spaces (use underscores))\nOptions are {}: ".format(list_of_partners_out))
             if ' ' in transfer_in:
                 print("Input can't contain spaces")
                 continue
             transfer_in = transfer_in.lower().split(',')
             for partner in transfer_in:
-                if partner not in list_of_existing_partners:
-                    print('{} is not a recognized target.'.format(partner))
+                if partner not in list_of_partners_out:
+                    print("{} is not a recognized target, or doesn't support resource_transfer_out.".format(partner))
                     break
             else:
                 break
 
         while True:
-            transfer_out = input("Which PresQT partners are you allowing your service to transfer to? (comma seperated list with no spaces (use underscores))\nOptions are {}: ".format(list_of_existing_partners))
+            transfer_out = input("Which PresQT partners are you allowing your service to transfer to? (comma seperated list with no spaces (use underscores))\nOptions are {}: ".format(list_of_partners_in))
             if ' ' in transfer_out:
                 print("Input can't contain spaces")
                 continue
             transfer_out = transfer_out.lower().split(',')
             for partner in transfer_out:
-                if partner not in list_of_existing_partners:
-                    print('{} is not a recognized target.'.format(partner))
+                if partner not in list_of_partners_in:
+                    print("{} is not a recognized target, or doesn't support resource_transfer_in.".format(partner))
                     break
             else:
                 break
