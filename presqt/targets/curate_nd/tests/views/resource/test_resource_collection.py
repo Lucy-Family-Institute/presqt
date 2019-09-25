@@ -32,8 +32,7 @@ class TestResourceCollection(SimpleTestCase):
         # Verify the count of resource objects is what we expect.
         self.assertEqual(32, len(response.data))
         for data in response.data:
-            # Since Curate for now only supports details, there should only be one link for each object.
-            self.assertEqual(len(data['links']), 2)
+            self.assertEqual(len(data['links']), 1)
 
     def test_error_400_missing_token_curate_nd(self):
         """

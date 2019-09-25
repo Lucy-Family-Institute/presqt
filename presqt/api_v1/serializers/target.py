@@ -59,6 +59,7 @@ class TargetSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=256)
     readable_name = serializers.CharField(max_length=256)
     supported_actions = SupportedActions()
+    supported_transfer_partners = SupportedTransferPartners()
     supported_hash_algorithms = serializers.StringRelatedField(many=True)
     links = serializers.SerializerMethodField()
 

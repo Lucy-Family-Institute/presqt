@@ -20,7 +20,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}
         self.keys = ['kind', 'kind_name', 'id', 'title', 'date_created', 'date_modified', 'hashes',
-                     'extra', 'links']
+                     'extra', 'links', 'actions']
 
     def test_success_repo(self):
         """

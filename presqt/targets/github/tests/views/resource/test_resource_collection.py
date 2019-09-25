@@ -39,9 +39,7 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(len(response.data), 31)
 
         for data in response.data:
-            # Since GitHub for now only supports details and downloads on this level,
-            # there should only be 2.
-            self.assertEqual(len(data['links']), 2)
+            self.assertEqual(len(data['links']), 1)
 
     def test_error_400_missing_token_github(self):
         """
