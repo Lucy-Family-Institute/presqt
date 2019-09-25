@@ -80,7 +80,15 @@ class ResourceSerializer(serializers.Serializer):
 
     def get_actions(self, instance):
         """
-        Be smart.
+        Translate the `actions` property to a custom array of `action names`.
+
+        Parameters
+        ----------
+        instance : Target Obj instance
+
+        Returns
+        -------
+        Array of possible actions for the endpoint.
         """
         list_of_actions = action_checker(self.context.get('target_name'))
         action_list = []
