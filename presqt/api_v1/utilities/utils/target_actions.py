@@ -44,7 +44,14 @@ def link_builder(self, instance, list_of_actions):
     links = []
 
     for action in list_of_actions:
-        if action == 'resource_detail':
+        if action == 'resource_collection':
+            reversed_collection = reverse(
+                viewname='resource_collection',
+                kwargs={'target_name': instance['name']})
+            links.append({"name": "Collection", "link": self.context['request'].build_absolute_uri(
+                reversed_collection), "method": "GET"})
+
+        elif action == 'resource_detail':
             reversed_detail = reverse(
                 viewname='resource',
                 kwargs={'target_name': self.context.get('target_name'),
@@ -61,11 +68,39 @@ def link_builder(self, instance, list_of_actions):
                 reversed_download), "method": "GET"})
 
         elif action == 'resource_upload':
-            if instance['kind'] == 'container':
+            try:
+                kind = instance['kind']
+            except KeyError:
                 reversed_upload = reverse(
-                    viewname='resource',
-                    kwargs={'target_name': self.context.get('target_name'),
-                            'resource_id': instance['id']})
+                    viewname='resource_collection',
+                    kwargs={'target_name': instance['name']})
                 links.append({"name": "Upload", "link": self.context['request'].build_absolute_uri(
                     reversed_upload), "method": "POST"})
+            else:
+                if kind == 'container':
+                    reversed_upload = reverse(
+                        viewname='resource',
+                        kwargs={'target_name': self.context.get('target_name'),
+                                'resource_id': instance['id']})
+                    links.append({"name": "Upload", "link": self.context['request'].build_absolute_uri(
+                        reversed_upload), "method": "POST"})
+
+        elif action == 'resource_transfer_in':
+            try:
+                kind = instance['kind']
+            except KeyError:
+                reversed_transfer = reverse(
+                    viewname='resource_collection',
+                    kwargs={'target_name': instance['name']})
+                links.append({"name": "Transfer", "link": self.context['request'].build_absolute_uri(
+                    reversed_transfer), "method": "POST"})
+            else:
+                if kind == 'container':
+                    reversed_transfer = reverse(
+                        viewname='resource',
+                        kwargs={'target_name': self.context.get('target_name'),
+                                'resource_id': instance['id']})
+                    links.append({"name": "Transfer", "link": self.context['request'].build_absolute_uri(
+                        reversed_transfer), "method": "POST"})
+
     return links

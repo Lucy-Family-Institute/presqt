@@ -33,7 +33,12 @@ class TargetCollection(APIView):
                     "resource_detail": true,
                     "resource_download": true,
                     "resource_upload": true,
-                    "resource_transfer": true
+                    "resource_transfer_in": true,
+                    "resource_transfer_out": true
+                },
+                "supported_transfer_targets": {
+                    "transfer_in": [],
+                    "transfer_out": []
                 },
                 "supported_hash_algorithms": [
                     "sha256",
@@ -49,7 +54,12 @@ class TargetCollection(APIView):
                     "resource_detail": true,
                     "resource_download": true,
                     "resource_upload": false,
-                    "resource_transfer": true
+                    "resource_transfer_in": true,
+                    "resource_transfer_out": true
+                },
+                "supported_transfer_targets": {
+                    "transfer_in": [],
+                    "transfer_out": []
                 },
                 "supported_hash_algorithms": [
                     "sha256",
@@ -96,7 +106,12 @@ class Target(APIView):
                 "resource_detail": true,
                 "resource_download": true,
                 "resource_upload": true,
-                "resource_transfer": true
+                "resource_transfer_in": true,
+                "resource_transfer_out": true
+                },
+            "supported_transfer_targets": {
+                "transfer_in": [],
+                "transfer_out": []
             },
             "supported_hash_algorithms": [
                 "sha256",

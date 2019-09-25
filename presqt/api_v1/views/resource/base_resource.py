@@ -132,7 +132,7 @@ class BaseResource(APIView):
             return self.upload_post()
         # Route to transfer POST method
         else:
-            self.action = 'resource_transfer'
+            self.action = 'resource_transfer_in'
             return self.transfer_post()
 
     def upload_post(self):
@@ -270,7 +270,7 @@ class BaseResource(APIView):
             self.process_info_obj['message'] = 'Download successful with fixity errors'
 
         # If we are transferring the downloaded resource then bag it for the resource_upload method
-        if self.action == 'resource_transfer':
+        if self.action == 'resource_transfer_in':
             # Make a BagIt 'bag' of the resources.
             bagit.make_bag(self.resource_main_dir, checksums=['md5', 'sha1', 'sha256', 'sha512'])
             self.process_info_obj['download_status'] = self.process_info_obj['message']
@@ -382,7 +382,7 @@ class BaseResource(APIView):
             self.file_duplicate_action = file_duplicate_action_validation(self.request)
             self.source_target_name, self.source_resource_id = transfer_post_body_validation(self.request)
             target_validation(self.destination_target_name, self.action)
-            target_validation(self.source_target_name, self.action)
+            target_validation(self.source_target_name, 'resource_transfer_out')
             ############# VALIDATION TO ADD #############
             # CHECK THAT source_target_name CAN TRANSFER TO destination_target_name
         except PresQTValidationError as e:

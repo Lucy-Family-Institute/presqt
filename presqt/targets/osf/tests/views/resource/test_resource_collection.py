@@ -16,7 +16,7 @@ class TestResourceCollection(SimpleTestCase):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN}
         self.large_project_header = {'HTTP_PRESQT_SOURCE_TOKEN': OSF_PRESQT_FORK_TOKEN}
-    
+
     def test_success(self):
         """
         Return a 200 if the GET method is successful when grabbing OSF resources.
@@ -32,12 +32,7 @@ class TestResourceCollection(SimpleTestCase):
         # Verify the count of resource objects is what we expect.
         self.assertEqual(72, len(response.data))
         for data in response.data:
-            # If the kind is a container, there should be links for Download, Upload and Detail.
-            if data['kind'] == 'container':
-                self.assertEqual(len(data['links']), 3)
-            # If the kind is an item, we should only display the Detail and Download links.
-            if data['kind'] == 'item':
-                self.assertEqual(len(data['links']), 2)
+            self.assertEqual(len(data['links']), 1)
 
     def test_success_large_project(self):
         """
