@@ -75,7 +75,7 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
     # Create a new repository with the name being the top level directory's name.
     # Note: GitHub doesn't allow spaces in repo_names
     repo_title = os_path[1][0].replace(' ', '_')
-    create_repository(repo_title, token)
+    title = create_repository(repo_title, token)
 
     resources_ignored = []
     for path, subdirs, files in os.walk(resource_main_dir):
@@ -89,7 +89,7 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
             path_to_add_to_url = os.path.join(path.partition('/data/')[2], name)
 
             put_url = "https://api.github.com/repos/{}/{}/contents/{}".format(
-                username, repo_title, path_to_add_to_url.partition('/')[2].replace(' ', '_'))
+                username, title, path_to_add_to_url.partition('/')[2].replace(' ', '_'))
             data = {
                 "message": "PresQT Upload",
                 "committer": {
