@@ -157,13 +157,13 @@ class BaseResource(APIView):
         for index in range(3):
             # Generate ticket number
             ticket_number = uuid4()
-            ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+            ticket_path = os.path.join("mediafiles", "uploads", str(ticket_number))
 
             # Extract each file in the zip file to disk
             with zipfile.ZipFile(resource) as myzip:
                 myzip.extractall(ticket_path)
 
-            self.resource_main_dir = '{}/{}'.format(ticket_path, next(os.walk(ticket_path))[1][0])
+            self.resource_main_dir = os.path.join(ticket_path, next(os.walk(ticket_path))[1][0])
 
             # Validate the 'bag' and check for checksum mismatches
             bag = bagit.Bag(self.resource_main_dir)
@@ -187,7 +187,7 @@ class BaseResource(APIView):
             'status_code': None
         }
 
-        self.process_info_path = '{}/process_info.json'.format(ticket_path)
+        self.process_info_path = os.path.join(ticket_path, 'process_info.json')
         write_file(self.process_info_path, self.process_info_obj, True)
 
         # Create a hash dictionary to compare with the hashes returned from the target after upload
@@ -238,7 +238,7 @@ class BaseResource(APIView):
             return False
 
         # The directory all files should be saved in.
-        self.resource_main_dir = '{}/{}'.format(self.ticket_path, self.base_directory_name)
+        self.resource_main_dir = os.path.join(self.ticket_path, self.base_directory_name)
 
         # For each resource, perform fixity check, and save to disk.
         fixity_info = []
@@ -279,7 +279,7 @@ class BaseResource(APIView):
         # If we are only downloading the resource then bag, zip it, update the server process file
         else:
             # Add the fixity file to the disk directory
-            write_file('{}/fixity_info.json'.format(self.resource_main_dir), fixity_info, True)
+            write_file(os.path.join(self.resource_main_dir, 'fixity_info.json'), fixity_info, True)
 
             # Make a BagIt 'bag' of the resources.
             bagit.make_bag(self.resource_main_dir, checksums=['md5', 'sha1', 'sha256', 'sha512'])
@@ -390,7 +390,7 @@ class BaseResource(APIView):
 
         # Generate ticket number
         ticket_number = uuid4()
-        self.ticket_path = 'mediafiles/transfers/{}'.format(ticket_number)
+        self.ticket_path = os.path.join("mediafiles", "transfers", ticket_number)
 
         # Create directory and process_info json file
         self.process_info_obj = {
@@ -401,7 +401,7 @@ class BaseResource(APIView):
             'message': 'Transfer is being processed on the server',
             'status_code': None
         }
-        self.process_info_path = '{}/process_info.json'.format(self.ticket_path)
+        self.process_info_path = os.path.join(self.ticket_path, "process_info.json")
         write_file(self.process_info_path, self.process_info_obj, True)
 
         self.base_directory_name = '{}_{}_transfer_{}'.format(self.source_target_name,

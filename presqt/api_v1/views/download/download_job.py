@@ -1,3 +1,5 @@
+import os
+
 from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.response import Response
@@ -75,7 +77,7 @@ class DownloadJob(APIView):
         if download_status == 'finished':
             # Path to the file to be downloaded
             zip_name = data['zip_name']
-            zip_file_path = 'mediafiles/downloads/{}/{}'.format(ticket_number, zip_name)
+            zip_file_path = os.path.join('mediafiles', 'downloads', ticket_number, zip_name)
 
             response = HttpResponse(open(zip_file_path, 'rb'), content_type='application/zip')
             response['Content-Disposition'] = 'attachment; filename={}'.format(zip_name)
