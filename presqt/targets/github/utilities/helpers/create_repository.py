@@ -6,7 +6,7 @@ from rest_framework import status
 from presqt.utilities import PresQTResponseException
 
 
-def create_repository(title, token):
+def create_repository(title, token, count=0):
     """
     Create a GitHub repository.
 
@@ -22,12 +22,16 @@ def create_repository(title, token):
                              data=json.dumps(repository_payload))
 
     if response.status_code == 201:
-        return response.json()
+        return title
 
     elif response.status_code == 422:
-        raise PresQTResponseException(
-            "Repository, {}, already exists on this account".format(title),
-            status.HTTP_422_UNPROCESSABLE_ENTITY)
+        # Handling Project Duplication
+        count += 1
+        if '-PresQT{}-'.format(count-1) in title[len(title)-9:]:
+            title = title[:-2] + (str(count)+'-')
+        else:
+            title = title + '-PresQT{}-'.format(count)
+        return create_repository(title, token, count)
 
     else:
         raise PresQTResponseException(

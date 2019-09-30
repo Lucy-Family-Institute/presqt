@@ -139,16 +139,27 @@ class TestResourceCollectionPOST(SimpleTestCase):
         # Delete upload folder
         shutil.rmtree(self.ticket_path)
 
-    def test_422_error_upload(self):
+    def test_handle_repo_duplication(self):
         """
-        If a repo with this name already exists for the user a 422 error will be returned.
+        If a repo with this name already exists for the user, PresQT should handle repo duplication.
         """
+        # What the new repo should be named
+        duplicate_title = "{}-PresQT1-".format(self.repo_title)
+        second_duplicate_title = "{}-PresQT2-".format(self.repo_title)
         # 202 when uploading a new top level repo
         shared_upload_function(self)
 
         shutil.rmtree(self.ticket_path)
 
-        # 422 when uploading an existing repo
+        # Verify the duplicate repo does not exist on the PresQT Resource Collection endpoint.
+        url = reverse('resource_collection', kwargs={'target_name': 'github'})
+        response_json = self.client.get(
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
+
+        repo_name_list = [repo['title'] for repo in response_json]
+        self.assertNotIn(duplicate_title, repo_name_list)
+
+        # Make the second post attempt
         self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
         response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
 
@@ -157,13 +168,36 @@ class TestResourceCollectionPOST(SimpleTestCase):
 
         time.sleep(3)
 
-        upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
+        # Verify the new repo exists on the PresQT Resource Collection endpoint.
+        updated_response_json = self.client.get(
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
 
-        # Verify status code and message
-        self.assertEqual(upload_job_response.data['status_code'], 422)
-        self.assertEqual(upload_job_response.data['message'],
-                         'Repository, NewProject, already exists on this account')
+        updated_repo_name_list = [repo['title'] for repo in updated_response_json]
+        self.assertIn(duplicate_title, updated_repo_name_list)
 
+        # Delete upload folder
+        shutil.rmtree(ticket_path)
+
+        # Make the third post attempt
+        self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
+        response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+
+        ticket_number = response.data['ticket_number']
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+
+        time.sleep(3)
+
+        # Verify the new repo exists on the PresQT Resource Collection endpoint.
+        more_updated_response_json = self.client.get(
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
+
+        another_updated_repo_name_list = [repo['title'] for repo in more_updated_response_json]
+        self.assertIn(second_duplicate_title, another_updated_repo_name_list)
+
+        delete_github_repo('presqt-test-user', duplicate_title,
+                           {'Authorization': 'token {}'.format(self.token)})
+        delete_github_repo('presqt-test-user', second_duplicate_title,
+                           {'Authorization': 'token {}'.format(self.token)})
         # Delete upload folder
         shutil.rmtree(ticket_path)
 
