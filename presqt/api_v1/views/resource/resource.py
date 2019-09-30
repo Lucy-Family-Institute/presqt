@@ -1,3 +1,4 @@
+import os
 from uuid import uuid4
 
 from dateutil.relativedelta import relativedelta
@@ -184,7 +185,7 @@ class Resource(BaseResource):
 
         # Generate ticket number
         ticket_number = uuid4()
-        self.ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
+        self.ticket_path = os.path.join('mediafiles', 'downloads', str(ticket_number))
 
         # Create directory and process_info json file
         self.process_info_obj = {
@@ -195,7 +196,7 @@ class Resource(BaseResource):
             'status_code': None
         }
 
-        self.process_info_path = '{}/process_info.json'.format(self.ticket_path)
+        self.process_info_path = os.path.join(str(self.ticket_path), 'process_info.json')
         write_file(self.process_info_path, self.process_info_obj, True)
 
         self.base_directory_name = '{}_download_{}'.format(self.source_target_name,
