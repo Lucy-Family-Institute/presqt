@@ -390,7 +390,7 @@ class BaseResource(APIView):
 
         # Generate ticket number
         ticket_number = uuid4()
-        self.ticket_path = os.path.join("mediafiles", "transfers", ticket_number)
+        self.ticket_path = os.path.join("mediafiles", "transfers", str(ticket_number))
 
         # Create directory and process_info json file
         self.process_info_obj = {
