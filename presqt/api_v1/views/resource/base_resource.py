@@ -1,6 +1,9 @@
+import base64
+import json
 import os
 import shutil
 import zipfile
+from ast import literal_eval
 from uuid import uuid4
 
 import bagit
@@ -14,7 +17,8 @@ from rest_framework.views import APIView
 from presqt.api_v1.utilities import (target_validation, get_destination_token,
                                      file_duplicate_action_validation, FunctionRouter,
                                      get_source_token, transfer_post_body_validation,
-                                     spawn_action_process, get_or_create_hashes_from_bag)
+                                     spawn_action_process, get_or_create_hashes_from_bag,
+                                     update_or_create_fts_metadata, write_fts_metadata_file)
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
@@ -125,13 +129,15 @@ class BaseResource(APIView):
         self.request = request
         self.destination_target_name = target_name
         self.destination_resource_id = resource_id
-
+        print(request.FILES)
         # Route to upload POST method
         if request.FILES:
+            print(1)
             self.action = 'resource_upload'
             return self.upload_post()
         # Route to transfer POST method
         else:
+            print(2)
             self.action = 'resource_transfer_in'
             return self.transfer_post()
 
@@ -223,6 +229,8 @@ class BaseResource(APIView):
         # 'path': /some/path/to/resource}
         try:
             resources, empty_containers = func(self.source_token, self.source_resource_id)
+            #######******--->!!!!!!!HARD CODE METADATA. REMOVE THIS ONCE WE ADD METADATA TO TARGET FUNCTIONS!!!!!!!<---******#######
+            action_metadata = {'sourceUsername': '??'}
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch.
             # Update the server process_info file appropriately.
@@ -240,10 +248,24 @@ class BaseResource(APIView):
         # The directory all files should be saved in.
         self.resource_main_dir = os.path.join(self.ticket_path, self.base_directory_name)
 
-        # For each resource, perform fixity check, and save to disk.
+        # For each resource, perform fixity check, save metadata, and save it to disk.
         fixity_info = []
         self.fixity_match = True
+        fts_metadata = []
+        source_presqt_fts_metadata = {}
         for resource in resources:
+            #######******--->!!!!!!!HARD CODE METADATA FOR EACH FILE. REMOVE THIS ONCE WE ADD METADATA TO TARGET FUNCTIONS!!!!!!!<---******#######
+            resource['metadata'] = {
+                'sourcePath': '??',
+                'title': '??',
+                'sourceHashes': {
+                    '?': '?'
+                },
+                'extra': {
+                    '??': '??'
+                }
+            }
+
             # Perform the fixity check and add extra info to the returned fixity object.
             fixity_obj, self.fixity_match = download_fixity_checker.download_fixity_checker(
                 resource['file'], resource['hashes'])
@@ -251,8 +273,47 @@ class BaseResource(APIView):
             fixity_obj['path'] = resource['path']
             fixity_info.append(fixity_obj)
 
-            # Save the file to the disk.
-            write_file('{}{}'.format(self.resource_main_dir, resource['path']), resource['file'])
+            # If this file is the PresQT FTS Metadata file then don't write it to disk.
+            if resource['title'] == 'PRESQT_FTS_METADATA.json':
+                source_presqt_fts_metadata = resource['file']
+                source_presqt_fts_metadata = literal_eval(source_presqt_fts_metadata.decode())
+            else:
+                # Save file metadata
+                if not fixity_obj['fixity']:
+                    failed_fixity_info = {'NewGeneratedHash': fixity_obj['presqt_hash'],
+                                          'algorithmUsed': fixity_obj['hash_algorithm'],
+                                          'reasonFixityFailed': fixity_obj['fixity_details']}
+                else:
+                    failed_fixity_info = {}
+                fts_metadata.append({
+                    'title': resource['metadata']['title'],
+                    'sourcePath': resource['metadata']['sourcePath'],
+                    'actionRootPath': resource['path'],
+                    'sourceHashes': resource['metadata']['sourceHashes'],
+                    'failedFixityInfo': failed_fixity_info,
+                    'extra': resource['metadata']['extra']
+                })
+
+                # Save the file to the disk.
+                write_file('{}{}'.format(self.resource_main_dir, resource['path']), resource['file'])
+
+        # If we are only downloading (and not transferring) the resources then write metadata
+        if self.action == 'resource_download':
+            action_metadata = {
+                'id': uuid4(),
+                'actionDateTime': str(timezone.now()),
+                'actionType': self.action,
+                'sourceTargetName': self.source_target_name,
+                'destinationTargetName': 'Local Machine',
+                'sourceUsername': action_metadata['sourceUsername'],
+                'destinationUsername': '??',
+                'files': fts_metadata
+            }
+            presqt_fts_metadata_data = update_or_create_fts_metadata(action_metadata,
+                                                                     source_presqt_fts_metadata)
+            write_fts_metadata_file(self.resource_main_dir, presqt_fts_metadata_data)
+
+            print(next(os.walk(self.resource_main_dir)))
 
         # Write empty containers to disk
         for container_path in empty_containers:
@@ -390,7 +451,7 @@ class BaseResource(APIView):
 
         # Generate ticket number
         ticket_number = uuid4()
-        self.ticket_path = os.path.join("mediafiles", "transfers", ticket_number)
+        self.ticket_path = os.path.join("mediafiles", "transfers", str(ticket_number))
 
         # Create directory and process_info json file
         self.process_info_obj = {
