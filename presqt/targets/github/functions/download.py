@@ -93,7 +93,8 @@ def github_download_resource(token, resource_id):
             contents_url = entry['contents_url'].partition('/{+path}')[0]
             break
 
-    files, empty_containers = download_content(contents_url, header, repo_name, [])
+    files, empty_containers, action_metadata = download_content(
+        {'username': username, 'repo_name': repo_name}, contents_url, header, repo_name, [])
     file_urls = [file['file'] for file in files]
 
     loop = asyncio.new_event_loop()
@@ -102,4 +103,4 @@ def github_download_resource(token, resource_id):
     for file in files:
         file['file'] = get_dictionary_from_list(download_data, 'url', file['file'])['binary_content']
 
-    return files, empty_containers
+    return files, empty_containers, action_metadata
