@@ -323,7 +323,7 @@ class BaseResource(APIView):
         # 'resources_ignored' is list of paths of resources that were ignored while uploading
         # 'resources_updated' is list of paths of resources that were updated while uploading
         try:
-            uploaded_file_hashes, resources_ignored, resources_updated = func(
+            uploaded_file_hashes, resources_ignored, resources_updated, action_metadata, file_metadata_list = func(
                 self.destination_token, self.destination_resource_id, data_directory,
                 self.hash_algorithm, self.file_duplicate_action)
         except PresQTResponseException as e:

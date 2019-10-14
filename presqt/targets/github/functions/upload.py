@@ -78,6 +78,8 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
     title = create_repository(repo_title, token)
 
     resources_ignored = []
+    action_metadata = {"destinationUsername": username}
+    file_metadata_list = []
     for path, subdirs, files in os.walk(resource_main_dir):
         if not subdirs and not files:
             resources_ignored.append(path)
@@ -86,10 +88,15 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
             file_bytes = open(os.path.join(path, name), 'rb').read()
             encoded_file = base64.b64encode(file_bytes).decode('utf-8')
             # A relative path to the file is what is added to the GitHub PUT address
-            path_to_add_to_url = os.path.join(path.partition('/data/')[2], name)
+            path_to_add = os.path.join(path.partition('/data/')[2], name)
+            path_to_add_to_url = path_to_add.partition('/')[2].replace(' ', '_')
+            path = title + '/' + path_to_add_to_url
+            file_metadata_list.append({
+                "actionRootPath": title + '/' + path_to_add,
+                "destinationPath": path})
 
             put_url = "https://api.github.com/repos/{}/{}/contents/{}".format(
-                username, title, path_to_add_to_url.partition('/')[2].replace(' ', '_'))
+                username, title, path_to_add_to_url)
             data = {
                 "message": "PresQT Upload",
                 "committer": {
@@ -104,4 +111,5 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
     hashes = {}
     resources_updated = []
 
-    return hashes, resources_ignored, resources_updated
+    print(file_metadata_list)
+    return hashes, resources_ignored, resources_updated, action_metadata, file_metadata_list
