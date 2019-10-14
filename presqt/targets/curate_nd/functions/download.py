@@ -7,6 +7,7 @@ from presqt.targets.curate_nd.utilities import get_curate_nd_resource
 from presqt.targets.curate_nd.classes.main import CurateND
 from presqt.utilities import PresQTInvalidTokenError, PresQTValidationError
 
+
 async def async_get(url, session, token):
     """
     Coroutine that uses aiohttp to make a GET request. This is the method that will be called
@@ -30,6 +31,7 @@ async def async_get(url, session, token):
         content = await response.read()
         md5 = response.headers['Content-Md5']
         return {'url': url, 'binary_content': content, 'md5': md5}
+
 
 async def async_main(url_list, token):
     """
@@ -81,7 +83,7 @@ def curate_nd_download_resource(token, resource_id):
         curate_instance = CurateND(token)
     except PresQTInvalidTokenError:
         raise PresQTValidationError("Token is invalid. Response returned a 401 status code.",
-            status.HTTP_401_UNAUTHORIZED)
+                                    status.HTTP_401_UNAUTHORIZED)
 
     # Get the resource
     resource = get_curate_nd_resource(resource_id, curate_instance)
@@ -118,6 +120,8 @@ def curate_nd_download_resource(token, resource_id):
             title_helper = {}
             file_urls = []
             project_title = resource.title
+            action_metadata = {
+                "sourceUsername": file['depositor']}
             for file in resource.extra['containedFiles']:
                 # That gross md5 search
                 md5_end = '</md5checksum>'
@@ -125,8 +129,6 @@ def curate_nd_download_resource(token, resource_id):
                 # Md5 hashes are 32 characters...
                 file_md5 = md5_hash_check[len(md5_hash_check)-32:]
 
-                action_metadata = {
-                    "sourceUsername": file['depositor']}
                 file_metadata = {
                     "sourcePath": project_title + '/' + file['label'],
                     "title": file['label'],
