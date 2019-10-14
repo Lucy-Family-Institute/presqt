@@ -90,22 +90,56 @@ def curate_nd_download_resource(token, resource_id):
     files = []
     empty_containers = []
     if resource.kind_name == 'file':
+        action_metadata = {
+            "sourceUsername": resource.extra['depositor']}
+        file_metadata = {
+            "sourcePath": None,
+            "title": resource.title,
+            "sourceHashes": {
+                "md5": resource.md5},
+            "extra": resource.extra}
+        # This is so we aren't missing the few extra keys that are pulled out for the PresQT payload
+        file_metadata_extra = {
+            "id": resource.id,
+            "date_submitted": resource.date_submitted}
+        file_metadata['extra'].update(file_metadata_extra)
         binary_file, curate_hash = resource.download()
         files.append({
             'file': binary_file,
             'hashes': {'md5': curate_hash},
             'title': resource.title,
             # If the file is the only resource we are downloading then we don't need it's full path.
-            'path': '/{}'.format(resource.title)})
+            'path': '/{}'.format(resource.title),
+            'metadata': file_metadata})
     else:
         if not resource.extra['containedFiles']:
             empty_containers.append('{}'.format(resource.title))
         else:
             title_helper = {}
             file_urls = []
+            project_title = resource.title
             for file in resource.extra['containedFiles']:
+                # That gross md5 search
+                md5_end = '</md5checksum>'
+                md5_hash_check = file['characterization'].partition(md5_end)[0]
+                # Md5 hashes are 32 characters...
+                file_md5 = md5_hash_check[len(md5_hash_check)-32:]
+
+                action_metadata = {
+                    "sourceUsername": file['depositor']}
+                file_metadata = {
+                    "sourcePath": project_title + '/' + file['label'],
+                    "title": file['label'],
+                    "sourceHashes": {
+                        "md5": file_md5},
+                    "extra": {}}
+                for key, value in file.items():
+                    if key not in ['label', 'depositor']:
+                        file_metadata['extra'][key] = value
+
                 title_helper[file['downloadUrl']] = file['label']
                 file_urls.append(file['downloadUrl'])
+
             loop = asyncio.new_event_loop()
             download_data = loop.run_until_complete(async_main(file_urls, token))
 
@@ -114,6 +148,8 @@ def curate_nd_download_resource(token, resource_id):
                     'file': file['binary_content'],
                     'hashes': {'md5': file['md5']},
                     'title': title_helper[file['url']],
-                    'path': '/{}/{}'.format(resource.title, title_helper[file['url']])})
+                    'path': '/{}/{}'.format(resource.title, title_helper[file['url']]),
+                    'metadata': file_metadata})
+                print(file_metadata)
 
-    return files, empty_containers
+    return files, empty_containers, action_metadata
