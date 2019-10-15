@@ -8,6 +8,7 @@ from presqt.utilities import read_file
 from presqt.utilities import PresQTResponseException
 from presqt.targets.osf.classes.base import OSFBase
 from presqt.targets.osf.classes.file import File
+from presqt.targets.osf.utilities import osf_download_metadata
 
 class ContainerMixin:
     def get_all_files(self, initial_path, files, empty_containers):
@@ -30,11 +31,14 @@ class ContainerMixin:
 
             if kind == 'file':
                 file = File(child, self.session)
+                file_metadata = osf_download_metadata(file)
+                print(file_metadata)
                 files.append({
                     'file': file,
                     'hashes': file.hashes,
                     'title': file.title,
-                    'path': '{}{}'.format(initial_path, file.materialized_path)
+                    'path': '{}{}'.format(initial_path, file.materialized_path),
+                    'metadata': file_metadata
                 })
             elif kind == 'folder':
                 folder = Folder(child, self.session)
