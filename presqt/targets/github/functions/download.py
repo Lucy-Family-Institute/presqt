@@ -93,13 +93,15 @@ def github_download_resource(token, resource_id):
             contents_url = entry['contents_url'].partition('/{+path}')[0]
             break
 
-    files, empty_containers = download_content(contents_url, header, repo_name, [])
+    files, empty_containers, action_metadata = download_content(
+        username, contents_url, header, repo_name, [])
     file_urls = [file['file'] for file in files]
 
     loop = asyncio.new_event_loop()
     download_data = loop.run_until_complete(async_main(file_urls, header))
     # Go through the file dictionaries and replace the file path with the binary_content
     for file in files:
-        file['file'] = get_dictionary_from_list(download_data, 'url', file['file'])['binary_content']
+        file['file'] = get_dictionary_from_list(
+            download_data, 'url', file['file'])['binary_content']
 
-    return files, empty_containers
+    return files, empty_containers, action_metadata

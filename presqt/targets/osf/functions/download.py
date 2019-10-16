@@ -1,9 +1,10 @@
 import asyncio
 import aiohttp
+import requests
 
 from rest_framework import status
 
-from presqt.targets.osf.utilities import get_osf_resource
+from presqt.targets.osf.utilities import get_osf_resource, osf_download_metadata
 from presqt.utilities import (PresQTResponseException, PresQTInvalidTokenError,
                               get_dictionary_from_list)
 from presqt.targets.osf.classes.main import OSF
@@ -29,8 +30,9 @@ async def async_get(url, session, token):
     """
     async with session.get(url, headers={'Authorization': 'Bearer {}'.format(token)}) as response:
         assert response.status == 200
-        content =  await response.read()
+        content = await response.read()
         return {'url': url, 'binary_content': content}
+
 
 async def async_main(url_list, token):
     """
@@ -50,6 +52,7 @@ async def async_main(url_list, token):
     """
     async with aiohttp.ClientSession() as session:
         return await asyncio.gather(*[async_get(url, session, token) for url in url_list])
+
 
 def osf_download_resource(token, resource_id):
     """
@@ -83,6 +86,11 @@ def osf_download_resource(token, resource_id):
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
+    # Get contributor name
+    contributor_name = requests.get('https://api.osf.io/v2/users/me/',
+                                    headers={'Authorization': 'Bearer {}'.format(token)}).json()[
+                                        'data']['attributes']['full_name']
+    action_metadata = {"sourceUsername": contributor_name}
     # Get the resource
     resource = get_osf_resource(resource_id, osf_instance)
 
@@ -92,13 +100,17 @@ def osf_download_resource(token, resource_id):
     files = []
     empty_containers = []
     if resource.kind_name == 'file':
+        file_metadata = osf_download_metadata(resource)
+
         binary_file = resource.download()
+
         files.append({
-            'file': binary_file,
-            'hashes': resource.hashes,
-            'title': resource.title,
+            "file": binary_file,
+            "hashes": resource.hashes,
+            "title": resource.title,
             # If the file is the only resource we are downloading then we don't need it's full path
-            'path': '/{}'.format(resource.title)
+            "path": '/{}'.format(resource.title),
+            "metadata": file_metadata
         })
     else:
         if resource.kind_name == 'project':
@@ -122,6 +134,7 @@ def osf_download_resource(token, resource_id):
 
         # Go through the file dictionaries and replace the file class with the binary_content
         for file in files:
-            file['file'] = get_dictionary_from_list(download_data,'url', file['file'].download_url)['binary_content']
+            file['file'] = get_dictionary_from_list(
+                download_data, 'url', file['file'].download_url)['binary_content']
 
-    return files, empty_containers
+    return files, empty_containers, action_metadata
