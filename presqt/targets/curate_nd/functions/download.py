@@ -1,5 +1,6 @@
 import asyncio
 import aiohttp
+import requests
 
 from rest_framework import status
 
@@ -94,18 +95,22 @@ def curate_nd_download_resource(token, resource_id):
     if resource.kind_name == 'file':
         action_metadata = {
             "sourceUsername": resource.extra['depositor']}
+        # Get the title of the Project to add to sourcePath
+        project_title = requests.get(resource.extra['isPartOf'], headers={'X-Api-Token': '{}'.format(
+            token)}).json()['title']
         file_metadata = {
-            "sourcePath": None,
+            "sourcePath": project_title + '/' + resource.title,
             "title": resource.title,
             "sourceHashes": {
                 "md5": resource.md5},
             "extra": resource.extra}
+
         # This is so we aren't missing the few extra keys that are pulled out for the PresQT payload
-        file_metadata_extra = {
-            "id": resource.id,
-            "date_submitted": resource.date_submitted}
-        file_metadata['extra'].update(file_metadata_extra)
+        file_metadata['extra'].update(
+            {"id": resource.id, "date_submitted": resource.date_submitted})
+
         binary_file, curate_hash = resource.download()
+
         files.append({
             'file': binary_file,
             'hashes': {'md5': curate_hash},
@@ -113,6 +118,7 @@ def curate_nd_download_resource(token, resource_id):
             # If the file is the only resource we are downloading then we don't need it's full path.
             'path': '/{}'.format(resource.title),
             'metadata': file_metadata})
+
     else:
         if not resource.extra['containedFiles']:
             empty_containers.append('{}'.format(resource.title))
@@ -121,7 +127,7 @@ def curate_nd_download_resource(token, resource_id):
             file_urls = []
             project_title = resource.title
             action_metadata = {
-                "sourceUsername": file['depositor']}
+                "sourceUsername": resource.extra['depositor']}
             for file in resource.extra['containedFiles']:
                 # That gross md5 search
                 md5_end = '</md5checksum>'
@@ -152,6 +158,5 @@ def curate_nd_download_resource(token, resource_id):
                     'title': title_helper[file['url']],
                     'path': '/{}/{}'.format(resource.title, title_helper[file['url']]),
                     'metadata': file_metadata})
-                print(file_metadata)
 
     return files, empty_containers, action_metadata
