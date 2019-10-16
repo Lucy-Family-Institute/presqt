@@ -28,6 +28,7 @@ class BaseResource(APIView):
     """
     Base View for Resource views. Handles shared POSTs (upload and transfer) and download methods.
     """
+
     def post(self, request, target_name, resource_id=None):
         """
         Upload resources to a specific resource or create a new resource.
@@ -223,6 +224,8 @@ class BaseResource(APIView):
         # 'title': resource_title,
         # 'path': /some/path/to/resource}
         try:
+            resources, empty_containers, action_metadata = func(self.source_token,
+                                                                self.source_resource_id)
             resources, empty_containers = func(self.source_token, self.source_resource_id)
             #######******--->!!!!!!!HARD CODE METADATA. REMOVE THIS ONCE WE ADD METADATA TO TARGET FUNCTIONS!!!!!!!<---******#######
             action_metadata = {'sourceUsername': '??'}
@@ -373,7 +376,7 @@ class BaseResource(APIView):
         # 'resources_ignored' is list of paths of resources that were ignored while uploading
         # 'resources_updated' is list of paths of resources that were updated while uploading
         try:
-            uploaded_file_hashes, resources_ignored, resources_updated = func(
+            uploaded_file_hashes, resources_ignored, resources_updated, action_metadata, file_metadata_list = func(
                 self.destination_token, self.destination_resource_id, data_directory,
                 self.hash_algorithm, self.file_duplicate_action)
             presqt_action_metadata = {'destinationUsername': 'Bfff'}
@@ -408,9 +411,9 @@ class BaseResource(APIView):
 
         # Strip the server created directory prefix of the file paths for ignored and updated files
         self.process_info_obj['resources_ignored'] = [file[len(data_directory)+1:]
-                                                            for file in resources_ignored]
+                                                      for file in resources_ignored]
         self.process_info_obj['resources_updated'] = [file[len(data_directory)+1:]
-                                                            for file in resources_updated]
+                                                      for file in resources_updated]
 
         # If we are transferring the resources then add metadata to the existing fts metadata
         if self.action == 'resource_transfer_in':
@@ -472,7 +475,8 @@ class BaseResource(APIView):
             self.destination_token = get_destination_token(self.request)
             self.source_token = get_source_token(self.request)
             self.file_duplicate_action = file_duplicate_action_validation(self.request)
-            self.source_target_name, self.source_resource_id = transfer_post_body_validation(self.request)
+            self.source_target_name, self.source_resource_id = transfer_post_body_validation(
+                self.request)
             target_validation(self.destination_target_name, self.action)
             target_validation(self.source_target_name, 'resource_transfer_out')
             ############# VALIDATION TO ADD #############
@@ -497,8 +501,8 @@ class BaseResource(APIView):
         write_file(self.process_info_path, self.process_info_obj, True)
 
         self.base_directory_name = '{}_{}_transfer_{}'.format(self.source_target_name,
-                                                    self.destination_target_name,
-                                                    self.source_resource_id)
+                                                              self.destination_target_name,
+                                                              self.source_resource_id)
 
         # Spawn the transfer_resource method separate from the request server by using multiprocess.
         spawn_action_process(self, self._transfer_resource)
@@ -555,4 +559,3 @@ class BaseResource(APIView):
         # Update the shared memory map so the watchdog process can stop running.
         self.process_state.value = 1
         return
-

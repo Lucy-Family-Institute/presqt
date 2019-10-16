@@ -8,6 +8,8 @@ from presqt.utilities import read_file
 from presqt.utilities import PresQTResponseException
 from presqt.targets.osf.classes.base import OSFBase
 from presqt.targets.osf.classes.file import File
+from presqt.targets.osf.utilities import osf_download_metadata
+
 
 class ContainerMixin:
     def get_all_files(self, initial_path, files, empty_containers):
@@ -30,17 +32,18 @@ class ContainerMixin:
 
             if kind == 'file':
                 file = File(child, self.session)
+                file_metadata = osf_download_metadata(file)
                 files.append({
                     'file': file,
                     'hashes': file.hashes,
                     'title': file.title,
-                    'path': '{}{}'.format(initial_path, file.materialized_path)
+                    'path': '{}{}'.format(initial_path, file.materialized_path),
+                    'metadata': file_metadata
                 })
             elif kind == 'folder':
                 folder = Folder(child, self.session)
 
                 folder.get_all_files(initial_path, files, empty_containers)
-
 
     def iter_children(self, url, kind, klass):
         """
@@ -176,12 +179,11 @@ class ContainerMixin:
         else:
             raise PresQTResponseException(
                 "Response has status code {} while creating file {}".format(response.status_code,
-                                                                              file_name),
+                                                                            file_name),
                 status.HTTP_400_BAD_REQUEST)
 
-
     def create_directory(self, directory_path, file_duplicate_action, file_hashes,
-                         resources_ignored, resources_updated):
+                         resources_ignored, resources_updated, file_metadata_list):
         """
         Create a directory of folders and files found in the given directory_path.
 
@@ -204,11 +206,17 @@ class ContainerMixin:
         """
         directory, folders, files = next(os.walk(directory_path))
 
-        for file in files:
-            file_path = '{}/{}'.format(directory, file)
+        for filename in files:
+            file_path = '{}/{}'.format(directory, filename)
             file_to_write = read_file(file_path)
 
-            action, file = self.create_file(file, file_to_write, file_duplicate_action)
+            action, file = self.create_file(filename, file_to_write, file_duplicate_action)
+
+            file_metadata_list.append({
+                "actionRootPath": file_path,
+                "destinationPath": file.materialized_path,
+                "title": file.title,
+                "destinationHash": file.hashes})
 
             file_hashes[file_path] = file.hashes
             if action == 'ignored':
@@ -220,15 +228,16 @@ class ContainerMixin:
             created_folder = self.create_folder(folder)
             created_folder.create_directory('{}/{}'.format(directory, folder),
                                             file_duplicate_action, file_hashes,
-                                            resources_ignored, resources_updated)
+                                            resources_ignored, resources_updated, file_metadata_list)
 
-        return file_hashes, resources_ignored, resources_updated
+
 
 
 class Storage(OSFBase, ContainerMixin):
     """
     Class that represents a Storage provider in the OSF API.
     """
+
     def __init__(self, storage, session):
         super(Storage, self).__init__(storage, session)
 
@@ -257,6 +266,7 @@ class Folder(OSFBase, ContainerMixin):
     """
     Class that represents a Folder in the OSF API
     """
+
     def __init__(self, folder, session):
         super(Folder, self).__init__(folder, session)
 

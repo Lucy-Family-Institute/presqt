@@ -1,11 +1,13 @@
 import asyncio
 import aiohttp
+import requests
 
 from rest_framework import status
 
 from presqt.targets.curate_nd.utilities import get_curate_nd_resource
 from presqt.targets.curate_nd.classes.main import CurateND
 from presqt.utilities import PresQTInvalidTokenError, PresQTValidationError
+
 
 async def async_get(url, session, token):
     """
@@ -30,6 +32,7 @@ async def async_get(url, session, token):
         content = await response.read()
         md5 = response.headers['Content-Md5']
         return {'url': url, 'binary_content': content, 'md5': md5}
+
 
 async def async_main(url_list, token):
     """
@@ -81,7 +84,7 @@ def curate_nd_download_resource(token, resource_id):
         curate_instance = CurateND(token)
     except PresQTInvalidTokenError:
         raise PresQTValidationError("Token is invalid. Response returned a 401 status code.",
-            status.HTTP_401_UNAUTHORIZED)
+                                    status.HTTP_401_UNAUTHORIZED)
 
     # Get the resource
     resource = get_curate_nd_resource(resource_id, curate_instance)
@@ -90,22 +93,60 @@ def curate_nd_download_resource(token, resource_id):
     files = []
     empty_containers = []
     if resource.kind_name == 'file':
+        action_metadata = {"sourceUsername": resource.extra['depositor']}
+        # Get the title of the Project to add to sourcePath
+        project_title = requests.get(resource.extra['isPartOf'],
+                                     headers={'X-Api-Token': '{}'.format(token)}).json()['title']
+        file_metadata = {
+            "sourcePath": project_title + '/' + resource.title,
+            "title": resource.title,
+            "sourceHashes": {
+                "md5": resource.md5},
+            "extra": resource.extra}
+
+        # This is so we aren't missing the few extra keys that are pulled out for the PresQT payload
+        file_metadata['extra'].update(
+            {"id": resource.id, "date_submitted": resource.date_submitted})
+
         binary_file, curate_hash = resource.download()
+
         files.append({
             'file': binary_file,
             'hashes': {'md5': curate_hash},
             'title': resource.title,
             # If the file is the only resource we are downloading then we don't need it's full path.
-            'path': '/{}'.format(resource.title)})
+            'path': '/{}'.format(resource.title),
+            'metadata': file_metadata})
+
     else:
         if not resource.extra['containedFiles']:
             empty_containers.append('{}'.format(resource.title))
         else:
             title_helper = {}
             file_urls = []
+            project_title = resource.title
+            action_metadata = {"sourceUsername": resource.extra['depositor']}
+
             for file in resource.extra['containedFiles']:
+                # That gross md5 search
+                md5_end = '</md5checksum>'
+                md5_hash_check = file['characterization'].partition(md5_end)[0]
+                # Md5 hashes are 32 characters...
+                file_md5 = md5_hash_check[len(md5_hash_check)-32:]
+
+                file_metadata = {
+                    "sourcePath": project_title + '/' + file['label'],
+                    "title": file['label'],
+                    "sourceHashes": {
+                        "md5": file_md5},
+                    "extra": {}}
+                for key, value in file.items():
+                    if key not in ['label', 'depositor']:
+                        file_metadata['extra'][key] = value
+
                 title_helper[file['downloadUrl']] = file['label']
                 file_urls.append(file['downloadUrl'])
+
             loop = asyncio.new_event_loop()
             download_data = loop.run_until_complete(async_main(file_urls, token))
 
@@ -114,6 +155,7 @@ def curate_nd_download_resource(token, resource_id):
                     'file': file['binary_content'],
                     'hashes': {'md5': file['md5']},
                     'title': title_helper[file['url']],
-                    'path': '/{}/{}'.format(resource.title, title_helper[file['url']])})
+                    'path': '/{}/{}'.format(resource.title, title_helper[file['url']]),
+                    'metadata': file_metadata})
 
-    return files, empty_containers
+    return files, empty_containers, action_metadata
