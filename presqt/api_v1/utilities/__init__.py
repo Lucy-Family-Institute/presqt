@@ -7,7 +7,6 @@ from presqt.api_v1.utilities.utils.function_router import FunctionRouter
 from presqt.api_v1.utilities.utils.target_actions import (
     action_checker, link_builder)
 from presqt.api_v1.utilities.utils.update_or_create_fts_metadata import update_or_create_fts_metadata
-from presqt.api_v1.utilities.utils.write_fts_metadata_file import write_fts_metadata_file
 from presqt.api_v1.utilities.validation.file_duplicate_action_validation import \
     file_duplicate_action_validation
 from presqt.api_v1.utilities.validation.process_token_validation import process_token_validation
@@ -34,5 +33,4 @@ __all__ = [
     spawn_action_process,
     get_or_create_hashes_from_bag,
     update_or_create_fts_metadata,
-    write_fts_metadata_file
 ]
