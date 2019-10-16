@@ -90,10 +90,14 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
             # A relative path to the file is what is added to the GitHub PUT address
             path_to_add = os.path.join(path.partition('/data/')[2], name)
             path_to_add_to_url = path_to_add.partition('/')[2].replace(' ', '_')
-            path = title + '/' + path_to_add_to_url
+            finished_path = title + '/' + path_to_add_to_url
             file_metadata_list.append({
-                "actionRootPath": title + '/' + path_to_add,
-                "destinationPath": path})
+                "actionRootPath": os.path.join(path, name),
+                "destinationPath": finished_path,
+                "title": name,
+                "destinationHash": None})
+            
+            print(file_metadata_list)
 
             put_url = "https://api.github.com/repos/{}/{}/contents/{}".format(
                 username, title, path_to_add_to_url)
@@ -111,5 +115,4 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
     hashes = {}
     resources_updated = []
 
-    print(file_metadata_list)
     return hashes, resources_ignored, resources_updated, action_metadata, file_metadata_list
