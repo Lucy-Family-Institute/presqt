@@ -16,9 +16,7 @@ def osf_download_metadata(file):
     file_metadata = {
         "sourcePath": file.materialized_path,
         "title": file.title,
-        "sourceHashes": {
-            "md5": file.md5,
-            "sha256": file.sha256},
+        "sourceHashes": file.hashes,
         "extra": {}}
     for key, value in file.__dict__.items():
         if key not in ['materialized_path', 'title', 'md5', 'sha256', 'hashes',

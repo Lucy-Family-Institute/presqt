@@ -33,7 +33,6 @@ class ContainerMixin:
             if kind == 'file':
                 file = File(child, self.session)
                 file_metadata = osf_download_metadata(file)
-                print(file_metadata)
                 files.append({
                     'file': file,
                     'hashes': file.hashes,
@@ -231,7 +230,7 @@ class ContainerMixin:
                                             file_duplicate_action, file_hashes,
                                             resources_ignored, resources_updated, file_metadata_list)
 
-        return file_hashes, resources_ignored, resources_updated, file_metadata_list
+
 
 
 class Storage(OSFBase, ContainerMixin):

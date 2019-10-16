@@ -93,11 +93,10 @@ def curate_nd_download_resource(token, resource_id):
     files = []
     empty_containers = []
     if resource.kind_name == 'file':
-        action_metadata = {
-            "sourceUsername": resource.extra['depositor']}
+        action_metadata = {"sourceUsername": resource.extra['depositor']}
         # Get the title of the Project to add to sourcePath
-        project_title = requests.get(resource.extra['isPartOf'], headers={'X-Api-Token': '{}'.format(
-            token)}).json()['title']
+        project_title = requests.get(resource.extra['isPartOf'],
+                                     headers={'X-Api-Token': '{}'.format(token)}).json()['title']
         file_metadata = {
             "sourcePath": project_title + '/' + resource.title,
             "title": resource.title,
@@ -126,8 +125,8 @@ def curate_nd_download_resource(token, resource_id):
             title_helper = {}
             file_urls = []
             project_title = resource.title
-            action_metadata = {
-                "sourceUsername": resource.extra['depositor']}
+            action_metadata = {"sourceUsername": resource.extra['depositor']}
+
             for file in resource.extra['containedFiles']:
                 # That gross md5 search
                 md5_end = '</md5checksum>'

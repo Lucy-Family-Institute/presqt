@@ -1,12 +1,14 @@
 import requests
 
 
-def download_content(repo_info_dict, url, header, repo_name, files):
+def download_content(username, url, header, repo_name, files):
     """
     Recursive function to extract all files from a given repo.
 
     Parameters
     ----------
+    username : str
+        The user's GitHub username.
     url : str
         The url of the repo's contents
     header: dict
@@ -21,13 +23,13 @@ def download_content(repo_info_dict, url, header, repo_name, files):
     A list of file dictionaries and a list of empty containers
     """
     initial_data = requests.get(url, headers=header).json()
-    action_metadata = {"sourceUsername": repo_info_dict['username']}
+    action_metadata = {"sourceUsername": username}
     # Loop through the inital data and build up the file urls and if the type is directory
     # recursively call function.
     for data in initial_data:
         if data['type'] == 'file':
             file_metadata = {
-                "sourcePath": repo_info_dict['repo_name'] + '/' + data['path'],
+                "sourcePath": repo_name + '/' + data['path'],
                 "title": data['name'],
                 "sourceHashes": None,
                 "extra": {
@@ -42,8 +44,7 @@ def download_content(repo_info_dict, url, header, repo_name, files):
                 'title': data['name'],
                 'path': '/{}/{}'.format(repo_name, data['path']),
                 'metadata': file_metadata})
-            print(file_metadata)
         else:
-            download_content(repo_info_dict, data['url'], header, repo_name, files)
+            download_content(username, data['url'], header, repo_name, files)
 
     return files, [], action_metadata

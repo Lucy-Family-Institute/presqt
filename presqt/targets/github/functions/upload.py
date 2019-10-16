@@ -96,8 +96,6 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                 "destinationPath": finished_path,
                 "title": name,
                 "destinationHash": None})
-            
-            print(file_metadata_list)
 
             put_url = "https://api.github.com/repos/{}/{}/contents/{}".format(
                 username, title, path_to_add_to_url)

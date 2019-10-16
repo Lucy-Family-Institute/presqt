@@ -63,6 +63,7 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
     hashes = {}
     resources_ignored = []
     resources_updated = []
+    file_metadata_list = []
 
     # If we are uploading to an existing container
     if resource_id:
@@ -75,13 +76,13 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
                 "The Resource provided, {}, is not a container".format(resource_id),
                 status.HTTP_400_BAD_REQUEST)
         elif resource.kind_name == 'project':
-            hashes, resources_ignored, resources_updated, file_metadata_list = resource.storage('osfstorage').create_directory(
+            resource.storage('osfstorage').create_directory(
                 resource_main_dir, file_duplicate_action, hashes,
-                resources_ignored, resources_updated, [])
+                resources_ignored, resources_updated, file_metadata_list)
         else:  # Folder or Storage
-            hashes, resources_ignored, resources_updated, file_metadata_list = resource.create_directory(
+            resource.create_directory(
                 resource_main_dir, file_duplicate_action, hashes,
-                resources_ignored, resources_updated, [])
+                resources_ignored, resources_updated, file_metadata_list)
     # else if we are uploading a new project
     else:
         os_path = next(os.walk(resource_main_dir))
@@ -104,9 +105,9 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
         project = osf_instance.create_project(os_path[1][0])
 
         # Upload resources into OSFStorage for the new project.
-        hashes, resources_ignored, resources_updated, file_metadata_list = project.storage('osfstorage').create_directory(
+        project.storage('osfstorage').create_directory(
             data_to_upload_path, file_duplicate_action, hashes,
-            resources_ignored, resources_updated, [])
+            resources_ignored, resources_updated, file_metadata_list)
 
     # Only send forward the hashes we need based on the hash_algorithm provided
     final_file_hashes = {}
