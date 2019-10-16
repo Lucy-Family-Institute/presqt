@@ -90,8 +90,7 @@ def osf_download_resource(token, resource_id):
     contributor_name = requests.get('https://api.osf.io/v2/users/me/',
                                     headers={'Authorization': 'Bearer {}'.format(token)}).json()[
                                         'data']['attributes']['full_name']
-    action_metadata = {
-        "sourceUsername": contributor_name}
+    action_metadata = {"sourceUsername": contributor_name}
     # Get the resource
     resource = get_osf_resource(resource_id, osf_instance)
 
@@ -102,7 +101,6 @@ def osf_download_resource(token, resource_id):
     empty_containers = []
     if resource.kind_name == 'file':
         file_metadata = osf_download_metadata(resource)
-        file_metadata['extra'].update({"date_created": resource.date_created})
 
         binary_file = resource.download()
 

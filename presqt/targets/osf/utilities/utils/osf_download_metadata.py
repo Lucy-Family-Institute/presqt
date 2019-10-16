@@ -24,6 +24,5 @@ def osf_download_metadata(file):
         if key not in ['materialized_path', 'title', 'md5', 'sha256', 'hashes',
                        'session', 'kind', 'kind_name']:
             file_metadata['extra'][key] = value
-    file_metadata['extra'].update({"date_created": file.date_created})
 
     return file_metadata
