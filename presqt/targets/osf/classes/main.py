@@ -7,7 +7,7 @@ from natsort import natsorted
 
 from rest_framework import status
 
-from presqt.targets.utilities import run_urls_async_with_pagination
+from presqt.targets.utilities import run_urls_async_with_pagination, get_duplicate_title
 from presqt.utilities import (PresQTResponseException, PresQTInvalidTokenError,
                               get_dictionary_from_list, list_differences, write_file)
 from presqt.targets.osf.classes.base import OSFBase
@@ -102,7 +102,8 @@ class OSF(OSFBase):
             parent_project_ids.append(project.parent_node_id)
 
         unique_project_ids = list_differences(parent_project_ids, project_ids)
-        top_level_projects = [project for project in projects if project.parent_node_id in unique_project_ids]
+        top_level_projects = [
+            project for project in projects if project.parent_node_id in unique_project_ids]
         return projects, top_level_projects
 
     def get_user_resources(self):
@@ -183,7 +184,8 @@ class OSF(OSFBase):
         user_storages_links = []
 
         # Asynchronously get storage data for all projects
-        storages = run_urls_async_with_pagination(self, [project._storages_url for project in projects])
+        storages = run_urls_async_with_pagination(
+            self, [project._storages_url for project in projects])
 
         # Add each storage to the resource list
         storage_objs = []
@@ -236,42 +238,29 @@ class OSF(OSFBase):
                                     'path': folder.materialized_path})
 
         # Asynchronously call all folder file urls to get the folder's top level resources.
-        all_folders_resources = run_urls_async_with_pagination(self, [folder_dict['url'] for folder_dict in folder_data])
+        all_folders_resources = run_urls_async_with_pagination(
+            self, [folder_dict['url'] for folder_dict in folder_data])
 
         # For each folder, get it's container_id and resources
         for folder_resources in all_folders_resources:
             if folder_resources['data']:
                 resource_attr = folder_resources['data'][0]['attributes']
-                parent_path = resource_attr['materialized_path'][:-len(resource_attr['name'])]
+                if resource_attr['kind'] == 'folder':
+                    parent_path = resource_attr['materialized_path'][:-len(resource_attr['name'])-1]
+                else:
+                    parent_path = resource_attr['materialized_path'][:-len(resource_attr['name'])]
                 # Find the corresponding parent_path in the folder_data list of dictionaries so we
                 # can get the container id for this resource.
                 container_id = get_dictionary_from_list(folder_data, 'path', parent_path)['id']
+
                 self.iter_resources_objects(folder_resources, resources, container_id)
 
     def create_project(self, title):
         """-
         Create a project for this user.
         """
-        titles = []
-        # Check that a project with this title doesn't already exist
-        for project in self.projects()[1]:
-            titles.append(project.title)
-        # Check for an exact match
-        exact_match = title in titles
-        # Find only matches to the formatting that's expected in our title list
-        duplicate_project_pattern = "{} (PresQT*)".format(title)
-        duplicate_project_list = fnmatch.filter(titles, duplicate_project_pattern)
-
-        if exact_match and not duplicate_project_list:
-            title = "{} (PresQT1)".format(title)
-
-        elif duplicate_project_list:
-            highest_duplicate_project = natsorted(duplicate_project_list)
-            # findall takes a regular expression and a string, here we pass it the last number in
-            # highest duplicate project, and it is returned as a list. int requires a string as an
-            # argument, so the [0] is grabbing the only number in the list and converting it.
-            highest_number = int(re.findall(r'\d+', highest_duplicate_project[-1])[0])
-            title = "{} (PresQT{})".format(title, highest_number+1)
+        titles = [project.title for project in self.projects()[1]]
+        title = get_duplicate_title(title, titles, 'osf')
 
         project_payload = {
             "data": {
