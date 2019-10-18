@@ -4,16 +4,19 @@ import fnmatch
 from natsort import natsorted
 
 
-def get_duplicate_title(title, titles, target):
+def get_duplicate_title(title, titles, duplicate_format):
     """
     If the target has an existing project with the same title, we need to alter it slightly.
 
     Parameters
     ----------
+    title : str
+        The title of the new project
     titles : list
         The list  of titles to look through
-    target : str
-        The target calling the function
+    duplicate_format : str
+        The duplicate format expected of the target, include an asterisk in the place of the int
+        Examples: '-PresQT*-', ' (PresQT*)'
 
     Returns
     -------
@@ -22,19 +25,11 @@ def get_duplicate_title(title, titles, target):
     # Check for an exact match
     exact_match = title in titles
     # Find only matches to the formatting that's expected in our title list
-    if target == 'osf':
-        duplicate_format = " (PresQT*)"
-    if target == 'github':
-        duplicate_format = "-PresQT*-"
-
     duplicate_project_pattern = "{}{}".format(title, duplicate_format)
     duplicate_project_list = fnmatch.filter(titles, duplicate_project_pattern)
 
     if exact_match and not duplicate_project_list:
-        if target == 'osf':
-            return ("{} (PresQT1)".format(title))
-        elif target == 'github':
-            return ("{}-PresQT1-".format(title))
+        return ("{}{}".format(title, duplicate_format.replace('*', '1')))
 
     elif duplicate_project_list:
         highest_duplicate_project = natsorted(duplicate_project_list)
@@ -43,9 +38,6 @@ def get_duplicate_title(title, titles, target):
         # argument, so the [0] is grabbing the only number in the list and converting it.
         highest_number = int(re.findall(r'\d+', highest_duplicate_project[-1])[0])
 
-        if target == 'osf':
-            return ("{} (PresQT{})".format(title, highest_number+1))
-        elif target == 'github':
-            return ("{}-PresQT{}-".format(title, highest_number+1))
+        return ("{}{}".format(title, duplicate_format.replace('*', str(highest_number + 1))))
 
     return title

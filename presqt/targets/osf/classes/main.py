@@ -260,7 +260,7 @@ class OSF(OSFBase):
         Create a project for this user.
         """
         titles = [project.title for project in self.projects()[1]]
-        title = get_duplicate_title(title, titles, 'osf')
+        title = get_duplicate_title(title, titles, ' (PresQT*)')
 
         project_payload = {
             "data": {

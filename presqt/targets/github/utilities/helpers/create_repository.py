@@ -33,7 +33,7 @@ def create_repository(title, token, count=0):
         from presqt.targets.github.utilities import github_paginated_data
 
         titles = [data['name'] for data in github_paginated_data(token)]
-        title = get_duplicate_title(title, titles, 'github')
+        title = get_duplicate_title(title, titles, '-PresQT*-')
 
         return create_repository(title, token)
 
