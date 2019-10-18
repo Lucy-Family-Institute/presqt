@@ -12,7 +12,7 @@ from presqt.targets.github.utilities import validation_check, github_paginated_d
 from presqt.utilities import PresQTResponseException
 
 
-def github_upload_metadata(token, resource_id, resource_main_dir, metadata_dict):
+def github_upload_metadata(token, resource_id, resource_main_dir, metadata_dict, repo_id=None):
     """
     Upload the metadata of this PresQT action at the top level of the repo.
 
@@ -26,48 +26,25 @@ def github_upload_metadata(token, resource_id, resource_main_dir, metadata_dict)
         The path to the bag to be uploaded
     metadata_dict : dict
         The metadata to be written to the repo
-
-    Returns
-    -------
+    repo_id : str
+        The id of the new repo that has been created
     """
+    # Uploading to an existing Github repository is not allowed
+    if resource_id:
+        raise PresQTResponseException("Can't upload to an existing Github repository.",
+                                      status.HTTP_400_BAD_REQUEST)
     try:
         header, username = validation_check(token)
     except PresQTResponseException:
         raise PresQTResponseException('The response returned a 401 unauthorized status code.',
                                       status.HTTP_401_UNAUTHORIZED)
 
-    # Get the title of the repo to be written to.
-    os_path = next(os.walk(resource_main_dir))
-    # Note: GitHub doesn't allow spaces in repo_names
-    repo_title = os_path[1][0].replace(' ', '_')
-    github_data = github_paginated_data(token)
+    file_name = "PRESQT_FTS_METADATA.json"
 
-    titles = []
-    for data in github_data:
-        titles.append(data['name'])
-
-    # Check for an exact match
-    exact_match = repo_title in titles
-    # Find only matches to the formatting that's expected in our title list
-    duplicate_project_pattern = "{}-PresQT*-".format(repo_title)
-    duplicate_project_list = fnmatch.filter(titles, duplicate_project_pattern)
-
-    if exact_match and not duplicate_project_list:
-        repo_title = repo_title
-
-    elif duplicate_project_list:
-        highest_duplicate_project = natsorted(duplicate_project_list)
-        # findall takes a regular expression and a string, here we pass it the last number in
-        # highest duplicate project, and it is returned as a list. int requires a string as an
-        # argument, so the [0] is grabbing the only number in the list and converting it.
-        highest_number = int(re.findall(r'\d+', highest_duplicate_project[-1])[0])
-        repo_title = "{}-PresQT{}-".format(repo_title, highest_number)
-
-    metadata_bytes = json.dumps(metadata_dict).encode('utf-8')
+    metadata_bytes = json.dumps(metadata_dict, indent=4).encode('utf-8')
     base64_metadata = base64.b64encode(metadata_bytes).decode('utf-8')
 
-    put_url = "https://api.github.com/repos/{}/{}/contents/PRESQT_FTS_METADATA.json".format(
-        username, repo_title)
+    put_url = "https://api.github.com/repos/{}/{}/contents/{}".format(username, repo_id, file_name)
 
     data = {
         "message": "PresQT Upload",
