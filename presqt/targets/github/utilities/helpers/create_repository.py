@@ -10,7 +10,7 @@ from presqt.targets.utilities import get_duplicate_title
 from presqt.utilities import PresQTResponseException
 
 
-def create_repository(title, token, count=0):
+def create_repository(title, token):
     """
     Create a GitHub repository.
 

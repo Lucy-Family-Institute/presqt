@@ -72,22 +72,12 @@ def osf_upload_metadata(token, resource_id, resource_main_dir, metadata_dict, pr
                     raise PresQTError(
                         "The request to update the metadata file has returned a {} error code from OSF.".format(
                             response.status_code))
-                break
+                return
 
-        # If it doesn't have an existing metadata file, we just make a new one.
-        else:
-            response = requests.put(put_url.format(project_id), headers=header, params={"name": file_name},
-                                    data=encoded_metadata)
-            if response.status_code != 201:
-                raise PresQTError(
-                    "The request to create a metadata file has resulted in a {} error code from OSF".format(
-                        response.status_code))
-
-    else:
-        # If there is no resource_id, then this is a new project.
-        response = requests.put(put_url.format(project_id), headers=header, params={"name": file_name},
-                                data=encoded_metadata)
-        if response.status_code != 201:
-            raise PresQTError(
-                "The request to create a metadata file has resulted in a {} error code from OSF".format(
-                    response.status_code))
+    # If there is no resource_id or no existing metadata file, then create a new one.
+    response = requests.put(put_url.format(project_id), headers=header, params={"name": file_name},
+                            data=encoded_metadata)
+    if response.status_code != 201:
+        raise PresQTError(
+            "The request to create a metadata file has resulted in a {} error code from OSF".format(
+                response.status_code))
