@@ -31,7 +31,7 @@ def download_content(username, url, header, repo_name, files):
             file_metadata = {
                 "sourcePath": repo_name + '/' + data['path'],
                 "title": data['name'],
-                "sourceHashes": None,
+                "sourceHashes": {},
                 "extra": {
                     "commit_hash": data['sha']}}
             for key, value in data.items():
