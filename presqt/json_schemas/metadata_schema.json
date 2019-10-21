@@ -28,13 +28,37 @@
                 "title": { "type": "string" },
                 "sourceHashes": { "type": "object" },
                 "destinationHashes": { "type": "object" },
-                "failedFixityInfo": { "type": "object" },
+                "destinationPath": { "type": "string" },
+                "failedFixityInfo": { "type": "array" },
                 "extra": { "type": "object" }
-              }
+              },
+              "required": [
+                "sourcePath",
+                "title",
+                "sourceHashes",
+                "destinationHashes",
+                "destinationPath",
+                "failedFixityInfo",
+                "extra"
+              ],
+              "additionalProperties": false
             }
           }
-        }
+        },
+        "required": [
+          "id",
+          "actionDateTime",
+          "actionType",
+          "sourceTargetName",
+          "destinationTargetName",
+          "sourceUsername",
+          "destinationUsername",
+          "files"
+        ],
+        "additionalProperties": false
       }
     }
-  }
+  },
+  "required": ["context", "actions"],
+  "additionalProperties": false
 }
