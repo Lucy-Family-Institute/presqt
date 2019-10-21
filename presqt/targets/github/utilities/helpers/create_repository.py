@@ -1,12 +1,16 @@
+import fnmatch
 import json
+import re
 import requests
 
+from natsort import natsorted
 from rest_framework import status
 
+from presqt.targets.utilities import get_duplicate_title
 from presqt.utilities import PresQTResponseException
 
 
-def create_repository(title, token, count=0):
+def create_repository(title, token):
     """
     Create a GitHub repository.
 
@@ -25,13 +29,13 @@ def create_repository(title, token, count=0):
         return title
 
     elif response.status_code == 422:
-        # Handling Project Duplication
-        count += 1
-        if '-PresQT{}-'.format(count-1) in title[len(title)-9:]:
-            title = title[:-2] + (str(count)+'-')
-        else:
-            title = title + '-PresQT{}-'.format(count)
-        return create_repository(title, token, count)
+        # This is a little gross, but there isn't a better way to do it that I'm aware of.
+        from presqt.targets.github.utilities import github_paginated_data
+
+        titles = [data['name'] for data in github_paginated_data(token)]
+        title = get_duplicate_title(title, titles, '-PresQT*-')
+
+        return create_repository(title, token)
 
     else:
         raise PresQTResponseException(

@@ -113,4 +113,4 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
     hashes = {}
     resources_updated = []
 
-    return hashes, resources_ignored, resources_updated, action_metadata, file_metadata_list
+    return hashes, resources_ignored, resources_updated, action_metadata, file_metadata_list, title

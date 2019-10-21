@@ -64,6 +64,7 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
     resources_ignored = []
     resources_updated = []
     file_metadata_list = []
+    project_id = None
 
     # If we are uploading to an existing container
     if resource_id:
@@ -75,11 +76,13 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
             raise PresQTResponseException(
                 "The Resource provided, {}, is not a container".format(resource_id),
                 status.HTTP_400_BAD_REQUEST)
+
         elif resource.kind_name == 'project':
             project = resource
             resource.storage('osfstorage').create_directory(
                 resource_main_dir, file_duplicate_action, hashes,
                 resources_ignored, resources_updated, file_metadata_list)
+
         else:  # Folder or Storage
             resource.create_directory(
                 resource_main_dir, file_duplicate_action, hashes,
@@ -91,7 +94,7 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
                 project_id = resource.parent_project_id
             project = osf_instance.project(project_id)
 
-    # else if we are uploading a new project
+    # else we are uploading a new project
     else:
         os_path = next(os.walk(resource_main_dir))
 
@@ -111,6 +114,7 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
 
         # Create a new project with the name being the top level directory's name.
         project = osf_instance.create_project(os_path[1][0])
+        project_id = project.id
 
         # Upload resources into OSFStorage for the new project.
         project.storage('osfstorage').create_directory(
@@ -128,4 +132,4 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
         # Prepend the project title to each resource's the metadata destinationPath
         file_metadata['destinationPath'] = '{}/{}'.format(project.title, file_metadata['destinationPath'])
 
-    return final_file_hashes, resources_ignored, resources_updated, action_metadata, file_metadata_list
+    return final_file_hashes, resources_ignored, resources_updated, action_metadata, file_metadata_list, project_id

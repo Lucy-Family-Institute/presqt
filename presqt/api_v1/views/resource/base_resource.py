@@ -22,7 +22,7 @@ from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
 from presqt.utilities import (PresQTValidationError, PresQTResponseException, write_file,
-                              zip_directory, get_dictionary_from_list)
+                              zip_directory, get_dictionary_from_list, PresQTError)
 
 
 class BaseResource(APIView):
@@ -360,7 +360,7 @@ class BaseResource(APIView):
         # 'resources_ignored' is list of paths of resources that were ignored while uploading
         # 'resources_updated' is list of paths of resources that were updated while uploading
         try:
-            uploaded_file_hashes, resources_ignored, resources_updated, action_metadata, file_metadata_list = func(
+            uploaded_file_hashes, resources_ignored, resources_updated, action_metadata, file_metadata_list, project_id = func(
                 self.destination_token, self.destination_resource_id, data_directory,
                 self.hash_algorithm, self.file_duplicate_action)
         except PresQTResponseException as e:
@@ -412,7 +412,8 @@ class BaseResource(APIView):
                                                               resource['actionRootPath'][len(data_directory):])
                 fts_metadata_entry['destinationHashes'] = resource_hash
                 fts_metadata_entry['destinationPath'] = resource['destinationPath']
-                fts_metadata_entry['failedFixityInfo'].append(resource['failed_fixity_info'])
+                if resource['failed_fixity_info']:
+                    fts_metadata_entry['failedFixityInfo'].append(resource['failed_fixity_info'])
 
             fts_metadata_data = update_or_create_fts_metadata(self.action_metadata, self.source_fts_metadata)
 
@@ -454,9 +455,16 @@ class BaseResource(APIView):
 
             # Update the shared memory map so the watchdog process can stop running.
             self.process_state.value = 1
-
         print(json.dumps(fts_metadata_data))
+        metadata_func = FunctionRouter.get_function(self.destination_target_name, 'metadata_upload')
+        try:
+            metadata_func(self.destination_token, self.destination_resource_id, data_directory,
+                          fts_metadata_data, project_id)
+        except PresQTError:
+            print("We should do something here.")
+
         return True
+
 
     def transfer_post(self):
         """
