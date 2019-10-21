@@ -1,0 +1,40 @@
+{
+  "type": "object",
+  "properties": {
+    "context": {
+      "type": "object",
+      "properties": {
+        "globus": { "type": "string" }
+      }
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "actionDateTime": { "type": "string" },
+          "actionType": { "type": "string" },
+          "sourceTargetName": { "type": "string" },
+          "destinationTargetName": { "type": ["string", "null"] },
+          "sourceUsername": { "type": ["string", "null"] },
+          "destinationUsername": { "type": ["string", "null"] },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "sourcePath": { "type": "string" },
+                "title": { "type": "string" },
+                "sourceHashes": { "type": "object" },
+                "destinationHashes": { "type": "object" },
+                "failedFixityInfo": { "type": "object" },
+                "extra": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
