@@ -5,7 +5,7 @@ import requests
 
 from presqt.targets.osf.classes.main import OSF
 from presqt.targets.osf.utilities import get_osf_resource
-from presqt.utilities import read_file, write_file
+from presqt.utilities import read_file, write_file, PresQTError
 
 
 def osf_upload_metadata(token, resource_id, resource_main_dir, metadata_dict, project_id=None):
@@ -36,10 +36,7 @@ def osf_upload_metadata(token, resource_id, resource_main_dir, metadata_dict, pr
         resource = get_osf_resource(resource_id, osf_instance)
 
         if resource.kind_name == 'project':
-            if resource.parent_node_id is not None:
-                project_id = resource.parent_node_id
-            else:
-                project_id = resource.id
+            project_id = resource.id
 
         elif resource.kind_name == 'storage':
             project_id = resource.id.partition(':')[0]
@@ -51,7 +48,6 @@ def osf_upload_metadata(token, resource_id, resource_main_dir, metadata_dict, pr
             project_id = requests.get(get_id_helper, headers=header).json()['data']['id']
 
         # We need to find out if this project already has metadata associated with it.
-        old_metadata_file = None
         project_data = osf_instance._get_all_paginated_data(
             'https://api.osf.io/v2/nodes/{}/files/osfstorage'.format(project_id))
 
@@ -69,16 +65,29 @@ def osf_upload_metadata(token, resource_id, resource_main_dir, metadata_dict, pr
                 encoded_metadata = json.dumps(updated_metadata, indent=4).encode('utf-8')
 
                 # Now we need to update the metadata file with this updated metadata
-                requests.put(data['links']['upload'], headers=header,
-                             params={'kind': 'file'}, data=encoded_metadata)
+                response = requests.put(data['links']['upload'], headers=header,
+                                        params={'kind': 'file'}, data=encoded_metadata)
+                # When updating an existing metadata file, OSF returns a 200 status
+                if response.status_code != 200:
+                    raise PresQTError(
+                        "The request to update the metadata file has returned a {} error code from OSF.".format(
+                            response.status_code))
                 break
 
         # If it doesn't have an existing metadata file, we just make a new one.
         else:
-            requests.put(put_url.format(project_id), headers=header, params={"name": file_name},
-                         data=encoded_metadata)
+            response = requests.put(put_url.format(project_id), headers=header, params={"name": file_name},
+                                    data=encoded_metadata)
+            if response.status_code != 201:
+                raise PresQTError(
+                    "The request to create a metadata file has resulted in a {} error code from OSF".format(
+                        response.status_code))
 
     else:
         # If there is no resource_id, then this is a new project.
-        requests.put(put_url.format(project_id), headers=header, params={"name": file_name},
-                     data=encoded_metadata)
+        response = requests.put(put_url.format(project_id), headers=header, params={"name": file_name},
+                                data=encoded_metadata)
+        if response.status_code != 201:
+            raise PresQTError(
+                "The request to create a metadata file has resulted in a {} error code from OSF".format(
+                    response.status_code))

@@ -29,7 +29,7 @@ def create_repository(title, token, count=0):
         return title
 
     elif response.status_code == 422:
-        # This is a little gross, but there isn't a better way to do it taht I'm aware of.
+        # This is a little gross, but there isn't a better way to do it that I'm aware of.
         from presqt.targets.github.utilities import github_paginated_data
 
         titles = [data['name'] for data in github_paginated_data(token)]

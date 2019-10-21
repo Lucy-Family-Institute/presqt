@@ -9,7 +9,7 @@ from natsort import natsorted
 from rest_framework import status
 
 from presqt.targets.github.utilities import validation_check, github_paginated_data
-from presqt.utilities import PresQTResponseException
+from presqt.utilities import PresQTError, PresQTResponseException
 
 
 def github_upload_metadata(token, resource_id, resource_main_dir, metadata_dict, repo_id=None):
@@ -53,4 +53,9 @@ def github_upload_metadata(token, resource_id, resource_main_dir, metadata_dict,
             "email": "N/A"},
         "content": base64_metadata}
 
-    requests.put(put_url, headers=header, data=json.dumps(data))
+    response = requests.put(put_url, headers=header, data=json.dumps(data))
+
+    if response.status_code != 201:
+        raise PresQTError(
+            "The request to create a metadata file has resulted in a {} error code from GitHub.".format(
+                response.status_code))
