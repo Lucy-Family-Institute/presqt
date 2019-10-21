@@ -368,7 +368,6 @@ class BaseResource(APIView):
         else:
             self.process_info_obj['upload_status'] = self.process_info_obj['message']
 
-        metadata_dict = {"poop": "fart"}
         metadata_func = FunctionRouter.get_function(self.destination_target_name, 'metadata_upload')
         try:
             metadata_func(self.destination_token, self.destination_resource_id, data_directory,
