@@ -10,6 +10,10 @@ class File(OSFBase):
 
         # Add attributes to the class based on the JSON provided in the API call.
         self.id = file['id']
+
+        related = file['relationships']['target']['links']['related']
+        if related['meta']['type'] == 'node':
+            self.parent_project_id = related['href'][-6:-1]
         # Links
         self.endpoint = file['links']['self']
         self.download_url = file['links']['move']

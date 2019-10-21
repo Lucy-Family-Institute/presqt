@@ -214,7 +214,7 @@ class ContainerMixin:
 
             file_metadata_list.append({
                 "actionRootPath": file_path,
-                "destinationPath": file.materialized_path,
+                "destinationPath": '{}{}'.format(file.provider, file.materialized_path),
                 "title": file.title,
                 "destinationHash": file.hashes})
 
@@ -272,6 +272,9 @@ class Folder(OSFBase, ContainerMixin):
 
         # Add attributes to the class based on the JSON provided in the API call
         self.id = folder['id']
+        related = folder['relationships']['target']['links']['related']
+        if related['meta']['type'] == 'node':
+            self.parent_project_id = related['href'][-6:-1]
         # Links
         self._endpoint = folder['links']['self']
         self._delete_url = folder['links']['delete']

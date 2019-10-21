@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import zipfile
@@ -224,11 +225,7 @@ class BaseResource(APIView):
         # 'title': resource_title,
         # 'path': /some/path/to/resource}
         try:
-            resources, empty_containers, action_metadata = func(self.source_token,
-                                                                self.source_resource_id)
-            resources, empty_containers = func(self.source_token, self.source_resource_id)
-            #######******--->!!!!!!!HARD CODE METADATA. REMOVE THIS ONCE WE ADD METADATA TO TARGET FUNCTIONS!!!!!!!<---******#######
-            action_metadata = {'sourceUsername': '??'}
+            resources, empty_containers, action_metadata = func(self.source_token, self.source_resource_id)
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch.
             # Update the server process_info file appropriately.
@@ -249,44 +246,32 @@ class BaseResource(APIView):
         # For each resource, perform fixity check, gather metadata, and save it to disk.
         fixity_info = []
         self.fixity_match = True
-        fts_metadata = []
-        self.source_presqt_fts_metadata = {}
+        self.fts_metadata = []
+        self.source_fts_metadata = {}
         for resource in resources:
-            #######******--->!!!!!!!HARD CODE METADATA FOR EACH FILE. REMOVE THIS ONCE WE ADD METADATA TO TARGET FUNCTIONS!!!!!!!<---******#######
-            resource['metadata'] = {
-                'sourcePath': '??',
-                'title': '??',
-                'sourceHashes': {
-                    '?': '?'
-                },
-                'extra': {
-                    '??': '??'
-                }
-            }
-
             # Perform the fixity check and add extra info to the returned fixity object.
             fixity_obj, self.fixity_match = download_fixity_checker.download_fixity_checker(resource)
             fixity_info.append(fixity_obj)
 
-            # If this file is the PresQT FTS Metadata file then don't write it to disk.
+            # If this is the PresQT FTS Metadata file, don't write it to disk but get its contents
             if resource['title'] == 'PRESQT_FTS_METADATA.json':
-                self.source_presqt_fts_metadata = resource['file']
-                self.source_presqt_fts_metadata = literal_eval(self.source_presqt_fts_metadata.decode())
+                self.source_fts_metadata = resource['file']
+                self.source_fts_metadata = json.loads(self.source_fts_metadata.decode())
             else:
                 # Append file metadata to fts metadata list
+                failed_fixity_info = []
                 if not fixity_obj['fixity']:
-                    failed_fixity_info = {'NewGeneratedHash': fixity_obj['presqt_hash'],
-                                          'algorithmUsed': fixity_obj['hash_algorithm'],
-                                          'reasonFixityFailed': fixity_obj['fixity_details']}
-                else:
-                    failed_fixity_info = {}
-                metadata = resource['metadata']
-                metadata['failedFixityInfo'] = failed_fixity_info
-                metadata['actionRootPath'] = resource['path']
-                fts_metadata.append(metadata)
+                    failed_fixity_info.append({'NewGeneratedHash': fixity_obj['presqt_hash'],
+                                               'algorithmUsed': fixity_obj['hash_algorithm'],
+                                               'reasonFixityFailed': fixity_obj['fixity_details']})
+                resource['metadata']['failedFixityInfo'] = failed_fixity_info
+                resource['metadata']['destinationPath'] = resource['path']
+                resource['metadata']['destinationHashes'] = None
+                self.fts_metadata.append(resource['metadata'])
 
                 # Save the file to the disk.
-                write_file('{}{}'.format(self.resource_main_dir, resource['path']), resource['file'])
+                write_file('{}{}'.format(self.resource_main_dir, resource['path']),
+                           resource['file'])
 
         # Create PresQT action metadata
         self.action_metadata = {
@@ -294,10 +279,10 @@ class BaseResource(APIView):
             'actionDateTime': str(timezone.now()),
             'actionType': self.action,
             'sourceTargetName': self.source_target_name,
-            'destinationTargetName': None,
+            'destinationTargetName': 'Local Machine',
             'sourceUsername': action_metadata['sourceUsername'],
             'destinationUsername': None,
-            'files': fts_metadata
+            'files': self.fts_metadata
         }
 
         # Write empty containers to disk
@@ -327,11 +312,10 @@ class BaseResource(APIView):
         # and update the server process file.
         else:
             # Create and write metadata file.
-            self.action_metadata['destinationTargetName'] = 'Local Machine'
-            presqt_fts_metadata_data = update_or_create_fts_metadata(self.action_metadata,
-                                                                     self.source_presqt_fts_metadata)
+            fts_metadata_data = update_or_create_fts_metadata(self.action_metadata,
+                                                              self.source_fts_metadata)
             write_file(os.path.join(self.resource_main_dir, 'PRESQT_FTS_METADATA.json'),
-                       presqt_fts_metadata_data, True)
+                       fts_metadata_data, True)
 
             # Add the fixity file to the disk directory
             write_file(os.path.join(self.resource_main_dir, 'fixity_info.json'), fixity_info, True)
@@ -379,12 +363,6 @@ class BaseResource(APIView):
             uploaded_file_hashes, resources_ignored, resources_updated, action_metadata, file_metadata_list = func(
                 self.destination_token, self.destination_resource_id, data_directory,
                 self.hash_algorithm, self.file_duplicate_action)
-            presqt_action_metadata = {'destinationUsername': 'Bfff'}
-            file_metadata = [{'destinationPath': '/some/stuff'}, {'destinationPath', '/stuff'}]
-            file_metadata_list = [{'actionRootPath': 'NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png',
-                                   'destinationPath': 'NewProject/funnyfunnyimages/Screen_Shot_2019-07-15_at_3.26.49_PM.png',
-                                   'title': 'Screen Shot 2019-07-15 at 3.26.49 PM.png',
-                                   'destinationHash': None}]
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch.
             # Update the server process_info file appropriately.
@@ -401,13 +379,19 @@ class BaseResource(APIView):
 
         # Check if fixity fails on any files. If so, then update the process_info_data file.
         self.process_info_obj['failed_fixity'] = []
-        if self.file_hashes != uploaded_file_hashes:
-            self.process_info_obj['message'] = 'Upload successful but fixity failed.'
-            for key, value in self.file_hashes.items():
-                if value != uploaded_file_hashes[key] and key not in resources_ignored:
-                    self.process_info_obj['failed_fixity'].append(key[len(data_directory)+1:])
-        else:
-            self.process_info_obj['message'] = 'Upload successful'
+        self.process_info_obj['message'] = 'Upload successful'
+        for resource in file_metadata_list:
+            resource['failed_fixity_info'] = []
+            if resource['destinationHash'] != self.file_hashes[resource['actionRootPath']] \
+                    and resource['actionRootPath'] not in resources_ignored:
+                self.process_info_obj['message'] = 'Upload successful but fixity failed.'
+                self.process_info_obj['failed_fixity'].append(resource['actionRootPath'][len(data_directory) + 1:])
+                resource['failed_fixity_info'].append({
+                    'NewGeneratedHash': resource['destinationHash'],
+                    'algorithmUsed': self.hash_algorithm,
+                    'reasonFixityFailed': "Either the destination did not provide a hash or fixity failed during upload."
+                })
+
 
         # Strip the server created directory prefix of the file paths for ignored and updated files
         self.process_info_obj['resources_ignored'] = [file[len(data_directory)+1:]
@@ -418,40 +402,50 @@ class BaseResource(APIView):
         # If we are transferring the resources then add metadata to the existing fts metadata
         if self.action == 'resource_transfer_in':
             self.process_info_obj['upload_status'] = self.process_info_obj['message']
-            self.action_metadata['destinationUsername'] = presqt_action_metadata['destinationUsername']
-            print(self.action_metadata)
-            # for metadata in file_metadata:
-            #     action_file_metadata = get_dictionary_from_list(self.action_metadata['files'],
-            #                                                     'source_path',
-            #                                                     metadata['actionRootPath'])
-            #     action_file_metadata['destinationPath'] = file_metadata['destinationPath']
-            pass
+            self.action_metadata['destinationUsername'] = action_metadata['destinationUsername']
+
+            for resource in file_metadata_list:
+                resource_hash = None
+                if resource['destinationHash']:
+                    resource_hash = {self.hash_algorithm: resource['destinationHash']}
+                fts_metadata_entry = get_dictionary_from_list(self.fts_metadata, 'destinationPath',
+                                                              resource['actionRootPath'][len(data_directory):])
+                fts_metadata_entry['destinationHashes'] = resource_hash
+                fts_metadata_entry['destinationPath'] = resource['destinationPath']
+                fts_metadata_entry['failedFixityInfo'].append(resource['failed_fixity_info'])
+
+            fts_metadata_data = update_or_create_fts_metadata(self.action_metadata, self.source_fts_metadata)
+
         # Otherwise if we are uploading from a local source then create fts metadata
         # and update the server process file
         else:
-            # Create PresQT action metadata
             fts_metadata = []
-            for metadata in file_metadata:
-                # metadata = resource['metadata']
-                # fts_metadata.append({
-                #     'title': resource['metadata']['title'],
-                #     'sourcePath': resource['metadata']['sourcePath'],
-                #     'actionRootPath': resource['path'],
-                #     'sourceHashes': resource['metadata']['sourceHashes'],
-                #     'failedFixityInfo': failed_fixity_info,
-                #     'extra': {}
-                # })
+            for resource in file_metadata_list:
+                resource_hash = None
+                if resource['destinationHash']:
+                    resource_hash = {self.hash_algorithm: resource['destinationHash']}
+                fts_metadata.append({
+                    'title': resource['title'],
+                    'sourcePath': resource['actionRootPath'][len(data_directory)+1:],
+                    'destinationPath': resource['destinationPath'],
+                    'sourceHashes': {self.hash_algorithm: self.file_hashes[resource['actionRootPath']]},
+                    'destinationHashes': resource_hash,
+                    'failedFixityInfo': resource['failed_fixity_info'],
+                    'extra': {}
+                })
 
-            self.action_metadata = {
+            action_metadata = {
                 'id': str(uuid4()),
                 'actionDateTime': str(timezone.now()),
                 'actionType': self.action,
                 'sourceTargetName': 'Local Machine',
                 'destinationTargetName': self.destination_target_name,
                 'sourceUsername': None,
-                'destinationUsername': presqt_action_metadata['destinationUsername'],
+                'destinationUsername': action_metadata['destinationUsername'],
                 'files': fts_metadata
             }
+            fts_metadata_data = update_or_create_fts_metadata(action_metadata, {})
+
             # Update server process file
             self.process_info_obj['status_code'] = '200'
             self.process_info_obj['status'] = 'finished'
@@ -461,6 +455,7 @@ class BaseResource(APIView):
             # Update the shared memory map so the watchdog process can stop running.
             self.process_state.value = 1
 
+        print(json.dumps(fts_metadata_data))
         return True
 
     def transfer_post(self):

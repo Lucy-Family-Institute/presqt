@@ -76,6 +76,7 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
                 "The Resource provided, {}, is not a container".format(resource_id),
                 status.HTTP_400_BAD_REQUEST)
         elif resource.kind_name == 'project':
+            project = resource
             resource.storage('osfstorage').create_directory(
                 resource_main_dir, file_duplicate_action, hashes,
                 resources_ignored, resources_updated, file_metadata_list)
@@ -83,6 +84,13 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
             resource.create_directory(
                 resource_main_dir, file_duplicate_action, hashes,
                 resources_ignored, resources_updated, file_metadata_list)
+            # Get the project class for later metadata work
+            if resource.kind_name == 'storage':
+                project_id = resource.node
+            else:
+                project_id = resource.parent_project_id
+            project = osf_instance.project(project_id)
+
     # else if we are uploading a new project
     else:
         os_path = next(os.walk(resource_main_dir))
@@ -115,6 +123,9 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
         final_file_hashes[key] = value[hash_algorithm]
 
     for file_metadata in file_metadata_list:
+        # Only send forward the hash we need based on the hash_algorithm provided
         file_metadata['destinationHash'] = file_metadata['destinationHash'][hash_algorithm]
+        # Prepend the project title to each resource's the metadata destinationPath
+        file_metadata['destinationPath'] = '{}/{}'.format(project.title, file_metadata['destinationPath'])
 
     return final_file_hashes, resources_ignored, resources_updated, action_metadata, file_metadata_list

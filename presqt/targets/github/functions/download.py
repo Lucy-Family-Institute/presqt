@@ -85,13 +85,17 @@ def github_download_resource(token, resource_id):
     data = github_paginated_data(token)
 
     for entry in data:
-        if entry['id'] == int(resource_id):
+        if str(entry['id']) == resource_id:
             repo_name = entry['name']
-            # Strip off the uneccessarry {+path} that's included in the url
+            # Strip off the unnecessary {+path} that's included in the url
             # Example: https://api.github.com/repos/eggyboi/djangoblog/contents/{+path} becomes
             # https://api.github.com/repos/eggyboi/djangoblog/contents
             contents_url = entry['contents_url'].partition('/{+path}')[0]
             break
+    else:
+        raise PresQTResponseException(
+            'The resource with id,{} , does not exist for this user.'.format(resource_id),
+            status.HTTP_404_NOT_FOUND)
 
     files, empty_containers, action_metadata = download_content(
         username, contents_url, header, repo_name, [])

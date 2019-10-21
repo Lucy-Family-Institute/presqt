@@ -14,7 +14,7 @@ def osf_download_metadata(file):
         The metadata dict
     """
     file_metadata = {
-        "sourcePath": file.materialized_path,
+        "sourcePath": '{}{}'.format(file.provider, file.materialized_path),
         "title": file.title,
         "sourceHashes": file.hashes,
         "extra": {}}
