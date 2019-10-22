@@ -28,7 +28,7 @@
                 "title": { "type": "string" },
                 "sourceHashes": { "type": "object" },
                 "destinationHashes": { "type": "object" },
-                "failedFixityInfo": { "type": "object" },
+                "failedFixityInfo": { "type": "array" },
                 "extra": { "type": "object" }
               }
             }

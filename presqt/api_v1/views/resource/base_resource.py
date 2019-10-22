@@ -20,6 +20,7 @@ from presqt.api_v1.utilities import (target_validation, get_destination_token,
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
+from presqt.json_schemas.schema_handlers import schema_validator
 from presqt.utilities import (PresQTValidationError, PresQTResponseException, write_file,
                               zip_directory, get_dictionary_from_list, PresQTError)
 
@@ -256,23 +257,28 @@ class BaseResource(APIView):
             if resource['title'] == 'PRESQT_FTS_METADATA.json':
                 source_fts_metadata_content = resource['file']
                 source_fts_metadata_content = json.loads(source_fts_metadata_content.decode())
-                self.source_fts_metadata_actions = self.source_fts_metadata_actions + \
-                                                   source_fts_metadata_content['actions']
-            else:
-                # Append file metadata to fts metadata list
-                failed_fixity_info = []
-                if not fixity_obj['fixity']:
-                    failed_fixity_info.append({'NewGeneratedHash': fixity_obj['presqt_hash'],
-                                               'algorithmUsed': fixity_obj['hash_algorithm'],
-                                               'reasonFixityFailed': fixity_obj['fixity_details']})
-                resource['metadata']['failedFixityInfo'] = failed_fixity_info
-                resource['metadata']['destinationPath'] = resource['path']
-                resource['metadata']['destinationHashes'] = {}
-                self.new_fts_metadata_actions.append(resource['metadata'])
+                # print(schema_validator('presqt/json_schemas/metadata_schema.json', source_fts_metadata_content))
+                if schema_validator('presqt/json_schemas/metadata_schema.json', source_fts_metadata_content) is True:
+                    self.source_fts_metadata_actions = self.source_fts_metadata_actions + source_fts_metadata_content['actions']
+                    continue
+                else:
+                    resource['path'] = resource['path'].replace('PRESQT_FTS_METADATA.json', 'INVALID_PRESQT_FTS_METADATA.json')
 
-                # Save the file to the disk.
-                write_file('{}{}'.format(self.resource_main_dir, resource['path']),
-                           resource['file'])
+            # Append file metadata to fts metadata list
+            if not fixity_obj['fixity']:
+                resource['metadata']['failedFixityInfo'] = [
+                    {'NewGeneratedHash': fixity_obj['presqt_hash'],
+                     'algorithmUsed': fixity_obj['hash_algorithm'],
+                     'reasonFixityFailed': fixity_obj['fixity_details']}]
+            else:
+                resource['metadata']['failedFixityInfo'] = []
+
+            resource['metadata']['destinationPath'] = resource['path']
+            resource['metadata']['destinationHashes'] = {}
+            self.new_fts_metadata_actions.append(resource['metadata'])
+
+            # Save the file to the disk.
+            write_file('{}{}'.format(self.resource_main_dir, resource['path']), resource['file'])
 
         # Create PresQT action metadata
         self.action_metadata = {
@@ -466,7 +472,6 @@ class BaseResource(APIView):
             print("We should do something here.")
 
         return True
-
 
     def transfer_post(self):
         """

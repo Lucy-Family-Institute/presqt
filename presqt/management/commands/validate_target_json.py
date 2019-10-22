@@ -13,8 +13,8 @@ class Command(BaseCommand):
         keys_to_validate = ['resource_collection']
 
         validation = schema_validator(
-            'presqt/targets.json',
-            'presqt/json_schemas/target_schema.json'
+            'presqt/json_schemas/target_schema.json',
+            'presqt/targets.json'
         )
 
         failure_string = "Target JSON Schema Validation Failed!\n" \

@@ -19,7 +19,7 @@ class TestSchemaValidator(SimpleTestCase):
         """
         Return True if valid JSON file and JSONSchema are provided
         """
-        validation = schema_validator(self.target_json_path, self.schema_path)
+        validation = schema_validator( self.schema_path, self.target_json_path)
         self.assertEqual(validation, True)
 
     def test_invalid_json(self):
@@ -33,7 +33,7 @@ class TestSchemaValidator(SimpleTestCase):
         with open(invalid_path, 'w') as json_file:
             json.dump(invalid_json, json_file)
 
-        schema_validator(invalid_path, self.schema_path)
+        schema_validator(self.schema_path, invalid_path)
         # Verify that the schema_validator returns a ValidationError
         self.assertRaises(ValidationError)
 
