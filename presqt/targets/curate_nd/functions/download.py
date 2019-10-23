@@ -6,7 +6,8 @@ from rest_framework import status
 
 from presqt.targets.curate_nd.utilities import get_curate_nd_resource
 from presqt.targets.curate_nd.classes.main import CurateND
-from presqt.utilities import PresQTInvalidTokenError, PresQTValidationError
+from presqt.utilities import (PresQTInvalidTokenError, PresQTValidationError,
+                              get_dictionary_from_list)
 
 
 async def async_get(url, session, token):
@@ -119,14 +120,15 @@ def curate_nd_download_resource(token, resource_id):
             'metadata': file_metadata})
 
     else:
+        action_metadata = {"sourceUsername": resource.extra['depositor']}
+
         if not resource.extra['containedFiles']:
             empty_containers.append('{}'.format(resource.title))
         else:
             title_helper = {}
             file_urls = []
             project_title = resource.title
-            action_metadata = {"sourceUsername": resource.extra['depositor']}
-
+            file_metadata = []
             for file in resource.extra['containedFiles']:
                 # That gross md5 search
                 md5_end = '</md5checksum>'
@@ -134,7 +136,7 @@ def curate_nd_download_resource(token, resource_id):
                 # Md5 hashes are 32 characters...
                 file_md5 = md5_hash_check[len(md5_hash_check)-32:]
 
-                file_metadata = {
+                file_metadata_dict = {
                     "sourcePath": project_title + '/' + file['label'],
                     "title": file['label'],
                     "sourceHashes": {
@@ -142,7 +144,8 @@ def curate_nd_download_resource(token, resource_id):
                     "extra": {}}
                 for key, value in file.items():
                     if key not in ['label', 'depositor']:
-                        file_metadata['extra'][key] = value
+                        file_metadata_dict['extra'][key] = value
+                file_metadata.append(file_metadata_dict)
 
                 title_helper[file['downloadUrl']] = file['label']
                 file_urls.append(file['downloadUrl'])
@@ -156,6 +159,7 @@ def curate_nd_download_resource(token, resource_id):
                     'hashes': {'md5': file['md5']},
                     'title': title_helper[file['url']],
                     'path': '/{}/{}'.format(resource.title, title_helper[file['url']]),
-                    'metadata': file_metadata})
+                    'metadata': get_dictionary_from_list(file_metadata, 'title',
+                                                         title_helper[file['url']])})
 
     return files, empty_containers, action_metadata

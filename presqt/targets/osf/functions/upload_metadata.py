@@ -55,8 +55,8 @@ def osf_upload_metadata(token, resource_id, resource_main_dir, metadata_dict, pr
                 updated_metadata = json.loads(old_metadata_file)
 
                 # Loop through each 'action' in both metadata files and make a new list of them.
-                joined_actions = [entry for entry in itertools.chain(updated_metadata['actions'],
-                                                                     metadata_dict['actions'])]
+                joined_actions = [entry for entry in itertools.chain(metadata_dict['actions'],
+                                                                     updated_metadata['actions'])]
 
                 updated_metadata['actions'] = joined_actions
                 encoded_metadata = json.dumps(updated_metadata, indent=4).encode('utf-8')
