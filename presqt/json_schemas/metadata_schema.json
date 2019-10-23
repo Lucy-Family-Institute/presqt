@@ -73,21 +73,21 @@
                   "additionalProperties": false
                 }
               },
-              "required": ["created", "updated", "ignored"],
+              "required": [
+                "id",
+                "actionDateTime",
+                "actionType",
+                "sourceTargetName",
+                "destinationTargetName",
+                "sourceUsername",
+                "destinationUsername",
+                "files"
+              ],
               "additionalProperties": false
             }
           }
         },
-        "required": [
-          "id",
-          "actionDateTime",
-          "actionType",
-          "sourceTargetName",
-          "destinationTargetName",
-          "sourceUsername",
-          "destinationUsername",
-          "files"
-        ],
+        "required": ["created", "updated", "ignored"],
         "additionalProperties": false
       }
     }
