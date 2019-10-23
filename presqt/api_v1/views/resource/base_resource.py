@@ -274,7 +274,7 @@ class BaseResource(APIView):
         fixity_info = []
         self.download_fixity = True
         self.source_fts_metadata_actions = []
-        self.new_fts_metadata_actions = []
+        self.new_fts_metadata_files = []
         for resource in resources:
             # Perform the fixity check and add extra info to the returned fixity object.
             fixity_obj, self.download_fixity = download_fixity_checker.download_fixity_checker(resource)
@@ -297,7 +297,11 @@ class BaseResource(APIView):
             'sourceUsername': action_metadata['sourceUsername'],
             'destinationTargetName': 'Local Machine',
             'destinationUsername': None,
-            'files': self.new_fts_metadata_actions
+            'files': {
+                'created': self.new_fts_metadata_files,
+                'updated': [],
+                'ignored': []
+            }
         }
 
         # Write empty containers to disk
@@ -323,12 +327,13 @@ class BaseResource(APIView):
         else:
             # Create and write metadata file.
             final_fts_metadata_data = create_fts_metadata(self.action_metadata,
-                                                              self.source_fts_metadata_actions)
+                                                          self.source_fts_metadata_actions)
             write_file(os.path.join(self.resource_main_dir, 'PRESQT_FTS_METADATA.json'),
                        final_fts_metadata_data, True)
             # Validate the final metadata
             metadata_validation = schema_validator('presqt/json_schemas/metadata_schema.json',
                                                    final_fts_metadata_data)
+            print(metadata_validation)
             self.process_info_obj['message'] = get_action_message('Download', self.download_fixity, metadata_validation)
 
             # Add the fixity file to the disk directory
@@ -410,19 +415,19 @@ class BaseResource(APIView):
 
 
         # Strip the server created directory prefix of the file paths for ignored and updated files
-        self.process_info_obj['resources_ignored'] = [file[len(data_directory)+1:]
-                                                      for file in resources_ignored]
-        self.process_info_obj['resources_updated'] = [file[len(data_directory)+1:]
-                                                      for file in resources_updated]
+        resources_ignored = [file[len(data_directory):] for file in resources_ignored]
+        self.process_info_obj['resources_ignored'] = resources_ignored
+        resources_updated = [file[len(data_directory):] for file in resources_updated]
+        self.process_info_obj['resources_updated'] = resources_updated
 
         # If we are transferring the resources then add metadata to the existing fts metadata
         if self.action == 'resource_transfer_in':
-            self.metadata_validation = create_upload_transfer_metadata(self, action_metadata, file_metadata_list, data_directory, project_id, resources_ignored)
+            self.metadata_validation = create_upload_transfer_metadata(self, action_metadata, file_metadata_list, data_directory, project_id, resources_ignored, resources_updated)
             self.process_info_obj['upload_status'] = get_action_message('Upload', self.upload_fixity, self.metadata_validation)
         # Otherwise if we are uploading from a local source then create fts metadata
         # and update the server process file
         else:
-            self.metadata_validation = create_upload_metadata(self, file_metadata_list, data_directory, action_metadata, project_id, resources_ignored)
+            self.metadata_validation = create_upload_metadata(self, file_metadata_list, data_directory, action_metadata, project_id, resources_ignored, resources_updated)
             # Validate the final metadata
             self.process_info_obj['message'] = get_action_message('Upload', self.upload_fixity, self.metadata_validation)
 

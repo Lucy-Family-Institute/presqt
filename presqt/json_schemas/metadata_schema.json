@@ -56,8 +56,7 @@
                   "additionalProperties": false
                 }
               },
-              "ignored": { "type": "object" },
-              "properties": {
+              "ignored": {
                 "type": "array",
                 "items": {
                   "type": "object",
@@ -72,10 +71,10 @@
                   },
                   "additionalProperties": false
                 }
-              },
-              "required": ["created", "updated", "ignored"],
-              "additionalProperties": false
-            }
+              }
+            },
+            "required": ["created", "updated", "ignored"],
+            "additionalProperties": false
           }
         },
         "required": [

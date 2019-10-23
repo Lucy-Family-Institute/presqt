@@ -27,6 +27,6 @@ def create_download_metadata(instance, resource, fixity_obj):
     # Append file metadata to fts metadata list
     resource['metadata']['destinationPath'] = resource['path']
     resource['metadata']['destinationHashes'] = {}
-    instance.new_fts_metadata_actions.append(resource['metadata'])
+    instance.new_fts_metadata_files.append(resource['metadata'])
 
     return False
