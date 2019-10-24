@@ -1,0 +1,1107 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Code Documentation &mdash; PresQT  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Web Services" href="web_services.html" />
+    <link rel="prev" title="Development Environment Setup" href="development_environment_setup.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> PresQT
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="project_overview.html">Project Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture_infrastructure.html">Architecture/Infrastructure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authentication_authorization.html">Authentication/Authorization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_documentation.html">Developer Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integration_management_command.html">Integration Management Command</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development_environment_setup.html">Development Environment Setup</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Code Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#target-endpoints">Target Endpoints</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#target-details">Target Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#target-json-values">Target JSON Values</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#json-validation">JSON Validation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#target-api-endpoints">Target API Endpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#resources-endpoints">Resources Endpoints</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#resource-collection-endpoint">Resource Collection Endpoint</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#resource-detail-endpoint">Resource Detail Endpoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#resource-api-endpoints">Resource API Endpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#download-endpoints">Download Endpoints</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#request-memory-process">Request Memory Process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#server-memory-process">Server Memory Process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#download-job-check-in-endpoint">Download Job Check-In Endpoint</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#process-watchdog">Process Watchdog</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#download-fixity">Download Fixity</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#download-api-endpoints">Download API Endpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#upload-endpoints">Upload Endpoints</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#multiple-upload-endpoints">Multiple Upload Endpoints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id1">Request Memory Process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">Server Memory Process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#upload-job-check-in-endpoint">Upload Job Check-In Endpoint</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">Process Watchdog</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#upload-api-endpoints">Upload API Endpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#upload-fixity">Upload Fixity</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#fixity-check-1">Fixity Check 1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#generate-new-hashes-if-necessary">Generate New Hashes If Necessary</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fixity-check-2">Fixity Check 2</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#example-bagits">Example BagIts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#bagit-zip-files">BagIt Zip files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example-workflow">Example Workflow</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#asynchronous-requests">Asynchronous Requests</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#example-osf-resource-collection">Example - OSF Resource Collection</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#docker-commands">Docker Commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="web_services.html">Web Services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tools_services.html">Tools/Services</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PresQT</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Code Documentation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/code_documentation.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="code-documentation">
+<h1>Code Documentation<a class="headerlink" href="#code-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="target-endpoints">
+<h2>Target Endpoints<a class="headerlink" href="#target-endpoints" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="target-details">
+<h3>Target Details<a class="headerlink" href="#target-details" title="Permalink to this headline">¶</a></h3>
+<p>‘Targets’ are endpoints the PresQT API will connect to such as OSF, CurateND, HubZero, etc. Since
+PresQT doesn’t have a database, the Targets’ information will be held in a JSON file located in
+<code class="docutils literal notranslate"><span class="pre">/presqt/targets.json</span></code>.</p>
+</div>
+<div class="section" id="target-json-values">
+<h3>Target JSON Values<a class="headerlink" href="#target-json-values" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt><em>name : str</em></dt><dd><ul>
+<li><p>Name of the Target. This will be used as path parameters in the URL</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><em>readable_name : str</em></dt><dd><ul>
+<li><p>Human readable name of the Target for the front end.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><em>supported_hash_algorithms : array</em></dt><dd><ul>
+<li><p>The hash algorithms supported by the target</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><em>supported_actions : dict</em></dt><dd><ul>
+<li><p>Actions the target supports</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><em>resource_collection : bool</em></dt><dd><ul>
+<li><p>Get all resources for the user</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><em>resource_detail : bool</em></dt><dd><ul>
+<li><p>Get an individual resource’s details</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><em>resource_download : bool</em></dt><dd><ul>
+<li><p>Download a resource</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><em>resource_upload: bool</em></dt><dd><ul>
+<li><p>Upload a resource</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><em>resource_transfer: bool</em></dt><dd><ul>
+<li><p>Transfer a resource</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<p><strong>Target JSON Example:</strong></p>
+<blockquote>
+<div><div class="highlight-json notranslate"><div class="highlight"><pre><span></span>[
+    {
+        &quot;name&quot;: &quot;osf&quot;,
+        &quot;readable_name&quot;: &quot;OSF&quot;,
+        &quot;supported_actions&quot;: {
+            &quot;resource_collection&quot;: true,
+            &quot;resource_detail&quot;: true,
+            &quot;resource_download&quot;: true,
+            &quot;resource_upload&quot;: true,
+            &quot;resource_transfer&quot;: true
+        },
+        &quot;supported_hash_algorithms&quot;: [&quot;sha256&quot;, &quot;md5&quot;]
+    },
+    {
+        &quot;name&quot;: &quot;nanohub&quot;,
+        &quot;readable_name&quot;: &quot;NanoHub&quot;,
+        &quot;api_name&quot;: &quot;Hubzero&quot;,
+        &quot;api_version&quot;: &quot;1.1&quot;,
+        &quot;supported_actions&quot;: {
+            &quot;resource_collection&quot;: true,
+            &quot;resource_detail&quot;: true,
+            &quot;resource_download&quot;: true,
+            &quot;resource_upload&quot;: true,
+            &quot;resource_transfer&quot;: false
+        },
+        &quot;supported_hash_algorithms&quot;: [&quot;sha256&quot;, &quot;md5&quot;]
+    },
+    {
+        &quot;name&quot;: &quot;curatend&quot;,
+        &quot;readable_name&quot;: &quot;CurateND&quot;,
+        &quot;supported_actions&quot;: {
+            &quot;resource_collection&quot;: true,
+            &quot;resource_detail&quot;: true,
+            &quot;resource_download&quot;: true,
+            &quot;resource_upload&quot;: true,
+            &quot;resource_transfer&quot;: true
+        },
+        &quot;supported_hash_algorithms&quot;: [&quot;sha256&quot;, &quot;md5&quot;]
+    },...
+]
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="json-validation">
+<h3>JSON Validation<a class="headerlink" href="#json-validation" title="Permalink to this headline">¶</a></h3>
+<p>We are using the JSON Schema library (<a class="reference external" href="https://json-schema.org/">https://json-schema.org/</a>) to validated the Target JSON.
+Defining a JSON Schema for the Target JSON allows us to declare how the Target JSON should be structured.
+JSON Schema has a validation function where we can pass in a schema and JSON and it will return if
+the JSON is valid or not. The schema definition is located in <code class="docutils literal notranslate"><span class="pre">/presqt/json_schemas/target_schema.json</span></code>.</p>
+<p><strong>Validation Calls</strong></p>
+<p>A management command has been written that will do Target JSON validation. It can be run manually by running:</p>
+<p><code class="docutils literal notranslate"><span class="pre">$</span> <span class="pre">python</span> <span class="pre">manage.py</span> <span class="pre">validate_target_json</span></code></p>
+<p>This same management is called when <code class="docutils literal notranslate"><span class="pre">docker-compose</span> <span class="pre">up</span></code> is run. If the validation fails then it does
+not allow the docker containers to be spun up.</p>
+</div>
+</div>
+<div class="section" id="target-api-endpoints">
+<h2>Target API Endpoints<a class="headerlink" href="#target-api-endpoints" title="Permalink to this headline">¶</a></h2>
+<p>PUT LINK HERE WHEN READY</p>
+</div>
+<div class="section" id="resources-endpoints">
+<h2>Resources Endpoints<a class="headerlink" href="#resources-endpoints" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="resource-collection-endpoint">
+<h3>Resource Collection Endpoint<a class="headerlink" href="#resource-collection-endpoint" title="Permalink to this headline">¶</a></h3>
+<p>Targets that integrate with the Resources Collection API Endpoint must have a function that returns
+a specifically structured dataset. This structure allows us to recreate the hierarchy of the file
+structure on the front end. The endpoint is expecting a list of objects with the following structure:</p>
+<blockquote>
+<div><div class="highlight-json notranslate"><div class="highlight"><pre><span></span>{
+    &#39;kind&#39;: &#39;container&#39;,
+    &#39;kind_name&#39;: &#39;folder&#39;,
+    &#39;id&#39;: &#39;e16083a7-34df-436e-9f2e-e3bd3bb54e18&#39;,
+    &#39;container&#39;: &#39;e16083a7-34df-436e-9f2e-e3bd3bb54e18&#39;,
+    &#39;title&#39;: &#39;folder_name&#39;
+}
+</pre></div>
+</div>
+</div></blockquote>
+<p>Structure definitions:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt><strong>kind</strong>: <em>Type of resource</em></dt><dd><ul>
+<li><dl class="simple">
+<dt>options:</dt><dd><ul>
+<li><p>container</p></li>
+<li><p>item</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>kind_name</strong>: <em>Target specific name for that kind</em></dt><dd><ul>
+<li><dl class="simple">
+<dt>For example OSF kind_names are:</dt><dd><ul>
+<li><p>node</p></li>
+<li><p>folder</p></li>
+<li><p>file</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>container</strong>: <em>id of the container for the resource</em></dt><dd><ul>
+<li><p>For example if the resource is an file in a folder then the <strong>container</strong> value would be the id of the folder</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p><strong>id</strong>: <em>id of the resource</em></p></li>
+<li><p><strong>title</strong>: <em>title of the resource</em></p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="resource-detail-endpoint">
+<h2>Resource Detail Endpoint<a class="headerlink" href="#resource-detail-endpoint" title="Permalink to this headline">¶</a></h2>
+<p>When hitting the endpoint for details of a specific resource the payload, there is an <cite>extra</cite> field
+which allows for target specific data that might not be universal for all targets to be passed. The
+content of <cite>extra</cite> will change depending on the type of the resource. For instance in OSF the following
+are the payloads for Project and File. You’ll notice the <cite>extra</cite> field holds entirely different fields.</p>
+<blockquote>
+<div><div class="highlight-json notranslate"><div class="highlight"><pre><span></span>PROJECT PAYLOAD
+{
+    &quot;kind&quot;: &quot;container&quot;,
+    &quot;kind_name&quot;: &quot;project&quot;,
+    &quot;id&quot;: &quot;q5xmw&quot;,
+    &quot;title&quot;: &quot;Private Project&quot;,
+    &quot;date_created&quot;: &quot;2019-05-13T15:23:33.456041&quot;,
+    &quot;date_modified&quot;: &quot;2019-05-14T14:01:03.507343&quot;,
+    &quot;hashes&quot;: {
+        &quot;md5&quot;: null,
+        &quot;sha256&quot;: null
+    },
+    &quot;extra&quot;: {
+        &quot;category&quot;: &quot;project&quot;,
+        &quot;fork&quot;: false,
+        &quot;current_user_is_contributor&quot;: true,
+        &quot;preprint&quot;: false,
+        &quot;current_user_permissions&quot;: [
+            &quot;read&quot;,
+            &quot;write&quot;,
+            &quot;admin&quot;
+        ],
+        &quot;custom_citation&quot;: null,
+        &quot;collection&quot;: false,
+        &quot;public&quot;: false,
+        &quot;subjects&quot;: [],
+        &quot;registration&quot;: false,
+        &quot;current_user_can_comment&quot;: true,
+        &quot;wiki_enabled&quot;: true,
+        &quot;node_license&quot;: null,
+        &quot;tags&quot;: [
+            &quot;Brett&quot;,
+            &quot;presqt&quot;,
+            &quot;Private&quot;
+        ],
+        &quot;size&quot;: null,
+    }
+}
+
+FILE PAYLOAD
+{
+        &quot;kind&quot;: &quot;item&quot;,
+        &quot;kind_name&quot;: &quot;file&quot;,
+        &quot;id&quot;: &quot;5cd98518f244ec001ee8606b&quot;,
+        &quot;title&quot;: &quot;23296359282_934200ec59_o.jpg&quot;,
+        &quot;date_created&quot;: &quot;2019-05-13T14:54:17.129170Z&quot;,
+        &quot;date_modified&quot;: &quot;2019-05-13T14:54:17.129170Z&quot;,
+        &quot;hashes&quot;: {
+            &quot;md5&quot;: &quot;aaca7ef067dcab7cb8d79c36243823e4&quot;,
+            &quot;sha256&quot;: &quot;ea94ce54261720c16abb508c6dcd1fd481c30c09b7f2f5ab0b79e3199b7e2b55&quot;
+        },
+        &quot;extra&quot;: {
+            &quot;last_touched&quot;: null,
+            &quot;materialized_path&quot;: &quot;/Images/23296359282_934200ec59_o.jpg&quot;,
+            &quot;current_version&quot;: 1,
+            &quot;provider&quot;: &quot;osfstorage&quot;,
+            &quot;path&quot;: &quot;/5cd98518f244ec001ee8606b&quot;,
+            &quot;current_user_can_comment&quot;: true,
+            &quot;guid&quot;: null,
+            &quot;checkout&quot;: null,
+            &quot;tags&quot;: [],
+            &quot;size&quot;: 1773294,
+        }
+    }
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="resource-api-endpoints">
+<h2>Resource API Endpoints<a class="headerlink" href="#resource-api-endpoints" title="Permalink to this headline">¶</a></h2>
+<p>PLACE LINK HERE WHEN READY</p>
+</div>
+<div class="section" id="download-endpoints">
+<h2>Download Endpoints<a class="headerlink" href="#download-endpoints" title="Permalink to this headline">¶</a></h2>
+<p>To handle server timeouts, PresQT spawns any resource download off into a separate memory thread
+from the request memory. It creates a ticket number for a second endpoint to use to check in on the
+process. The full process can be seen in Image 1. Details of each process can be found below.</p>
+<div class="figure align-center" id="id4">
+<img alt="_images/download_process1.png" src="_images/download_process1.png" />
+<p class="caption"><span class="caption-text">Image 1: Full resource download process</span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>
+</div>
+<div class="section" id="request-memory-process">
+<h3>Request Memory Process<a class="headerlink" href="#request-memory-process" title="Permalink to this headline">¶</a></h3>
+<p>The <cite>/targets/&lt;target_id&gt;/resources/&lt;resource_id&gt;.zip/</cite> GET endpoint prepares the disk for resource
+downloading by creating a ticket number (UUID) and writing a directory of the same name,
+<cite>mediafiles/downloads/&lt;ticket_number&gt;</cite>. In that directory, it creates a <cite>process_info.json</cite> file which
+will be the file that keeps track of the download process progress:</p>
+<div class="figure align-center" id="id5">
+<img alt="_images/download_process2.png" src="_images/download_process2.png" />
+<p class="caption"><span class="caption-text">Image 2: Initial state of process_info.json</span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
+</div>
+<p>The <cite>process_info.json</cite> file keeps track of various process data but its main use in this process is
+the ‘status’ key. It starts with a value of ‘in_progress’. This is how we know the server is still
+processing the download request. So at this point we have a directory that looks like this:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>mediafiles</dt><dd><ul>
+<li><dl class="simple">
+<dt>downloads</dt><dd><ul>
+<li><dl class="simple">
+<dt>&lt;ticket_number&gt;</dt><dd><ul>
+<li><p>process_info.json</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<p>We then spawn the download process off into a different memory thread so it can be completed without
+a timeout sent back through the request. The spawned off function is _resource_download().  It then
+returns a 200 response with the ticket number in the payload back to the front end. The full request
+memory flow can be found below in Image 3.</p>
+<div class="figure align-center" id="id6">
+<img alt="_images/download_process3.png" src="_images/download_process3.png" />
+<p class="caption"><span class="caption-text">Image 3: Resource download preparation in request memory</span><a class="headerlink" href="#id6" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="server-memory-process">
+<h3>Server Memory Process<a class="headerlink" href="#server-memory-process" title="Permalink to this headline">¶</a></h3>
+<p>We now have the <cite>_resource_download()</cite> function running separately on the server. This function will
+go to the appropriate target download function and fetch the resources we want to download by
+fetching them from the target API. Once it has the resources it writes them into a new directory
+named <cite>&lt;target_name&gt;_download_&lt;resource_id&gt;</cite> located inside of <cite>mediafiles/downloads/&lt;ticket_number&gt;</cite>.
+While writing the resource we also run the resources through the fixity checker. Once all resources
+are written and their fixities checked we write the fixity information to a file called <cite>fixity_info.json</cite>.
+So if we are downloading from OSF, with a resource ID of 1234, and a ticket number of 9876 the
+directory would like the following:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>mediafiles</dt><dd><ul>
+<li><dl class="simple">
+<dt>downloads</dt><dd><ul>
+<li><p><em>process_info.json</em></p></li>
+<li><dl class="simple">
+<dt><strong>osf_download_1234</strong></dt><dd><ul>
+<li><p><em>file.jpg</em></p></li>
+<li><p><em>fixity_info.json</em></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<p>We then use BagIt to bag the data:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>mediafiles</dt><dd><ul>
+<li><dl class="simple">
+<dt>downloads</dt><dd><ul>
+<li><p><em>process_info.json</em></p></li>
+<li><dl class="simple">
+<dt><strong>osf_download_1234</strong></dt><dd><ul>
+<li><dl class="simple">
+<dt><strong>data</strong></dt><dd><ul>
+<li><p><em>file.jpg</em></p></li>
+<li><p><em>fixity_info.json</em></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p><em>bag-info.txt</em></p></li>
+<li><p><em>bagit.txt</em></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<p>We then zip the data contents:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>mediafiles</dt><dd><ul>
+<li><dl class="simple">
+<dt>downloads</dt><dd><ul>
+<li><p><em>osf_download_1234.zip</em></p></li>
+<li><p><em>process_info.json</em></p></li>
+<li><dl class="simple">
+<dt><strong>osf_download_1234</strong></dt><dd><ul>
+<li><dl class="simple">
+<dt><strong>data</strong></dt><dd><ul>
+<li><p><em>file.jpg</em></p></li>
+<li><p><em>fixity_info.json</em></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p><em>bag-info.txt</em></p></li>
+<li><p><em>bagit.txt</em></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<p>We then update the <cite>process_info.json</cite> file to reflect that the download process is complete and the
+zip file is ready for download:</p>
+<div class="figure align-center" id="id7">
+<img alt="_images/download_process4.png" src="_images/download_process4.png" />
+<p class="caption"><span class="caption-text">Image 4: Final state of process_info.json after a successful download</span><a class="headerlink" href="#id7" title="Permalink to this image">¶</a></p>
+</div>
+<p>If there was a failure while we downloaded the files from the target then none of the files get
+written to the disk and the <cite>process_info.json</cite> file gets updated to reflect the error. For instance,
+if a bad resource id was given:</p>
+<div class="figure align-center" id="id8">
+<img alt="_images/download_process5.png" src="_images/download_process5.png" />
+<p class="caption"><span class="caption-text">Image 5: Final state of process_info.json after a failed download</span><a class="headerlink" href="#id8" title="Permalink to this image">¶</a></p>
+</div>
+<p>The full flow of the resource download in server memory can be found below in Image 6:</p>
+<div class="figure align-center" id="id9">
+<img alt="_images/download_process6.png" src="_images/download_process6.png" />
+<p class="caption"><span class="caption-text">Image 6: Prepare resource download process in server memory</span><a class="headerlink" href="#id9" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="download-job-check-in-endpoint">
+<h3>Download Job Check-In Endpoint<a class="headerlink" href="#download-job-check-in-endpoint" title="Permalink to this headline">¶</a></h3>
+<p>The <cite>/download/&lt;ticket_number&gt;/</cite> GET endpoint will check in on the download process on the server to
+see its status. It uses the ticket_number path parameter to find the <cite>process_info.json</cite> file in the
+corresponding folder, <cite>mediafiles/downloads/&lt;ticket_number&gt;/process_info.json</cite>.</p>
+<ul class="simple">
+<li><p>If the status is ‘in_progress’, it will return a 202 response along with a small payload.</p></li>
+<li><p>If the status is ‘failed’, it will return a 500 response along with the failure message and failure error code.</p></li>
+<li><p>If the status is ‘finished’, it will return a 200 response along with the zip file found in the same directory.</p></li>
+</ul>
+<p>The full flow for this endpoint can be found on Image 7 below.</p>
+<div class="figure align-center" id="id10">
+<img alt="_images/download_process7.png" src="_images/download_process7.png" />
+<p class="caption"><span class="caption-text">Image 7: Resource download process check in</span><a class="headerlink" href="#id10" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="process-watchdog">
+<h3>Process Watchdog<a class="headerlink" href="#process-watchdog" title="Permalink to this headline">¶</a></h3>
+<p>When downloading, a watchdog function is also spawned away from request memory. The purpose of it is
+to kill any processes that are taking too long. Right now, we say all downloaded processes have up
+to an hour to finish before the watchdog will kill the process. If this time limit is hit then after
+it kills the process the watchdog also updates the <cite>process_info.json</cite> file to the following:</p>
+<div class="figure align-center" id="id11">
+<img alt="_images/download_process8.png" src="_images/download_process8.png" />
+<p class="caption"><span class="caption-text">Image 8: Final state of process_info.json if the watchdog kills the process</span><a class="headerlink" href="#id11" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="download-fixity">
+<h3>Download Fixity<a class="headerlink" href="#download-fixity" title="Permalink to this headline">¶</a></h3>
+<p>The function <code class="docutils literal notranslate"><span class="pre">download_fixity_checker(binary_file,</span> <span class="pre">hashes)</span></code> takes in two required arguments,
+binary_file and hashes:</p>
+<ul>
+<li><p><strong>binary_file</strong>: The file, in binary format, to run the hash algorithm on to check fixity.</p></li>
+<li><p><strong>hashes</strong>: A dictionary of hashes provided by the target to compare to the hash calculated from the provided binary file. Example below:</p>
+<blockquote>
+<div><div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;sha256&quot;</span><span class="p">:</span> <span class="s2">&quot;343e249fdb0818a58edcc64663e1eb116843b4e1c4e74790ff331628593c02be&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;md5&quot;</span><span class="p">:</span> <span class="s2">&quot;a4536efb47b26eaf509edfdaca442037&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ul>
+<p>The <cite>download_fixity_checker</cite> will loop through this <cite>hashes</cite> dictionary and when if finds a hashing
+algorithm that is supported by the python hashlib (<a class="reference external" href="https://docs.python.org/3/library/hashlib.html">https://docs.python.org/3/library/hashlib.html</a>)
+then it will run that algorithm against the provided <cite>binary_file</cite>. If the provided hash and the
+calculated hash match then fixity passes!</p>
+<p>If the <cite>fixity_checker</cite>  can’t find a hashlib supported algorithm in <cite>hashes</cite> or if all the hash values
+in hashes are <code class="docutils literal notranslate"><span class="pre">None</span></code> then the <cite>fixity_checker</cite> will use <cite>md5</cite> as a default algorithm to still hash the
+file so we can pass that hash to the user. It also counts these situations as fixity passing since
+we didn’t know what the original hash was. Below are examples.</p>
+<blockquote>
+<div><div class="highlight-json notranslate"><div class="highlight"><pre><span></span>Valid Hashes Provided + Fixity Passes
+{
+    &quot;sha256&quot;: &quot;343e249fdb0818a58edcc64663e1eb116843b4e1c4e74790ff331628593c02be&quot;,
+    &quot;md5&quot;: &quot;a4536efb47b26eaf509edfdaca442037&quot;
+}
+
+will yield
+
+{
+    &#39;hash_algorithm&#39;: sha256,
+    &#39;given_hash&#39;: 343e249fdb0818a58edcc64663e1eb116843b4e1c4e74790ff331628593c02be,
+    &#39;calculated_hash&#39;: 343e249fdb0818a58edcc64663e1eb116843b4e1c4e74790ff331628593c02be,
+    &#39;fixity&#39;: True
+}
+</pre></div>
+</div>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span>Valid Hashes Provided + Fixity Fails
+{
+    &quot;sha256&quot;: &quot;343e249fdb0818a58edcc64663e1eb116843b4e1c4e74790ff331628593c02be&quot;,
+    &quot;md5&quot;: &quot;a4536efb47b26eaf509edfdaca442037&quot;
+}
+
+will yield
+
+{
+    &#39;hash_algorithm&#39;: sha256,
+    &#39;given_hash&#39;: 343e249fdb0818a58edcc64663e1eb116843b4e1c4e74790ff331628593c02be,
+    &#39;calculated_hash&#39;: 12345678,
+    &#39;fixity&#39;: False
+}
+</pre></div>
+</div>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span>Blank Hashes Provided
+{
+    &quot;sha256&quot;: None,
+    &quot;md5&quot;: None
+}
+
+will yield
+
+{
+    &#39;hash_algorithm&#39;: md5,
+    &#39;given_hash&#39;: None,
+    &#39;calculated_hash&#39;: 343e249fdb0818a58edcc64663e1eb116843b4e1c4e74790ff331628593c02be,
+    &#39;fixity&#39;: True
+}
+</pre></div>
+</div>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span>Unknown Hashes Provided
+{
+    &quot;unknown_hasher&quot;: None,
+    &quot;special_hasher&quot;: None
+}
+
+will yield
+
+{
+    &#39;hash_algorithm&#39;: md5,
+    &#39;given_hash&#39;: None,
+    &#39;calculated_hash&#39;: 343e249fdb0818a58edcc64663e1eb116843b4e1c4e74790ff331628593c02be,
+    &#39;fixity&#39;: True
+}
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="download-api-endpoints">
+<h2>Download API Endpoints<a class="headerlink" href="#download-api-endpoints" title="Permalink to this headline">¶</a></h2>
+<p>PUT LINKS HERE WHEN READY</p>
+</div>
+<div class="section" id="upload-endpoints">
+<h2>Upload Endpoints<a class="headerlink" href="#upload-endpoints" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="multiple-upload-endpoints">
+<h3>Multiple Upload Endpoints<a class="headerlink" href="#multiple-upload-endpoints" title="Permalink to this headline">¶</a></h3>
+<p>Resources can be uploaded via two endpoints. To upload a new top level resource they use the
+<cite>/targets/&lt;target_id&gt;/resources/</cite> POST endpoint. To upload the resource to an existing container they
+use the <cite>/targets/&lt;target_id&gt;/resources/&lt;resource_id&gt;/</cite>  POST endpoint.</p>
+</div>
+<div class="section" id="overview">
+<h3>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h3>
+<p>To handle server timeouts, PresQT spawns any resource upload off into a separate memory thread from
+the request memory. It creates a ticket number for a second endpoint to use to check in on the process.
+The full process can be seen in <cite>Image 1</cite>. Details of each process can be found below.</p>
+<div class="figure align-center" id="id12">
+<img alt="_images/upload_process1.png" src="_images/upload_process1.png" />
+<p class="caption"><span class="caption-text">Image 1: Full resource upload process</span><a class="headerlink" href="#id12" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="id1">
+<h3>Request Memory Process<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>The <cite>/targets/&lt;target_id&gt;/resources/</cite> and <cite>/targets/&lt;target_id&gt;/resources/&lt;resource_id&gt;/</cite>  endpoints
+prepare the disk for resource uploading by creating a ticket number (UUID) and writing a directory
+of the same name, <cite>mediafiles/uploads/&lt;ticket_number&gt;</cite>. It will then unzip the contents of the provided
+zip file into that directory. If the bag fails to validate after it has been written to the disk, then
+we will remove those files and attempt to write them again in case it was an IO error. If this write
+process fails 3 times, then the server returns an error. Also in the ticket_number directory, it
+creates a <cite>process_info.json</cite> file which will be the file that keeps track of the upload process progress:</p>
+<div class="figure align-center" id="id13">
+<img alt="_images/upload_process2.png" src="_images/upload_process2.png" />
+<p class="caption"><span class="caption-text">Image 2: Initial state of process_info.json</span><a class="headerlink" href="#id13" title="Permalink to this image">¶</a></p>
+</div>
+<p>The <cite>process_info.json</cite> file keeps track of various process data but its main use in this process is
+the ‘status’ key. It starts with a value of ‘in_progress’. This is how we know the server is still
+processing the upload request. So at this point we have a directory that looks like this:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt><strong>mediafiles</strong></dt><dd><ul>
+<li><dl class="simple">
+<dt><strong>uploads</strong></dt><dd><ul>
+<li><dl class="simple">
+<dt><strong>&lt;ticket_number&gt;</strong></dt><dd><ul>
+<li><dl class="simple">
+<dt><strong>zip_file_bag</strong></dt><dd><ul>
+<li><dl class="simple">
+<dt><strong>data</strong></dt><dd><ul>
+<li><dl class="simple">
+<dt><strong>project_to_upload</strong></dt><dd><ul>
+<li><dl class="simple">
+<dt><strong>folder_to_upload</strong></dt><dd><ul>
+<li><p>file_to_upload.txt</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>manifest-sha512.txt</p></li>
+<li><p>bagit.txt</p></li>
+<li><p>bag-info.txt</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>process_info.json</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<p>We know fixity has remained while saving these resources to disk because the bag has validated so
+now we need to make sure we have hashes using an algorithm that the Target will also use. If the
+Target supports an algorithm used in the bag we simply get those hashes from the bag otherwise we
+generate new hashes using a Target supported hashing algorithm. These hashes will be used to compare
+against the hashes given to us by the Target after upload.</p>
+<p>Now that we have the files saved to disk and their hashes, we spawn the upload process off into a
+different memory thread so it can be completed without a timeout sent back through the request. The
+spawned off function is <cite>_resource_upload()</cite>.  It then returns a 200 response with the ticket number
+in the payload back to the front end. The full request memory flow can be found below in <cite>Image 3</cite>.</p>
+<div class="figure align-center" id="id14">
+<img alt="_images/upload_process3.png" src="_images/upload_process3.png" />
+<p class="caption"><span class="caption-text">Image 3: Resource upload in request memory thread</span><a class="headerlink" href="#id14" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="id2">
+<h3>Server Memory Process<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<p>We now have the <cite>_resource_upload()</cite> function running separately on the server. This function will go
+to the appropriate target upload function and upload the resources using the target API. If all
+files are uploaded successfully, then the hashes brought back from the target are compared with the
+hashes we calculated earlier. Any files that failed fixity are kept track of in the key ‘failed_fixity’
+in <cite>process_info.json</cite>. Duplicate files that were ignored and updated are also kept track of in
+<cite>process_info.json</cite>. The following are the possible states of process_info.json after uploading has
+completed:</p>
+<div class="figure align-center" id="id15">
+<img alt="_images/upload_process4.png" src="_images/upload_process4.png" />
+<p class="caption"><span class="caption-text">Image 4: process_info.json state after successful upload</span><a class="headerlink" href="#id15" title="Permalink to this image">¶</a></p>
+</div>
+<div class="figure align-center" id="id16">
+<img alt="_images/upload_process5.png" src="_images/upload_process5.png" />
+<p class="caption"><span class="caption-text">Image 5: process_info.json state when fixity fails with ignored/updated duplicates</span><a class="headerlink" href="#id16" title="Permalink to this image">¶</a></p>
+</div>
+<div class="figure align-center" id="id17">
+<img alt="_images/upload_process6.png" src="_images/upload_process6.png" />
+<p class="caption"><span class="caption-text">Image 6: process_info.json state when upload fails</span><a class="headerlink" href="#id17" title="Permalink to this image">¶</a></p>
+</div>
+<p>The full flow of the resource upload in server memory can be found below in Image 7:</p>
+<div class="figure align-center" id="id18">
+<img alt="_images/upload_process7.png" src="_images/upload_process7.png" />
+<p class="caption"><span class="caption-text">Image 7: Prepare resource upload process in server memory</span><a class="headerlink" href="#id18" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="upload-job-check-in-endpoint">
+<h3>Upload Job Check-In Endpoint<a class="headerlink" href="#upload-job-check-in-endpoint" title="Permalink to this headline">¶</a></h3>
+<p>The <cite>/upload/&lt;ticket_number&gt;/</cite> GET endpoint will check in on the upload process on the server to see
+its status. It uses the ticket_number path parameter to find the <cite>process_info.json</cite> file in the
+corresponding folder, <cite>mediafiles/uploads/&lt;ticket_number&gt;/process_info.json</cite>.</p>
+<ul class="simple">
+<li><p>If the status is ‘in_progress’, it will return a 202 response along with a small payload.</p></li>
+<li><p>If the status is ‘failed’, it will return a 500 response along with the failure message and failure error code.</p></li>
+<li><p>If the status is ‘finished’, it will return a 200 response along with a small payload.</p></li>
+</ul>
+<p>The full flow for this endpoint can be found on Image 8 below:</p>
+<div class="figure align-center" id="id19">
+<img alt="_images/upload_process8.png" src="_images/upload_process8.png" />
+<p class="caption"><span class="caption-text">Image 8: Resource download process check in</span><a class="headerlink" href="#id19" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="id3">
+<h3>Process Watchdog<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<p>When uploading, a watchdog function is also spawned away from request memory. The purpose of it is
+to kill any processes that are taking too long. Right now, we say all upload processes have up to an
+hour to finish before the watchdog will kill the process. If this time limit is hit then after it
+kills the process the watchdog also updates the <cite>process_info.json</cite> file to the following:</p>
+<div class="figure align-center" id="id20">
+<img alt="_images/upload_process9.png" src="_images/upload_process9.png" />
+<p class="caption"><span class="caption-text">Image 9: process_info.json state if the watchdog kills the process</span><a class="headerlink" href="#id20" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+</div>
+<div class="section" id="upload-api-endpoints">
+<h2>Upload API Endpoints<a class="headerlink" href="#upload-api-endpoints" title="Permalink to this headline">¶</a></h2>
+<p>ADD LINKS HERE</p>
+</div>
+<div class="section" id="upload-fixity">
+<h2>Upload Fixity<a class="headerlink" href="#upload-fixity" title="Permalink to this headline">¶</a></h2>
+<p>During the resource upload process, fixity is checked in two locations. First, when files are saved
+to the disk from the request. Second, after files are uploaded to the target.</p>
+<div class="figure align-center" id="id21">
+<img alt="_images/upload_fixity.png" src="_images/upload_fixity.png" />
+<p class="caption"><span class="caption-text">Image 1: Where in the upload process fixity is checked</span><a class="headerlink" href="#id21" title="Permalink to this image">¶</a></p>
+</div>
+<div class="section" id="fixity-check-1">
+<h3>Fixity Check 1<a class="headerlink" href="#fixity-check-1" title="Permalink to this headline">¶</a></h3>
+<p>Resources must be included in the POST request in BagIt format as a zip file. After unzipping the
+file and saving it to the server we validate the bag using BagIt’s built in validator. If any files
+saved don’t match the manifest originally given then the fixity has failed and the server will return
+an error.</p>
+</div>
+<div class="section" id="generate-new-hashes-if-necessary">
+<h3>Generate New Hashes If Necessary<a class="headerlink" href="#generate-new-hashes-if-necessary" title="Permalink to this headline">¶</a></h3>
+<p>We now know that the currently saved files are the same as what the user sent forward. Before upload
+resources to the target we will make sure that there is a dictionary of hashes available that are
+supported by the target. If the target supports a hash algorithm provided by the resource’s ‘bag’
+then we will simply use those. If not, then we need to generate new hashes based on a target supported
+hash algorithm.</p>
+</div>
+<div class="section" id="fixity-check-2">
+<h3>Fixity Check 2<a class="headerlink" href="#fixity-check-2" title="Permalink to this headline">¶</a></h3>
+<p>After resources are uploaded to the target, we compare the resources’ hashes brought back from the
+target to the hashes we captured before. If any hashes don’t match then fixity fails. Since the
+resources have already been uploaded we simply capture which resources’ fixity fails and pass that
+along the response payload along with the message, ‘Upload successful but fixity failed’.</p>
+</div>
+</div>
+<div class="section" id="example-bagits">
+<h2>Example BagIts<a class="headerlink" href="#example-bagits" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="bagit-zip-files">
+<h3>BagIt Zip files<a class="headerlink" href="#bagit-zip-files" title="Permalink to this headline">¶</a></h3>
+<p>Since the upload endpoint requires a BagIt file in zip format here are some pre-made zip files to test the upload endpoint.</p>
+<p><a class="reference external" href="https://firebasestorage.googleapis.com/v0/b/gitbook-28427.appspot.com/o/assets%2F-LMcMJmToep43UCF_R1w%2F-Lny89QJzv_kKe7w9YRq%2F-LnyZSfPfwLQS09SPdAL%2FNewProjectWithFolderBagIt.zip?alt=media&amp;token=6d710f6a-2353-4515-85e2-5cd21abc4afd/">#1 Valid BagIt For Top Level Container w/Folder</a></p>
+<p><a class="reference external" href="https://firebasestorage.googleapis.com/v0/b/gitbook-28427.appspot.com/o/assets%2F-LMcMJmToep43UCF_R1w%2F-Lny89QJzv_kKe7w9YRq%2F-Lny_PcjK3_BrsGQQNPP%2FNewProjectWithSingleFileBagIt.zip?alt=media&amp;token=9c2b10c1-54c3-40ff-a038-163fd55c424e/">#2 Valid BagIt For Top Level Container w/File</a></p>
+<p><a class="reference external" href="https://firebasestorage.googleapis.com/v0/b/gitbook-28427.appspot.com/o/assets%2F-LMcMJmToep43UCF_R1w%2F-Lny89QJzv_kKe7w9YRq%2F-Lny_XOAvH1FEg8rUmQC%2FSingleFileDuplicate.zip?alt=media&amp;token=98b5952b-3a19-47c0-b7cf-d8950e866284/">#3 Valid BagIt For Existing Container w/Single File</a></p>
+<p><a class="reference external" href="https://firebasestorage.googleapis.com/v0/b/gitbook-28427.appspot.com/o/assets%2F-LMcMJmToep43UCF_R1w%2F-Lny89QJzv_kKe7w9YRq%2F-Lny_uW8gKnKU-a_KfE5%2FExistingContainerBagIt.zip?alt=media&amp;token=0afebebf-cbb5-4a7f-884c-6f82ab88e0a0/">#4 Valid BagIt For Existing Container w/Folders &amp; Files</a></p>
+<p><a class="reference external" href="https://firebasestorage.googleapis.com/v0/b/gitbook-28427.appspot.com/o/assets%2F-LMcMJmToep43UCF_R1w%2F-Lny89QJzv_kKe7w9YRq%2F-Lnya0HF9nI3DTZKlBKV%2FBadBagItManifest.zip?alt=media&amp;token=4f08f6f9-f7e3-4fc5-b31e-46499b8cbbbf/">#5 Invalid BagIt - Bad Manifest</a></p>
+<p><a class="reference external" href="https://firebasestorage.googleapis.com/v0/b/gitbook-28427.appspot.com/o/assets%2F-LMcMJmToep43UCF_R1w%2F-Lny89QJzv_kKe7w9YRq%2F-Lnya82iBtV9Lb0DVFlN%2FBadBagItMissingFile.zip?alt=media&amp;token=bececbbc-54ff-4992-834e-abbd9f034b83/">#6 Invalid BagIt - Missing File</a></p>
+<p><a class="reference external" href="https://firebasestorage.googleapis.com/v0/b/gitbook-28427.appspot.com/o/assets%2F-LMcMJmToep43UCF_R1w%2F-Lny89QJzv_kKe7w9YRq%2F-LnyaFEGGL41khJyrPAE%2FBadBagItUnknownfile.zip?alt=media&amp;token=730f335c-03c4-4507-8610-e185f9a45c4f/">#7 Invalid BagIt - Unknown File</a></p>
+</div>
+<div class="section" id="example-workflow">
+<h3>Example Workflow<a class="headerlink" href="#example-workflow" title="Permalink to this headline">¶</a></h3>
+<p>The following are instructions on how the BagIt files above can be used to test the Upload endpoint:</p>
+<ol class="arabic simple">
+<li><p>Make a POST to <code class="docutils literal notranslate"><span class="pre">https://localhost/api_v1/targets/osf/resources/</span></code> with BagIt #2 to see a new top level container created.</p></li>
+<li><p>Get the id of the new container and make a POST to <code class="docutils literal notranslate"><span class="pre">https://localhost/api_v1/targets/osf/resources/{resource_id}/</span></code> with BagIt #3 and with the ‘presqt-file-duplicate-action’ set to ‘ignore’ to see that the duplicate file is found and it’s contents are different but the file is updated.</p></li>
+<li><p>Make the same request as 2 but set the header ‘presqt-file-duplicate-action’ to ‘update’ to see the file updated.</p></li>
+<li><p>With the same container id make a POST request to <code class="docutils literal notranslate"><span class="pre">https://localhost/api_v1/targets/osf/resources/{resource_id}/</span></code> with BagIt #4 to see new files and folders added to the top level container.</p></li>
+<li><p>A POST request with BagIts 5-7 should return an error with nothing being uploaded.</p></li>
+</ol>
+</div>
+</div>
+<div class="section" id="asynchronous-requests">
+<h2>Asynchronous Requests<a class="headerlink" href="#asynchronous-requests" title="Permalink to this headline">¶</a></h2>
+<p>The Center for Research Computing has implemented asynchronous requests in its integration of OSF
+with PresQT.  They used the python library aiohttp (<a class="reference external" href="https://github.com/aio-libs/aiohttp">https://github.com/aio-libs/aiohttp</a>) to accomplish
+this.</p>
+<div class="section" id="example-osf-resource-collection">
+<h3>Example - OSF Resource Collection<a class="headerlink" href="#example-osf-resource-collection" title="Permalink to this headline">¶</a></h3>
+<p>When navigating the OSF API for endpoints such as Resource Collection they found that a massive
+amount of GET requests to OSF would occur. For instance, getting the resources for a fork of the
+PresQT project (<a class="reference external" href="https://osf.io/d3jx7/">https://osf.io/d3jx7/</a>) took roughly 1 minute and after implementing asynchronous
+requests it now takes roughly 25 seconds.</p>
+<p>Asynchronous requests allows us to group similar API requests together to be made at the same time
+rather than one at a time. Because of the nature of APIs and needing to hit an endpoint to see where
+to go further, not all requests could be grouped together so we devised a strategy to group as many
+as we could. The following image is our solution. Every color is a grouping of asynchronous requests:</p>
+<div class="figure align-center" id="id22">
+<img alt="_images/async_request_grouping.png" src="_images/async_request_grouping.png" />
+<p class="caption"><span class="caption-text">Image 1: Asynchronous Request Grouping</span><a class="headerlink" href="#id22" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+</div>
+<div class="section" id="docker-commands">
+<h2>Docker Commands<a class="headerlink" href="#docker-commands" title="Permalink to this headline">¶</a></h2>
+<p>To rebuild the docker container after a new package has been added to the requirements files:</p>
+<p><code class="docutils literal notranslate"><span class="pre">$</span> <span class="pre">docker-compose</span> <span class="pre">up</span> <span class="pre">--build</span></code></p>
+<p>Run the following command for an <cite>interactive -i terminal -t</cite> for this container:</p>
+<p><code class="docutils literal notranslate"><span class="pre">$</span> <span class="pre">docker</span> <span class="pre">exec</span> <span class="pre">-i</span> <span class="pre">-t</span> <span class="pre">presqt_presqt_django_1</span> <span class="pre">/bin/ash</span></code></p>
+</div>
+<div class="section" id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
+<p>We maintain a high code coverage percentage with unit and integration tests for every function,
+serializer, and management command. We are using a package called Coverage (<a class="reference external" href="https://coverage.readthedocs.io/en/v4.5.x/">https://coverage.readthedocs.io/en/v4.5.x/</a>)
+to track code coverage.</p>
+<p>To run unit tests without using Coverage:</p>
+<p><code class="docutils literal notranslate"><span class="pre">$</span> <span class="pre">python</span> <span class="pre">manage.py</span> <span class="pre">test</span></code></p>
+<p>To run unit tests using Coverage with comprehensive code coverage report generated into an HTML file:</p>
+<p><code class="docutils literal notranslate"><span class="pre">coverage</span> <span class="pre">run</span> <span class="pre">manage.py</span> <span class="pre">test</span> <span class="pre">&amp;&amp;</span> <span class="pre">coverage</span> <span class="pre">combine</span> <span class="pre">&amp;&amp;</span> <span class="pre">coverage</span> <span class="pre">html</span></code></p>
+<blockquote>
+<div><div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This command will generate a directory that is ignored by Git via our .gitignore file. To see the
+code coverage open the file /coverage_html/index.html in a browser.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Coverage options are specified in a configuration file called .coveragerc. This is where you would
+add files/directories you want to omit from our Coverage report.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>‘coverage combine’ will take the coverage files created for multipricesses (located in the base directory)
+and will combine them with the main coverage files . If a test using multiprocessing fails these
+coverage files will remain and must be deleted manually.</p>
+</div>
+</div></blockquote>
+<p>We also tried to split unit and integration tests up between core PresQT code and Target code. Tests
+that cover core code reside in <code class="docutils literal notranslate"><span class="pre">presqt/api_v1/tests/</span></code> while target tests that cover target functions
+reside in <code class="docutils literal notranslate"><span class="pre">presqt/targets/{target_name}/tests/</span></code> .</p>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="web_services.html" class="btn btn-neutral float-right" title="Web Services" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="development_environment_setup.html" class="btn btn-neutral float-left" title="Development Environment Setup" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, ndlib
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
