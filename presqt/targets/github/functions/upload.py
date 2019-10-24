@@ -90,7 +90,7 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
             # A relative path to the file is what is added to the GitHub PUT address
             path_to_add = os.path.join(path.partition('/data/')[2], name)
             path_to_add_to_url = path_to_add.partition('/')[2].replace(' ', '_')
-            finished_path = title + '/' + path_to_add_to_url
+            finished_path = '/' + title + '/' + path_to_add_to_url
             file_metadata_list.append({
                 "actionRootPath": os.path.join(path, name),
                 "destinationPath": finished_path,

@@ -1,4 +1,6 @@
 import asyncio
+import os
+
 import aiohttp
 import requests
 
@@ -99,11 +101,12 @@ def curate_nd_download_resource(token, resource_id):
         project_title = requests.get(resource.extra['isPartOf'],
                                      headers={'X-Api-Token': '{}'.format(token)}).json()['title']
         file_metadata = {
-            "sourcePath": project_title + '/' + resource.title,
+            "sourcePath": '/{}/{}'.format(project_title,resource.title),
             "title": resource.title,
             "sourceHashes": {
                 "md5": resource.md5},
-            "extra": resource.extra}
+            "extra": resource.extra
+        }
 
         # This is so we aren't missing the few extra keys that are pulled out for the PresQT payload
         file_metadata['extra'].update(
@@ -137,7 +140,8 @@ def curate_nd_download_resource(token, resource_id):
                 file_md5 = md5_hash_check[len(md5_hash_check)-32:]
 
                 file_metadata_dict = {
-                    "sourcePath": project_title + '/' + file['label'],
+                    # "sourcePath": project_title + '/' + file['label'],
+                    "sourcePath": os.path.join('/', project_title, file['label']),
                     "title": file['label'],
                     "sourceHashes": {
                         "md5": file_md5},

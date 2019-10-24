@@ -102,7 +102,7 @@ def osf_download_resource(token, resource_id):
     if resource.kind_name == 'file':
         file_metadata = osf_download_metadata(resource)
         project = osf_instance.project(resource.parent_project_id)
-        file_metadata['sourcePath'] = file_metadata['sourcePath'] = '{}/{}'.format(project.title, file_metadata['sourcePath'])
+        file_metadata['sourcePath'] = '/{}/{}'.format(project.title, file_metadata['sourcePath'])
 
         binary_file = resource.download()
 
@@ -142,7 +142,7 @@ def osf_download_resource(token, resource_id):
         for file in files:
             file['file'] = get_dictionary_from_list(
                 download_data, 'url', file['file'].download_url)['binary_content']
-            file['metadata']['sourcePath'] = '{}/{}'.format(project.title,
+            file['metadata']['sourcePath'] = '/{}/{}'.format(project.title,
                                                             file['metadata']['sourcePath'])
 
     return files, empty_containers, action_metadata

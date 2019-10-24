@@ -18,7 +18,7 @@ from presqt.api_v1.utilities import (target_validation, get_destination_token,
                                      spawn_action_process, get_or_create_hashes_from_bag,
                                      create_fts_metadata, create_download_metadata,
                                      create_upload_transfer_metadata, create_upload_metadata,
-                                     get_action_message)
+                                     get_action_message, get_upload_source_metadata)
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
@@ -171,7 +171,6 @@ class BaseResource(APIView):
             self.resource_main_dir = os.path.join(ticket_path, next(os.walk(ticket_path))[1][0])
 
             # Validate the 'bag' and check for checksum mismatches
-
             try:
                 bag = bagit.Bag(self.resource_main_dir)
                 validate_bag(bag)
@@ -185,24 +184,8 @@ class BaseResource(APIView):
                 if index == 2:
                     return Response(data=e.args, status=status.HTTP_400_BAD_REQUEST)
             else:
-                # Remove PresQT FTS metadata from the bag
-                self.source_metadata_actions = []
-                for bag_file in bag.payload_files():
-                    if os.path.split(bag_file)[-1] == 'PRESQT_FTS_METADATA.json':
-                        metadata_path = os.path.join(self.resource_main_dir, bag_file)
-                        source_metadata_content = read_file(metadata_path, True)
-                        if schema_validator('presqt/json_schemas/metadata_schema.json',
-                                            source_metadata_content) is True:
-                            self.source_metadata_actions = self.source_metadata_actions + \
-                                                           source_metadata_content['actions']
-                            os.remove(os.path.join(self.resource_main_dir, bag_file))
-                            bag.save(manifests=True)
-                        else:
-                            invalid_metadata_path = os.path.join(os.path.split(metadata_path)[0],
-                                                                 'INVALID_PRESQT_METADATA.json')
-                            os.rename(metadata_path, invalid_metadata_path)
-                            bag.save(manifests=True)
-
+                # Collect and remove any existing source metadata
+                get_upload_source_metadata(self, bag)
                 # If the bag validated successfully then break from the loop
                 break
 
@@ -214,7 +197,6 @@ class BaseResource(APIView):
             'message': 'Upload is being processed on the server',
             'status_code': None
         }
-
         self.process_info_path = os.path.join(ticket_path, 'process_info.json')
         write_file(self.process_info_path, self.process_info_obj, True)
 
@@ -280,9 +262,9 @@ class BaseResource(APIView):
             fixity_obj, self.download_fixity = download_fixity_checker.download_fixity_checker(resource)
             fixity_info.append(fixity_obj)
 
-            # If this is the PresQT FTS Metadata file, don't write it to disk but get its contents
-            metadata_validity = create_download_metadata(self, resource, fixity_obj)
-            if metadata_validity:
+            # Create metadata for this resource. Return True if a valid FTS metadata file is found.
+            if create_download_metadata(self, resource, fixity_obj):
+                # Don't write valid FTS metadata file.
                 continue
 
             # Save the file to the disk.
@@ -311,7 +293,6 @@ class BaseResource(APIView):
                 container_path += '/'
             if container_path[0] != '/':
                 container_path = '/' + container_path
-
             os.makedirs(os.path.dirname('{}{}'.format(self.resource_main_dir, container_path)))
 
         # If we are transferring the downloaded resource then bag it for the resource_upload method
@@ -330,10 +311,10 @@ class BaseResource(APIView):
                                                           self.source_fts_metadata_actions)
             write_file(os.path.join(self.resource_main_dir, 'PRESQT_FTS_METADATA.json'),
                        final_fts_metadata_data, True)
+
             # Validate the final metadata
             metadata_validation = schema_validator('presqt/json_schemas/metadata_schema.json',
                                                    final_fts_metadata_data)
-            print(metadata_validation)
             self.process_info_obj['message'] = get_action_message('Download', self.download_fixity, metadata_validation)
 
             # Add the fixity file to the disk directory
@@ -363,7 +344,7 @@ class BaseResource(APIView):
         action = 'resource_upload'
 
         # Data directory in the bag
-        data_directory = '{}/data'.format(self.resource_main_dir)
+        self.data_directory = '{}/data'.format(self.resource_main_dir)
 
         # Fetch the proper function to call
         func = FunctionRouter.get_function(self.destination_target_name, action)
@@ -380,7 +361,7 @@ class BaseResource(APIView):
         # 'resources_updated' is list of paths of resources that were updated while uploading
         try:
             uploaded_file_hashes, resources_ignored, resources_updated, action_metadata, file_metadata_list, project_id = func(
-                self.destination_token, self.destination_resource_id, data_directory,
+                self.destination_token, self.destination_resource_id, self.data_directory,
                 self.hash_algorithm, self.file_duplicate_action)
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch.
@@ -406,30 +387,41 @@ class BaseResource(APIView):
             if resource['destinationHash'] != self.file_hashes[resource['actionRootPath']] \
                     and resource['actionRootPath'] not in resources_ignored:
                 self.upload_fixity = False
-                self.process_info_obj['failed_fixity'].append(resource['actionRootPath'][len(data_directory) + 1:])
+                self.process_info_obj['failed_fixity'].append(resource['actionRootPath']
+                                                              [len(self.data_directory) + 1:])
                 resource['failed_fixity_info'].append({
                     'NewGeneratedHash': resource['destinationHash'],
                     'algorithmUsed': self.hash_algorithm,
-                    'reasonFixityFailed': "Either the destination did not provide a hash or fixity failed during upload."
+                    'reasonFixityFailed': "Either the destination did not provide a hash "
+                                          "or fixity failed during upload."
                 })
 
 
         # Strip the server created directory prefix of the file paths for ignored and updated files
-        resources_ignored = [file[len(data_directory):] for file in resources_ignored]
+        resources_ignored = [file[len(self.data_directory):] for file in resources_ignored]
         self.process_info_obj['resources_ignored'] = resources_ignored
-        resources_updated = [file[len(data_directory):] for file in resources_updated]
+        resources_updated = [file[len(self.data_directory):] for file in resources_updated]
         self.process_info_obj['resources_updated'] = resources_updated
 
         # If we are transferring the resources then add metadata to the existing fts metadata
         if self.action == 'resource_transfer_in':
-            self.metadata_validation = create_upload_transfer_metadata(self, action_metadata, file_metadata_list, data_directory, project_id, resources_ignored, resources_updated)
-            self.process_info_obj['upload_status'] = get_action_message('Upload', self.upload_fixity, self.metadata_validation)
+            self.metadata_validation = create_upload_transfer_metadata(self, file_metadata_list,
+                                                                       action_metadata, project_id,
+                                                                       resources_ignored,
+                                                                       resources_updated)
+            self.process_info_obj['upload_status'] = get_action_message('Upload',
+                                                                        self.upload_fixity,
+                                                                        self.metadata_validation)
         # Otherwise if we are uploading from a local source then create fts metadata
         # and update the server process file
         else:
-            self.metadata_validation = create_upload_metadata(self, file_metadata_list, data_directory, action_metadata, project_id, resources_ignored, resources_updated)
+            self.metadata_validation = create_upload_metadata(self, file_metadata_list,
+                                                              action_metadata, project_id,
+                                                              resources_ignored, resources_updated)
             # Validate the final metadata
-            self.process_info_obj['message'] = get_action_message('Upload', self.upload_fixity, self.metadata_validation)
+            self.process_info_obj['message'] = get_action_message('Upload',
+                                                                  self.upload_fixity,
+                                                                  self.metadata_validation)
 
             # Update server process file
             self.process_info_obj['status_code'] = '200'
