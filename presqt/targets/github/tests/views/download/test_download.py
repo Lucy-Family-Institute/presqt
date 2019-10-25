@@ -2,14 +2,10 @@ import io
 import json
 import shutil
 import zipfile
-import time
-import os
-
 from django.test import SimpleTestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
-from presqt.api_v1.utilities.fixity.download_fixity_checker import download_fixity_checker
 from presqt.utilities import read_file
 from presqt.targets.utilities import shared_call_get_resource_zip
 
@@ -47,7 +43,7 @@ class TestDownload(SimpleTestCase):
         # Verify content type
         self.assertEqual(response._headers['content-type'][1], 'application/zip')
         # Verify the number of resources in the zip is correct
-        self.assertEqual(len(zip_file.namelist()), 12)
+        self.assertEqual(len(zip_file.namelist()), 13)
 
         # Verify the fixity file is empty as there was nothing to check.
         with zip_file.open('github_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
@@ -85,7 +81,7 @@ class TestDownload(SimpleTestCase):
         # Verify content type
         self.assertEqual(response._headers['content-type'][1], 'application/zip')
         # Verify the number of resources in the zip is correct
-        self.assertEqual(len(zip_file.namelist()), 12)
+        self.assertEqual(len(zip_file.namelist()), 13)
 
         # Verify the fixity file is empty as there was nothing to check.
         with zip_file.open('github_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
@@ -123,7 +119,7 @@ class TestDownload(SimpleTestCase):
         # Verify content type
         self.assertEqual(response._headers['content-type'][1], 'application/zip')
         # Verify the number of resources in the zip is correct
-        self.assertEqual(len(zip_file.namelist()), 81)
+        self.assertEqual(len(zip_file.namelist()), 83)
 
         # GitHub does not provide file hashes, and thus we can't properly check fixity.
         with zip_file.open('{}_download_{}/data/fixity_info.json'.format(self.target_name, resource_id)) as fixityfile:

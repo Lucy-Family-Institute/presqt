@@ -1,4 +1,3 @@
-import json
 import os
 import shutil
 import zipfile
@@ -24,7 +23,7 @@ from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
 from presqt.json_schemas.schema_handlers import schema_validator
 from presqt.utilities import (PresQTValidationError, PresQTResponseException, write_file,
-                              zip_directory, get_dictionary_from_list, PresQTError, read_file)
+                              zip_directory)
 
 
 class BaseResource(APIView):
@@ -395,7 +394,6 @@ class BaseResource(APIView):
                     'reasonFixityFailed': "Either the destination did not provide a hash "
                                           "or fixity failed during upload."
                 })
-
 
         # Strip the server created directory prefix of the file paths for ignored and updated files
         resources_ignored = [file[len(self.data_directory):] for file in resources_ignored]

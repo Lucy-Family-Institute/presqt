@@ -46,7 +46,7 @@ class TestDownload(SimpleTestCase):
         # Verify content type
         self.assertEqual(response._headers['content-type'][1], 'application/zip')
         # Verify the number of resources in the zip is correct
-        self.assertEqual(len(zip_file.namelist()), 12)
+        self.assertEqual(len(zip_file.namelist()), 13)
 
         # Verify the fixity file is empty as there was nothing to check.
         with zip_file.open('curate_nd_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
@@ -84,7 +84,7 @@ class TestDownload(SimpleTestCase):
         # Verify content type
         self.assertEqual(response._headers['content-type'][1], 'application/zip')
         # Verify the number of resources in the zip is correct
-        self.assertEqual(len(zip_file.namelist()), 12)
+        self.assertEqual(len(zip_file.namelist()), 13)
 
         # Verify the custom hash_file information is correct
         with zip_file.open('{}_download_{}/data/fixity_info.json'.format(self.target_name, resource_id)) as fixityfile:
@@ -98,7 +98,14 @@ class TestDownload(SimpleTestCase):
         # Run the file through the fixity checker again to make sure it downloaded correctly
         with zip_file.open('{}_download_{}/data/1900s_Cat.jpg'.format(self.target_name, resource_id)) as myfile:
             temp_file = myfile.read()
-            fixity, fixity_match = download_fixity_checker(temp_file, {'md5': zip_json['presqt_hash']})
+            resource_dict = {
+                "file": temp_file,
+                "hashes": {'md5': zip_json['presqt_hash']},
+                "title": '',
+                "path": '',
+                "metadata": {}
+            }
+            fixity, fixity_match = download_fixity_checker(resource_dict)
             self.assertEqual(fixity['fixity'], True)
 
         # Delete corresponding folder
@@ -124,7 +131,7 @@ class TestDownload(SimpleTestCase):
         # Verify content type
         self.assertEqual(response._headers['content-type'][1], 'application/zip')
         # Verify the number of resources in the zip is correct
-        self.assertEqual(len(zip_file.namelist()), 13)
+        self.assertEqual(len(zip_file.namelist()), 14)
 
         # Verify the custom hash_file information is correct
         with zip_file.open('{}_download_{}/data/fixity_info.json'.format(self.target_name, resource_id)) as fixityfile:
@@ -140,12 +147,26 @@ class TestDownload(SimpleTestCase):
         with zip_file.open('{}_download_{}/data{}'.format(
             self.target_name, resource_id, zip_json[0]['path'])) as myfile:
             temp_file = myfile.read()
-            fixity, fixity_match = download_fixity_checker(temp_file, {'md5': zip_json[0]['presqt_hash']})
+            resource_dict = {
+                "file": temp_file,
+                "hashes": {'md5': zip_json[0]['presqt_hash']},
+                "title": 'f',
+                "path": '{}_download_{}/data{}'.format(self.target_name, resource_id, zip_json[0]['path']),
+                "metadata": {}
+            }
+            fixity, fixity_match = download_fixity_checker(resource_dict)
             self.assertEqual(fixity['fixity'], True)
         with zip_file.open('{}_download_{}/data{}'.format(
             self.target_name, resource_id, zip_json[1]['path'])) as myfile:
             temp_file = myfile.read()
-            fixity, fixity_match = download_fixity_checker(temp_file, {'md5': zip_json[1]['presqt_hash']})
+            resource_dict = {
+                "file": temp_file,
+                "hashes": {'md5': zip_json[1]['presqt_hash']},
+                "title": 'f',
+                "path": '{}_download_{}/data{}'.format(self.target_name, resource_id, zip_json[1]['path']),
+                "metadata": {}
+            }
+            fixity, fixity_match = download_fixity_checker(resource_dict)
             self.assertEqual(fixity['fixity'], True)
 
         # Delete corresponding folder

@@ -1,14 +1,13 @@
 import itertools
 import json
-import os
 import requests
 
 from presqt.targets.osf.classes.main import OSF
 from presqt.targets.osf.utilities import get_osf_resource
-from presqt.utilities import read_file, write_file, PresQTError
+from presqt.utilities import PresQTError
 
 
-def osf_upload_metadata(token, resource_id, resource_main_dir, metadata_dict, project_id=None):
+def osf_upload_metadata(token, resource_id, metadata_dict, project_id=None):
     """
     Upload the metadata of this PresQT action at the top level of the repo.
 
@@ -18,8 +17,6 @@ def osf_upload_metadata(token, resource_id, resource_main_dir, metadata_dict, pr
         The user's OSF token
     resource_id : str
         An id the upload is taking place on
-    resource_main_dir : str
-        The path to the bag to be uploaded
     metadata_dict : dict
         The metadata to be written to the project
     project_id : str

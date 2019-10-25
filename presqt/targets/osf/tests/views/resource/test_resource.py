@@ -17,7 +17,7 @@ from config.settings.base import OSF_TEST_USER_TOKEN, OSF_UPLOAD_TEST_USER_TOKEN
 from presqt.api_v1.views.resource.base_resource import BaseResource
 from presqt.targets.utilities import (shared_get_success_function_202,
                                       shared_get_success_function_202_with_error, process_wait,
-                                      shared_upload_function)
+                                      shared_upload_function_osf)
 from presqt.utilities import write_file, read_file
 from presqt.api_v1.utilities.fixity.download_fixity_checker import download_fixity_checker
 from presqt.utilities import remove_path_contents
@@ -246,7 +246,7 @@ class TestResourceGETZip(SimpleTestCase):
         }
         self.resource_id = '5cd98510f244ec001fe5632f'
         self.target_name = 'osf'
-        self.file_number = 12
+        self.file_number = 13
         self.file_name = '22776439564_7edbed7e10_o.jpg'
         fixity_info = shared_get_success_function_202(self)
 
@@ -269,7 +269,7 @@ class TestResourceGETZip(SimpleTestCase):
         }
         self.resource_id = '5cd98978054f5b001a5ca746'
         self.target_name = 'osf'
-        self.file_number = 12
+        self.file_number = 13
         self.file_name = 'build-plugins.js'
         fixity_info = shared_get_success_function_202(self)
 
@@ -292,7 +292,7 @@ class TestResourceGETZip(SimpleTestCase):
         }
         self.resource_id = '5cd98978f244ec001ee86609'
         self.target_name = 'osf'
-        self.file_number = 12
+        self.file_number = 13
         self.file_name = 'Character Sheet - Alternative - Print Version.pdf'
         fixity_info = shared_get_success_function_202(self)
 
@@ -315,7 +315,7 @@ class TestResourceGETZip(SimpleTestCase):
         }
         self.resource_id = '5cd98979f8214b00198b1153'
         self.target_name = 'osf'
-        self.file_number = 12
+        self.file_number = 13
         self.file_name = '02 - The Widow.mp3'
         fixity_info = shared_get_success_function_202(self)
 
@@ -334,7 +334,7 @@ class TestResourceGETZip(SimpleTestCase):
         """
         self.resource_id = '5cd98a30f2c01100177156be'
         self.target_name = 'osf'
-        self.file_number = 12
+        self.file_number = 13
         self.file_name = 'Character Sheet - Alternative - Print Version.pdf'
         fixity_info = shared_get_success_function_202(self)
 
@@ -351,7 +351,7 @@ class TestResourceGETZip(SimpleTestCase):
         """
         self.resource_id = '5cd98b0af244ec0021e5f8dd'
         self.target_name = 'osf'
-        self.file_number = 14
+        self.file_number = 15
         self.file_name = 'Docs2/Docs3/CODE_OF_CONDUCT.md'
         final_process_info = shared_get_success_function_202(self)
 
@@ -364,7 +364,7 @@ class TestResourceGETZip(SimpleTestCase):
         """
         self.resource_id = 'cmn5z:googledrive'
         self.target_name = 'osf'
-        self.file_number = 15
+        self.file_number = 16
         self.file_name = 'googledrive/Google Images/IMG_4740.jpg'
         final_process_info = shared_get_success_function_202(self)
 
@@ -378,7 +378,7 @@ class TestResourceGETZip(SimpleTestCase):
         """
         self.resource_id = 'cmn5z'
         self.target_name = 'osf'
-        self.file_number = 75
+        self.file_number = 76
         self.file_name = 'Test Project/osfstorage/Docs/Docs2/Docs3/CODE_OF_CONDUCT.md'
         shared_get_success_function_202(self)
 
@@ -478,13 +478,19 @@ class TestResourceGETZip(SimpleTestCase):
         zip_file = zipfile.ZipFile(zip_path)
         # Verify that the zip file exists and it holds the correct number of files.
         self.assertEqual(os.path.isfile(zip_path), True)
-        self.assertEqual(len(zip_file.namelist()), 12)
+        self.assertEqual(len(zip_file.namelist()), 13)
 
         # Grab the .jpg file in the zip and run it back through the fixity checker with bad hashes
         # So we can get a failed fixity. This fixity variable will be used later in our Patch.
-        fixity, fixity_match = download_fixity_checker(
-            read_file('{}/{}/data/22776439564_7edbed7e10_o.jpg'.format(ticket_path, base_name)),
-            hashes)
+
+        resource_dict = {
+            "file": read_file('{}/{}/data/22776439564_7edbed7e10_o.jpg'.format(ticket_path, base_name)),
+            "hashes": hashes,
+            "title": 'data/22776439564_7edbed7e10_o.jpg',
+            "path": '{}/{}/data/22776439564_7edbed7e10_o.jpg'.format(ticket_path, base_name),
+            "metadata": {}
+        }
+        fixity, fixity_match = download_fixity_checker(resource_dict)
 
         # First we need to remove the contents of the ticket path except 'process_info.json'
         remove_path_contents(ticket_path, 'process_info.json')
@@ -517,13 +523,13 @@ class TestResourceGETZip(SimpleTestCase):
         # Verify the final status in the process_info file is 'finished'
         self.assertEqual(final_process_info['status'], 'finished')
         # Verify that the message is what is expected if fixity has failed.
-        self.assertEqual(final_process_info['message'], 'Download successful with fixity errors')
+        self.assertEqual(final_process_info['message'], 'Download successful but with fixity errors.')
         # Verify zip file exists and has the proper amount of resources in it.
         base_name = 'osf_download_{}'.format(resource_id)
         zip_path = '{}/{}.zip'.format(ticket_path, base_name)
         zip_file = zipfile.ZipFile(zip_path)
         self.assertEqual(os.path.isfile(zip_path), True)
-        self.assertEqual(len(zip_file.namelist()), 12)
+        self.assertEqual(len(zip_file.namelist()), 13)
 
         # Verify that the resource we expect is there.
         self.assertEqual(
@@ -634,7 +640,7 @@ class TestResourcePOST(SimpleTestCase):
         self.resources_ignored = []
         self.resources_updated = []
         self.hash_algorithm = 'sha256'
-        shared_upload_function(self)
+        shared_upload_function_osf(self)
 
         # Verify files exist in OSF
         headers = {'Authorization': 'Bearer {}'.format(OSF_UPLOAD_TEST_USER_TOKEN)}
@@ -649,7 +655,7 @@ class TestResourcePOST(SimpleTestCase):
                 file_data = requests.get(
                     folder_data['data'][0]['relationships']['files']['links']['related']['href'], headers=headers).json()
                 break
-        self.assertEqual(folder_data['links']['meta']['total'], 1)
+        self.assertEqual(folder_data['links']['meta']['total'], 2)
         self.assertEqual(folder_data['data'][0]['attributes']['name'], 'funnyfunnyimages')
         self.assertEqual(file_data['links']['meta']['total'], 1)
         self.assertEqual(file_data['data'][0]['attributes']['name'],
@@ -665,10 +671,10 @@ class TestResourcePOST(SimpleTestCase):
                            'target_name': 'osf', 'resource_id': self.resource_id})
         self.file = 'presqt/api_v1/tests/resources/upload/FolderBagItToUpload.zip'
         self.resources_ignored = [
-            'funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
+            '/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
         self.resources_updated = []
         self.hash_algorithm = 'sha256'
-        shared_upload_function(self)
+        shared_upload_function_osf(self)
 
         # Verify files exist in OSF
         file_data = requests.get(folder_data['data'][0]['relationships']
@@ -688,10 +694,10 @@ class TestResourcePOST(SimpleTestCase):
         self.url = reverse('resource', kwargs={
                            'target_name': 'osf', 'resource_id': self.resource_id})
         self.file = 'presqt/api_v1/tests/resources/upload/FolderUpdateBagItToUpload.zip'
-        self.resources_ignored = ['Screen Shot 2019-07-15 at 3.51.13 PM.png']
-        self.resources_updated = ['Screen Shot 2019-07-15 at 3.26.49 PM.png']
+        self.resources_ignored = ['/Screen Shot 2019-07-15 at 3.51.13 PM.png']
+        self.resources_updated = ['/Screen Shot 2019-07-15 at 3.26.49 PM.png']
         self.hash_algorithm = 'sha256'
-        shared_upload_function(self)
+        shared_upload_function_osf(self)
 
         # Verify files exist in OSF
         file_data = requests.get(folder_data['data'][0]['relationships']
@@ -718,7 +724,7 @@ class TestResourcePOST(SimpleTestCase):
         self.resources_updated = []
         self.resources_ignored = []
         self.hash_algorithm = 'sha256'
-        shared_upload_function(self)
+        shared_upload_function_osf(self)
 
         # delete upload folder
         shutil.rmtree(self.ticket_path)
