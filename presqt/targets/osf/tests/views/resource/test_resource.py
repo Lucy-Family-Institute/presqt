@@ -379,7 +379,7 @@ class TestResourceGETZip(SimpleTestCase):
         """
         self.resource_id = 'cmn5z'
         self.target_name = 'osf'
-        self.file_number = 76
+        self.file_number = 77
         self.file_name = 'Test Project/osfstorage/Docs/Docs2/Docs3/CODE_OF_CONDUCT.md'
         shared_get_success_function_202(self)
 
@@ -672,9 +672,89 @@ class TestResourceGETZip(SimpleTestCase):
 
     def test_metadata_success_existing_file(self):
         """
-        Test that the metadata provided with the download is correct.
         Download a resource that has an existing metadata file.
+        Test that the metadata provided with the download is valid.
         """
+        url = reverse('resource', kwargs={'target_name': 'osf',
+                                      'resource_id': 'cmn5z:osfstorage',
+                                      'resource_format': 'zip'})
+        response = self.client.get(url, **self.header)
+        # Verify the status code and content
+        self.assertEqual(response.status_code, 202)
+
+        ticket_number = response.data['ticket_number']
+        ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
+
+        # Wait until the spawned off process finishes in the background
+        # to do validation on the resulting files
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+
+        # Verify that the metadata file is there.
+        metadata_path = '{}/osf_download_cmn5z:osfstorage/data/PRESQT_FTS_METADATA.json'. \
+            format(ticket_path)
+        self.assertEqual(os.path.isfile(metadata_path), True)
+        metadata_json = read_file(metadata_path, True)
+
+        self.assertEqual(True, schema_validator('presqt/json_schemas/metadata_schema.json', metadata_json))
+        self.assertEqual(2, len(metadata_json['actions']))
+
+        for action in metadata_json['actions']:
+            if action['id'] == 'd1b9df10-d7d4-4223-b49b-efa51bca16e1':
+                self.assertEqual({"created": [], "updated": [], "ignored": []}, action['files'])
+            else:
+                self.assertEqual(57, len(action['files']['created']))
+
+        # Delete corresponding folder
+        shutil.rmtree(ticket_path)
+
+    def test_metadata_success_existing_invalid_file(self):
+        """
+        Download a resource that has an existing metadata file.
+        Test that the metadata provided with the download is invalid.
+        """
+        url = reverse('resource', kwargs={'target_name': 'osf',
+                                          'resource_id': '5cd988d3054f5b00185ca5e3',
+                                          'resource_format': 'zip'})
+        response = self.client.get(url, **self.header)
+        # Verify the status code and content
+        self.assertEqual(response.status_code, 202)
+
+        ticket_number = response.data['ticket_number']
+        ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
+
+        # Wait until the spawned off process finishes in the background
+        # to do validation on the resulting files
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+
+        # Verify that the invalid metadata file has been renamed
+        metadata_path = '{}/osf_download_5cd988d3054f5b00185ca5e3/data/More Images/INVALID_PRESQT_FTS_METADATA.json'. \
+            format(ticket_path)
+        self.assertEqual(os.path.isfile(metadata_path), True)
+        metadata_json = read_file(metadata_path, True)
+        self.assertEqual([{"bad": "action"}], metadata_json['actions'])
+
+        # Verify that the valid metadata file exists
+        metadata_path = '{}/osf_download_5cd988d3054f5b00185ca5e3/data/PRESQT_FTS_METADATA.json'. \
+            format(ticket_path)
+        self.assertEqual(os.path.isfile(metadata_path), True)
+        metadata_json = read_file(metadata_path, True)
+        self.assertEqual(1, len(metadata_json['actions']))
+
+        # Delete corresponding folder
+        shutil.rmtree(ticket_path)
+
 
 class TestResourcePOST(SimpleTestCase):
     """
