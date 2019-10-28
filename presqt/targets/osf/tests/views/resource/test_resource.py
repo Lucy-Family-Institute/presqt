@@ -15,10 +15,11 @@ from rest_framework.test import APIClient
 
 from config.settings.base import OSF_TEST_USER_TOKEN, OSF_UPLOAD_TEST_USER_TOKEN
 from presqt.api_v1.views.resource.base_resource import BaseResource
+from presqt.json_schemas.schema_handlers import schema_validator
 from presqt.targets.utilities import (shared_get_success_function_202,
                                       shared_get_success_function_202_with_error, process_wait,
                                       shared_upload_function_osf)
-from presqt.utilities import write_file, read_file
+from presqt.utilities import write_file, read_file, get_dictionary_from_list
 from presqt.api_v1.utilities.fixity.download_fixity_checker import download_fixity_checker
 from presqt.utilities import remove_path_contents
 from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
@@ -599,6 +600,81 @@ class TestResourceGETZip(SimpleTestCase):
         # Delete corresponding folder
         shutil.rmtree(ticket_path)
 
+    def test_metadata_success_no_existing_file(self):
+        """
+        Test that the metadata provided with the download is correct.
+        Download a project that has no existing metadata file.
+        """
+        url = reverse('resource', kwargs={'target_name': 'osf',
+                                      'resource_id': '5cd98b0af244ec0021e5f8dd',
+                                      'resource_format': 'zip'})
+        response = self.client.get(url, **self.header)
+        # Verify the status code and content
+        self.assertEqual(response.status_code, 202)
+
+        ticket_number = response.data['ticket_number']
+        ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
+
+        # Wait until the spawned off process finishes in the background
+        # to do validation on the resulting files
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+
+        # Verify that the metadata file is there.
+        metadata_path = '{}/osf_download_5cd98b0af244ec0021e5f8dd/data/PRESQT_FTS_METADATA.json'.\
+            format(ticket_path)
+        self.assertEqual(os.path.isfile(metadata_path), True)
+        metadata_json = read_file(metadata_path, True)
+
+        self.assertEqual(True, schema_validator('presqt/json_schemas/metadata_schema.json', metadata_json))
+        self.assertEqual(1, len(metadata_json['actions']))
+        action_data = metadata_json['actions'][0]
+        self.assertEqual(3, len(action_data['files']['created']))
+        self.assertEqual(0, len(action_data['files']['updated']))
+        self.assertEqual(0, len(action_data['files']['ignored']))
+        self.assertEqual('resource_download', action_data['actionType'])
+        self.assertEqual('osf', action_data['sourceTargetName'])
+        self.assertEqual('Test User', action_data['sourceUsername'])
+        self.assertEqual('Local Machine', action_data['destinationTargetName'])
+        self.assertEqual(None, action_data['destinationUsername'])
+
+        file_data = get_dictionary_from_list(action_data['files']['created'], 'title', 'CODE_OF_CONDUCT.md')
+        self.assertEqual('/Test Project/osfstorage/Docs/Docs2/Docs3/CODE_OF_CONDUCT.md', file_data['sourcePath'])
+        self.assertEqual({'sha256': 'b6da113590fef57e2ba870df1b987084a2886cfa39378cff06fdb5a3271bc2be',
+                          'md5': 'af30f9418b9fe2ad9c0e1f70286dfda0'}, file_data['sourceHashes'])
+        self.assertEqual('/Docs2/Docs3/CODE_OF_CONDUCT.md', file_data['destinationPath'])
+        self.assertEqual({}, file_data['destinationHashes'])
+
+        file_data = get_dictionary_from_list(action_data['files']['created'], 'title', '02 - The Widow.mp3')
+        self.assertEqual('/Test Project/osfstorage/Docs/Docs2/02 - The Widow.mp3',
+                         file_data['sourcePath'])
+        self.assertEqual({'sha256': 'fe3e904fbd549a3ac014bc26fb3d5042d58759f639f24e745dba3580ea316850',
+                'md5': '845248e5456033c6df85b5cffcd7ea8a'}, file_data['sourceHashes'])
+        self.assertEqual('/Docs2/02 - The Widow.mp3', file_data['destinationPath'])
+        self.assertEqual({}, file_data['destinationHashes'])
+
+        file_data = get_dictionary_from_list(action_data['files']['created'], 'title',
+                                             '_config.yml')
+        self.assertEqual('/Test Project/osfstorage/Docs/Docs2/_config.yml',
+                         file_data['sourcePath'])
+        self.assertEqual({'sha256': '4a903798a005fecbfa07455fe0da45cd570df3ae058bb0537c583335bb0c47e3',
+                'md5': '84bddd5dcb51e8386e8c406aabd5057f'}, file_data['sourceHashes'])
+        self.assertEqual('/Docs2/_config.yml', file_data['destinationPath'])
+        self.assertEqual({}, file_data['destinationHashes'])
+
+        # Delete corresponding folder
+        shutil.rmtree(ticket_path)
+
+    def test_metadata_success_existing_file(self):
+        """
+        Test that the metadata provided with the download is correct.
+        Download a resource that has an existing metadata file.
+        """
 
 class TestResourcePOST(SimpleTestCase):
     """
