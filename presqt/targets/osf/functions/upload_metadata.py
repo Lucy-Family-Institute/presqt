@@ -2,6 +2,7 @@ import itertools
 import json
 import requests
 
+from presqt.json_schemas.schema_handlers import schema_validator
 from presqt.targets.osf.classes.main import OSF
 from presqt.targets.osf.utilities import get_osf_resource
 from presqt.utilities import PresQTError
@@ -50,6 +51,19 @@ def osf_upload_metadata(token, resource_id, metadata_dict, project_id=None):
                 old_metadata_file = requests.get(data['links']['move'], headers=header).content
                 # Update the existing metadata
                 updated_metadata = json.loads(old_metadata_file)
+
+                if schema_validator('presqt/json_schemas/metadata_schema.json', updated_metadata) is not True:
+                    # We need to change the file name, this metadata is improperly formatted and
+                    # therefore invalid.
+                    rename_payload = {"action": "rename",
+                                      "rename": "INVALID_PRESQT_FTS_METADATA.json"}
+                    response = requests.post(data['links']['move'], headers=header,
+                                             data=json.dumps(rename_payload).encode('utf-8'))
+                    if response.status_code != 201:
+                        raise PresQTError(
+                            "The request to rename the invalid metadata file has returned a {} error code from OSF.".format(
+                                response.status_code))
+                    break
 
                 # Loop through each 'action' in both metadata files and make a new list of them.
                 joined_actions = [entry for entry in itertools.chain(metadata_dict['actions'],
