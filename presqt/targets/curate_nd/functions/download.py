@@ -140,8 +140,7 @@ def curate_nd_download_resource(token, resource_id):
                 file_md5 = md5_hash_check[len(md5_hash_check)-32:]
 
                 file_metadata_dict = {
-                    # "sourcePath": project_title + '/' + file['label'],
-                    "sourcePath": os.path.join('/', project_title, file['label']),
+                    "sourcePath": '/{}/{}'.format(project_title, file['label']),
                     "title": file['label'],
                     "sourceHashes": {
                         "md5": file_md5},

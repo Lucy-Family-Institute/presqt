@@ -1,3 +1,5 @@
+import os
+
 from presqt.targets.osf.classes.base import OSFBase
 
 

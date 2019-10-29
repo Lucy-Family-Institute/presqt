@@ -65,7 +65,7 @@ def create_upload_transfer_metadata(instance, file_metadata_list, action_metadat
     instance.action_metadata['destinationUsername'] = action_metadata['destinationUsername']
 
     # Put the file metadata in the correct file list
-    instance.action_metadata['files'] = build_file_dic(instance.action_metadata['files']['created'],
+    instance.action_metadata['files'] = build_file_dict(instance.action_metadata['files']['created'],
                                                        resources_ignored, resources_updated,
                                                        'destinationPath')
 
@@ -138,7 +138,7 @@ def create_upload_metadata(instance, file_metadata_list, action_metadata, projec
         })
 
     # Put the file metadata in the correct file list
-    files = build_file_dic(fts_metadata,resources_ignored, resources_updated, 'sourcePath')
+    files = build_file_dict(fts_metadata,resources_ignored, resources_updated, 'sourcePath')
 
     action_metadata = {
         'id': str(uuid4()),
@@ -192,7 +192,7 @@ def write_and_validate_metadata(instance, project_id, fts_metadata_data):
                                                fts_metadata_data)
     return metadata_validation
 
-def build_file_dic(file_metadata, resources_ignored, resources_updated, path):
+def build_file_dict(file_metadata, resources_ignored, resources_updated, path):
     """
     Add the metadata files to the correct file list.
 
