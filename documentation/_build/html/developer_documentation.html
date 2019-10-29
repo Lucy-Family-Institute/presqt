@@ -1,0 +1,701 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Developer Documentation &mdash; PresQT  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Integration Management Command" href="integration_management_command.html" />
+    <link rel="prev" title="Authentication/Authorization" href="authentication_authorization.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> PresQT
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="project_overview.html">Project Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture_infrastructure.html">Architecture/Infrastructure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authentication_authorization.html">Authentication/Authorization</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Developer Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#new-target-integration">New Target Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#target-endpoints">Target Endpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#target-data">Target Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#target-functions">Target Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#resource-endpoints">Resource Endpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#resource-collection">Resource Collection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#resource-detail">Resource Detail</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#resource-download">Resource Download</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#resource-upload">Resource Upload</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#resource-transfer">Resource Transfer</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="integration_management_command.html">Integration Management Command</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development_environment_setup.html">Development Environment Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code_documentation.html">Code Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web_services.html">Web Services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tools_services.html">Tools/Services</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PresQT</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Developer Documentation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/developer_documentation.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="developer-documentation">
+<h1>Developer Documentation<a class="headerlink" href="#developer-documentation" title="Permalink to this headline">¶</a></h1>
+<p>Low level documentation such as development environment setup, API endpoints, code documentation.</p>
+<div class="section" id="new-target-integration">
+<h2>New Target Integration<a class="headerlink" href="#new-target-integration" title="Permalink to this headline">¶</a></h2>
+<p>The goal of PresQT is to make it as simple as possible for a new target to integrate itself with the
+PresQT services. Below are lists of code actions to take when integrating a target.</p>
+</div>
+<div class="section" id="target-endpoints">
+<h2>Target Endpoints<a class="headerlink" href="#target-endpoints" title="Permalink to this headline">¶</a></h2>
+<p>LINK GOES HERE ONCE MADE</p>
+</div>
+<div class="section" id="target-data">
+<h2>Target Data<a class="headerlink" href="#target-data" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Add your target data to the file <code class="docutils literal notranslate"><span class="pre">presqt/targets.json</span></code></dt><dd><ul>
+<li><p>Only make an action ‘True’ if it has been integrated with PresQT</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="target-functions">
+<h2>Target Functions<a class="headerlink" href="#target-functions" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Add your target directory inside <code class="docutils literal notranslate"><span class="pre">presqt/targets/</span></code></dt><dd><ul>
+<li><p>All of your target integration functionality will exist here</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="resource-endpoints">
+<h2>Resource Endpoints<a class="headerlink" href="#resource-endpoints" title="Permalink to this headline">¶</a></h2>
+<p>LINK GOES HERE ONCE MADE</p>
+</div>
+<div class="section" id="resource-collection">
+<h2>Resource Collection<a class="headerlink" href="#resource-collection" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><dl class="simple">
+<dt>Add functionality to return the resource collection inside of your target directory</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt><strong>Function parameters in order:</strong></dt><dd><ul>
+<li><dl class="simple">
+<dt><em>token: str</em></dt><dd><ul>
+<li><p>User’s token for the target</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Function returns:</strong></dt><dd><ul>
+<li><dl class="simple">
+<dt><em>resources: list of python dictionaries</em></dt><dd><ul>
+<li><p>See Resource Endpoint docs for details/example.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>Add the resource collection function to <code class="docutils literal notranslate"><span class="pre">presqt/api_v1/utilities/utils/function_router.py</span></code></dt><dd><blockquote>
+<div><ul class="simple">
+<li><p>Follow the naming conventions laid out in this class’ docstring:</p></li>
+</ul>
+</div></blockquote>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="o">&lt;</span><span class="n">your_target_name</span><span class="o">&gt;</span><span class="n">_fetch_resources</span><span class="p">(</span><span class="n">token</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    token : str</span>
+<span class="sd">    User&#39;s token</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    List of dictionary objects that represent the target resources.</span>
+<span class="sd">    Dictionary must be in the following format:</span>
+<span class="sd">    {</span>
+<span class="sd">        &quot;kind&quot;: &quot;container&quot;,</span>
+<span class="sd">        &quot;kind_name&quot;: &quot;folder&quot;,</span>
+<span class="sd">        &quot;id&quot;: &quot;12345&quot;,</span>
+<span class="sd">        &quot;container&quot;: &quot;None&quot;,</span>
+<span class="sd">        &quot;title&quot;: &quot;Folder Name&quot;,</span>
+<span class="sd">    }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Process to obtain resource collection goes here. Variables below are calculated during the upload process</span>
+    <span class="c1"># But are defined here to show examples of structure</span>
+
+    <span class="n">resources</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s1">&#39;kind&#39;</span><span class="p">:</span> <span class="s1">&#39;container&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;kind_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Project&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;12345&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;container&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+        <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;New Project</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s1">&#39;kind&#39;</span><span class="p">:</span> <span class="s1">&#39;item&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;kind_name&#39;</span><span class="p">:</span> <span class="s1">&#39;file&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;34567,</span>
+        <span class="s1">&#39;container&#39;</span><span class="p">:</span> <span class="s1">&#39;12345&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;The File&#39;</span>
+    <span class="p">},</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">resources</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="resource-detail">
+<h2>Resource Detail<a class="headerlink" href="#resource-detail" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><dl class="simple">
+<dt>Add functionality to return the resource detail inside of your target directory.</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt><strong>Function parameters in order:</strong></dt><dd><ul>
+<li><dl class="simple">
+<dt><em>token: str</em></dt><dd><ul>
+<li><p>User’s token for the target</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><em>resource_id: str</em></dt><dd><ul>
+<li><p>ID for the resource we want to fetch</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Function returns:</strong></dt><dd><ul>
+<li><dl class="simple">
+<dt><em>resource object: python dictionary</em></dt><dd><ul>
+<li><p>See Resource Endpoint docs for details/example.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>Add the resource collection function to <code class="docutils literal notranslate"><span class="pre">presqt/api_v1/utilities/utils/function_router.py</span></code></dt><dd><blockquote>
+<div><ul class="simple">
+<li><p>Follow the naming conventions laid out in this class’ docstring</p></li>
+</ul>
+</div></blockquote>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="o">&lt;</span><span class="n">your_target_name</span><span class="o">&gt;</span><span class="n">_fetch_resource</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">resource_id</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    token : str</span>
+<span class="sd">        User&#39;s token</span>
+
+<span class="sd">    resource_id : str</span>
+<span class="sd">        ID of the resource requested</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    A dictionary object that represents the resource.</span>
+<span class="sd">    Dictionary must be in the following format:</span>
+<span class="sd">    {</span>
+<span class="sd">        &quot;kind&quot;: &quot;item&quot;,</span>
+<span class="sd">        &quot;kind_name&quot;: &quot;file&quot;,</span>
+<span class="sd">        &quot;id&quot;: &quot;12345&quot;,</span>
+<span class="sd">        &quot;title&quot;: &quot;o_o.jpg&quot;,</span>
+<span class="sd">        &quot;date_created&quot;: &quot;2019-05-13T14:54:17.129170Z&quot;,</span>
+<span class="sd">        &quot;date_modified&quot;: &quot;2019-05-13T14:54:17.129170Z&quot;,</span>
+<span class="sd">        &quot;hashes&quot;: {</span>
+<span class="sd">            &quot;md5&quot;: &quot;abca7ef057dcab7cb8d79c36243823e4&quot;,</span>
+<span class="sd">            &quot;sha256&quot;: &quot;ea94ce55261720c56abb508c6dcd1fd481c30c09b7f2f5ab0b79e3199b7e2b55&quot;</span>
+<span class="sd">        },</span>
+<span class="sd">        &quot;extra&quot;: {</span>
+<span class="sd">            &quot;any&quot;: extra,</span>
+<span class="sd">            &quot;values&quot;: here</span>
+<span class="sd">        }</span>
+<span class="sd">    }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Process to obtain resource details goes here. Variables below are calculated during the upload process</span>
+    <span class="c1"># But are defined here to show examples of structure</span>
+
+    <span class="n">resource</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;kind&quot;</span><span class="p">:</span> <span class="s2">&quot;item&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;kind_name&quot;</span><span class="p">:</span> <span class="s2">&quot;file&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;12345&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;o_o.jpg&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;date_created&quot;</span><span class="p">:</span> <span class="s2">&quot;2019-05-13T14:54:17.129170Z&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;date_modified&quot;</span><span class="p">:</span> <span class="s2">&quot;2019-05-13T14:54:17.129170Z&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;hashes&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;md5&quot;</span><span class="p">:</span> <span class="s2">&quot;abca7ef057dcab7cb8d79c36243823e4&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;sha256&quot;</span><span class="p">:</span> <span class="s2">&quot;ea94ce55261720c56abb508c6dcd1fd481c30c09b7f2f5ab0b79e3199b7e2b55&quot;</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;extra&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;any&quot;</span><span class="p">:</span> <span class="s2">&quot;extra&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;values&quot;</span><span class="p">:</span> <span class="s2">&quot;here&quot;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">resource</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="resource-download">
+<h2>Resource Download<a class="headerlink" href="#resource-download" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><dl>
+<dt>Add functionality to return a list of downloaded files inside of your target directory.</dt><dd><blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt><strong>Function parameters in order:</strong></dt><dd><ul>
+<li><dl class="simple">
+<dt><em>token: str</em></dt><dd><ul>
+<li><p>User’s token for the target</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><em>resource_id: str</em></dt><dd><ul>
+<li><p>ID for the resource we want to fetch</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Function returns:</strong></dt><dd><ul>
+<li><dl class="simple">
+<dt><em>list of downloads: list of python dictionaries</em></dt><dd><ul>
+<li><p>Each dictionary will contain details for each file that we can use to build a BagIt
+zip file to return. See the example below for more details.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><em>list of empty containers: list of strings</em></dt><dd><ul>
+<li><p>This list will contain container paths that don’t have files. This will allow us to
+write any empty directories to the BagIt zip file.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="o">&lt;</span><span class="n">your_target_name</span><span class="o">&gt;</span><span class="n">_download_resource</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">resource_id</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    token : str</span>
+<span class="sd">        User&#39;s token</span>
+
+<span class="sd">    resource_id : str</span>
+<span class="sd">        ID of the resource requested</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    - List of dictionary objects that each hold a file and its information.</span>
+<span class="sd">        Dictionary must be in the following format:</span>
+<span class="sd">        {</span>
+<span class="sd">            &#39;file&#39;: binary_file, # File contents in binary format</span>
+<span class="sd">            &#39;hashes&#39;: {&#39;md5&#39;: &#39;the_hash}, # Dictionary of file hashes in target</span>
+<span class="sd">            &#39;title&#39;: &#39;file.jpg&#39;, # Title of the file</span>
+<span class="sd">            &#39;path&#39;: &#39;/path/to/file # path of the file relative to starting container</span>
+<span class="sd">        }</span>
+<span class="sd">    - List of string paths representing empty containers that must be written.</span>
+<span class="sd">        Example: [&#39;empty/folder/to/write/&#39;, &#39;another/empty/folder/]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Download process goes here. Variables below are calculated during the upload process</span>
+    <span class="c1"># But are defined here to show examples of structure</span>
+
+    <span class="n">files</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;file&#39;</span><span class="p">:</span> <span class="n">binary_file_contents</span><span class="p">,</span>
+            <span class="s1">&#39;hashes&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;md5&#39;</span><span class="p">:</span> <span class="s1">&#39;1ab2c3d4e5f6g&#39;</span><span class="p">,</span> <span class="s1">&#39;sha256&#39;</span><span class="p">:</span> <span class="s1">&#39;fh3383h83fh&#39;</span><span class="p">},</span>
+            <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;file.jpg&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="s1">&#39;/path/to/file.jpg&#39;</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;file&#39;</span><span class="p">:</span> <span class="n">binary_file_contents</span><span class="p">,</span>
+            <span class="s1">&#39;hashes&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;md5&#39;</span><span class="p">:</span> <span class="s1">&#39;zadf23fg3&#39;</span><span class="p">,</span> <span class="s1">&#39;sha256&#39;</span><span class="p">:</span> <span class="s1">&#39;9382hash383h&#39;</span><span class="p">},</span>
+            <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;funnysong.mp3&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="s1">&#39;/path/to/file/funnysong.mp3&#39;</span>
+        <span class="p">}</span>
+    <span class="p">]</span>
+    <span class="n">empty_containers</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;path/to/empty/container/&#39;</span><span class="p">,</span> <span class="s1">&#39;another/empty/&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">files</span><span class="p">,</span> <span class="n">empty_containers</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="resource-upload">
+<h2>Resource Upload<a class="headerlink" href="#resource-upload" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><dl>
+<dt>Add functionality to upload files to the target destination.</dt><dd><blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt><strong>Function parameters in order:</strong></dt><dd><ul>
+<li><dl class="simple">
+<dt><em>token: str</em></dt><dd><ul>
+<li><p>User’s token for the target</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><em>resource_id: str</em></dt><dd><ul>
+<li><p>ID for the resource we want to fetch</p></li>
+<li><p>This can be ‘None’</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><em>resource_main_dir: str</em></dt><dd><ul>
+<li><p>Path of the main directory where the resources are located on the server</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><em>hash_algorithm: str</em></dt><dd><ul>
+<li><p>Hash algorithm we want to get from the Target after it the resources are uploaded</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><em>file_duplicate_action: str</em></dt><dd><ul>
+<li><p>The action to take when a duplicate file is found</p></li>
+<li><p>Options are ‘ignore’ or ‘update’</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Function returns:</strong></dt><dd><ul>
+<li><dl class="simple">
+<dt><em>dictionary of hashes: python dictionaries</em></dt><dd><ul>
+<li><p>Dictionary of files hashes calculated using the hash algorithm provided obtained from
+the target after upload.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><em>list of files ignored: list of strings</em></dt><dd><ul>
+<li><p>List of duplicate files ignored during the upload process</p></li>
+<li><p>File path must include full path starting with the resource_main_dir provided</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><em>list of files_updated: list of strings</em></dt><dd><ul>
+<li><p>List of duplicate files updated during the upload process</p></li>
+<li><p>File path must include full path starting with the resource_main_dir provided</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="o">&lt;</span><span class="n">your_target_name</span><span class="o">&gt;</span><span class="n">_upload_resource</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">resource_id</span><span class="p">,</span> <span class="n">resource_main_dir</span><span class="p">,</span>
+                        <span class="n">hash_algorithm</span><span class="p">,</span> <span class="n">file_duplicate_action</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    token : str</span>
+<span class="sd">        User&#39;s token.</span>
+<span class="sd">    resource_id : str</span>
+<span class="sd">        ID of the resource requested.</span>
+<span class="sd">    resource_main_dir : str</span>
+<span class="sd">        Path to the main directory for the resources to be uploaded.</span>
+<span class="sd">    hash_algorithm : str</span>
+<span class="sd">        Hash algorithm we are using to check for fixity.</span>
+<span class="sd">    file_duplicate_action : str</span>
+<span class="sd">        The action to take when a duplicate file is found</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    final_file_hashes : dict</span>
+<span class="sd">        Dictionary of file hashes obtained from the target</span>
+<span class="sd">        Example:</span>
+<span class="sd">        {</span>
+<span class="sd">            &#39;mediafiles/uploads/25/BagItToUpload/data/NewProj/funnyimages/Screen.png&#39;:</span>
+<span class="sd">            &#39;6d33275234b28d77348e4e1049f58b95a485a7a441684a9eb9175d01c7f141ea&#39;,</span>
+<span class="sd">            &#39;mediafiles/uploads/25/BagItToUpload/data/NewProj/funnyimages/Screen2.png&#39;:</span>
+<span class="sd">            &#39;6d33275234b28d77348e4e1049f58b95a485a7a441684a9eb9175d01c7f141eb&#39;,</span>
+<span class="sd">        }</span>
+<span class="sd">    files_ignored : array</span>
+<span class="sd">        Array of string file paths of files that were ignored when uploading the resource</span>
+<span class="sd">        [&#39;path/to/ignored/file.pg&#39;, &#39;another/ignored/file.jpg&#39;]</span>
+
+<span class="sd">    files_updated : array</span>
+<span class="sd">        Array of string file paths of files that were updated when uploading the resource</span>
+<span class="sd">        [&#39;path/to/updated/file.jpg&#39;]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Upload process goes here. Variables below are calculated during the upload process</span>
+    <span class="c1"># But are defined here to show examples of structure</span>
+
+    <span class="n">final_file_hashes</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;mediafiles/uploads/25/BagItToUpload/data/NewProj/funnyimages/Screen.png&#39;</span><span class="p">:</span>
+        <span class="s1">&#39;6d33275234b28d77348e4e1049f58b95a485a7a441684a9eb9175d01c7f141ea&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;mediafiles/uploads/25/BagItToUpload/data/NewProj/funnyimages/Screen2.png&#39;</span><span class="p">:</span>
+        <span class="s1">&#39;6d33275234b28d77348e4e1049f58b95a485a7a441684a9eb9175d01c7f141eb&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">files_ignored</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;path/to/ignored/file.pg&#39;</span><span class="p">,</span> <span class="s1">&#39;another/ignored/file.jpg&#39;</span><span class="p">]</span>
+    <span class="n">files_updated</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;path/to/updated/file.jpg&#39;</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">final_file_hashes</span><span class="p">,</span> <span class="n">files_ignored</span><span class="p">,</span> <span class="n">files_updated</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="resource-transfer">
+<h2>Resource Transfer<a class="headerlink" href="#resource-transfer" title="Permalink to this headline">¶</a></h2>
+<p>The resource Transfer endpoint actually utilizes the Download and Upload functions so no further
+functionality is required.</p>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="integration_management_command.html" class="btn btn-neutral float-right" title="Integration Management Command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="authentication_authorization.html" class="btn btn-neutral float-left" title="Authentication/Authorization" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, ndlib
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

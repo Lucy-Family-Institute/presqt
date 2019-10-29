@@ -1,0 +1,59 @@
+Project Overview
+==================================
+Purpose
+----------------
+The purpose of this document is to create a common understanding between all partners involved in the 
+development process to ensure that the right system/tool is being built.
+
+Goals of this Document
+----------------------
+* offers the reader an understanding of the development goals 
+* presents the system architecture and description
+* makes the reader aware what is being build
+* will be updated regularly, but is written with an understanding at this time, even if its not correct
+* the document will include feedback and corrections from the development community
+
+High Level Overview
+-------------------
+There are many research data repositories in use within higher education today. Oftentimes, 
+researchers will have a need and/or desire to work in multiple data repositories concurrently.
+
+This desire can be frustrated as disparate systems are often not able to directly share resources; 
+or if able to share resources, do so in less than ideal fashions.
+
+The Overall Goal of PresQT
+--------------------------
+The development team is tasked to deliver tools and services that allow enhancement of and action on 
+metadata related to keywords, provenance, quality, and fixity and ensure that such enhancements and 
+actions are also portable/queryable/executable across repository systems
+
+For extended development teams at partner organizations their jobs are to support interoperability 
+testing (help conceive of and build the tests, help do the testing)  of our tools and features against 
+the target systems they develop or use. For the testing only partners at the collaborating organizations 
+they may provide testing or testers on their own systems or to do testing on our's.
+
+Potential Target systems
+------------------------
+* CERN
+* Fedora
+* CurateND
+* OSF
+* S3
+* HubZERO
+
+Development Roadmap
+-------------------
+1. Infrastructure Setup using Docker
+2. Setup continuos integration tool
+3. General use cases. Upload/download of objects from one repo to another or to local environment.
+4. Development of fixity web service
+5. Development of preservation quality web service
+6. Development of keyword assignment web service 
+7. Testing
+8. Integration with partner repos
+
+*The roadmap can be found* `here <https://app.roadmunk.com/publish/fcaad1b50220f284ef69e3001786d09fdf7c0356/>`_
+
+.. toctree::
+   :maxdepth: 3
+
