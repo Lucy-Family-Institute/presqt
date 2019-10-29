@@ -248,12 +248,9 @@ class TestResourceCollectionPOST(SimpleTestCase):
         """
         Ensure that the proper error is raised when we get a non-201 resoponse from GitHub.
         """
-        try:
-            github_upload_metadata(self.token, None, {"fake": "data"}, "BAD")
-        except PresQTError as e:
-            print(e.__str__)
-            # self.assertEqual(
-            #     e, "The request to create a metadata file has resulted in a 404 error code from GitHub.")
+        # Calling this function manually to confirm explicit error is raised.
+        self.assertRaises(PresQTError, github_upload_metadata, self.token, None, {"fake": "data"},
+                          "BAD")
 
     def test_400_error_bad_request(self):
         """
