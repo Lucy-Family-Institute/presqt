@@ -267,7 +267,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         ticket_number = response.data['ticket_number']
         ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
-        time.sleep(3)
+        time.sleep(10)
 
         upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
         # Ensure the response is what we expect
@@ -289,7 +289,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         ticket_number = response.data['ticket_number']
         ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
-        time.sleep(3)
+        time.sleep(10)
 
         upload_job_response = self.client.get(response.data['upload_job'], **headers)
         # Ensure the response is what we expect
@@ -312,7 +312,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         ticket_number = response.data['ticket_number']
         ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
-        time.sleep(3)
+        time.sleep(10)
 
         upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
         # Ensure the response is what we expect
@@ -332,7 +332,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         ticket_number = response.data['ticket_number']
         ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
-        time.sleep(3)
+        time.sleep(10)
 
         upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
         # Ensure the response is what we expect
@@ -363,7 +363,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
             ticket_number = response.data['ticket_number']
             ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
-            time.sleep(3)
+            time.sleep(10)
 
             upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
             self.assertEqual(upload_job_response.data['status_code'], 400)
