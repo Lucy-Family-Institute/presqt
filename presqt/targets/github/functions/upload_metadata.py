@@ -23,13 +23,9 @@ def github_upload_metadata(token, resource_id, metadata_dict, repo_id=None):
     repo_id : str
         The id of the new repo that has been created
     """
-    # Uploading to an existing Github repository is not allowed
-    if resource_id:
-        raise PresQTResponseException("Can't upload to an existing Github repository.",
-                                      status.HTTP_400_BAD_REQUEST)
     try:
         header, username = validation_check(token)
-    except PresQTResponseException:
+    except PresQTResponseException:  # pragma: no cover
         raise PresQTResponseException('The response returned a 401 unauthorized status code.',
                                       status.HTTP_401_UNAUTHORIZED)
 
