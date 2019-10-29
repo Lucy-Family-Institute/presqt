@@ -86,7 +86,7 @@ class TestUploadJob(SimpleTestCase):
         ticket_one = self.ticket_number
         # Verify the status code and data
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['message'], 'Upload successful')
+        self.assertEqual(response.data['message'], 'Upload successful.')
         self.assertEqual(response.data['failed_fixity'], [])
         self.assertEqual(response.data['resources_ignored'], [])
         self.assertEqual(response.data['resources_updated'], [])
@@ -101,7 +101,7 @@ class TestUploadJob(SimpleTestCase):
         ticket_two = self.ticket_number
         # Verify the status code and data
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['message'], 'Upload successful')
+        self.assertEqual(response.data['message'], 'Upload successful.')
 
         # Third Project
         self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
@@ -113,7 +113,7 @@ class TestUploadJob(SimpleTestCase):
         ticket_three = self.ticket_number
         # Verify the status code and data
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['message'], 'Upload successful')
+        self.assertEqual(response.data['message'], 'Upload successful.')
 
         response = requests.get('http://api.osf.io/v2/users/me/nodes',
                                 headers={'Authorization': 'Bearer {}'.format(self.token)}).json()
@@ -140,7 +140,7 @@ class TestUploadJob(SimpleTestCase):
 
         # Verify the status code and data
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['message'], 'Upload successful')
+        self.assertEqual(response.data['message'], 'Upload successful.')
         self.assertEqual(response.data['failed_fixity'], [])
         self.assertEqual(response.data['resources_ignored'], [])
         self.assertEqual(response.data['resources_updated'], [])

@@ -15,10 +15,11 @@ from rest_framework.test import APIClient
 
 from config.settings.base import OSF_TEST_USER_TOKEN, OSF_UPLOAD_TEST_USER_TOKEN
 from presqt.api_v1.views.resource.base_resource import BaseResource
+from presqt.json_schemas.schema_handlers import schema_validator
 from presqt.targets.utilities import (shared_get_success_function_202,
                                       shared_get_success_function_202_with_error, process_wait,
-                                      shared_upload_function)
-from presqt.utilities import write_file, read_file
+                                      shared_upload_function_osf)
+from presqt.utilities import write_file, read_file, get_dictionary_from_list
 from presqt.api_v1.utilities.fixity.download_fixity_checker import download_fixity_checker
 from presqt.utilities import remove_path_contents
 from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
@@ -246,7 +247,7 @@ class TestResourceGETZip(SimpleTestCase):
         }
         self.resource_id = '5cd98510f244ec001fe5632f'
         self.target_name = 'osf'
-        self.file_number = 12
+        self.file_number = 13
         self.file_name = '22776439564_7edbed7e10_o.jpg'
         fixity_info = shared_get_success_function_202(self)
 
@@ -269,7 +270,7 @@ class TestResourceGETZip(SimpleTestCase):
         }
         self.resource_id = '5cd98978054f5b001a5ca746'
         self.target_name = 'osf'
-        self.file_number = 12
+        self.file_number = 13
         self.file_name = 'build-plugins.js'
         fixity_info = shared_get_success_function_202(self)
 
@@ -292,7 +293,7 @@ class TestResourceGETZip(SimpleTestCase):
         }
         self.resource_id = '5cd98978f244ec001ee86609'
         self.target_name = 'osf'
-        self.file_number = 12
+        self.file_number = 13
         self.file_name = 'Character Sheet - Alternative - Print Version.pdf'
         fixity_info = shared_get_success_function_202(self)
 
@@ -315,7 +316,7 @@ class TestResourceGETZip(SimpleTestCase):
         }
         self.resource_id = '5cd98979f8214b00198b1153'
         self.target_name = 'osf'
-        self.file_number = 12
+        self.file_number = 13
         self.file_name = '02 - The Widow.mp3'
         fixity_info = shared_get_success_function_202(self)
 
@@ -334,7 +335,7 @@ class TestResourceGETZip(SimpleTestCase):
         """
         self.resource_id = '5cd98a30f2c01100177156be'
         self.target_name = 'osf'
-        self.file_number = 12
+        self.file_number = 13
         self.file_name = 'Character Sheet - Alternative - Print Version.pdf'
         fixity_info = shared_get_success_function_202(self)
 
@@ -351,7 +352,7 @@ class TestResourceGETZip(SimpleTestCase):
         """
         self.resource_id = '5cd98b0af244ec0021e5f8dd'
         self.target_name = 'osf'
-        self.file_number = 14
+        self.file_number = 15
         self.file_name = 'Docs2/Docs3/CODE_OF_CONDUCT.md'
         final_process_info = shared_get_success_function_202(self)
 
@@ -364,7 +365,7 @@ class TestResourceGETZip(SimpleTestCase):
         """
         self.resource_id = 'cmn5z:googledrive'
         self.target_name = 'osf'
-        self.file_number = 15
+        self.file_number = 16
         self.file_name = 'googledrive/Google Images/IMG_4740.jpg'
         final_process_info = shared_get_success_function_202(self)
 
@@ -378,7 +379,7 @@ class TestResourceGETZip(SimpleTestCase):
         """
         self.resource_id = 'cmn5z'
         self.target_name = 'osf'
-        self.file_number = 75
+        self.file_number = 77
         self.file_name = 'Test Project/osfstorage/Docs/Docs2/Docs3/CODE_OF_CONDUCT.md'
         shared_get_success_function_202(self)
 
@@ -478,13 +479,19 @@ class TestResourceGETZip(SimpleTestCase):
         zip_file = zipfile.ZipFile(zip_path)
         # Verify that the zip file exists and it holds the correct number of files.
         self.assertEqual(os.path.isfile(zip_path), True)
-        self.assertEqual(len(zip_file.namelist()), 12)
+        self.assertEqual(len(zip_file.namelist()), 13)
 
         # Grab the .jpg file in the zip and run it back through the fixity checker with bad hashes
         # So we can get a failed fixity. This fixity variable will be used later in our Patch.
-        fixity, fixity_match = download_fixity_checker(
-            read_file('{}/{}/data/22776439564_7edbed7e10_o.jpg'.format(ticket_path, base_name)),
-            hashes)
+
+        resource_dict = {
+            "file": read_file('{}/{}/data/22776439564_7edbed7e10_o.jpg'.format(ticket_path, base_name)),
+            "hashes": hashes,
+            "title": 'data/22776439564_7edbed7e10_o.jpg',
+            "path": '{}/{}/data/22776439564_7edbed7e10_o.jpg'.format(ticket_path, base_name),
+            "metadata": {}
+        }
+        fixity, fixity_match = download_fixity_checker(resource_dict)
 
         # First we need to remove the contents of the ticket path except 'process_info.json'
         remove_path_contents(ticket_path, 'process_info.json')
@@ -517,13 +524,13 @@ class TestResourceGETZip(SimpleTestCase):
         # Verify the final status in the process_info file is 'finished'
         self.assertEqual(final_process_info['status'], 'finished')
         # Verify that the message is what is expected if fixity has failed.
-        self.assertEqual(final_process_info['message'], 'Download successful with fixity errors')
+        self.assertEqual(final_process_info['message'], 'Download successful but with fixity errors.')
         # Verify zip file exists and has the proper amount of resources in it.
         base_name = 'osf_download_{}'.format(resource_id)
         zip_path = '{}/{}.zip'.format(ticket_path, base_name)
         zip_file = zipfile.ZipFile(zip_path)
         self.assertEqual(os.path.isfile(zip_path), True)
-        self.assertEqual(len(zip_file.namelist()), 12)
+        self.assertEqual(len(zip_file.namelist()), 13)
 
         # Verify that the resource we expect is there.
         self.assertEqual(
@@ -593,6 +600,161 @@ class TestResourceGETZip(SimpleTestCase):
         # Delete corresponding folder
         shutil.rmtree(ticket_path)
 
+    def test_metadata_success_no_existing_file(self):
+        """
+        Test that the metadata provided with the download is correct.
+        Download a project that has no existing metadata file.
+        """
+        url = reverse('resource', kwargs={'target_name': 'osf',
+                                      'resource_id': '5cd98b0af244ec0021e5f8dd',
+                                      'resource_format': 'zip'})
+        response = self.client.get(url, **self.header)
+        # Verify the status code and content
+        self.assertEqual(response.status_code, 202)
+
+        ticket_number = response.data['ticket_number']
+        ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
+
+        # Wait until the spawned off process finishes in the background
+        # to do validation on the resulting files
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+
+        # Verify that the metadata file is there.
+        metadata_path = '{}/osf_download_5cd98b0af244ec0021e5f8dd/data/PRESQT_FTS_METADATA.json'.\
+            format(ticket_path)
+        self.assertEqual(os.path.isfile(metadata_path), True)
+        metadata_json = read_file(metadata_path, True)
+
+        self.assertEqual(True, schema_validator('presqt/json_schemas/metadata_schema.json', metadata_json))
+        self.assertEqual(1, len(metadata_json['actions']))
+        action_data = metadata_json['actions'][0]
+        self.assertEqual(3, len(action_data['files']['created']))
+        self.assertEqual(0, len(action_data['files']['updated']))
+        self.assertEqual(0, len(action_data['files']['ignored']))
+        self.assertEqual('resource_download', action_data['actionType'])
+        self.assertEqual('osf', action_data['sourceTargetName'])
+        self.assertEqual('Test User', action_data['sourceUsername'])
+        self.assertEqual('Local Machine', action_data['destinationTargetName'])
+        self.assertEqual(None, action_data['destinationUsername'])
+
+        file_data = get_dictionary_from_list(action_data['files']['created'], 'title', 'CODE_OF_CONDUCT.md')
+        self.assertEqual('/Test Project/osfstorage/Docs/Docs2/Docs3/CODE_OF_CONDUCT.md', file_data['sourcePath'])
+        self.assertEqual({'sha256': 'b6da113590fef57e2ba870df1b987084a2886cfa39378cff06fdb5a3271bc2be',
+                          'md5': 'af30f9418b9fe2ad9c0e1f70286dfda0'}, file_data['sourceHashes'])
+        self.assertEqual('/Docs2/Docs3/CODE_OF_CONDUCT.md', file_data['destinationPath'])
+        self.assertEqual({}, file_data['destinationHashes'])
+
+        file_data = get_dictionary_from_list(action_data['files']['created'], 'title', '02 - The Widow.mp3')
+        self.assertEqual('/Test Project/osfstorage/Docs/Docs2/02 - The Widow.mp3',
+                         file_data['sourcePath'])
+        self.assertEqual({'sha256': 'fe3e904fbd549a3ac014bc26fb3d5042d58759f639f24e745dba3580ea316850',
+                'md5': '845248e5456033c6df85b5cffcd7ea8a'}, file_data['sourceHashes'])
+        self.assertEqual('/Docs2/02 - The Widow.mp3', file_data['destinationPath'])
+        self.assertEqual({}, file_data['destinationHashes'])
+
+        file_data = get_dictionary_from_list(action_data['files']['created'], 'title',
+                                             '_config.yml')
+        self.assertEqual('/Test Project/osfstorage/Docs/Docs2/_config.yml',
+                         file_data['sourcePath'])
+        self.assertEqual({'sha256': '4a903798a005fecbfa07455fe0da45cd570df3ae058bb0537c583335bb0c47e3',
+                'md5': '84bddd5dcb51e8386e8c406aabd5057f'}, file_data['sourceHashes'])
+        self.assertEqual('/Docs2/_config.yml', file_data['destinationPath'])
+        self.assertEqual({}, file_data['destinationHashes'])
+
+        # Delete corresponding folder
+        shutil.rmtree(ticket_path)
+
+    def test_metadata_success_existing_file(self):
+        """
+        Download a resource that has an existing metadata file.
+        Test that the metadata provided with the download is valid.
+        """
+        url = reverse('resource', kwargs={'target_name': 'osf',
+                                      'resource_id': 'cmn5z:osfstorage',
+                                      'resource_format': 'zip'})
+        response = self.client.get(url, **self.header)
+        # Verify the status code and content
+        self.assertEqual(response.status_code, 202)
+
+        ticket_number = response.data['ticket_number']
+        ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
+
+        # Wait until the spawned off process finishes in the background
+        # to do validation on the resulting files
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+
+        # Verify that the metadata file is there.
+        metadata_path = '{}/osf_download_cmn5z:osfstorage/data/PRESQT_FTS_METADATA.json'. \
+            format(ticket_path)
+        self.assertEqual(os.path.isfile(metadata_path), True)
+        metadata_json = read_file(metadata_path, True)
+
+        self.assertEqual(True, schema_validator('presqt/json_schemas/metadata_schema.json', metadata_json))
+        self.assertEqual(2, len(metadata_json['actions']))
+
+        for action in metadata_json['actions']:
+            if action['id'] == 'd1b9df10-d7d4-4223-b49b-efa51bca16e1':
+                self.assertEqual({"created": [], "updated": [], "ignored": []}, action['files'])
+            else:
+                self.assertEqual(57, len(action['files']['created']))
+
+        # Delete corresponding folder
+        shutil.rmtree(ticket_path)
+
+    def test_metadata_success_existing_invalid_file(self):
+        """
+        Download a resource that has an existing metadata file.
+        Test that the metadata provided with the download is invalid.
+        """
+        url = reverse('resource', kwargs={'target_name': 'osf',
+                                          'resource_id': '5cd988d3054f5b00185ca5e3',
+                                          'resource_format': 'zip'})
+        response = self.client.get(url, **self.header)
+        # Verify the status code and content
+        self.assertEqual(response.status_code, 202)
+
+        ticket_number = response.data['ticket_number']
+        ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
+
+        # Wait until the spawned off process finishes in the background
+        # to do validation on the resulting files
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+
+        # Verify that the invalid metadata file has been renamed
+        metadata_path = '{}/osf_download_5cd988d3054f5b00185ca5e3/data/More Images/INVALID_PRESQT_FTS_METADATA.json'. \
+            format(ticket_path)
+        self.assertEqual(os.path.isfile(metadata_path), True)
+        metadata_json = read_file(metadata_path, True)
+        self.assertEqual([{"bad": "action"}], metadata_json['actions'])
+
+        # Verify that the valid metadata file exists
+        metadata_path = '{}/osf_download_5cd988d3054f5b00185ca5e3/data/PRESQT_FTS_METADATA.json'. \
+            format(ticket_path)
+        self.assertEqual(os.path.isfile(metadata_path), True)
+        metadata_json = read_file(metadata_path, True)
+        self.assertEqual(1, len(metadata_json['actions']))
+
+        # Delete corresponding folder
+        shutil.rmtree(ticket_path)
+
 
 class TestResourcePOST(SimpleTestCase):
     """
@@ -634,7 +796,7 @@ class TestResourcePOST(SimpleTestCase):
         self.resources_ignored = []
         self.resources_updated = []
         self.hash_algorithm = 'sha256'
-        shared_upload_function(self)
+        shared_upload_function_osf(self)
 
         # Verify files exist in OSF
         headers = {'Authorization': 'Bearer {}'.format(OSF_UPLOAD_TEST_USER_TOKEN)}
@@ -649,7 +811,7 @@ class TestResourcePOST(SimpleTestCase):
                 file_data = requests.get(
                     folder_data['data'][0]['relationships']['files']['links']['related']['href'], headers=headers).json()
                 break
-        self.assertEqual(folder_data['links']['meta']['total'], 1)
+        self.assertEqual(folder_data['links']['meta']['total'], 2)
         self.assertEqual(folder_data['data'][0]['attributes']['name'], 'funnyfunnyimages')
         self.assertEqual(file_data['links']['meta']['total'], 1)
         self.assertEqual(file_data['data'][0]['attributes']['name'],
@@ -665,10 +827,10 @@ class TestResourcePOST(SimpleTestCase):
                            'target_name': 'osf', 'resource_id': self.resource_id})
         self.file = 'presqt/api_v1/tests/resources/upload/FolderBagItToUpload.zip'
         self.resources_ignored = [
-            'funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
+            '/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
         self.resources_updated = []
         self.hash_algorithm = 'sha256'
-        shared_upload_function(self)
+        shared_upload_function_osf(self)
 
         # Verify files exist in OSF
         file_data = requests.get(folder_data['data'][0]['relationships']
@@ -688,10 +850,10 @@ class TestResourcePOST(SimpleTestCase):
         self.url = reverse('resource', kwargs={
                            'target_name': 'osf', 'resource_id': self.resource_id})
         self.file = 'presqt/api_v1/tests/resources/upload/FolderUpdateBagItToUpload.zip'
-        self.resources_ignored = ['Screen Shot 2019-07-15 at 3.51.13 PM.png']
-        self.resources_updated = ['Screen Shot 2019-07-15 at 3.26.49 PM.png']
+        self.resources_ignored = ['/Screen Shot 2019-07-15 at 3.51.13 PM.png']
+        self.resources_updated = ['/Screen Shot 2019-07-15 at 3.26.49 PM.png']
         self.hash_algorithm = 'sha256'
-        shared_upload_function(self)
+        shared_upload_function_osf(self)
 
         # Verify files exist in OSF
         file_data = requests.get(folder_data['data'][0]['relationships']
@@ -718,7 +880,7 @@ class TestResourcePOST(SimpleTestCase):
         self.resources_updated = []
         self.resources_ignored = []
         self.hash_algorithm = 'sha256'
-        shared_upload_function(self)
+        shared_upload_function_osf(self)
 
         # delete upload folder
         shutil.rmtree(self.ticket_path)

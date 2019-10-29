@@ -43,11 +43,10 @@ def get_or_create_hashes_from_bag(self, bag):
         try:
             hash_algorithm = target_supported_algorithms[0]
         except IndexError:
-            hash_algorithm = None
-        else:
-            for key, value in bag.payload_entries().items():
-                file_path = '{}/{}'.format(self.resource_main_dir, key)
-                binary_file = read_file(file_path)
-                file_hashes[file_path] = hash_generator(binary_file, hash_algorithm)
+            hash_algorithm = 'md5'
+        for key, value in bag.payload_entries().items():
+            file_path = '{}/{}'.format(self.resource_main_dir, key)
+            binary_file = read_file(file_path)
+            file_hashes[file_path] = hash_generator(binary_file, hash_algorithm)
 
     return file_hashes, hash_algorithm

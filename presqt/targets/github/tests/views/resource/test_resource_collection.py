@@ -9,7 +9,7 @@ from rest_framework.test import APIClient
 
 from config.settings.base import GITHUB_TEST_USER_TOKEN
 from presqt.targets.github.utilities import delete_github_repo
-from presqt.targets.utilities import shared_upload_function
+from presqt.targets.utilities import shared_upload_function_github
 
 class TestResourceCollection(SimpleTestCase):
     """
@@ -88,7 +88,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
         self.resources_ignored = []
         self.resources_updated = []
-        self.hash_algorithm = None
+        self.hash_algorithm = 'md5'
 
     def tearDown(self):
         """
@@ -102,7 +102,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         Return a 202 when a file is uploading.
         """
         # 202 when uploading a new top level repo
-        shared_upload_function(self)
+        shared_upload_function_github(self)
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         url = reverse('resource_collection', kwargs={'target_name': 'github'})
@@ -132,7 +132,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
 
         # Verify status code and message
-        self.assertEqual(upload_job_response.data['resources_ignored'], ['Egg/Empty_Folder'])
+        self.assertEqual(upload_job_response.data['resources_ignored'], ['/Egg/Empty_Folder'])
 
         delete_github_repo('presqt-test-user', 'Egg',
                            {'Authorization': 'token {}'.format(GITHUB_TEST_USER_TOKEN)})
@@ -147,7 +147,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         duplicate_title = "{}-PresQT1-".format(self.repo_title)
         second_duplicate_title = "{}-PresQT2-".format(self.repo_title)
         # 202 when uploading a new top level repo
-        shared_upload_function(self)
+        shared_upload_function_github(self)
 
         shutil.rmtree(self.ticket_path)
 
@@ -166,7 +166,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         ticket_number = response.data['ticket_number']
         ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
-        time.sleep(3)
+        time.sleep(10)
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         updated_response_json = self.client.get(
@@ -185,7 +185,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         ticket_number = response.data['ticket_number']
         ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
-        time.sleep(3)
+        time.sleep(10)
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         more_updated_response_json = self.client.get(
@@ -213,7 +213,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         ticket_number = response.data['ticket_number']
         ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
-        time.sleep(3)
+        time.sleep(10)
 
         upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
         # Ensure the response is what we expect
@@ -235,7 +235,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         ticket_number = response.data['ticket_number']
         ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
-        time.sleep(3)
+        time.sleep(10)
 
         upload_job_response = self.client.get(response.data['upload_job'], **headers)
         # Ensure the response is what we expect
@@ -258,7 +258,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         ticket_number = response.data['ticket_number']
         ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
-        time.sleep(3)
+        time.sleep(10)
 
         upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
         # Ensure the response is what we expect
@@ -278,7 +278,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         ticket_number = response.data['ticket_number']
         ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
-        time.sleep(3)
+        time.sleep(10)
 
         upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
         # Ensure the response is what we expect
@@ -309,7 +309,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
             ticket_number = response.data['ticket_number']
             ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
-            time.sleep(3)
+            time.sleep(10)
 
             upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
             self.assertEqual(upload_job_response.data['status_code'], 400)

@@ -1,11 +1,17 @@
 from presqt.api_v1.utilities.fixity.get_or_create_hashes_from_bag import \
     get_or_create_hashes_from_bag
 from presqt.api_v1.utilities.fixity.hash_generator import hash_generator
+from presqt.api_v1.utilities.metadata.download_metadata import create_download_metadata
+from presqt.api_v1.utilities.metadata.upload_metadata import (create_upload_transfer_metadata,
+                                                              create_upload_metadata,
+                                                              get_upload_source_metadata)
 from presqt.api_v1.utilities.multiprocess.spawn_action_process import spawn_action_process
+from presqt.api_v1.utilities.utils.get_action_message import get_action_message
 from presqt.api_v1.utilities.utils.get_target_data import get_target_data
 from presqt.api_v1.utilities.utils.function_router import FunctionRouter
 from presqt.api_v1.utilities.utils.target_actions import (
     action_checker, link_builder)
+from presqt.api_v1.utilities.metadata.create_fts_metadata import create_fts_metadata
 from presqt.api_v1.utilities.validation.file_duplicate_action_validation import \
     file_duplicate_action_validation
 from presqt.api_v1.utilities.validation.process_token_validation import process_token_validation
@@ -30,5 +36,11 @@ __all__ = [
     process_token_validation,
     transfer_post_body_validation,
     spawn_action_process,
-    get_or_create_hashes_from_bag
+    get_or_create_hashes_from_bag,
+    create_fts_metadata,
+    create_download_metadata,
+    create_upload_transfer_metadata,
+    create_upload_metadata,
+    get_action_message,
+    get_upload_source_metadata
 ]

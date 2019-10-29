@@ -1,5 +1,3 @@
-import requests
-
 from rest_framework import status
 
 from presqt.targets.github.utilities import validation_check, github_paginated_data
@@ -88,9 +86,8 @@ def github_fetch_resource(token, resource_id):
 
     data = github_paginated_data(token)
 
-    resource = {}
     for entry in data:
-        if entry['id'] == int(resource_id):
+        if str(entry['id']) == resource_id:
             resource = {
                 "kind": "container",
                 "kind_name": "repo",
@@ -108,9 +105,6 @@ def github_fetch_resource(token, resource_id):
                     resource['extra'][key] = value
             break
     else:
-        resource = {}
-
-    if resource == {}:
         raise PresQTResponseException("The resource could not be found by the requesting user.",
                                       status.HTTP_404_NOT_FOUND)
 

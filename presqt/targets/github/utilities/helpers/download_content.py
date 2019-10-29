@@ -29,9 +29,9 @@ def download_content(username, url, header, repo_name, files):
     for data in initial_data:
         if data['type'] == 'file':
             file_metadata = {
-                "sourcePath": repo_name + '/' + data['path'],
+                "sourcePath": '/' + repo_name + '/' + data['path'],
                 "title": data['name'],
-                "sourceHashes": None,
+                "sourceHashes": {},
                 "extra": {
                     "commit_hash": data['sha']}}
             for key, value in data.items():

@@ -1,18 +1,14 @@
 import base64
-import fnmatch
 import json
-import os
-import re
 import requests
 
-from natsort import natsorted
 from rest_framework import status
 
-from presqt.targets.github.utilities import validation_check, github_paginated_data
+from presqt.targets.github.utilities import validation_check
 from presqt.utilities import PresQTError, PresQTResponseException
 
 
-def github_upload_metadata(token, resource_id, resource_main_dir, metadata_dict, repo_id=None):
+def github_upload_metadata(token, resource_id, metadata_dict, repo_id=None):
     """
     Upload the metadata of this PresQT action at the top level of the repo.
 
@@ -22,8 +18,6 @@ def github_upload_metadata(token, resource_id, resource_main_dir, metadata_dict,
         The user's GitHub token
     resource_id : str
         An id the upload is taking place on (not used for GitHub)
-    resource_main_dir : str
-        The path to the bag to be uploaded
     metadata_dict : dict
         The metadata to be written to the repo
     repo_id : str

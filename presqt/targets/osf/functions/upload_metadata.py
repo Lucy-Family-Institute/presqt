@@ -1,14 +1,14 @@
 import itertools
 import json
-import os
 import requests
 
+from presqt.json_schemas.schema_handlers import schema_validator
 from presqt.targets.osf.classes.main import OSF
 from presqt.targets.osf.utilities import get_osf_resource
-from presqt.utilities import read_file, write_file, PresQTError
+from presqt.utilities import PresQTError
 
 
-def osf_upload_metadata(token, resource_id, resource_main_dir, metadata_dict, project_id=None):
+def osf_upload_metadata(token, resource_id, metadata_dict, project_id=None):
     """
     Upload the metadata of this PresQT action at the top level of the repo.
 
@@ -18,8 +18,6 @@ def osf_upload_metadata(token, resource_id, resource_main_dir, metadata_dict, pr
         The user's OSF token
     resource_id : str
         An id the upload is taking place on
-    resource_main_dir : str
-        The path to the bag to be uploaded
     metadata_dict : dict
         The metadata to be written to the project
     project_id : str
@@ -42,10 +40,7 @@ def osf_upload_metadata(token, resource_id, resource_main_dir, metadata_dict, pr
             project_id = resource.id.partition(':')[0]
 
         elif resource.kind_name == 'folder':
-            # Find the project id for the given folder
-            get_id_helper = requests.get(resource._endpoint, headers=header).json()['data'][
-                'relationships']['target']['links']['related']['href']
-            project_id = requests.get(get_id_helper, headers=header).json()['data']['id']
+            project_id = resource.parent_project_id
 
         # We need to find out if this project already has metadata associated with it.
         project_data = osf_instance._get_all_paginated_data(
@@ -57,9 +52,22 @@ def osf_upload_metadata(token, resource_id, resource_main_dir, metadata_dict, pr
                 # Update the existing metadata
                 updated_metadata = json.loads(old_metadata_file)
 
+                if schema_validator('presqt/json_schemas/metadata_schema.json', updated_metadata) is not True:
+                    # We need to change the file name, this metadata is improperly formatted and
+                    # therefore invalid.
+                    rename_payload = {"action": "rename",
+                                      "rename": "INVALID_PRESQT_FTS_METADATA.json"}
+                    response = requests.post(data['links']['move'], headers=header,
+                                             data=json.dumps(rename_payload).encode('utf-8'))
+                    if response.status_code != 201:
+                        raise PresQTError(
+                            "The request to rename the invalid metadata file has returned a {} error code from OSF.".format(
+                                response.status_code))
+                    break
+
                 # Loop through each 'action' in both metadata files and make a new list of them.
-                joined_actions = [entry for entry in itertools.chain(updated_metadata['actions'],
-                                                                     metadata_dict['actions'])]
+                joined_actions = [entry for entry in itertools.chain(metadata_dict['actions'],
+                                                                     updated_metadata['actions'])]
 
                 updated_metadata['actions'] = joined_actions
                 encoded_metadata = json.dumps(updated_metadata, indent=4).encode('utf-8')

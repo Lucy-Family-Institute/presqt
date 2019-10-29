@@ -191,34 +191,32 @@ class TestResourcePOSTWithFile(SimpleTestCase):
 
         # Create bad hashes with the ticket number and run the upload function manually
         file_hashes = {'mediafiles/uploads/{}/BagItToUpload/data/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png'.format(
-            ticket_number): '6d33275234b28d77348e4e1049f58b95a485a7a441684a9eb9175d01c7f141ea'}
-        with patch('presqt.targets.osf.classes.storage_folder.ContainerMixin.create_directory') as fake_send:
-            fake_send.return_value = {'mediafiles/uploads/{}/BagItToUpload/data/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png'.format(
-                ticket_number): {'sha256': 'bad_hash', 'md5': 'another_bad_hash'}}, [], []
+            ticket_number): '6d33275234b28d77348e4e1049f58b95a485a7a441684a9eb9175d01c7f141e'}
 
-            # Create an instance of the BaseResource and add all of the appropriate class attributes
-            # needed for _upload_resource()
-            resource_instance = BaseResource()
-            resource_instance.resource_main_dir = resource_main_dir
-            resource_instance.process_info_path = process_info_path
-            resource_instance.destination_target_name = 'osf'
-            resource_instance.action = 'resource_upload'
-            resource_instance.destination_token = OSF_UPLOAD_TEST_USER_TOKEN
-            resource_instance.process_state = process_state
-            resource_instance.hash_algorithm = 'sha256'
-            resource_instance.file_hashes = file_hashes
-            resource_instance.file_duplicate_action = 'ignore'
-            resource_instance.destination_resource_id = None
-            resource_instance.process_info_obj = {}
-            resource_instance._upload_resource()
+        # Create an instance of the BaseResource and add all of the appropriate class attributes
+        # needed for _upload_resource()
+        resource_instance = BaseResource()
+        resource_instance.resource_main_dir = resource_main_dir
+        resource_instance.process_info_path = process_info_path
+        resource_instance.destination_target_name = 'osf'
+        resource_instance.action = 'resource_upload'
+        resource_instance.destination_token = OSF_UPLOAD_TEST_USER_TOKEN
+        resource_instance.process_state = process_state
+        resource_instance.hash_algorithm = 'sha256'
+        resource_instance.file_hashes = file_hashes
+        resource_instance.file_duplicate_action = 'ignore'
+        resource_instance.destination_resource_id = None
+        resource_instance.process_info_obj = {}
+        resource_instance.source_metadata_actions = []
+        resource_instance._upload_resource()
 
-            process_info = read_file(process_info_path, True)
-            self.assertEqual(process_info['message'], 'Upload successful but fixity failed.')
-            self.assertEqual(process_info['failed_fixity'], [
-                             'NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png'])
+        process_info = read_file(process_info_path, True)
+        self.assertEqual(process_info['message'], 'Upload successful but with fixity errors.')
+        self.assertEqual(process_info['failed_fixity'], [
+                         'NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png'])
 
-            # Delete corresponding folder
-            shutil.rmtree('mediafiles/uploads/{}'.format(ticket_number))
+        # Delete corresponding folder
+        shutil.rmtree('mediafiles/uploads/{}'.format(ticket_number))
 
     def test_error_400_target_not_supported_test_target(self):
         """
