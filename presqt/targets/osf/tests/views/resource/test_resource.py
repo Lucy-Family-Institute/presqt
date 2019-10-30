@@ -816,85 +816,109 @@ class TestResourcePOST(SimpleTestCase):
                 folder_id = folder_data['data'][0]['id']
                 file_data = requests.get(
                     folder_data['data'][0]['relationships']['files']['links']['related']['href'], headers=headers).json()
-                # metadata_file_data = requests.get(
-                #     storage_data['data'][1]['relationships']['files']['links']['related']['href'], headers=headers).json()
                 break
         self.assertEqual(folder_data['links']['meta']['total'], 2)
         self.assertEqual(folder_data['data'][0]['attributes']['name'], 'funnyfunnyimages')
         self.assertEqual(file_data['links']['meta']['total'], 1)
         self.assertEqual(file_data['data'][0]['attributes']['name'],
                          'Screen Shot 2019-07-15 at 3.26.49 PM.png')
-        for data in storage_data['data']:
-            print(data)
-            print(len(storage_data))
-
+        for data in folder_data['data']:
+            if data['attributes']['name'] == 'PRESQT_FTS_METADATA.json':
+                # Download the content of the metadata file
+                metadata = requests.get(data['links']['move'], headers=headers).content
+        metadata_dict = json.loads(metadata)
+        self.assertEqual(metadata_dict['context']['globus'],
+                         'https://docs.globus.org/api/transfer/overview/')
+        self.assertEqual(metadata_dict['actions'][0]['actionType'], 'resource_upload')
+        self.assertEqual(metadata_dict['actions'][0]['sourceTargetName'], 'Local Machine')
+        self.assertEqual(metadata_dict['actions'][0]['destinationTargetName'], 'osf')
+        self.assertEqual(metadata_dict['actions'][0]['destinationUsername'], 'Prometheus')
+        self.assertEqual(len(metadata_dict['actions'][0]['files']['created']), 1)
         # delete upload folder
         shutil.rmtree(self.ticket_path)
 
         ######## 202 when uploading to an existing container with duplicate files ignored ########
-        # self.resource_id = '{}:osfstorage'.format(node_id)
-        # self.duplicate_action = 'ignore'
-        # self.url = reverse('resource', kwargs={
-        #                    'target_name': 'osf', 'resource_id': self.resource_id})
-        # self.file = 'presqt/api_v1/tests/resources/upload/FolderBagItToUpload.zip'
-        # self.resources_ignored = [
-        #     '/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
-        # self.resources_updated = []
-        # self.hash_algorithm = 'sha256'
-        # shared_upload_function_osf(self)
+        self.resource_id = '{}:osfstorage'.format(node_id)
+        self.duplicate_action = 'ignore'
+        self.url = reverse('resource', kwargs={
+                           'target_name': 'osf', 'resource_id': self.resource_id})
+        self.file = 'presqt/api_v1/tests/resources/upload/FolderBagItToUpload.zip'
+        self.resources_ignored = [
+            '/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
+        self.resources_updated = []
+        self.hash_algorithm = 'sha256'
+        shared_upload_function_osf(self)
 
         # # Verify files exist in OSF
-        # file_data = requests.get(folder_data['data'][0]['relationships']
-        #                          ['files']['links']['related']['href'], headers=headers).json()
-        # self.assertEqual(file_data['links']['meta']['total'], 2)
-        # for file in file_data['data']:
-        #     self.assertIn(file['attributes']['name'], [
-        #                   'Screen Shot 2019-07-15 at 3.26.49 PM.png', 'Screen Shot 2019-07-15 at 3.51.13 PM.png'])
-        #     if file['attributes']['name'] == 'Screen Shot 2019-07-15 at 3.26.49 PM.png':
-        #         original_file_hash = file['attributes']['extra']['hashes']['sha256']
+        file_data = requests.get(folder_data['data'][0]['relationships']
+                                 ['files']['links']['related']['href'], headers=headers).json()
+        self.assertEqual(file_data['links']['meta']['total'], 2)
+        for file in file_data['data']:
+            self.assertIn(file['attributes']['name'], [
+                          'Screen Shot 2019-07-15 at 3.26.49 PM.png', 'Screen Shot 2019-07-15 at 3.51.13 PM.png'])
+            if file['attributes']['name'] == 'Screen Shot 2019-07-15 at 3.26.49 PM.png':
+                original_file_hash = file['attributes']['extra']['hashes']['sha256']
+
+        # Get the updated metadata
+        for data in folder_data['data']:
+            if data['attributes']['name'] == 'PRESQT_FTS_METADATA.json':
+                # Download the content of the metadata file
+                metadata = requests.get(data['links']['move'], headers=headers).content
+        metadata_dict = json.loads(metadata)
+
+        # Verify there are multiple actions
+        self.assertEqual(len(metadata_dict['actions']), 2)
+        # Verify that a file was created and one was ignored
+        self.assertEqual(len(metadata_dict['actions'][0]['files']['created']), 1)
+        self.assertEqual(metadata_dict['actions'][0]['files']['created'][0]['destinationPath'],
+                         'NewProject/osfstorage/funnyfunnyimages/Screen Shot 2019-07-15 at 3.51.13 PM.png')
+        self.assertEqual(len(metadata_dict['actions'][0]['files']['ignored']), 1)
+        self.assertEqual(metadata_dict['actions'][0]['files']['ignored'][0]['destinationPath'],
+                         'NewProject/osfstorage/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png')
+
         # # delete upload folder
-        # shutil.rmtree(self.ticket_path)
+        shutil.rmtree(self.ticket_path)
 
         # ######## 202 when uploading to an existing container with duplicate files replaced ########
-        # self.resource_id = folder_id
-        # self.duplicate_action = 'update'
-        # self.url = reverse('resource', kwargs={
-        #                    'target_name': 'osf', 'resource_id': self.resource_id})
-        # self.file = 'presqt/api_v1/tests/resources/upload/FolderUpdateBagItToUpload.zip'
-        # self.resources_ignored = ['/Screen Shot 2019-07-15 at 3.51.13 PM.png']
-        # self.resources_updated = ['/Screen Shot 2019-07-15 at 3.26.49 PM.png']
-        # self.hash_algorithm = 'sha256'
-        # shared_upload_function_osf(self)
+        self.resource_id = folder_id
+        self.duplicate_action = 'update'
+        self.url = reverse('resource', kwargs={
+                           'target_name': 'osf', 'resource_id': self.resource_id})
+        self.file = 'presqt/api_v1/tests/resources/upload/FolderUpdateBagItToUpload.zip'
+        self.resources_ignored = ['/Screen Shot 2019-07-15 at 3.51.13 PM.png']
+        self.resources_updated = ['/Screen Shot 2019-07-15 at 3.26.49 PM.png']
+        self.hash_algorithm = 'sha256'
+        shared_upload_function_osf(self)
 
-        # # Verify files exist in OSF
-        # file_data = requests.get(folder_data['data'][0]['relationships']
-        #                          ['files']['links']['related']['href'], headers=headers).json()
-        # self.assertEqual(file_data['links']['meta']['total'], 2)
-        # for file in file_data['data']:
-        #     self.assertIn(file['attributes']['name'], [
-        #                   'Screen Shot 2019-07-15 at 3.26.49 PM.png', 'Screen Shot 2019-07-15 at 3.51.13 PM.png'])
-        #     if file['attributes']['name'] == 'Screen Shot 2019-07-15 at 3.26.49 PM.png':
-        #         new_file_hash = file['attributes']['extra']['hashes']['sha256']
+        # Verify files exist in OSF
+        file_data = requests.get(folder_data['data'][0]['relationships']
+                                 ['files']['links']['related']['href'], headers=headers).json()
+        self.assertEqual(file_data['links']['meta']['total'], 2)
+        for file in file_data['data']:
+            self.assertIn(file['attributes']['name'], [
+                          'Screen Shot 2019-07-15 at 3.26.49 PM.png', 'Screen Shot 2019-07-15 at 3.51.13 PM.png'])
+            if file['attributes']['name'] == 'Screen Shot 2019-07-15 at 3.26.49 PM.png':
+                new_file_hash = file['attributes']['extra']['hashes']['sha256']
 
-        # # Make sure the file we have replaced has a different hash than the original
-        # self.assertNotEqual(original_file_hash, new_file_hash)
+        # Make sure the file we have replaced has a different hash than the original
+        self.assertNotEqual(original_file_hash, new_file_hash)
 
-        # # delete upload folder
-        # shutil.rmtree(self.ticket_path)
+        # delete upload folder
+        shutil.rmtree(self.ticket_path)
 
         # ######## 202 when uploading to an existing container with mismatched algorithms ########
-        # self.resource_id = node_id
-        # self.duplicate_action = 'ignore'
-        # self.url = reverse('resource', kwargs={
-        #                    'target_name': 'osf', 'resource_id': self.resource_id})
-        # self.file = 'presqt/api_v1/tests/resources/upload/GoodBagItsha512.zip'
-        # self.resources_updated = []
-        # self.resources_ignored = []
-        # self.hash_algorithm = 'sha256'
-        # shared_upload_function_osf(self)
+        self.resource_id = node_id
+        self.duplicate_action = 'ignore'
+        self.url = reverse('resource', kwargs={
+                           'target_name': 'osf', 'resource_id': self.resource_id})
+        self.file = 'presqt/api_v1/tests/resources/upload/GoodBagItsha512.zip'
+        self.resources_updated = []
+        self.resources_ignored = []
+        self.hash_algorithm = 'sha256'
+        shared_upload_function_osf(self)
 
         # # delete upload folder
-        # shutil.rmtree(self.ticket_path)
+        shutil.rmtree(self.ticket_path)
 
     def test_success_202_large_duplicate_connection_error(self):
         """
