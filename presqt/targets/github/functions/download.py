@@ -94,7 +94,7 @@ def github_download_resource(token, resource_id):
             break
     else:
         raise PresQTResponseException(
-            'The resource with id,{} , does not exist for this user.'.format(resource_id),
+            'The resource with id, {}, does not exist for this user.'.format(resource_id),
             status.HTTP_404_NOT_FOUND)
 
     files, empty_containers, action_metadata = download_content(

@@ -8,18 +8,3 @@ from presqt.utilities.io.zip_file import zip_directory
 from presqt.utilities.utils.get_dictionary_from_list import get_dictionary_from_list
 from presqt.utilities.utils.list_differences import list_differences
 from presqt.utilities.utils.list_intersection import  list_intersection
-
-
-__all__ = [
-    list_intersection,
-    PresQTError,
-    PresQTInvalidTokenError,
-    PresQTResponseException,
-    PresQTValidationError,
-    read_file,
-    remove_path_contents,
-    write_file,
-    zip_directory,
-    get_dictionary_from_list,
-    list_differences
-]
