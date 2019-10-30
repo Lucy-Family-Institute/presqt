@@ -29,7 +29,6 @@ More information can be found here https://presqt.crc.nd.edu/
    integration_management_command
    code_documentation
    web_services
-   tools_services
    resources
 
 Indices
