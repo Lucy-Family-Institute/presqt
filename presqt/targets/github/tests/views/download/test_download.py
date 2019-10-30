@@ -130,7 +130,7 @@ class TestDownload(SimpleTestCase):
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
-    
+
     def test_error_500_401(self):
         """
         Return a 500 if an invalid token is provided.
@@ -144,7 +144,7 @@ class TestDownload(SimpleTestCase):
         download_url = response.data['download_job']
         process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(ticket_number)
         process_info = read_file(process_info_path, True)
-        # Adding a brief sleep to allow the download_job endpoint to not return a 202 as it loads
+
         while process_info['status'] == 'in_progress':
             try:
                 process_info = read_file(process_info_path, True)
@@ -157,6 +157,36 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(download_response.status_code, 500)
         self.assertEqual(download_response.data['status_code'], 401)
         self.assertEqual(download_response.data['message'], "The response returned a 401 unauthorized status code.")
+
+        # Delete corresponding folder
+        shutil.rmtree('mediafiles/downloads/{}'.format(ticket_number))
+
+    def test_error_500_404(self):
+        """
+        Return a 500 if an invalid resource_id is provided.
+        """
+        url = reverse('resource', kwargs={'target_name': self.target_name,
+                                          'resource_id': 'bad',
+                                          'resource_format': 'zip'})
+
+        response = self.client.get(url, **self.header)
+        ticket_number = response.data['ticket_number']
+        download_url = response.data['download_job']
+        process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(ticket_number)
+        process_info = read_file(process_info_path, True)
+
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file(process_info_path, True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+
+        download_response = self.client.get(download_url, **self.header)
+        # The endpoint lumps all errors into a 500 status code
+        self.assertEqual(download_response.status_code, 500)
+        self.assertEqual(download_response.data['status_code'], 404)
+        self.assertEqual(download_response.data['message'], "The resource with id, bad, does not exist for this user.")
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(ticket_number))

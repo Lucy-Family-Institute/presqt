@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import time
@@ -10,6 +11,8 @@ from rest_framework.test import APIClient
 from config.settings.base import GITHUB_TEST_USER_TOKEN
 from presqt.targets.github.utilities import delete_github_repo
 from presqt.targets.utilities import shared_upload_function_github
+from presqt.utilities import read_file
+
 
 class TestResourceCollection(SimpleTestCase):
     """
@@ -125,9 +128,17 @@ class TestResourceCollectionPOST(SimpleTestCase):
                                     **self.headers)
 
         ticket_number = response.data['ticket_number']
-        self.ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
-        time.sleep(5)
+        # Wait until the spawned off process finishes in the background
+        # to do validation on the resulting files
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
 
         upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
 
@@ -137,7 +148,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         delete_github_repo('presqt-test-user', 'Egg',
                            {'Authorization': 'token {}'.format(GITHUB_TEST_USER_TOKEN)})
         # Delete upload folder
-        shutil.rmtree(self.ticket_path)
+        shutil.rmtree(ticket_path)
 
     def test_handle_repo_duplication(self):
         """
@@ -148,8 +159,6 @@ class TestResourceCollectionPOST(SimpleTestCase):
         second_duplicate_title = "{}-PresQT2-".format(self.repo_title)
         # 202 when uploading a new top level repo
         shared_upload_function_github(self)
-
-        shutil.rmtree(self.ticket_path)
 
         # Verify the duplicate repo does not exist on the PresQT Resource Collection endpoint.
         url = reverse('resource_collection', kwargs={'target_name': 'github'})
@@ -166,7 +175,15 @@ class TestResourceCollectionPOST(SimpleTestCase):
         ticket_number = response.data['ticket_number']
         ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
-        time.sleep(10)
+        # Wait until the spawned off process finishes in the background
+        # to do validation on the resulting files
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         updated_response_json = self.client.get(
@@ -185,7 +202,15 @@ class TestResourceCollectionPOST(SimpleTestCase):
         ticket_number = response.data['ticket_number']
         ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
-        time.sleep(10)
+        # Wait until the spawned off process finishes in the background
+        # to do validation on the resulting files
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         more_updated_response_json = self.client.get(
@@ -213,7 +238,15 @@ class TestResourceCollectionPOST(SimpleTestCase):
         ticket_number = response.data['ticket_number']
         ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
-        time.sleep(10)
+        # Wait until the spawned off process finishes in the background
+        # to do validation on the resulting files
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
 
         upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
         # Ensure the response is what we expect
@@ -235,7 +268,15 @@ class TestResourceCollectionPOST(SimpleTestCase):
         ticket_number = response.data['ticket_number']
         ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
-        time.sleep(10)
+        # Wait until the spawned off process finishes in the background
+        # to do validation on the resulting files
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
 
         upload_job_response = self.client.get(response.data['upload_job'], **headers)
         # Ensure the response is what we expect
@@ -258,7 +299,15 @@ class TestResourceCollectionPOST(SimpleTestCase):
         ticket_number = response.data['ticket_number']
         ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
-        time.sleep(10)
+        # Wait until the spawned off process finishes in the background
+        # to do validation on the resulting files
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
 
         upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
         # Ensure the response is what we expect
@@ -278,7 +327,15 @@ class TestResourceCollectionPOST(SimpleTestCase):
         ticket_number = response.data['ticket_number']
         ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
-        time.sleep(10)
+        # Wait until the spawned off process finishes in the background
+        # to do validation on the resulting files
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
 
         upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
         # Ensure the response is what we expect
@@ -309,7 +366,15 @@ class TestResourceCollectionPOST(SimpleTestCase):
             ticket_number = response.data['ticket_number']
             ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
-            time.sleep(10)
+            # Wait until the spawned off process finishes in the background
+            # to do validation on the resulting files
+            process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            while process_info['status'] == 'in_progress':
+                try:
+                    process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+                except json.decoder.JSONDecodeError:
+                    # Pass while the process_info file is being written to
+                    pass
 
             upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
             self.assertEqual(upload_job_response.data['status_code'], 400)
