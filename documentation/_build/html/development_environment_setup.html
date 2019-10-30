@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Code Documentation" href="code_documentation.html" />
-    <link rel="prev" title="Integration Management Command" href="integration_management_command.html" /> 
+    <link rel="next" title="Authentication/Authorization" href="authentication_authorization.html" />
+    <link rel="prev" title="Architecture/Infrastructure" href="architecture_infrastructure.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -82,17 +82,15 @@
             
               <p class="caption"><span class="caption-text">Contents</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="project_overview.html">Project Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="architecture_infrastructure.html">Architecture/Infrastructure</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Development Environment Setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#local-development-environment-setup">Local Development Environment Setup</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="authentication_authorization.html">Authentication/Authorization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="developer_documentation.html">Developer Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="integration_management_command.html">Integration Management Command</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Development Environment Setup</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a><ul class="simple">
-</ul>
-</li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="code_documentation.html">Code Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="web_services.html">Web Services</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tools_services.html">Tools/Services</a></li>
@@ -171,40 +169,50 @@
 <li><p>Knowledge of setting environment variables</p></li>
 <li><p>Knowledge of <code class="docutils literal notranslate"><span class="pre">docker-compose</span></code> utility.</p></li>
 </ul>
-<p><strong>To bring up a local version of PresQT, take the following steps:</strong></p>
-<ol class="arabic">
-<li><dl class="simple">
-<dt>Clone the repo to your local machine in the desired folder location:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">$</span> <span class="pre">git</span> <span class="pre">clone</span> <span class="pre">https://github.com/ndlib/presqt.git</span></code></p>
-</dd>
-</dl>
+</div>
+<div class="section" id="local-development-environment-setup">
+<h2>Local Development Environment Setup<a class="headerlink" href="#local-development-environment-setup" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><ol class="arabic">
+<li><p>Clone the repo to your local machine in the desired folder location:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/ndlib/presqt.git
+</pre></div>
+</div>
 </li>
-<li><dl>
-<dt>Export the following ENV_VARS:</dt><dd><ul class="simple">
+<li><p>Export <strong>required</strong> ENV_VARS:</p>
+<ul class="simple">
 <li><p><strong>ENVIRONMENT</strong>: Should be either <code class="docutils literal notranslate"><span class="pre">production</span></code> or <code class="docutils literal notranslate"><span class="pre">development</span></code></p></li>
 <li><p><strong>SECRET_KEY</strong>: A Django “secret key” value.</p></li>
 </ul>
-<p>The following two are only needed if you intend on running all test cases.
-* CURATE_ND_TEST_TOKEN: A token for Curate’s API.
-* GITHUB_TEST_USER_TOKEN: A token for GitHub’s API.</p>
-</dd>
-</dl>
-</li>
-</ol>
-<dl class="simple">
-<dt>Example Exportation:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">$</span> <span class="pre">export</span> <span class="pre">ENVIRONMENT=development</span></code>
-<code class="docutils literal notranslate"><span class="pre">$</span> <span class="pre">export</span> <span class="pre">SECRET_KEY=y4xgryt7ex9g+4mcs4=^sg5afp3lz#=94eb6=6o6l61o=a31y_h</span></code></p>
-</dd>
-</dl>
-<ol class="arabic simple" start="3">
-<li><dl class="simple">
-<dt>Execute <code class="docutils literal notranslate"><span class="pre">docker-compose</span></code> up within the repo’s base folder.</dt><dd><p><code class="docutils literal notranslate"><span class="pre">$</span> <span class="pre">docker-compose</span> <span class="pre">up</span></code></p>
-</dd>
-</dl>
-</li>
-<li><p>Navigate to <a class="reference external" href="http://127.0.0.1/api_v1/">http://127.0.0.1/api_v1/</a> or <a class="reference external" href="http://localhost/api_v1/">http://localhost/api_v1/</a> in your browser.</p></li>
-</ol>
-<div class="toctree-wrapper compound">
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># Example Exportation
+$ export ENVIRONMENT=development
+$ export SECRET_KEY=y4xgryt7ex9g+4mcs4=^sg5afp3lz#=94eb6=6o6l61o=a31y_h
+</pre></div>
 </div>
+</li>
+<li><p>Export <strong>optional</strong> ENV_VARS for testing:</p>
+<ul class="simple">
+<li><p><strong>CURATE_ND_TEST_TOKEN</strong>: The test token for Curate’s API.</p></li>
+<li><p><strong>GITHUB_TEST_USER_TOKEN</strong>: The test token for GitHub’s API.</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Contact an administrator to get the target test tokens.</p>
+</div>
+</li>
+</ol>
+<div class="line-block">
+<div class="line">4. Execute <code class="docutils literal notranslate"><span class="pre">docker-compose</span></code> up within the repo’s base folder.</div>
+</div>
+<blockquote>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ docker-compose up
+</pre></div>
+</div>
+</div></blockquote>
+<ol class="arabic simple" start="5">
+<li><p>Navigate to <a class="reference external" href="https://localhost/api_v1/">https://localhost/api_v1/</a> in your browser.</p></li>
+</ol>
+</div></blockquote>
 </div>
 </div>
 
@@ -216,10 +224,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="code_documentation.html" class="btn btn-neutral float-right" title="Code Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="authentication_authorization.html" class="btn btn-neutral float-right" title="Authentication/Authorization" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="integration_management_command.html" class="btn btn-neutral float-left" title="Integration Management Command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="architecture_infrastructure.html" class="btn btn-neutral float-left" title="Architecture/Infrastructure" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
