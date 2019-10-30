@@ -186,7 +186,7 @@ class TestDownload(SimpleTestCase):
         # The endpoint lumps all errors into a 500 status code
         self.assertEqual(download_response.status_code, 500)
         self.assertEqual(download_response.data['status_code'], 404)
-        self.assertEqual(download_response.data['message'], "The resource with id,bad , does not exist for this user.")
+        self.assertEqual(download_response.data['message'], "The resource with id, bad, does not exist for this user.")
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(ticket_number))
