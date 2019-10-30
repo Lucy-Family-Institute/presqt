@@ -531,7 +531,7 @@ class TestUploadJob(SimpleTestCase):
     def test_get_error_500_400_not_a_bag_zip_file_osf(self):
         """
         Return a 500 if the BaseResource._upload_resource function running on the server gets a
-        401 error because a bad project format given with there a file at the top level.
+        400 error because a zip other than a bag is provided in the request.
         """
         self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
         self.file = 'presqt/api_v1/tests/resources/upload/not_a_bag.zip'
