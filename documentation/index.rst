@@ -23,10 +23,10 @@ More information can be found here https://presqt.crc.nd.edu/
    :maxdepth: 2
 
    architecture_infrastructure
+   development_environment_setup
    authentication_authorization
    developer_documentation
    integration_management_command
-   development_environment_setup
    code_documentation
    web_services
    tools_services

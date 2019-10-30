@@ -14,7 +14,7 @@ improve Preservation and Re-use of Research Data and Software.
    This documentation will grow/changed throughout the life of the PresQT project.
    Readers should expect that pages will often be incomplete and/or move as features are actively
    being developed and implemented.
-   Please send any **feedback** to the content presented here to Noel Recla* **nrecla@nd.edu**
+   Please send any **feedback** to the content presented here to Noel Recla **nrecla@nd.edu**
 
 More information can be found here https://presqt.crc.nd.edu/
 
@@ -23,10 +23,10 @@ More information can be found here https://presqt.crc.nd.edu/
    :maxdepth: 2
 
    architecture_infrastructure
+   development_environment_setup
    authentication_authorization
    developer_documentation
    integration_management_command
-   development_environment_setup
    code_documentation
    web_services
    tools_services

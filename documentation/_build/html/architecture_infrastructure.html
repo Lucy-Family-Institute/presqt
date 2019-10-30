@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Authentication/Authorization" href="authentication_authorization.html" />
-    <link rel="prev" title="Project Overview" href="project_overview.html" /> 
+    <link rel="next" title="Development Environment Setup" href="development_environment_setup.html" />
+    <link rel="prev" title="Welcome to PresQT" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -82,21 +82,17 @@
             
               <p class="caption"><span class="caption-text">Contents</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="project_overview.html">Project Overview</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Architecture/Infrastructure</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#development-environments">Development Environments</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#how-to-spin-up-a-presqt-development-environment">How to Spin-Up a PresQT Development Environment</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="#development-environments">Development Environments</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#qa-production-deployments">QA/Production Deployments</a><ul class="simple">
 </ul>
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="development_environment_setup.html">Development Environment Setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="authentication_authorization.html">Authentication/Authorization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="developer_documentation.html">Developer Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="integration_management_command.html">Integration Management Command</a></li>
-<li class="toctree-l1"><a class="reference internal" href="development_environment_setup.html">Development Environment Setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="code_documentation.html">Code Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="web_services.html">Web Services</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tools_services.html">Tools/Services</a></li>
@@ -169,13 +165,11 @@
 <h1>Architecture/Infrastructure<a class="headerlink" href="#architecture-infrastructure" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="development-environments">
 <h2>Development Environments<a class="headerlink" href="#development-environments" title="Permalink to this headline">¶</a></h2>
-<p>One of the design goals for PresQT is to use Docker throughout our pipeline to make it as easy as
-possible to newcomers to the project to get up and running with PresQT services.</p>
-<p>The first step towards making that goal a reality was creating an easy to use development environment
-using Docker compose.</p>
-<p>The diagram below illustrates how we are using Docker Compose to create a constellation of 3
-containers on developer machines representing the three essential components of PresQT as it is
-currently constructed:</p>
+<p>PresQT uses Docker throughout its pipeline to make it as easy as possible for newcomers to the
+project to get up and running with PresQT services. This was accomplished by creating an easy to
+use development environment using Docker compose.</p>
+<p>The diagram below illustrates how we are using Docker Compose to create a constellation of 2
+containers on developer machines representing the two essential components of PresQT:</p>
 <ul class="simple">
 <li><dl class="simple">
 <dt>Nginx</dt><dd><ul>
@@ -188,28 +182,24 @@ currently constructed:</p>
 <li><dl class="simple">
 <dt>Django/Gunicorn</dt><dd><ul>
 <li><p>After passing through the Nginx layer, this container processes API requests from users and
-then takes the necessary actions to fulfill the user’s requests by communicating with partner services via the their own APIs.</p></li>
+then takes the necessary actions to fulfill the user’s requests by communicating with partner
+services via the their own APIs.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
 </ul>
-<p>Those familiar with Docker may derive additional information on the setup by inspecting the
-visualization below.</p>
-<div class="section" id="how-to-spin-up-a-presqt-development-environment">
-<h3>How to Spin-Up a PresQT Development Environment<a class="headerlink" href="#how-to-spin-up-a-presqt-development-environment" title="Permalink to this headline">¶</a></h3>
-<p>We will include instructions in the Github repo on how a new developer/partner contributor can
-spin-up their own local development environment.</p>
-</div>
+<p>INSERT IMAGE HERE</p>
 </div>
 <div class="section" id="qa-production-deployments">
 <h2>QA/Production Deployments<a class="headerlink" href="#qa-production-deployments" title="Permalink to this headline">¶</a></h2>
 <p>Unsurprisingly, there is a significant overlap between the developer setup and the QA/Production
-deployment architecture. Here are some of the points where the details vary:</p>
+deployment architecture. The following is how they will vary:</p>
 <ul class="simple">
 <li><p>One machine (the “Web Server”) will be the host for the Nginx container and one or more identical
 Django containers that will respond to APIs requests from client researchers in a load balanced manner.</p></li>
 </ul>
+<p>INSERT IMAGE HERE</p>
 <div class="toctree-wrapper compound">
 </div>
 </div>
@@ -223,10 +213,10 @@ Django containers that will respond to APIs requests from client researchers in 
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="authentication_authorization.html" class="btn btn-neutral float-right" title="Authentication/Authorization" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="development_environment_setup.html" class="btn btn-neutral float-right" title="Development Environment Setup" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="project_overview.html" class="btn btn-neutral float-left" title="Project Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to PresQT" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
