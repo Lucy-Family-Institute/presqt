@@ -5,18 +5,23 @@
 
 Welcome to PresQT
 ==================================
-The space is maintained by the development team in the Center for Research Computer at Notre Dame.
+``PresQT (Preservation Quality Tool)`` is an open-source tool with RESTful services to
+improve Preservation and Re-use of Research Data and Software.
 
-    *This documentation will grow/changed throughout the life of the PresQT project.* 
-    *Readers should expect that pages will often be incomplete and/or move as features are actively being developed and implemented.*
+.. note::
 
-*Please send any* **feedback** *to the content presented here to Noel Recla* **nrecla@nd.edu**
+   Development is underway by the development team in the Center for Research Computer at Notre Dame.
+   This documentation will grow/changed throughout the life of the PresQT project.
+   Readers should expect that pages will often be incomplete and/or move as features are actively
+   being developed and implemented.
+   Please send any **feedback** to the content presented here to Noel Recla **nrecla@nd.edu**
+
+More information can be found here https://presqt.crc.nd.edu/
 
 .. toctree::
    :caption: Contents
-   :maxdepth: 3
+   :maxdepth: 2
 
-   project_overview
    architecture_infrastructure
    authentication_authorization
    developer_documentation

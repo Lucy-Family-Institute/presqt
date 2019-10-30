@@ -1,25 +1,5 @@
 Project Overview
 ==================================
-Purpose
-----------------
-The purpose of this document is to create a common understanding between all partners involved in the 
-development process to ensure that the right system/tool is being built.
-
-Goals of this Document
-----------------------
-* offers the reader an understanding of the development goals 
-* presents the system architecture and description
-* makes the reader aware what is being build
-* will be updated regularly, but is written with an understanding at this time, even if its not correct
-* the document will include feedback and corrections from the development community
-
-High Level Overview
--------------------
-There are many research data repositories in use within higher education today. Oftentimes, 
-researchers will have a need and/or desire to work in multiple data repositories concurrently.
-
-This desire can be frustrated as disparate systems are often not able to directly share resources; 
-or if able to share resources, do so in less than ideal fashions.
 
 The Overall Goal of PresQT
 --------------------------
