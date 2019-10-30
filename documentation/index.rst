@@ -25,6 +25,7 @@ More information can be found here https://presqt.crc.nd.edu/
    architecture_infrastructure
    development_environment_setup
    authentication_authorization
+   developer_notes
    developer_documentation
    integration_management_command
    code_documentation

@@ -36,7 +36,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Web Services" href="web_services.html" />
-    <link rel="prev" title="Development Environment Setup" href="development_environment_setup.html" /> 
+    <link rel="prev" title="Integration Management Command" href="integration_management_command.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -82,12 +82,13 @@
             
               <p class="caption"><span class="caption-text">Contents</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="project_overview.html">Project Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="architecture_infrastructure.html">Architecture/Infrastructure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development_environment_setup.html">Development Environment Setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="authentication_authorization.html">Authentication/Authorization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="docker_commands.html">Docker Commands</a></li>
 <li class="toctree-l1"><a class="reference internal" href="developer_documentation.html">Developer Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="integration_management_command.html">Integration Management Command</a></li>
-<li class="toctree-l1"><a class="reference internal" href="development_environment_setup.html">Development Environment Setup</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Code Documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#target-endpoints">Target Endpoints</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#target-details">Target Details</a></li>
@@ -133,17 +134,14 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#asynchronous-requests">Asynchronous Requests</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#example-osf-resource-collection">Example - OSF Resource Collection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example-osf-resource-collection">Example - OSF Resource Collection</a><ul class="simple">
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#docker-commands">Docker Commands</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a><ul class="simple">
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="web_services.html">Web Services</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tools_services.html">Tools/Services</a></li>
 <li class="toctree-l1"><a class="reference internal" href="resources.html">Resources</a></li>
 </ul>
 
@@ -1013,46 +1011,8 @@ as we could. The following image is our solution. Every color is a grouping of a
 <img alt="_images/async_request_grouping.png" src="_images/async_request_grouping.png" />
 <p class="caption"><span class="caption-text">Image 1: Asynchronous Request Grouping</span><a class="headerlink" href="#id22" title="Permalink to this image">¶</a></p>
 </div>
-</div>
-</div>
-<div class="section" id="docker-commands">
-<h2>Docker Commands<a class="headerlink" href="#docker-commands" title="Permalink to this headline">¶</a></h2>
-<p>To rebuild the docker container after a new package has been added to the requirements files:</p>
-<p><code class="docutils literal notranslate"><span class="pre">$</span> <span class="pre">docker-compose</span> <span class="pre">up</span> <span class="pre">--build</span></code></p>
-<p>Run the following command for an <cite>interactive -i terminal -t</cite> for this container:</p>
-<p><code class="docutils literal notranslate"><span class="pre">$</span> <span class="pre">docker</span> <span class="pre">exec</span> <span class="pre">-i</span> <span class="pre">-t</span> <span class="pre">presqt_presqt_django_1</span> <span class="pre">/bin/ash</span></code></p>
-</div>
-<div class="section" id="testing">
-<h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
-<p>We maintain a high code coverage percentage with unit and integration tests for every function,
-serializer, and management command. We are using a package called Coverage (<a class="reference external" href="https://coverage.readthedocs.io/en/v4.5.x/">https://coverage.readthedocs.io/en/v4.5.x/</a>)
-to track code coverage.</p>
-<p>To run unit tests without using Coverage:</p>
-<p><code class="docutils literal notranslate"><span class="pre">$</span> <span class="pre">python</span> <span class="pre">manage.py</span> <span class="pre">test</span></code></p>
-<p>To run unit tests using Coverage with comprehensive code coverage report generated into an HTML file:</p>
-<p><code class="docutils literal notranslate"><span class="pre">coverage</span> <span class="pre">run</span> <span class="pre">manage.py</span> <span class="pre">test</span> <span class="pre">&amp;&amp;</span> <span class="pre">coverage</span> <span class="pre">combine</span> <span class="pre">&amp;&amp;</span> <span class="pre">coverage</span> <span class="pre">html</span></code></p>
-<blockquote>
-<div><div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This command will generate a directory that is ignored by Git via our .gitignore file. To see the
-code coverage open the file /coverage_html/index.html in a browser.</p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Coverage options are specified in a configuration file called .coveragerc. This is where you would
-add files/directories you want to omit from our Coverage report.</p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>‘coverage combine’ will take the coverage files created for multipricesses (located in the base directory)
-and will combine them with the main coverage files . If a test using multiprocessing fails these
-coverage files will remain and must be deleted manually.</p>
-</div>
-</div></blockquote>
-<p>We also tried to split unit and integration tests up between core PresQT code and Target code. Tests
-that cover core code reside in <code class="docutils literal notranslate"><span class="pre">presqt/api_v1/tests/</span></code> while target tests that cover target functions
-reside in <code class="docutils literal notranslate"><span class="pre">presqt/targets/{target_name}/tests/</span></code> .</p>
 <div class="toctree-wrapper compound">
+</div>
 </div>
 </div>
 </div>
@@ -1068,7 +1028,7 @@ reside in <code class="docutils literal notranslate"><span class="pre">presqt/ta
         <a href="web_services.html" class="btn btn-neutral float-right" title="Web Services" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="development_environment_setup.html" class="btn btn-neutral float-left" title="Development Environment Setup" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="integration_management_command.html" class="btn btn-neutral float-left" title="Integration Management Command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
