@@ -225,13 +225,14 @@ class BaseResource(APIView):
         # Fetch the proper function to call
         func = FunctionRouter.get_function(self.source_target_name, action)
 
-        # Fetch the resources. 'resources' will be a list of the following dictionary:
-        # {'file': binary_file,
-        # 'hashes': {'some_hash': value, 'other_hash': value},
-        # 'title': resource_title,
-        # 'path': /some/path/to/resource}
+        # Fetch the resources. func_dict is in the format:
+        #   {
+        #       'resources': files,
+        #       'empty_containers': empty_containers,
+        #       'action_metadata': action_metadata
+        #   }
         try:
-            resources, empty_containers, action_metadata = func(self.source_token, self.source_resource_id)
+            func_dict = func(self.source_token, self.source_resource_id)
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch.
             # Update the server process_info file appropriately.
@@ -256,7 +257,7 @@ class BaseResource(APIView):
         self.download_fixity = True
         self.source_fts_metadata_actions = []
         self.new_fts_metadata_files = []
-        for resource in resources:
+        for resource in func_dict['resources']:
             # Perform the fixity check and add extra info to the returned fixity object.
             fixity_obj, self.download_fixity = download_fixity_checker.download_fixity_checker(resource)
             fixity_info.append(fixity_obj)
@@ -275,7 +276,7 @@ class BaseResource(APIView):
             'actionDateTime': str(timezone.now()),
             'actionType': self.action,
             'sourceTargetName': self.source_target_name,
-            'sourceUsername': action_metadata['sourceUsername'],
+            'sourceUsername': func_dict['action_metadata']['sourceUsername'],
             'destinationTargetName': 'Local Machine',
             'destinationUsername': None,
             'files': {
@@ -286,7 +287,7 @@ class BaseResource(APIView):
         }
 
         # Write empty containers to disk
-        for container_path in empty_containers:
+        for container_path in func_dict['empty_containers']:
             # Make sure the container_path has a '/' and the beginning and end
             if container_path[-1] != '/':
                 container_path += '/'
@@ -300,7 +301,8 @@ class BaseResource(APIView):
 
             # Make a BagIt 'bag' of the resources.
             bagit.make_bag(self.resource_main_dir, checksums=['md5', 'sha1', 'sha256', 'sha512'])
-            self.process_info_obj['download_status'] = get_action_message('Download', self.download_fixity, True)
+            self.process_info_obj['download_status'] = get_action_message('Download',
+                                                                          self.download_fixity, True)
             return True
         # If we are only downloading the resource then create metadata, bag, zip,
         # and update the server process file.
@@ -314,7 +316,8 @@ class BaseResource(APIView):
             # Validate the final metadata
             metadata_validation = schema_validator('presqt/json_schemas/metadata_schema.json',
                                                    final_fts_metadata_data)
-            self.process_info_obj['message'] = get_action_message('Download', self.download_fixity, metadata_validation)
+            self.process_info_obj['message'] = get_action_message('Download', self.download_fixity,
+                                                                  metadata_validation)
 
             # Add the fixity file to the disk directory
             write_file(os.path.join(self.resource_main_dir, 'fixity_info.json'), fixity_info, True)
