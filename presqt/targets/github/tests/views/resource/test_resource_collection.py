@@ -1,5 +1,6 @@
 import json
 import os
+import requests
 import shutil
 import time
 from unittest.mock import patch
@@ -9,9 +10,10 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from config.settings.base import GITHUB_TEST_USER_TOKEN
+from presqt.targets.github.functions.upload_metadata import github_upload_metadata
 from presqt.targets.github.utilities import delete_github_repo
 from presqt.targets.utilities import shared_upload_function_github
-from presqt.utilities import read_file
+from presqt.utilities import read_file, PresQTError
 
 
 class TestResourceCollection(SimpleTestCase):
@@ -170,7 +172,8 @@ class TestResourceCollectionPOST(SimpleTestCase):
 
         # Make the second post attempt
         self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
-        response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+        response = self.client.post(
+            self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
 
         ticket_number = response.data['ticket_number']
         ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
@@ -197,7 +200,8 @@ class TestResourceCollectionPOST(SimpleTestCase):
 
         # Make the third post attempt
         self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
-        response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+        response = self.client.post(
+            self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
 
         ticket_number = response.data['ticket_number']
         ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
@@ -223,6 +227,112 @@ class TestResourceCollectionPOST(SimpleTestCase):
                            {'Authorization': 'token {}'.format(self.token)})
         delete_github_repo('presqt-test-user', second_duplicate_title,
                            {'Authorization': 'token {}'.format(self.token)})
+        # Delete upload folder
+        shutil.rmtree(ticket_path)
+
+    def test_presqt_fts_metadata(self):
+        """
+        Check that the PRESQT_FTS_METADATA is created and what we expect.
+        """
+        # 202 when uploading a new top level repo
+        shared_upload_function_github(self)
+        header = {"Authorization": "token {}".format(self.token)}
+
+        # On the project that was just created, we need to get the contents of the metadata file.
+        metadata_link = 'https://raw.githubusercontent.com/presqt-test-user/{}/master/PRESQT_FTS_METADATA.json'.format(
+            self.repo_title)
+
+        # Get the metadata json
+        response = requests.get(metadata_link, headers=header)
+        metadata_file = json.loads(response.content)
+
+        # Action metadata
+        self.assertEqual(metadata_file['context']['globus'],
+                         'https://docs.globus.org/api/transfer/overview/')
+        self.assertEqual(metadata_file['actions'][0]['actionType'], 'resource_upload')
+        self.assertEqual(metadata_file['actions'][0]['sourceTargetName'], 'Local Machine')
+        self.assertEqual(metadata_file['actions'][0]['destinationTargetName'], 'github')
+        self.assertEqual(metadata_file['actions'][0]['destinationUsername'], 'presqt-test-user')
+
+        # File metadata
+        self.assertEqual(metadata_file['actions'][0]['files']['created'][0]['title'],
+                         'Screen Shot 2019-07-15 at 3.26.49 PM.png')
+        self.assertEqual(metadata_file['actions'][0]['files']['created'][0]['sourcePath'],
+                         '/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png')
+        self.assertEqual(metadata_file['actions'][0]['files']['created'][0]['destinationPath'],
+                         '/NewProject/funnyfunnyimages/Screen_Shot_2019-07-15_at_3.26.49_PM.png')
+
+        # Delete upload folder
+        shutil.rmtree(self.ticket_path)
+
+    def test_bad_metadata_request(self):
+        """
+        Ensure that the proper error is raised when we get a non-201 resoponse from GitHub.
+        """
+        # Calling this function manually to confirm explicit error is raised.
+        self.assertRaises(PresQTError, github_upload_metadata, self.token, None, {"fake": "data"},
+                          "BAD")
+
+    def test_upload_with_invalid_metadata_file_and_valid_metadata(self):
+        """
+        If the upload file contains an invalid metadata file, it needs to be renamed and a new metadata
+        file is to be made. If it is valid, we need to append the new action.
+        """
+        header = {"Authorization": "token {}".format(self.token)}
+        bag_with_bad_metadata = 'presqt/api_v1/tests/resources/upload/Invalid_Metadata_Upload.zip'
+        self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
+        response = self.client.post(self.url, {'presqt-file': open(bag_with_bad_metadata, 'rb')},
+                                    **self.headers)
+
+        ticket_number = response.data['ticket_number']
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+
+        # Wait until the spawned off process finishes in the background
+        # to do validation on the resulting files
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+
+        # On the project that was just created, we need to get the contents of the metadata file.
+        invalid_metadata_link = 'https://raw.githubusercontent.com/presqt-test-user/Bad_Egg/master/INVALID_PRESQT_FTS_METADATA.json'
+        # Get the invalid metadata json
+        response = requests.get(invalid_metadata_link, headers=header)
+        invalid_metadata_file = json.loads(response.content)
+
+        self.assertEqual(invalid_metadata_file, {'invalid_metadata': 'no bueno'})
+
+        delete_github_repo('presqt-test-user', 'Bad_Egg', header)
+        # Delete upload folder
+        shutil.rmtree(ticket_path)
+
+        ###### VALID METADATA #######
+        bag_with_good_metadata = 'presqt/api_v1/tests/resources/upload/Valid_Metadata_Upload.zip'
+        response = self.client.post(self.url, {'presqt-file': open(bag_with_good_metadata, 'rb')},
+                                    **self.headers)
+        ticket_number = response.data['ticket_number']
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+
+        # Wait until the spawned off process finishes in the background
+        # to do validation on the resulting files
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+        # On the project that was just created, we need to get the contents of the metadata file.
+        valid_metadata_link = 'https://raw.githubusercontent.com/presqt-test-user/Good_Egg/master/PRESQT_FTS_METADATA.json'
+        # Get the invalid metadata json
+        response = requests.get(valid_metadata_link, headers=header)
+        valid_metadata_file = json.loads(response.content)
+        self.assertEqual(len(valid_metadata_file['actions']), 2)
+
+        delete_github_repo('presqt-test-user', 'Good_Egg', header)
         # Delete upload folder
         shutil.rmtree(ticket_path)
 
@@ -262,7 +372,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         If a user does not have a valid GitHub API token, we should return a 401 unauthorized status.
         """
         headers = {'HTTP_PRESQT_DESTINATION_TOKEN': 'eggyboi',
-                  'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+                   'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
         response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **headers)
 
         ticket_number = response.data['ticket_number']
@@ -361,7 +471,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
 
             self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
             response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')},
-                                    **self.headers)
+                                        **self.headers)
 
             ticket_number = response.data['ticket_number']
             ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
