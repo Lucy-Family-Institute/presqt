@@ -6,6 +6,7 @@ from django.utils import timezone
 from presqt.json_schemas.schema_handlers import schema_validator
 from presqt.utilities import get_dictionary_from_list, PresQTError, read_file
 
+
 def get_upload_source_metadata(instance, bag):
     """
     Get all FTS metadata files in the bag. If they are valid then get their contents, otherwise
@@ -27,15 +28,16 @@ def get_upload_source_metadata(instance, bag):
             if schema_validator('presqt/json_schemas/metadata_schema.json',
                                 source_metadata_content) is True:
                 instance.source_metadata_actions = instance.source_metadata_actions + \
-                                               source_metadata_content['actions']
+                    source_metadata_content['actions']
                 os.remove(os.path.join(instance.resource_main_dir, bag_file))
                 bag.save(manifests=True)
-            # If the MTS metadata is invalid then rename the file in the bag.
+            # If the FTS metadata is invalid then rename the file in the bag.
             else:
                 invalid_metadata_path = os.path.join(os.path.split(metadata_path)[0],
-                                                     'INVALID_PRESQT_METADATA.json')
+                                                     'INVALID_PRESQT_FTS_METADATA.json')
                 os.rename(metadata_path, invalid_metadata_path)
                 bag.save(manifests=True)
+
 
 def create_upload_transfer_metadata(instance, file_metadata_list, action_metadata, project_id,
                                     resources_ignored, resources_updated):
@@ -66,8 +68,8 @@ def create_upload_transfer_metadata(instance, file_metadata_list, action_metadat
 
     # Put the file metadata in the correct file list
     instance.action_metadata['files'] = build_file_dict(instance.action_metadata['files']['created'],
-                                                       resources_ignored, resources_updated,
-                                                       'destinationPath')
+                                                        resources_ignored, resources_updated,
+                                                        'destinationPath')
 
     for resource in file_metadata_list:
         # Get the resource's metadata dict that has already been created during download
@@ -86,7 +88,6 @@ def create_upload_transfer_metadata(instance, file_metadata_list, action_metadat
 
         fts_metadata_entry['destinationPath'] = resource['destinationPath']
 
-
     # Create FTS metadata object
     from presqt.api_v1.utilities import create_fts_metadata
     fts_metadata_data = create_fts_metadata(instance.action_metadata,
@@ -94,6 +95,7 @@ def create_upload_transfer_metadata(instance, file_metadata_list, action_metadat
     # Write the metadata file to the destination target and validate the metadata file
     metadata_validation = write_and_validate_metadata(instance, project_id, fts_metadata_data)
     return metadata_validation
+
 
 def create_upload_metadata(instance, file_metadata_list, action_metadata, project_id,
                            resources_ignored, resources_updated):
@@ -131,14 +133,14 @@ def create_upload_metadata(instance, file_metadata_list, action_metadata, projec
             'sourcePath': resource['actionRootPath'][len(instance.data_directory):],
             'destinationPath': resource['destinationPath'],
             'sourceHashes': {instance.hash_algorithm:
-                                 instance.file_hashes[resource['actionRootPath']]},
+                             instance.file_hashes[resource['actionRootPath']]},
             'destinationHashes': resource_hash,
             'failedFixityInfo': resource['failed_fixity_info'],
             'extra': {}
         })
 
     # Put the file metadata in the correct file list
-    files = build_file_dict(fts_metadata,resources_ignored, resources_updated, 'sourcePath')
+    files = build_file_dict(fts_metadata, resources_ignored, resources_updated, 'sourcePath')
 
     action_metadata = {
         'id': str(uuid4()),
@@ -157,6 +159,7 @@ def create_upload_metadata(instance, file_metadata_list, action_metadata, projec
     # Write the metadata file to the destination target and validate the metadata file
     metadata_validation = write_and_validate_metadata(instance, project_id, fts_metadata_data)
     return metadata_validation
+
 
 def write_and_validate_metadata(instance, project_id, fts_metadata_data):
     """
@@ -191,6 +194,7 @@ def write_and_validate_metadata(instance, project_id, fts_metadata_data):
         metadata_validation = schema_validator('presqt/json_schemas/metadata_schema.json',
                                                fts_metadata_data)
     return metadata_validation
+
 
 def build_file_dict(file_metadata, resources_ignored, resources_updated, path):
     """

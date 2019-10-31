@@ -46,10 +46,11 @@ def shared_upload_function_osf(test_case_instance):
     test_case_instance.assertEqual(
         process_info['hash_algorithm'], test_case_instance.hash_algorithm)
 
+
 def shared_upload_function_github(test_case_instance):
     test_case_instance.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = test_case_instance.duplicate_action
-    response = test_case_instance.client.post(test_case_instance.url, {
-                                              'presqt-file': open(test_case_instance.file, 'rb')}, **test_case_instance.headers)
+    response = test_case_instance.client.post(test_case_instance.url, {'presqt-file': open(
+        test_case_instance.file, 'rb')}, **test_case_instance.headers)
 
     ticket_number = response.data['ticket_number']
     test_case_instance.ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
@@ -69,7 +70,8 @@ def shared_upload_function_github(test_case_instance):
     # Verify process_info.json file data
     process_info = read_file('{}/process_info.json'.format(test_case_instance.ticket_path), True)
     test_case_instance.assertEqual(process_info['status'], 'finished')
-    test_case_instance.assertEqual(process_info['message'], 'Upload successful but with fixity and metadata errors.')
+    test_case_instance.assertEqual(
+        process_info['message'], 'Upload successful but with fixity and metadata errors.')
     test_case_instance.assertEqual(process_info['status_code'], '200')
     test_case_instance.assertNotEqual(process_info['failed_fixity'], [])
     test_case_instance.assertEqual(
