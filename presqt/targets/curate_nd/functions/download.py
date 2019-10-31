@@ -70,18 +70,27 @@ def curate_nd_download_resource(token, resource_id):
 
     Returns
     -------
-    - List of dictionary objects that each hold a file and its information.
-        Dictionary must be in the following format:
-        {
-            'file': binary_file,
-            'hashes': {'md5': 'the_hash},
-            'title': 'file.jpg',
-            'path': '/path/to/file
-        }
-
-    - List of string paths representing empty containers that must be written.
-        Example: ['empty/folder/to/write/', 'another/empty/folder/]
-
+    Dictionary with the following keys: values
+        'resources': List of dictionary objects that each hold a file and its information.
+                     Dictionary must be in the following format:
+                         {
+                            'file': binary_file,
+                            'hashes': {'hash_algorithm': 'the_hash'},
+                            'title': 'file.jpg',
+                            'path': '/path/to/file',
+                            'metadata': {
+                                'sourcePath': '/full/path/at/source.jpg',
+                                'title': 'file_title',
+                                'sourceHashes': {'hash_algorithm': 'the_hash'},
+                                'extra': {'any': 'extra'}
+                             }
+                         }
+        'empty_containers: List of string paths representing empty containers that must be written.
+                              Example: ['empty/folder/to/write/', 'another/empty/folder/]
+        'action_metadata': Dictionary containing action metadata. Must be in the following format:
+                              {
+                              'sourceUsername': 'some_username',
+                              }
     """
     try:
         curate_instance = CurateND(token)
@@ -165,4 +174,8 @@ def curate_nd_download_resource(token, resource_id):
                     'metadata': get_dictionary_from_list(file_metadata, 'title',
                                                          title_helper[file['url']])})
 
-    return files, empty_containers, action_metadata
+    return {
+        'resources': files,
+        'empty_containers': empty_containers,
+        'action_metadata': action_metadata
+    }
