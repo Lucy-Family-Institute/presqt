@@ -273,6 +273,69 @@ class TestResourceCollectionPOST(SimpleTestCase):
         self.assertRaises(PresQTError, github_upload_metadata, self.token, None, {"fake": "data"},
                           "BAD")
 
+    def test_upload_with_invalid_metadata_file_and_valid_metadata(self):
+        """
+        If the upload file contains an invalid metadata file, it needs to be renamed and a new metadata
+        file is to be made. If it is valid, we need to append the new action.
+        """
+        header = {"Authorization": "token {}".format(self.token)}
+        bag_with_bad_metadata = 'presqt/api_v1/tests/resources/upload/Invalid_Metadata_Upload.zip'
+        self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
+        response = self.client.post(self.url, {'presqt-file': open(bag_with_bad_metadata, 'rb')},
+                                    **self.headers)
+
+        ticket_number = response.data['ticket_number']
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+
+        # Wait until the spawned off process finishes in the background
+        # to do validation on the resulting files
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+
+        # On the project that was just created, we need to get the contents of the metadata file.
+        invalid_metadata_link = 'https://raw.githubusercontent.com/presqt-test-user/Bad_Egg/master/INVALID_PRESQT_FTS_METADATA.json'
+        # Get the invalid metadata json
+        response = requests.get(invalid_metadata_link, headers=header)
+        invalid_metadata_file = json.loads(response.content)
+
+        self.assertEqual(invalid_metadata_file, {'invalid_metadata': 'no bueno'})
+
+        delete_github_repo('presqt-test-user', 'Bad_Egg', header)
+        # Delete upload folder
+        shutil.rmtree(ticket_path)
+
+        ###### VALID METADATA #######
+        bag_with_good_metadata = 'presqt/api_v1/tests/resources/upload/Valid_Metadata_Upload.zip'
+        response = self.client.post(self.url, {'presqt-file': open(bag_with_good_metadata, 'rb')},
+                                    **self.headers)
+        ticket_number = response.data['ticket_number']
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+
+        # Wait until the spawned off process finishes in the background
+        # to do validation on the resulting files
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+        # On the project that was just created, we need to get the contents of the metadata file.
+        valid_metadata_link = 'https://raw.githubusercontent.com/presqt-test-user/Good_Egg/master/PRESQT_FTS_METADATA.json'
+        # Get the invalid metadata json
+        response = requests.get(valid_metadata_link, headers=header)
+        valid_metadata_file = json.loads(response.content)
+        self.assertEqual(len(valid_metadata_file['actions']), 2)
+
+        delete_github_repo('presqt-test-user', 'Good_Egg', header)
+        # Delete upload folder
+        shutil.rmtree(ticket_path)
+
     def test_400_error_bad_request(self):
         """
         If the user attempts to post to an existing repo, return a 400.

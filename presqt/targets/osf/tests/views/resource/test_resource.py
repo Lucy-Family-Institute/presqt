@@ -1133,8 +1133,8 @@ class TestResourcePOST(SimpleTestCase):
         self.resources_updated = []
         self.hash_algorithm = 'sha256'
 
-        with mock.patch('presqt.targets.osf.functions.upload_metadata.osf_upload_metadata') as upload_mock:
-            upload_mock = mock.Mock(side_effect=PresQTError, return_value='Whoops.')
+        with mock.patch('presqt.api_v1.utilities.metadata.upload_metadata.write_and_validate_metadata') as upload_mock:
+            upload_mock.return_value = "Whoops"
             self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
             response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')},
                                         **self.headers)
@@ -1151,9 +1151,13 @@ class TestResourcePOST(SimpleTestCase):
             self.assertEqual(process_info['status'], 'in_progress')
 
             # Wait until the spawned off process finishes in the background to do further validation
-            process_wait(process_info, self.ticket_path)
+            while process_info['status'] == 'in_progress':
+                try:
+                    process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
+                except json.decoder.JSONDecodeError:
+                    # Pass while the process_info file is being written to
+                    pass
+            self.assertEqual(process_info['message'], "Upload successful but with metadata errors.")
 
-            # self.assertEqual(process_info['message'], "Upload successful but with metadata errors.")
-
-        # # Delete corresponding folder
-        # shutil.rmtree(self.ticket_path)
+        # Delete corresponding folder
+        shutil.rmtree(self.ticket_path)
