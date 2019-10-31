@@ -23,11 +23,7 @@ def github_upload_metadata(token, resource_id, metadata_dict, repo_id=None):
     repo_id : str
         The id of the new repo that has been created
     """
-    try:
-        header, username = validation_check(token)
-    except PresQTResponseException:  # pragma: no cover
-        raise PresQTResponseException('The response returned a 401 unauthorized status code.',
-                                      status.HTTP_401_UNAUTHORIZED)
+    header, username = validation_check(token)
 
     file_name = "PRESQT_FTS_METADATA.json"
 
