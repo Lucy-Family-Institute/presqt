@@ -87,7 +87,7 @@ def osf_download_resource(token, resource_id):
                               Example: ['empty/folder/to/write/', 'another/empty/folder/]
         'action_metadata': Dictionary containing action metadata. Must be in the following format:
                               {
-                              'sourceUsername': 'some_username',
+                                'sourceUsername': 'some_username',
                               }
     """
     try:

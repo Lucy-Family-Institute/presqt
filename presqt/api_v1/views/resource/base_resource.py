@@ -351,20 +351,17 @@ class BaseResource(APIView):
         # Fetch the proper function to call
         func = FunctionRouter.get_function(self.destination_target_name, action)
 
-        # Upload the resources
-        # 'uploaded_file_hashes' should be a dictionary of files and their hashes according to the
-        # hash_algorithm we are using. For example, if hash_algorithm == sha256:
-        #     {'mediafiles/uploads/66e7b906-63f0/osf_download_5cd98b0af244/data/fixity_info.json':
-        #         'a48df41bb55c7f9e1fa41b02197477ff0eccb550ed1244155048ef5750993ce7',
-        #     'mediafiles/uploads/66e7b906-63f0/osf_download_5cd98b0af244e/data/Docs2/02.mp3':
-        #         'fe3e904fbd549a3ac014bc26fb3d5042d58759f639f24e745dba3580ea316850'
-        #     }
-        # 'resources_ignored' is list of paths of resources that were ignored while uploading
-        # 'resources_updated' is list of paths of resources that were updated while uploading
+        # Upload the resources. func_dict has the following format:
+        #   {
+        #        'resources_ignored': resources_ignored,
+        #        'resources_updated': resources_updated,
+        #        'action_metadata': action_metadata,
+        #        'file_metadata_list': file_metadata_list,
+        #        'project_id': title
+        #    }
         try:
-            uploaded_file_hashes, resources_ignored, resources_updated, action_metadata, file_metadata_list, project_id = func(
-                self.destination_token, self.destination_resource_id, self.data_directory,
-                self.hash_algorithm, self.file_duplicate_action)
+            func_dict = func(self.destination_token, self.destination_resource_id,
+                             self.data_directory, self.hash_algorithm, self.file_duplicate_action)
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch.
             # Update the server process_info file appropriately.
@@ -384,10 +381,10 @@ class BaseResource(APIView):
         # Check if fixity fails on any files. If so, then update the process_info_data file.
         self.process_info_obj['failed_fixity'] = []
         self.upload_fixity = True
-        for resource in file_metadata_list:
+        for resource in func_dict['file_metadata_list']:
             resource['failed_fixity_info'] = []
             if resource['destinationHash'] != self.file_hashes[resource['actionRootPath']] \
-                    and resource['actionRootPath'] not in resources_ignored:
+                    and resource['actionRootPath'] not in func_dict['resources_ignored']:
                 self.upload_fixity = False
                 self.process_info_obj['failed_fixity'].append(resource['actionRootPath']
                                                               [len(self.data_directory) + 1:])
@@ -399,15 +396,19 @@ class BaseResource(APIView):
                 })
 
         # Strip the server created directory prefix of the file paths for ignored and updated files
-        resources_ignored = [file[len(self.data_directory):] for file in resources_ignored]
+        resources_ignored = \
+            [file[len(self.data_directory):] for file in func_dict['resources_ignored']]
         self.process_info_obj['resources_ignored'] = resources_ignored
-        resources_updated = [file[len(self.data_directory):] for file in resources_updated]
+        resources_updated = \
+            [file[len(self.data_directory):] for file in func_dict['resources_updated']]
         self.process_info_obj['resources_updated'] = resources_updated
 
         # If we are transferring the resources then add metadata to the existing fts metadata
         if self.action == 'resource_transfer_in':
-            self.metadata_validation = create_upload_transfer_metadata(self, file_metadata_list,
-                                                                       action_metadata, project_id,
+            self.metadata_validation = create_upload_transfer_metadata(self,
+                                                                       func_dict['file_metadata_list'],
+                                                                       func_dict['action_metadata'],
+                                                                       func_dict['project_id'],
                                                                        resources_ignored,
                                                                        resources_updated)
             self.process_info_obj['upload_status'] = get_action_message('Upload',
@@ -416,8 +417,9 @@ class BaseResource(APIView):
         # Otherwise if we are uploading from a local source then create fts metadata
         # and update the server process file
         else:
-            self.metadata_validation = create_upload_metadata(self, file_metadata_list,
-                                                              action_metadata, project_id,
+            self.metadata_validation = create_upload_metadata(self, func_dict['file_metadata_list'],
+                                                              func_dict['action_metadata'],
+                                                              func_dict['project_id'],
                                                               resources_ignored, resources_updated)
             # Validate the final metadata
             self.process_info_obj['message'] = get_action_message('Upload',
