@@ -91,11 +91,12 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="development_environment_setup.html">Development Environment Setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="authentication_authorization.html">Authentication/Authorization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_notes.html">Developer Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="new_target_integration.html">New Target Integration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="developer_documentation.html">Developer Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="integration_management_command.html">Integration Management Command</a></li>
 <li class="toctree-l1"><a class="reference internal" href="code_documentation.html">Code Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="web_services.html">Web Services</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tools_services.html">Tools/Services</a></li>
 <li class="toctree-l1"><a class="reference internal" href="resources.html">Resources</a></li>
 </ul>
 
@@ -170,23 +171,23 @@ project to get up and running with PresQT services. This was accomplished by cre
 use development environment using Docker compose.</p>
 <p>The diagram below illustrates how we are using Docker Compose to create a constellation of 2
 containers on developer machines representing the two essential components of PresQT:</p>
-<ul class="simple">
-<li><dl class="simple">
-<dt>Nginx</dt><dd><ul>
+<ul>
+<li><p>Nginx</p>
+<blockquote>
+<div><ul class="simple">
 <li><p>Serves as a security layer for incoming requests to PresQT</p></li>
 <li><p>Can also serve as a load balancer in the future</p></li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
 </li>
-<li><dl class="simple">
-<dt>Django/Gunicorn</dt><dd><ul>
+<li><p>Django/Gunicorn</p>
+<blockquote>
+<div><ul class="simple">
 <li><p>After passing through the Nginx layer, this container processes API requests from users and
 then takes the necessary actions to fulfill the user’s requests by communicating with partner
 services via the their own APIs.</p></li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
 </li>
 </ul>
 <p>INSERT IMAGE HERE</p>

@@ -10,10 +10,14 @@ The diagram below illustrates how we are using Docker Compose to create a conste
 containers on developer machines representing the two essential components of PresQT:
 
 * Nginx
+
     * Serves as a security layer for incoming requests to PresQT
+
     * Can also serve as a load balancer in the future
+
 * Django/Gunicorn
-    * After passing through the Nginx layer, this container processes API requests from users and 
+
+    * After passing through the Nginx layer, this container processes API requests from users and
       then takes the necessary actions to fulfill the user's requests by communicating with partner
       services via the their own APIs.
 
