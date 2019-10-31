@@ -65,16 +65,27 @@ def github_download_resource(token, resource_id):
 
     Returns
     -------
-    - List of dictionary objects that each hold a file and its information.
-        Dictionary must be in the following format:
-        {
-            'file': binary_file,
-            'hashes': {'md5': 'the_hash},
-            'title': 'file.jpg',
-            'path': '/path/to/file
-        }
-    - List of string paths representing empty containers that must be written.
-        Example: ['empty/folder/to/write/', 'another/empty/folder/']
+    Dictionary with the following keys: values
+        'resources': List of dictionary objects that each hold a file and its information.
+                     Dictionary must be in the following format:
+                         {
+                            'file': binary_file,
+                            'hashes': {'hash_algorithm': 'the_hash'},
+                            'title': 'file.jpg',
+                            'path': '/path/to/file',
+                            'metadata': {
+                                'sourcePath': '/full/path/at/source.jpg',
+                                'title': 'file_title',
+                                'sourceHashes': {'hash_algorithm': 'the_hash'},
+                                'extra': {'any': 'extra'}
+                             }
+                         }
+        'empty_containers: List of string paths representing empty containers that must be written.
+                              Example: ['empty/folder/to/write/', 'another/empty/folder/]
+        'action_metadata': Dictionary containing action metadata. Must be in the following format:
+                              {
+                              'sourceUsername': 'some_username',
+                              }
     """
     try:
         header, username = validation_check(token)
@@ -94,7 +105,7 @@ def github_download_resource(token, resource_id):
             break
     else:
         raise PresQTResponseException(
-            'The resource with id,{} , does not exist for this user.'.format(resource_id),
+            'The resource with id, {}, does not exist for this user.'.format(resource_id),
             status.HTTP_404_NOT_FOUND)
 
     files, empty_containers, action_metadata = download_content(
@@ -108,4 +119,8 @@ def github_download_resource(token, resource_id):
         file['file'] = get_dictionary_from_list(
             download_data, 'url', file['file'])['binary_content']
 
-    return files, empty_containers, action_metadata
+    return {
+        'resources': files,
+        'empty_containers': empty_containers,
+        'action_metadata': action_metadata
+    }

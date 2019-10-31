@@ -384,7 +384,7 @@ class TestResourceGETZip(SimpleTestCase):
         shared_get_success_function_202(self)
 
         # Verify empty folders have been written to zip file
-        list_of_empty_folders = ['osf_download_cmn5z/data/Test Project/osfstorage/Empty Folder/', 
+        list_of_empty_folders = ['osf_download_cmn5z/data/Test Project/osfstorage/Empty Folder 2/',
                                  'osf_download_cmn5z/data/Test Project/Sub Test Project/osfstorage/']
         for empty_folder in list_of_empty_folders:
             self.assertIn(empty_folder, self.zip_file.namelist())

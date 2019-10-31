@@ -28,25 +28,29 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
 
     Returns
     -------
-    final_file_hashes : dict
-        Dictionary of file hashes obtained from OSF calculated using the provided hash_algorithm.
-        Key path must have the same base as resource_main_dir.
-        Example:
-        {
-            'mediafiles/uploads/25/BagItToUpload/data/NewProj/funnyimages/Screen.png':
-            '6d33275234b28d77348e4e1049f58b95a485a7a441684a9eb9175d01c7f141ea',
-            'mediafiles/uploads/25/BagItToUpload/data/NewProj/funnyimages/Screen2.png':
-            '6d33275234b28d77348e4e1049f58b95a485a7a441684a9eb9175d01c7f141eb',
-         }
-    resources_ignored : array
-        Array of string paths of resources that were ignored when uploading the resource.
-        Path should have the same base as resource_main_dir.
-        ['path/to/ignored/file.pg', 'another/ignored/file.jpg']
+    Dictionary with the following keys: values
+        'resources_ignored' : Array of string file paths of files that were ignored when
+        uploading the resource. Path should have the same base as resource_main_dir.
+                                Example:
+                                    ['path/to/ignored/file.pg', 'another/ignored/file.jpg']
 
-    resources_updated : array
-        Array of string paths of resources that were updated when uploading the resource.
-        Path should have the same base as resource_main_dir.
-        ['path/to/updated/file.jpg']
+        'resources_updated' : Array of string file paths of files that were updated when
+         uploading the resource. Path should have the same base as resource_main_dir.
+                                 Example:
+                                    ['path/to/updated/file.jpg']
+        'action_metadata': Dictionary containing action metadata. Must be in the following format:
+                            {
+                                'destinationUsername': 'some_username'
+                            }
+        'file_metadata_list': List of dictionaries for each file that contains metadata
+                              and hash info. Must be in the following format:
+                                {
+                                    "actionRootPath": '/path/on/disk',
+                                    "destinationPath": '/path/on/target/destination',
+                                    "title": 'file_title',
+                                    "destinationHash": {'hash_algorithm': 'the_hash'}}
+                                }
+        'project_id': ID of the parent project for this upload. Needed for metadata upload.
     """
     try:
         osf_instance = OSF(token)
@@ -132,4 +136,11 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
         # Prepend the project title to each resource's the metadata destinationPath
         file_metadata['destinationPath'] = '{}/{}'.format(project.title, file_metadata['destinationPath'])
 
-    return final_file_hashes, resources_ignored, resources_updated, action_metadata, file_metadata_list, project_id
+    return {
+        'hashes': hashes,
+        'resources_ignored': resources_ignored,
+        'resources_updated': resources_updated,
+        'action_metadata': action_metadata,
+        'file_metadata_list': file_metadata_list,
+        'project_id': project_id
+    }

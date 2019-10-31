@@ -527,3 +527,16 @@ class TestUploadJob(SimpleTestCase):
 
         # Delete corresponding folders
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
+
+    def test_get_error_500_400_not_a_bag_zip_file_osf(self):
+        """
+        Return a 500 if the BaseResource._upload_resource function running on the server gets a
+        400 error because a zip other than a bag is provided in the request.
+        """
+        self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        self.file = 'presqt/api_v1/tests/resources/upload/not_a_bag.zip'
+        response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+
+        # Verify the status code
+        self.assertEqual(response.status_code, 400)
+
