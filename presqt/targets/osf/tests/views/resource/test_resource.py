@@ -4,6 +4,7 @@ import os
 import shutil
 import uuid
 import zipfile
+from unittest import mock
 from unittest.mock import patch
 
 import requests
@@ -14,16 +15,18 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from config.settings.base import OSF_TEST_USER_TOKEN, OSF_UPLOAD_TEST_USER_TOKEN
+
+from presqt.api_v1.utilities.fixity.download_fixity_checker import download_fixity_checker
+from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
 from presqt.api_v1.views.resource.base_resource import BaseResource
 from presqt.json_schemas.schema_handlers import schema_validator
+from presqt.targets.osf.functions.upload_metadata import osf_upload_metadata
+from presqt.targets.osf.utilities import delete_users_projects
 from presqt.targets.utilities import (shared_get_success_function_202,
                                       shared_get_success_function_202_with_error, process_wait,
                                       shared_upload_function_osf)
-from presqt.utilities import write_file, read_file, get_dictionary_from_list
-from presqt.api_v1.utilities.fixity.download_fixity_checker import download_fixity_checker
-from presqt.utilities import remove_path_contents
-from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
-from presqt.targets.osf.utilities import delete_users_projects
+from presqt.utilities import (
+    write_file, read_file, get_dictionary_from_list, remove_path_contents, PresQTError)
 
 
 class TestResourceGETJSON(SimpleTestCase):
@@ -826,6 +829,8 @@ class TestResourcePOST(SimpleTestCase):
             if data['attributes']['name'] == 'PRESQT_FTS_METADATA.json':
                 # Download the content of the metadata file
                 metadata = requests.get(data['links']['move'], headers=headers).content
+                break
+
         metadata_dict = json.loads(metadata)
         self.assertEqual(metadata_dict['context']['globus'],
                          'https://docs.globus.org/api/transfer/overview/')
@@ -862,8 +867,12 @@ class TestResourcePOST(SimpleTestCase):
         # Get the updated metadata
         for data in folder_data['data']:
             if data['attributes']['name'] == 'PRESQT_FTS_METADATA.json':
+                # Upload link for generating bad metadata test.
+                update_url = data['links']['upload']
                 # Download the content of the metadata file
                 metadata = requests.get(data['links']['move'], headers=headers).content
+                break
+
         metadata_dict = json.loads(metadata)
 
         # Verify there are multiple actions
@@ -876,7 +885,13 @@ class TestResourcePOST(SimpleTestCase):
         self.assertEqual(metadata_dict['actions'][0]['files']['ignored'][0]['destinationPath'],
                          'NewProject/osfstorage/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png')
 
-        # # delete upload folder
+        # Update metadata to be invalid for testing purposes.
+        metadata_dict['test_bad_metadata'] = metadata_dict.pop('actions')
+        encoded_metadata = json.dumps(metadata_dict, indent=4).encode('utf-8')
+        requests.put(update_url, headers=headers,
+                     params={'kind': 'file'}, data=encoded_metadata)
+
+        # delete upload folder
         shutil.rmtree(self.ticket_path)
 
         # ######## 202 when uploading to an existing container with duplicate files replaced ########
@@ -900,6 +915,26 @@ class TestResourcePOST(SimpleTestCase):
             if file['attributes']['name'] == 'Screen Shot 2019-07-15 at 3.26.49 PM.png':
                 new_file_hash = file['attributes']['extra']['hashes']['sha256']
 
+        # Updated folder data
+        updated_folder_data = requests.get(storage_data['data'][0]['relationships']['files']['links']['related']['href'],
+                                           headers=headers).json()
+        # Ensure the INVALID_PRESQT_METADATA file exists and is what we expect.
+        # Also check that the new metadata file is what we expect.
+        for data in updated_folder_data['data']:
+            if data['attributes']['name'] == 'INVALID_PRESQT_FTS_METADATA.json':
+                invalid_metadata = requests.get(data['links']['move'], headers=headers).content
+                invalid_dict = json.loads(invalid_metadata)
+            elif data['attributes']['name'] == 'PRESQT_FTS_METADATA.json':
+                new_metadata = requests.get(data['links']['move'], headers=headers).content
+                new_metadata_dict = json.loads(new_metadata)
+        self.assertEqual(invalid_dict, metadata_dict)
+
+        self.assertEqual(new_metadata_dict['context']['globus'],
+                         'https://docs.globus.org/api/transfer/overview/')
+        self.assertEqual(len(new_metadata_dict['actions']), 1)
+        self.assertEqual(len(new_metadata_dict['actions'][0]['files']['created']), 0)
+        self.assertEqual(len(new_metadata_dict['actions'][0]['files']['updated']), 1)
+        self.assertEqual(len(new_metadata_dict['actions'][0]['files']['ignored']), 1)
         # Make sure the file we have replaced has a different hash than the original
         self.assertNotEqual(original_file_hash, new_file_hash)
 
@@ -986,3 +1021,139 @@ class TestResourcePOST(SimpleTestCase):
 
         # delete upload folder
         shutil.rmtree(ticket_path)
+
+    def test_bad_metadata_request(self):
+        """
+        Ensure that an error is returned if OSF doesn't return a 201 status code.
+        """
+        self.assertRaises(PresQTError, osf_upload_metadata, self.token, None, {"bad": "metadata"},
+                          'eggtest')
+
+    def test_error_updating_metadata_file(self):
+        """
+        Test that an error is raised if there's an issue updating a metadata file.
+        """
+        # Mock a server error for when a put request is made.
+        class MockResponse:
+            def __init__(self, json_data, status_code):
+                self.json_data = json_data
+                self.status_code = status_code
+        mock_req = MockResponse({'error': 'The server is down.'}, 500)
+
+        self.resource_id = None
+        self.duplicate_action = 'ignore'
+        self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
+        self.resources_ignored = []
+        self.resources_updated = []
+        self.hash_algorithm = 'sha256'
+        shared_upload_function_osf(self)
+
+        # Verify files exist in OSF
+        headers = {'Authorization': 'Bearer {}'.format(OSF_UPLOAD_TEST_USER_TOKEN)}
+        for node in requests.get('http://api.osf.io/v2/users/me/nodes', headers=headers).json()['data']:
+            if node['attributes']['title'] == 'NewProject':
+                node_id = node['id']
+
+        # Now I'll make an explicit call to our metadata function with a mocked server error and ensure
+        # it is raising an exception.
+        with patch('requests.put') as mock_request:
+            mock_request.return_value = mock_req
+            # Attempt to update the metadata, but the server is down!
+            self.assertRaises(PresQTError, osf_upload_metadata, self.token, node_id,
+                              {"context": {}, "actions": []})
+
+        # Delete corresponding folder
+        shutil.rmtree(self.ticket_path)
+
+    def test_error_creating_invalid_metadata_file(self):
+        """
+        Test that an error is raised if there's an issue creating an invalid metadata file.
+        """
+        # Mock a server error for when a put request is made.
+        class MockResponse:
+            def __init__(self, json_data, status_code):
+                self.json_data = json_data
+                self.status_code = status_code
+        mock_req = MockResponse({'error': 'The server is down.'}, 500)
+
+        self.resource_id = None
+        self.duplicate_action = 'ignore'
+        self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
+        self.resources_ignored = []
+        self.resources_updated = []
+        self.hash_algorithm = 'sha256'
+        shared_upload_function_osf(self)
+
+        # Verify files exist in OSF
+        headers = {'Authorization': 'Bearer {}'.format(OSF_UPLOAD_TEST_USER_TOKEN)}
+        for node in requests.get('http://api.osf.io/v2/users/me/nodes', headers=headers).json()['data']:
+            if node['attributes']['title'] == 'NewProject':
+                node_id = node['id']
+                storage_data = requests.get(
+                    node['relationships']['files']['links']['related']['href'], headers=headers).json()
+                folder_data = requests.get(
+                    storage_data['data'][0]['relationships']['files']['links']['related']['href'], headers=headers).json()
+
+        # Get the metadata file
+        for data in folder_data['data']:
+            if data['attributes']['name'] == 'PRESQT_FTS_METADATA.json':
+                # Upload link for generating bad metadata test.
+                update_url = data['links']['upload']
+                # Download the content of the metadata file
+                metadata = requests.get(data['links']['move'], headers=headers).content
+                break
+        metadata_dict = json.loads(metadata)
+        # Update metadata to be invalid for testing purposes.
+        metadata_dict['test_bad_metadata'] = metadata_dict.pop('actions')
+        encoded_metadata = json.dumps(metadata_dict, indent=4).encode('utf-8')
+        requests.put(update_url, headers=headers,
+                     params={'kind': 'file'}, data=encoded_metadata)
+
+        # Now I'll make an explicit call to our metadata function with a mocked server error and ensure
+        # it is raising an exception.
+        with patch('requests.post') as mock_request:
+            mock_request.return_value = mock_req
+            # Attempt to update the metadata, but the server is down!
+            self.assertRaises(PresQTError, osf_upload_metadata, self.token, node_id,
+                              {"context": {}, "actions": []})
+
+        # Delete corresponding folder
+        shutil.rmtree(self.ticket_path)
+
+    def test_proper_message_if_metadata_fails_validation(self):
+        """
+        """
+        self.resource_id = None
+        self.duplicate_action = 'ignore'
+        self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
+        self.resources_ignored = []
+        self.resources_updated = []
+        self.hash_algorithm = 'sha256'
+
+        with mock.patch('presqt.targets.osf.functions.upload_metadata.osf_upload_metadata') as upload_mock:
+            upload_mock = mock.Mock(side_effect=PresQTError, return_value='Whoops.')
+            self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
+            response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')},
+                                        **self.headers)
+
+            ticket_number = response.data['ticket_number']
+            self.ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+
+            # Verify status code and message
+            self.assertEqual(response.status_code, 202)
+            self.assertEqual(response.data['message'], 'The server is processing the request.')
+
+            # Verify process_info file status is 'in_progress' initially
+            process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
+            self.assertEqual(process_info['status'], 'in_progress')
+
+            # Wait until the spawned off process finishes in the background to do further validation
+            process_wait(process_info, self.ticket_path)
+
+            # self.assertEqual(process_info['message'], "Upload successful but with metadata errors.")
+
+        # # Delete corresponding folder
+        # shutil.rmtree(self.ticket_path)

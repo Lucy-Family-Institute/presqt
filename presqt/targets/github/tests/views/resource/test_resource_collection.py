@@ -13,8 +13,7 @@ from config.settings.base import GITHUB_TEST_USER_TOKEN
 from presqt.targets.github.functions.upload_metadata import github_upload_metadata
 from presqt.targets.github.utilities import delete_github_repo
 from presqt.targets.utilities import shared_upload_function_github
-from presqt.utilities import PresQTError
-from presqt.utilities import read_file
+from presqt.utilities import read_file, PresQTError
 
 
 class TestResourceCollection(SimpleTestCase):
