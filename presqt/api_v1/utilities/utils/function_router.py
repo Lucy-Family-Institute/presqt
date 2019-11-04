@@ -12,6 +12,11 @@ from presqt.targets.osf.functions.download import osf_download_resource
 from presqt.targets.osf.functions.upload import osf_upload_resource
 from presqt.targets.osf.functions.upload_metadata import osf_upload_metadata
 
+from presqt.targets.zenodo.functions.fetch import zenodo_fetch_resources, zenodo_fetch_resource
+from presqt.targets.zenodo.functions.download import zenodo_download_resource
+from presqt.targets.zenodo.functions.upload import zenodo_upload_resource
+from presqt.targets.zenodo.functions.upload_metadata import zenodo_upload_metadata
+
 
 class FunctionRouter(object):
     """
@@ -56,3 +61,9 @@ class FunctionRouter(object):
     github_resource_download = github_download_resource
     github_resource_upload = github_upload_resource
     github_metadata_upload = github_upload_metadata
+
+    zenodo_resource_collection = zenodo_fetch_resources
+    zenodo_resource_detail = zenodo_fetch_resource
+    zenodo_resource_download = zenodo_download_resource
+    zenodo_resource_upload = zenodo_upload_resource
+    zenodo_metadata_upload = zenodo_upload_metadata
