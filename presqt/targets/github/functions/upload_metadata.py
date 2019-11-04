@@ -2,10 +2,8 @@ import base64
 import json
 import requests
 
-from rest_framework import status
-
 from presqt.targets.github.utilities import validation_check
-from presqt.utilities import PresQTError, PresQTResponseException
+from presqt.utilities import PresQTError
 
 
 def github_upload_metadata(token, resource_id, metadata_dict, repo_id=None):
