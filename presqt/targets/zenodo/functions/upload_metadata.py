@@ -35,11 +35,8 @@ def zenodo_upload_metadata(token, resource_id, metadata_dict, project_id):
                                              params=auth_parameter).content
             # Update the existing metadata
             updated_metadata = json.loads(old_metadata_file)
-            print(updated_metadata)
 
             if schema_validator('presqt/json_schemas/metadata_schema.json', updated_metadata) is not True:
-                print("WHAT")
-                print(schema_validator('presqt/json_schemas/metadata_schema.json', updated_metadata))
                 # We need to change the file name, this metadata is improperly formatted and
                 # therefore invalid.
                 rename_payload = {"name": "INVALID_PRESQT_FTS_METADATA.json"}
@@ -53,8 +50,7 @@ def zenodo_upload_metadata(token, resource_id, metadata_dict, project_id):
                 break
 
             # Need to delete the old metadata file.....thanks Zenodo.
-            egg = requests.delete(file['links']['self'], params=auth_parameter)
-            print(egg.status_code)
+            requests.delete(file['links']['self'], params=auth_parameter)
             # Loop through each 'action' in both metadata files and make a new list of them.
             joined_actions = [entry for entry in itertools.chain(metadata_dict['actions'],
                                                                  updated_metadata['actions'])]
@@ -63,12 +59,12 @@ def zenodo_upload_metadata(token, resource_id, metadata_dict, project_id):
             files = {'file': metadata_bytes}
             # Now we need to update the metadata file with this updated metadata
             data = {'name': file_name}
-            response = requests.put(post_url, params=auth_parameter,
-                                    data=data, files=files)
-            # When updating an existing metadata file, OSF returns a 200 status
-            if response.status_code != 200:
+            response = requests.post(post_url, params=auth_parameter,
+                                     data=data, files=files)
+            # When updating an existing metadata file, Zenodo returns a 201 status
+            if response.status_code != 201:
                 raise PresQTError(
-                    "The request to update the metadata file has returned a {} error code from OSF.".format(
+                    "The request to update the metadata file has returned a {} error code from Zenodo.".format(
                         response.status_code))
             return
 

@@ -84,15 +84,15 @@ def zenodo_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                 resources_ignored.append(path)
             for name in files:
                 data = {'name': name}
-                egg = {'file': open(os.path.join(path, name), "rb")}
+                files = {'file': open(os.path.join(path, name), "rb")}
                 # Make the upload request....
-                fat = requests.post(post_url, params=auth_parameter,
-                                    data=data, files=egg)
+                response = requests.post(post_url, params=auth_parameter,
+                                         data=data, files=files)
                 file_metadata_list.append({
                     'actionRootPath': os.path.join(path, name),
                     'destinationPath': '/{}/{}'.format(project_title, name),
                     'title': name,
-                    'destinationHash': fat.json()['checksum']})
+                    'destinationHash': response.json()['checksum']})
 
         resources_updated = []
 
@@ -106,9 +106,9 @@ def zenodo_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         project_title = os_path[1][0]
 
         resource_id, username = zenodo_upload_helper(auth_parameter, project_title)
-        action_metadata = {"destinationUsername": username}
+        action_metadata = {"destinationUsername": str(username)}
 
-        post_url = "https://zenodo.org/api/deposit/depositions/{}/files".format(project_id)
+        post_url = "https://zenodo.org/api/deposit/depositions/{}/files".format(resource_id)
         resources_ignored = []
         file_metadata_list = []
 
@@ -117,15 +117,15 @@ def zenodo_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                 resources_ignored.append(path)
             for name in files:
                 data = {'name': name}
-                egg = {'file': open(os.path.join(path, name), "rb")}
+                files = {'file': open(os.path.join(path, name), "rb")}
                 # Make the upload request....
-                fat = requests.post(post_url, params=auth_parameter,
-                                    data=data, files=egg)
+                response = requests.post(post_url, params=auth_parameter,
+                                         data=data, files=files)
                 file_metadata_list.append({
                     'actionRootPath': os.path.join(path, name),
                     'destinationPath': '/{}/{}'.format(project_title, name),
                     'title': name,
-                    'destinationHash': fat.json()['checksum']})
+                    'destinationHash': response.json()['checksum']})
 
         resources_updated = []
 
