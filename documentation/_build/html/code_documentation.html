@@ -86,7 +86,7 @@
 <li class="toctree-l1"><a class="reference internal" href="development_environment_setup.html">Development Environment Setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="authentication_authorization.html">Authentication/Authorization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="developer_notes.html">Developer Notes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="new_target_integration.html">New Target Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="target_integration.html">Target Integration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="developer_documentation.html">Developer Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="integration_management_command.html">Integration Management Command</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Code Documentation</a><ul>
@@ -213,122 +213,9 @@
 <h2>Target Endpoints<a class="headerlink" href="#target-endpoints" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="target-details">
 <h3>Target Details<a class="headerlink" href="#target-details" title="Permalink to this headline">¶</a></h3>
-<p>‘Targets’ are endpoints the PresQT API will connect to such as OSF, CurateND, HubZero, etc. Since
-PresQT doesn’t have a database, the Targets’ information will be held in a JSON file located in
-<code class="docutils literal notranslate"><span class="pre">/presqt/targets.json</span></code>.</p>
 </div>
 <div class="section" id="target-json-values">
 <h3>Target JSON Values<a class="headerlink" href="#target-json-values" title="Permalink to this headline">¶</a></h3>
-<ul class="simple">
-<li><dl class="simple">
-<dt><em>name : str</em></dt><dd><ul>
-<li><p>Name of the Target. This will be used as path parameters in the URL</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt><em>readable_name : str</em></dt><dd><ul>
-<li><p>Human readable name of the Target for the front end.</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt><em>supported_hash_algorithms : array</em></dt><dd><ul>
-<li><p>The hash algorithms supported by the target</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt><em>supported_actions : dict</em></dt><dd><ul>
-<li><p>Actions the target supports</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt><em>resource_collection : bool</em></dt><dd><ul>
-<li><p>Get all resources for the user</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt><em>resource_detail : bool</em></dt><dd><ul>
-<li><p>Get an individual resource’s details</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt><em>resource_download : bool</em></dt><dd><ul>
-<li><p>Download a resource</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt><em>resource_upload: bool</em></dt><dd><ul>
-<li><p>Upload a resource</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt><em>resource_transfer: bool</em></dt><dd><ul>
-<li><p>Transfer a resource</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-<p><strong>Target JSON Example:</strong></p>
-<blockquote>
-<div><div class="highlight-json notranslate"><div class="highlight"><pre><span></span>[
-    {
-        &quot;name&quot;: &quot;osf&quot;,
-        &quot;readable_name&quot;: &quot;OSF&quot;,
-        &quot;supported_actions&quot;: {
-            &quot;resource_collection&quot;: true,
-            &quot;resource_detail&quot;: true,
-            &quot;resource_download&quot;: true,
-            &quot;resource_upload&quot;: true,
-            &quot;resource_transfer&quot;: true
-        },
-        &quot;supported_hash_algorithms&quot;: [&quot;sha256&quot;, &quot;md5&quot;]
-    },
-    {
-        &quot;name&quot;: &quot;nanohub&quot;,
-        &quot;readable_name&quot;: &quot;NanoHub&quot;,
-        &quot;api_name&quot;: &quot;Hubzero&quot;,
-        &quot;api_version&quot;: &quot;1.1&quot;,
-        &quot;supported_actions&quot;: {
-            &quot;resource_collection&quot;: true,
-            &quot;resource_detail&quot;: true,
-            &quot;resource_download&quot;: true,
-            &quot;resource_upload&quot;: true,
-            &quot;resource_transfer&quot;: false
-        },
-        &quot;supported_hash_algorithms&quot;: [&quot;sha256&quot;, &quot;md5&quot;]
-    },
-    {
-        &quot;name&quot;: &quot;curatend&quot;,
-        &quot;readable_name&quot;: &quot;CurateND&quot;,
-        &quot;supported_actions&quot;: {
-            &quot;resource_collection&quot;: true,
-            &quot;resource_detail&quot;: true,
-            &quot;resource_download&quot;: true,
-            &quot;resource_upload&quot;: true,
-            &quot;resource_transfer&quot;: true
-        },
-        &quot;supported_hash_algorithms&quot;: [&quot;sha256&quot;, &quot;md5&quot;]
-    },...
-]
-</pre></div>
-</div>
-</div></blockquote>
 </div>
 <div class="section" id="json-validation">
 <h3>JSON Validation<a class="headerlink" href="#json-validation" title="Permalink to this headline">¶</a></h3>
@@ -351,137 +238,10 @@ not allow the docker containers to be spun up.</p>
 <h2>Resources Endpoints<a class="headerlink" href="#resources-endpoints" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="resource-collection-endpoint">
 <h3>Resource Collection Endpoint<a class="headerlink" href="#resource-collection-endpoint" title="Permalink to this headline">¶</a></h3>
-<p>Targets that integrate with the Resources Collection API Endpoint must have a function that returns
-a specifically structured dataset. This structure allows us to recreate the hierarchy of the file
-structure on the front end. The endpoint is expecting a list of objects with the following structure:</p>
-<blockquote>
-<div><div class="highlight-json notranslate"><div class="highlight"><pre><span></span>{
-    &#39;kind&#39;: &#39;container&#39;,
-    &#39;kind_name&#39;: &#39;folder&#39;,
-    &#39;id&#39;: &#39;e16083a7-34df-436e-9f2e-e3bd3bb54e18&#39;,
-    &#39;container&#39;: &#39;e16083a7-34df-436e-9f2e-e3bd3bb54e18&#39;,
-    &#39;title&#39;: &#39;folder_name&#39;
-}
-</pre></div>
-</div>
-</div></blockquote>
-<p>Structure definitions:</p>
-<ul class="simple">
-<li><dl class="simple">
-<dt><strong>kind</strong>: <em>Type of resource</em></dt><dd><ul>
-<li><dl class="simple">
-<dt>options:</dt><dd><ul>
-<li><p>container</p></li>
-<li><p>item</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt><strong>kind_name</strong>: <em>Target specific name for that kind</em></dt><dd><ul>
-<li><dl class="simple">
-<dt>For example OSF kind_names are:</dt><dd><ul>
-<li><p>node</p></li>
-<li><p>folder</p></li>
-<li><p>file</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt><strong>container</strong>: <em>id of the container for the resource</em></dt><dd><ul>
-<li><p>For example if the resource is an file in a folder then the <strong>container</strong> value would be the id of the folder</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><p><strong>id</strong>: <em>id of the resource</em></p></li>
-<li><p><strong>title</strong>: <em>title of the resource</em></p></li>
-</ul>
 </div>
 </div>
 <div class="section" id="resource-detail-endpoint">
 <h2>Resource Detail Endpoint<a class="headerlink" href="#resource-detail-endpoint" title="Permalink to this headline">¶</a></h2>
-<p>When hitting the endpoint for details of a specific resource the payload, there is an <cite>extra</cite> field
-which allows for target specific data that might not be universal for all targets to be passed. The
-content of <cite>extra</cite> will change depending on the type of the resource. For instance in OSF the following
-are the payloads for Project and File. You’ll notice the <cite>extra</cite> field holds entirely different fields.</p>
-<blockquote>
-<div><div class="highlight-json notranslate"><div class="highlight"><pre><span></span>PROJECT PAYLOAD
-{
-    &quot;kind&quot;: &quot;container&quot;,
-    &quot;kind_name&quot;: &quot;project&quot;,
-    &quot;id&quot;: &quot;q5xmw&quot;,
-    &quot;title&quot;: &quot;Private Project&quot;,
-    &quot;date_created&quot;: &quot;2019-05-13T15:23:33.456041&quot;,
-    &quot;date_modified&quot;: &quot;2019-05-14T14:01:03.507343&quot;,
-    &quot;hashes&quot;: {
-        &quot;md5&quot;: null,
-        &quot;sha256&quot;: null
-    },
-    &quot;extra&quot;: {
-        &quot;category&quot;: &quot;project&quot;,
-        &quot;fork&quot;: false,
-        &quot;current_user_is_contributor&quot;: true,
-        &quot;preprint&quot;: false,
-        &quot;current_user_permissions&quot;: [
-            &quot;read&quot;,
-            &quot;write&quot;,
-            &quot;admin&quot;
-        ],
-        &quot;custom_citation&quot;: null,
-        &quot;collection&quot;: false,
-        &quot;public&quot;: false,
-        &quot;subjects&quot;: [],
-        &quot;registration&quot;: false,
-        &quot;current_user_can_comment&quot;: true,
-        &quot;wiki_enabled&quot;: true,
-        &quot;node_license&quot;: null,
-        &quot;tags&quot;: [
-            &quot;Brett&quot;,
-            &quot;presqt&quot;,
-            &quot;Private&quot;
-        ],
-        &quot;size&quot;: null,
-    }
-}
-
-FILE PAYLOAD
-{
-        &quot;kind&quot;: &quot;item&quot;,
-        &quot;kind_name&quot;: &quot;file&quot;,
-        &quot;id&quot;: &quot;5cd98518f244ec001ee8606b&quot;,
-        &quot;title&quot;: &quot;23296359282_934200ec59_o.jpg&quot;,
-        &quot;date_created&quot;: &quot;2019-05-13T14:54:17.129170Z&quot;,
-        &quot;date_modified&quot;: &quot;2019-05-13T14:54:17.129170Z&quot;,
-        &quot;hashes&quot;: {
-            &quot;md5&quot;: &quot;aaca7ef067dcab7cb8d79c36243823e4&quot;,
-            &quot;sha256&quot;: &quot;ea94ce54261720c16abb508c6dcd1fd481c30c09b7f2f5ab0b79e3199b7e2b55&quot;
-        },
-        &quot;extra&quot;: {
-            &quot;last_touched&quot;: null,
-            &quot;materialized_path&quot;: &quot;/Images/23296359282_934200ec59_o.jpg&quot;,
-            &quot;current_version&quot;: 1,
-            &quot;provider&quot;: &quot;osfstorage&quot;,
-            &quot;path&quot;: &quot;/5cd98518f244ec001ee8606b&quot;,
-            &quot;current_user_can_comment&quot;: true,
-            &quot;guid&quot;: null,
-            &quot;checkout&quot;: null,
-            &quot;tags&quot;: [],
-            &quot;size&quot;: 1773294,
-        }
-    }
-</pre></div>
-</div>
-</div></blockquote>
 </div>
 <div class="section" id="resource-api-endpoints">
 <h2>Resource API Endpoints<a class="headerlink" href="#resource-api-endpoints" title="Permalink to this headline">¶</a></h2>

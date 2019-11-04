@@ -26,7 +26,7 @@ More information can be found here https://presqt.crc.nd.edu/
    development_environment_setup
    authentication_authorization
    developer_notes
-   new_target_integration
+   target_integration
    developer_documentation
    integration_management_command
    code_documentation

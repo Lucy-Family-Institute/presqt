@@ -4,9 +4,8 @@ Developer Notes
 Testing
 -------
 
-We maintain a high code coverage percentage with unit and integration tests for all code.
-We are using a package called Coverage (https://coverage.readthedocs.io/en/v4.5.x/)
-to track code coverage.
+A high code coverage percentage has been maintained with unit and integration tests for all code
+using a package called Coverage (https://coverage.readthedocs.io/en/v4.5.x/) to track code coverage.
 
 To run unit tests without using Coverage:
 

@@ -36,7 +36,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Integration Management Command" href="integration_management_command.html" />
-    <link rel="prev" title="New Target Integration" href="new_target_integration.html" /> 
+    <link rel="prev" title="Target Integration" href="target_integration.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -86,13 +86,8 @@
 <li class="toctree-l1"><a class="reference internal" href="development_environment_setup.html">Development Environment Setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="authentication_authorization.html">Authentication/Authorization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="developer_notes.html">Developer Notes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="new_target_integration.html">New Target Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="target_integration.html">Target Integration</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Developer Documentation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#new-target-integration">New Target Integration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#target-endpoints">Target Endpoints</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#target-data">Target Data</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#target-functions">Target Functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#resource-endpoints">Resource Endpoints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#resource-collection">Resource Collection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#resource-detail">Resource Detail</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#resource-download">Resource Download</a></li>
@@ -173,156 +168,13 @@
   <div class="section" id="developer-documentation">
 <h1>Developer Documentation<a class="headerlink" href="#developer-documentation" title="Permalink to this headline">¶</a></h1>
 <p>Low level documentation such as development environment setup, API endpoints, code documentation.</p>
-<div class="section" id="new-target-integration">
-<h2>New Target Integration<a class="headerlink" href="#new-target-integration" title="Permalink to this headline">¶</a></h2>
-<p>The goal of PresQT is to make it as simple as possible for a new target to integrate itself with the
-PresQT services. Below are lists of code actions to take when integrating a target.</p>
-</div>
-<div class="section" id="target-endpoints">
-<h2>Target Endpoints<a class="headerlink" href="#target-endpoints" title="Permalink to this headline">¶</a></h2>
-<p>LINK GOES HERE ONCE MADE</p>
-</div>
-<div class="section" id="target-data">
-<h2>Target Data<a class="headerlink" href="#target-data" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><dl class="simple">
-<dt>Add your target data to the file <code class="docutils literal notranslate"><span class="pre">presqt/targets.json</span></code></dt><dd><ul>
-<li><p>Only make an action ‘True’ if it has been integrated with PresQT</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-</div>
-<div class="section" id="target-functions">
-<h2>Target Functions<a class="headerlink" href="#target-functions" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><dl class="simple">
-<dt>Add your target directory inside <code class="docutils literal notranslate"><span class="pre">presqt/targets/</span></code></dt><dd><ul>
-<li><p>All of your target integration functionality will exist here</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-</div>
-<div class="section" id="resource-endpoints">
-<h2>Resource Endpoints<a class="headerlink" href="#resource-endpoints" title="Permalink to this headline">¶</a></h2>
-<p>LINK GOES HERE ONCE MADE</p>
-</div>
 <div class="section" id="resource-collection">
 <h2>Resource Collection<a class="headerlink" href="#resource-collection" title="Permalink to this headline">¶</a></h2>
-<ul>
-<li><dl class="simple">
-<dt>Add functionality to return the resource collection inside of your target directory</dt><dd><ul class="simple">
-<li><dl class="simple">
-<dt><strong>Function parameters in order:</strong></dt><dd><ul>
-<li><dl class="simple">
-<dt><em>token: str</em></dt><dd><ul>
-<li><p>User’s token for the target</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt><strong>Function returns:</strong></dt><dd><ul>
-<li><dl class="simple">
-<dt><em>resources: list of python dictionaries</em></dt><dd><ul>
-<li><p>See Resource Endpoint docs for details/example.</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><dl>
-<dt>Add the resource collection function to <code class="docutils literal notranslate"><span class="pre">presqt/api_v1/utilities/utils/function_router.py</span></code></dt><dd><blockquote>
-<div><ul class="simple">
-<li><p>Follow the naming conventions laid out in this class’ docstring:</p></li>
-</ul>
-</div></blockquote>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="o">&lt;</span><span class="n">your_target_name</span><span class="o">&gt;</span><span class="n">_fetch_resources</span><span class="p">(</span><span class="n">token</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    token : str</span>
-<span class="sd">    User&#39;s token</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    List of dictionary objects that represent the target resources.</span>
-<span class="sd">    Dictionary must be in the following format:</span>
-<span class="sd">    {</span>
-<span class="sd">        &quot;kind&quot;: &quot;container&quot;,</span>
-<span class="sd">        &quot;kind_name&quot;: &quot;folder&quot;,</span>
-<span class="sd">        &quot;id&quot;: &quot;12345&quot;,</span>
-<span class="sd">        &quot;container&quot;: &quot;None&quot;,</span>
-<span class="sd">        &quot;title&quot;: &quot;Folder Name&quot;,</span>
-<span class="sd">    }</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="c1"># Process to obtain resource collection goes here. Variables below are calculated during the upload process</span>
-    <span class="c1"># But are defined here to show examples of structure</span>
-
-    <span class="n">resources</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">{</span>
-        <span class="s1">&#39;kind&#39;</span><span class="p">:</span> <span class="s1">&#39;container&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;kind_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Project&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;12345&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;container&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
-        <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;New Project</span>
-    <span class="p">},</span>
-    <span class="p">{</span>
-        <span class="s1">&#39;kind&#39;</span><span class="p">:</span> <span class="s1">&#39;item&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;kind_name&#39;</span><span class="p">:</span> <span class="s1">&#39;file&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;34567,</span>
-        <span class="s1">&#39;container&#39;</span><span class="p">:</span> <span class="s1">&#39;12345&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;The File&#39;</span>
-    <span class="p">},</span>
-    <span class="p">]</span>
-    <span class="k">return</span> <span class="n">resources</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-</li>
-</ul>
 </div>
 <div class="section" id="resource-detail">
 <h2>Resource Detail<a class="headerlink" href="#resource-detail" title="Permalink to this headline">¶</a></h2>
-<ul>
-<li><dl class="simple">
-<dt>Add functionality to return the resource detail inside of your target directory.</dt><dd><ul class="simple">
-<li><dl class="simple">
-<dt><strong>Function parameters in order:</strong></dt><dd><ul>
-<li><dl class="simple">
-<dt><em>token: str</em></dt><dd><ul>
-<li><p>User’s token for the target</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt><em>resource_id: str</em></dt><dd><ul>
-<li><p>ID for the resource we want to fetch</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-</dd>
-</dl>
-</li>
+<blockquote>
+<div><ul class="simple">
 <li><dl class="simple">
 <dt><strong>Function returns:</strong></dt><dd><ul>
 <li><dl class="simple">
@@ -337,69 +189,12 @@ PresQT services. Below are lists of code actions to take when integrating a targ
 </dl>
 </li>
 </ul>
-</dd>
-</dl>
-</li>
-<li><dl>
-<dt>Add the resource collection function to <code class="docutils literal notranslate"><span class="pre">presqt/api_v1/utilities/utils/function_router.py</span></code></dt><dd><blockquote>
-<div><ul class="simple">
+</div></blockquote>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Add the resource collection function to <code class="docutils literal notranslate"><span class="pre">presqt/api_v1/utilities/utils/function_router.py</span></code></dt><dd><ul>
 <li><p>Follow the naming conventions laid out in this class’ docstring</p></li>
 </ul>
-</div></blockquote>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="o">&lt;</span><span class="n">your_target_name</span><span class="o">&gt;</span><span class="n">_fetch_resource</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">resource_id</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    token : str</span>
-<span class="sd">        User&#39;s token</span>
-
-<span class="sd">    resource_id : str</span>
-<span class="sd">        ID of the resource requested</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    A dictionary object that represents the resource.</span>
-<span class="sd">    Dictionary must be in the following format:</span>
-<span class="sd">    {</span>
-<span class="sd">        &quot;kind&quot;: &quot;item&quot;,</span>
-<span class="sd">        &quot;kind_name&quot;: &quot;file&quot;,</span>
-<span class="sd">        &quot;id&quot;: &quot;12345&quot;,</span>
-<span class="sd">        &quot;title&quot;: &quot;o_o.jpg&quot;,</span>
-<span class="sd">        &quot;date_created&quot;: &quot;2019-05-13T14:54:17.129170Z&quot;,</span>
-<span class="sd">        &quot;date_modified&quot;: &quot;2019-05-13T14:54:17.129170Z&quot;,</span>
-<span class="sd">        &quot;hashes&quot;: {</span>
-<span class="sd">            &quot;md5&quot;: &quot;abca7ef057dcab7cb8d79c36243823e4&quot;,</span>
-<span class="sd">            &quot;sha256&quot;: &quot;ea94ce55261720c56abb508c6dcd1fd481c30c09b7f2f5ab0b79e3199b7e2b55&quot;</span>
-<span class="sd">        },</span>
-<span class="sd">        &quot;extra&quot;: {</span>
-<span class="sd">            &quot;any&quot;: extra,</span>
-<span class="sd">            &quot;values&quot;: here</span>
-<span class="sd">        }</span>
-<span class="sd">    }</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="c1"># Process to obtain resource details goes here. Variables below are calculated during the upload process</span>
-    <span class="c1"># But are defined here to show examples of structure</span>
-
-    <span class="n">resource</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;kind&quot;</span><span class="p">:</span> <span class="s2">&quot;item&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;kind_name&quot;</span><span class="p">:</span> <span class="s2">&quot;file&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;12345&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;o_o.jpg&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;date_created&quot;</span><span class="p">:</span> <span class="s2">&quot;2019-05-13T14:54:17.129170Z&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;date_modified&quot;</span><span class="p">:</span> <span class="s2">&quot;2019-05-13T14:54:17.129170Z&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;hashes&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;md5&quot;</span><span class="p">:</span> <span class="s2">&quot;abca7ef057dcab7cb8d79c36243823e4&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;sha256&quot;</span><span class="p">:</span> <span class="s2">&quot;ea94ce55261720c56abb508c6dcd1fd481c30c09b7f2f5ab0b79e3199b7e2b55&quot;</span>
-        <span class="p">},</span>
-        <span class="s2">&quot;extra&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;any&quot;</span><span class="p">:</span> <span class="s2">&quot;extra&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;values&quot;</span><span class="p">:</span> <span class="s2">&quot;here&quot;</span>
-        <span class="p">}</span>
-    <span class="p">}</span>
-    <span class="k">return</span> <span class="n">resource</span>
-</pre></div>
-</div>
 </dd>
 </dl>
 </li>
@@ -662,7 +457,7 @@ functionality is required.</p>
         <a href="integration_management_command.html" class="btn btn-neutral float-right" title="Integration Management Command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="new_target_integration.html" class="btn btn-neutral float-left" title="New Target Integration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="target_integration.html" class="btn btn-neutral float-left" title="Target Integration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
