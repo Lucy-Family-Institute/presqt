@@ -198,6 +198,8 @@ class ContainerMixin:
             List of duplicate resources ignored.
         resources_updated : list
             List of duplicate resources updated.
+        file_metadata_list: list
+            List of file metadata
 
         Returns
         -------
