@@ -76,12 +76,8 @@ def osf_download_resource(token, resource_id):
                             'hashes': {'hash_algorithm': 'the_hash'},
                             'title': 'file.jpg',
                             'path': '/path/to/file',
-                            'metadata': {
-                                'sourcePath': '/full/path/at/source.jpg',
-                                'title': 'file_title',
-                                'sourceHashes': {'hash_algorithm': 'the_hash'},
-                                'extra': {'any': 'extra'}
-                             }
+                            'source_path: '/full/path/to/file',
+                            'extra_metadata': {'any': 'extra'}
                          }
         'empty_containers: List of string paths representing empty containers that must be written.
                               Example: ['empty/folder/to/write/', 'another/empty/folder/]
@@ -110,21 +106,16 @@ def osf_download_resource(token, resource_id):
     files = []
     empty_containers = []
     if resource.kind_name == 'file':
-        file_metadata = osf_download_metadata(resource)
         project = osf_instance.project(resource.parent_project_id)
-        file_metadata['sourcePath'] = '/{}/{}'.format(project.title, file_metadata['sourcePath'])
-
-        binary_file = resource.download()
-
         files.append({
-            "file": binary_file,
+            "file": resource.download(),
             "hashes": resource.hashes,
             "title": resource.title,
             # If the file is the only resource we are downloading then we don't need it's full path
             "path": '/{}'.format(resource.title),
-            "metadata": file_metadata
+            "source_path": '/{}/{}{}'.format(project.title, resource.provider, resource.materialized_path),
+            "extra_metadata": osf_download_metadata(resource)
         })
-
     else:
         if resource.kind_name == 'project':
             resource.get_all_files('', files, empty_containers)
@@ -150,10 +141,11 @@ def osf_download_resource(token, resource_id):
 
         # Go through the file dictionaries and replace the file class with the binary_content
         for file in files:
+            file['source_path'] = '/{}/{}{}'.format(project.title,
+                                                   file['file'].provider,
+                                                   file['file'].materialized_path)
             file['file'] = get_dictionary_from_list(
                 download_data, 'url', file['file'].download_url)['binary_content']
-            file['metadata']['sourcePath'] = '/{}/{}'.format(project.title,
-                                                            file['metadata']['sourcePath'])
 
     return {
         'resources': files,
