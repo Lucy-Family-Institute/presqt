@@ -17,7 +17,7 @@ def osf_upload_metadata(token, project_id, metadata_dict):
     token : str
         The user's OSF token
     project_id : str
-        An id the upload is taking place on
+        The id of the top level project that the upload took place on
     metadata_dict : dict
         The metadata to be written to the project
     """
