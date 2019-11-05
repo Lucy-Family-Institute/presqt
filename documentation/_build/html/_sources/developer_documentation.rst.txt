@@ -17,16 +17,11 @@ Resource Detail
 Resource Download
 -----------------
 
-
-
 Resource Upload
 ---------------
 
-
 Resource Transfer
 -----------------
-The resource Transfer endpoint actually utilizes the Download and Upload functions so no further 
-functionality is required.
 
 .. toctree::
    :maxdepth: 3

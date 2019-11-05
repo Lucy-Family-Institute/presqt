@@ -16,49 +16,49 @@ Target Collection/Details
 
     **Target JSON Details:**
 
-    ============================ ===== ========================================================================
-    name                         str   Name of the Target. This will be used as path parameters in the URL
-    readable_name                str   Human readable name of the Target for the front end
-    supported_actions            array Actions the target supports. Only make actions true when action is working
-    resource_collection          bool  Get all resources for the user in this target
-    resource_detail              bool  Get an individual resource's details
-    resource_download            bool  Download a resource
-    resource_upload              bool  Upload a resource
-    resource_transfer_in         bool  Transfer a resource in to the target
-    resource_transfer_out        bool  Transfer a resource out of the target
-    supported_transfer_partners  dict  Targets this target can transfer in and out of
-    transfer_in                  array Targets this target can accept transfers from
-    transfer_out                 array Targets this target can transfer to
-    supported_hash_algorithms    array The hash algorithms supported by the target
-    ============================ ===== ========================================================================
+        ============================ ===== ========================================================================
+        name                         str   Name of the Target. This will be used as path parameters in the URL
+        readable_name                str   Human readable name of the Target for the front end
+        supported_actions            array Actions the target supports. Only make actions true when action is working
+        resource_collection          bool  Get all resources for the user in this target
+        resource_detail              bool  Get an individual resource's details
+        resource_download            bool  Download a resource
+        resource_upload              bool  Upload a resource
+        resource_transfer_in         bool  Transfer a resource in to the target
+        resource_transfer_out        bool  Transfer a resource out of the target
+        supported_transfer_partners  dict  Targets this target can transfer in and out of
+        transfer_in                  array Targets this target can accept transfers from
+        transfer_out                 array Targets this target can transfer to
+        supported_hash_algorithms    array The hash algorithms supported by the target
+        ============================ ===== ========================================================================
 
     **Target JSON Example:**
 
-    .. code-block:: json
+        .. code-block:: json
 
-        {
-            "name": "osf",
-            "readable_name": "OSF",
-            "supported_actions": {
-                "resource_collection": true,
-                "resource_detail": true,
-                "resource_download": true,
-                "resource_upload": true,
-                "resource_transfer_in": true,
-                "resource_transfer_out": true
-            },
-            "supported_transfer_partners": {
-                "transfer_in": ["github", "curate_nd"],
-                "transfer_out": ["github"]
-            },
-            "supported_hash_algorithms": ["sha256", "md5"]
-        }
+            {
+                "name": "osf",
+                "readable_name": "OSF",
+                "supported_actions": {
+                    "resource_collection": true,
+                    "resource_detail": true,
+                    "resource_download": true,
+                    "resource_upload": true,
+                    "resource_transfer_in": true,
+                    "resource_transfer_out": true
+                },
+                "supported_transfer_partners": {
+                    "transfer_in": ["github", "curate_nd"],
+                    "transfer_out": ["github"]
+                },
+                "supported_hash_algorithms": ["sha256", "md5"]
+            }
 
-    There is a management command that will validate targets.json that can be ran after you add your target.
+    There is a management command that will validate ``targets.json`` that can be ran after you add your target.
     It can be run manually with:
 
-    .. parsed-literal::
-        $ python manage.py validate_target_json
+        .. parsed-literal::
+            $ python manage.py validate_target_json
 
     Otherwise the same management command is run when ``docker-compose up`` is ran.
     If the validation fails then it does not allow the docker containers to be spun up.
@@ -76,9 +76,13 @@ Targets that integrate with the Resources Collection API Endpoint must have a fu
 a specifically structured dataset. This structure allows us to recreate the hierarchy of the file
 structure on the front end.
 
-1. Add a function to return the resource collection inside of your target directory.
+1. Update your target in ``presqt/targets.json`` by setting
+``supported_actions.resource_collection`` to ``true``.
 
-    * If you would like to keep your file/function names consistent with what already exists add this function at ``presqt/targets/<target_name>/functions/fetch/<target_name>_fetch_resources()``
+2. Add a function to return the resource collection inside of your target directory.
+
+    * If you would like to keep your file/function names consistent with what already exists
+      add this function at ``presqt/targets/<target_name>/functions/fetch/<target_name>_fetch_resources()``
 
     * The function must have the following parameters **in this order**:
 
@@ -135,7 +139,7 @@ structure on the front end.
                 ]
                 return resources
 
-2. Add the resource collection function to ``presqt/api_v1/utilities/utils/function_router.py``
+3. Add the resource collection function to ``presqt/api_v1/utilities/utils/function_router.py``
 
     * Follow the naming conventions laid out in this class' docstring
     * This will make the function available in core PresQT code
@@ -145,9 +149,13 @@ Resource Detail
 Targets that integrate with the Resources Detail API Endpoint must have a function that returns
 a specifically structured dataset that represents the resource.
 
-1. Add a function to return the resource details inside of your target directory.
+1. Update your target in ``presqt/targets.json`` by setting
+``supported_actions.resource_detail`` to ``true``.
 
-    * If you would like to keep your file/function names consistent with what already exists add this function at ``presqt/targets/<target_name>/functions/fetch/<target_name>_fetch_resource()``
+2. Add a function to return the resource details inside of your target directory.
+
+    * If you would like to keep your file/function names consistent with what already exists add this function at
+      ``presqt/targets/<target_name>/functions/fetch/<target_name>_fetch_resource()``
 
     * The function must have the following parameters **in this order**:
 
@@ -218,14 +226,17 @@ a specifically structured dataset that represents the resource.
                     }
                     return resource
 
-2. Add the resource detail function to ``presqt/api_v1/utilities/utils/function_router.py``
+3. Add the resource detail function to ``presqt/api_v1/utilities/utils/function_router.py``
 
     * Follow the naming conventions laid out in this class' docstring
     * This will make the function available in core PresQT code
 
 Resource Download Endpoint
 --------------------------
-1. Add a function to perform the resoucrce download inside of your target directory.
+1. Update your target in ``presqt/targets.json`` by setting
+``supported_actions.resource_download`` to ``true``.
+
+2. Add a function to perform the resoucrce download inside of your target directory.
 
     * If you would like to keep your file/function names consistent with what already exists add this function at ``presqt/targets/<target_name>/functions/download/<target_name>_download_resource()``
 
@@ -307,15 +318,17 @@ Resource Download Endpoint
                 action_metadata = {"sourceUsername": contributor_name}
                 return resources, empty_containers
 
-2. Add the resource download function to ``presqt/api_v1/utilities/utils/function_router.py``
+3. Add the resource download function to ``presqt/api_v1/utilities/utils/function_router.py``
 
     * Follow the naming conventions laid out in this class' docstring
     * This will make the function available in core PresQT code
 
 Resource Upload Endpoint
 ------------------------
+1. Update your target in ``presqt/targets.json`` by setting
+``supported_actions.resource_upload`` to ``true``.
 
-1. Add a function to perform the resource upload inside of your target directory.
+2. Add a function to perform the resource upload inside of your target directory.
 
     * If you would like to keep your file/function names consistent with what already exists add this function at ``presqt/targets/<target_name>/functions/upload/<target_name>_upload_resource()``
 
@@ -396,30 +409,27 @@ Resource Upload Endpoint
                     'project_id': '1234'
                 }
 
-2. Add a function to upload FTS metadata to the correct location within the resource's parent project.
+3. Add a function to upload FTS metadata to the correct location within the resource's parent project.
 
     * If you would like to keep your file/function names consistent with what already exists add this function at ``presqt/targets/<target_name>/functions/upload_metadata/<target_name>_upload_metadata()``
 
     * The function must have the following parameters **in this order**:
 
-        ============= ==== ==================================================
+        ============= ==== ======================================================
         token         str  User's token for the target
-        resource_id   str  ID of the resource originally requested for upload
-        metadata_dict dict The FTS metadata dictionary to upload.
+        metadata_dict dict The FTS metadata dictionary to upload
 
-                           At this point it will be a Python dict.
-        project_id    str  The id of the project that has just been created
-
-                           Default to None
-        ============= ==== ==================================================
+                           At this point it will be a Python dict
+        project_id    str  The id of the parent project for the resource uploaded
+        ============= ==== ======================================================
 
     * The function doesn't return anything
 
-    **Example Resource Download Function:**
+    **Example Resource Upload Function:**
 
         .. code-block:: python
 
-            def <your_target_name>_upload_metadata(token, resource_id, metadata_dict, project_id=None):
+            def <your_target_name>_upload_metadata(token, metadata_dict, project_id):
                 # Process to upload metadata goes here.
 
 3. Add the resource upload and upload metadata functions to  ``presqt/api_v1/utilities/utils/function_router.py``
@@ -429,3 +439,17 @@ Resource Upload Endpoint
 
 Resource Transfer Endpoint
 --------------------------
+1. Update your target in ``presqt/targets.json`` by setting
+``supported_actions.resource_transfer_in``, ``supported_actions.resource_transfer_out``,
+``supported_actions.supported_transfer_partners.transfer_in``, and
+``supported_actions.supported_transfer_partners.transfer_out`` appropriately.
+
+The resource transfer endpoint utilizes the Download and Upload functions. If these two functions
+are in place then transfer is available.
+
+Error Handling
+--------------
+When any of these target functions are called within PresQT core code they are wrapped inside of a
+``Try-Except`` clause which looks for the exception ``PresQTResponseException``. The definition of this
+exception can be found at ``presqt.utilities.exceptions.exceptions.PresQTResponseException``.
+

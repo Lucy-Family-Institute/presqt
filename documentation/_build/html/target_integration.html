@@ -99,6 +99,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#resource-download-endpoint">Resource Download Endpoint</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#resource-upload-endpoint">Resource Upload Endpoint</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#resource-transfer-endpoint">Resource Transfer Endpoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#error-handling">Error Handling</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="developer_documentation.html">Developer Documentation</a></li>
@@ -185,7 +186,8 @@ PresQT doesn’t have a database, the Targets’ information will be held in a J
 <li><p>Add your target dictionary to the file <code class="docutils literal notranslate"><span class="pre">presqt/targets.json</span></code></p>
 <blockquote>
 <div><p><strong>Target JSON Details:</strong></p>
-<table class="docutils align-default">
+<blockquote>
+<div><table class="docutils align-default">
 <colgroup>
 <col style="width: 26%" />
 <col style="width: 5%" />
@@ -246,8 +248,10 @@ PresQT doesn’t have a database, the Targets’ information will be held in a J
 </tr>
 </tbody>
 </table>
+</div></blockquote>
 <p><strong>Target JSON Example:</strong></p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<blockquote>
+<div><div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;osf&quot;</span><span class="p">,</span>
     <span class="nt">&quot;readable_name&quot;</span><span class="p">:</span> <span class="s2">&quot;OSF&quot;</span><span class="p">,</span>
     <span class="nt">&quot;supported_actions&quot;</span><span class="p">:</span> <span class="p">{</span>
@@ -266,11 +270,14 @@ PresQT doesn’t have a database, the Targets’ information will be held in a J
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>There is a management command that will validate targets.json that can be ran after you add your target.
+</div></blockquote>
+<p>There is a management command that will validate <code class="docutils literal notranslate"><span class="pre">targets.json</span></code> that can be ran after you add your target.
 It can be run manually with:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python manage.py validate_target_json
+<blockquote>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python manage.py validate_target_json
 </pre></div>
 </div>
+</div></blockquote>
 <p>Otherwise the same management command is run when <code class="docutils literal notranslate"><span class="pre">docker-compose</span> <span class="pre">up</span></code> is ran.
 If the validation fails then it does not allow the docker containers to be spun up.</p>
 </div></blockquote>
@@ -292,11 +299,14 @@ If the validation fails then it does not allow the docker containers to be spun 
 <p>Targets that integrate with the Resources Collection API Endpoint must have a function that returns
 a specifically structured dataset. This structure allows us to recreate the hierarchy of the file
 structure on the front end.</p>
-<ol class="arabic">
+<p>1. Update your target in <code class="docutils literal notranslate"><span class="pre">presqt/targets.json</span></code> by setting
+<code class="docutils literal notranslate"><span class="pre">supported_actions.resource_collection</span></code> to <code class="docutils literal notranslate"><span class="pre">true</span></code>.</p>
+<ol class="arabic" start="2">
 <li><p>Add a function to return the resource collection inside of your target directory.</p>
 <blockquote>
 <div><ul>
-<li><p>If you would like to keep your file/function names consistent with what already exists add this function at <code class="docutils literal notranslate"><span class="pre">presqt/targets/&lt;target_name&gt;/functions/fetch/&lt;target_name&gt;_fetch_resources()</span></code></p></li>
+<li><p>If you would like to keep your file/function names consistent with what already exists
+add this function at <code class="docutils literal notranslate"><span class="pre">presqt/targets/&lt;target_name&gt;/functions/fetch/&lt;target_name&gt;_fetch_resources()</span></code></p></li>
 <li><p>The function must have the following parameters <strong>in this order</strong>:</p>
 <blockquote>
 <div><table class="docutils align-default">
@@ -416,11 +426,14 @@ structure on the front end.</p>
 <h3>Resource Detail<a class="headerlink" href="#resource-detail" title="Permalink to this headline">¶</a></h3>
 <p>Targets that integrate with the Resources Detail API Endpoint must have a function that returns
 a specifically structured dataset that represents the resource.</p>
-<ol class="arabic">
+<p>1. Update your target in <code class="docutils literal notranslate"><span class="pre">presqt/targets.json</span></code> by setting
+<code class="docutils literal notranslate"><span class="pre">supported_actions.resource_detail</span></code> to <code class="docutils literal notranslate"><span class="pre">true</span></code>.</p>
+<ol class="arabic" start="2">
 <li><p>Add a function to return the resource details inside of your target directory.</p>
 <blockquote>
 <div><ul>
-<li><p>If you would like to keep your file/function names consistent with what already exists add this function at <code class="docutils literal notranslate"><span class="pre">presqt/targets/&lt;target_name&gt;/functions/fetch/&lt;target_name&gt;_fetch_resource()</span></code></p></li>
+<li><p>If you would like to keep your file/function names consistent with what already exists add this function at
+<code class="docutils literal notranslate"><span class="pre">presqt/targets/&lt;target_name&gt;/functions/fetch/&lt;target_name&gt;_fetch_resource()</span></code></p></li>
 <li><p>The function must have the following parameters <strong>in this order</strong>:</p>
 <blockquote>
 <div><table class="docutils align-default">
@@ -561,7 +574,9 @@ a specifically structured dataset that represents the resource.</p>
 </div>
 <div class="section" id="resource-download-endpoint">
 <h2>Resource Download Endpoint<a class="headerlink" href="#resource-download-endpoint" title="Permalink to this headline">¶</a></h2>
-<ol class="arabic">
+<p>1. Update your target in <code class="docutils literal notranslate"><span class="pre">presqt/targets.json</span></code> by setting
+<code class="docutils literal notranslate"><span class="pre">supported_actions.resource_download</span></code> to <code class="docutils literal notranslate"><span class="pre">true</span></code>.</p>
+<ol class="arabic" start="2">
 <li><p>Add a function to perform the resoucrce download inside of your target directory.</p>
 <blockquote>
 <div><ul>
@@ -723,7 +738,9 @@ a specifically structured dataset that represents the resource.</p>
 </div>
 <div class="section" id="resource-upload-endpoint">
 <h2>Resource Upload Endpoint<a class="headerlink" href="#resource-upload-endpoint" title="Permalink to this headline">¶</a></h2>
-<ol class="arabic">
+<p>1. Update your target in <code class="docutils literal notranslate"><span class="pre">presqt/targets.json</span></code> by setting
+<code class="docutils literal notranslate"><span class="pre">supported_actions.resource_upload</span></code> to <code class="docutils literal notranslate"><span class="pre">true</span></code>.</p>
+<ol class="arabic" start="2">
 <li><p>Add a function to perform the resource upload inside of your target directory.</p>
 <blockquote>
 <div><ul>
@@ -890,30 +907,24 @@ a specifically structured dataset that represents the resource.</p>
 <blockquote>
 <div><table class="docutils align-default">
 <colgroup>
-<col style="width: 19%" />
+<col style="width: 18%" />
 <col style="width: 6%" />
-<col style="width: 75%" />
+<col style="width: 76%" />
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p>token</p></td>
 <td><p>str</p></td>
 <td><p>User’s token for the target</p></td>
 </tr>
-<tr class="row-even"><td><p>resource_id</p></td>
-<td><p>str</p></td>
-<td><p>ID of the resource originally requested for upload</p></td>
-</tr>
-<tr class="row-odd"><td><p>metadata_dict</p></td>
+<tr class="row-even"><td><p>metadata_dict</p></td>
 <td><p>dict</p></td>
-<td><p>The FTS metadata dictionary to upload.</p>
-<p>At this point it will be a Python dict.</p>
+<td><p>The FTS metadata dictionary to upload</p>
+<p>At this point it will be a Python dict</p>
 </td>
 </tr>
-<tr class="row-even"><td><p>project_id</p></td>
+<tr class="row-odd"><td><p>project_id</p></td>
 <td><p>str</p></td>
-<td><p>The id of the project that has just been created</p>
-<p>Default to None</p>
-</td>
+<td><p>The id of the parent project for the resource uploaded</p></td>
 </tr>
 </tbody>
 </table>
@@ -921,15 +932,17 @@ a specifically structured dataset that represents the resource.</p>
 </li>
 <li><p>The function doesn’t return anything</p></li>
 </ul>
-<p><strong>Example Resource Download Function:</strong></p>
+<p><strong>Example Resource Upload Function:</strong></p>
 <blockquote>
-<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="o">&lt;</span><span class="n">your_target_name</span><span class="o">&gt;</span><span class="n">_upload_metadata</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">resource_id</span><span class="p">,</span> <span class="n">metadata_dict</span><span class="p">,</span> <span class="n">project_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="o">&lt;</span><span class="n">your_target_name</span><span class="o">&gt;</span><span class="n">_upload_metadata</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">metadata_dict</span><span class="p">,</span> <span class="n">project_id</span><span class="p">):</span>
     <span class="c1"># Process to upload metadata goes here.</span>
 </pre></div>
 </div>
 </div></blockquote>
 </div></blockquote>
 </li>
+</ol>
+<ol class="arabic" start="3">
 <li><p>Add the resource upload and upload metadata functions to  <code class="docutils literal notranslate"><span class="pre">presqt/api_v1/utilities/utils/function_router.py</span></code></p>
 <blockquote>
 <div><ul class="simple">
@@ -942,6 +955,18 @@ a specifically structured dataset that represents the resource.</p>
 </div>
 <div class="section" id="resource-transfer-endpoint">
 <h2>Resource Transfer Endpoint<a class="headerlink" href="#resource-transfer-endpoint" title="Permalink to this headline">¶</a></h2>
+<p>1. Update your target in <code class="docutils literal notranslate"><span class="pre">presqt/targets.json</span></code> by setting
+<code class="docutils literal notranslate"><span class="pre">supported_actions.resource_transfer_in</span></code>, <code class="docutils literal notranslate"><span class="pre">supported_actions.resource_transfer_out</span></code>,
+<code class="docutils literal notranslate"><span class="pre">supported_actions.supported_transfer_partners.transfer_in</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">supported_actions.supported_transfer_partners.transfer_out</span></code> appropriately.</p>
+<p>The resource transfer endpoint utilizes the Download and Upload functions. If these two functions
+are in place then transfer is available.</p>
+</div>
+<div class="section" id="error-handling">
+<h2>Error Handling<a class="headerlink" href="#error-handling" title="Permalink to this headline">¶</a></h2>
+<p>When any of these target functions are called within PresQT core code they are wrapped inside of a
+<code class="docutils literal notranslate"><span class="pre">Try-Except</span></code> clause which looks for the exception <code class="docutils literal notranslate"><span class="pre">PresQTResponseException</span></code>. The definition of this
+exception can be found at <code class="docutils literal notranslate"><span class="pre">presqt.utilities.exceptions.exceptions.PresQTResponseException</span></code>.</p>
 </div>
 </div>
 
