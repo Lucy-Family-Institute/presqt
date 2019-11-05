@@ -92,7 +92,6 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="target_integration.html">Target Integration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="developer_documentation.html">Developer Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="integration_management_command.html">Integration Management Command</a></li>
 <li class="toctree-l1"><a class="reference internal" href="code_documentation.html">Code Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="web_services.html">Web Services</a></li>
@@ -215,8 +214,9 @@ these tokens can not be stored publicly. Contact an administrator for access to 
 <h2>Updating Documentation<a class="headerlink" href="#updating-documentation" title="Permalink to this headline">¶</a></h2>
 <p>As the project grows we encourage developers to add documentation.
 PresQT documentation is built using Sphinx and ReadtheDocs.</p>
-<p>When documentationis added you should just need to run:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ make html
+<p>When documentation is added you should just need to run while in the <code class="docutils literal notranslate"><span class="pre">/documentation</span></code> directory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ make clean
+$ make html
 </pre></div>
 </div>
 <p>Otherwise reference Sphinx documentation for more information on adding documentation,
