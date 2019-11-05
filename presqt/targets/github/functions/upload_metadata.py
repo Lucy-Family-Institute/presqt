@@ -6,7 +6,7 @@ from presqt.targets.github.utilities import validation_check
 from presqt.utilities import PresQTError
 
 
-def github_upload_metadata(token, resource_id, metadata_dict):
+def github_upload_metadata(token, project_id, metadata_dict):
     """
     Upload the metadata of this PresQT action at the top level of the repo.
 
@@ -14,7 +14,7 @@ def github_upload_metadata(token, resource_id, metadata_dict):
     ----------
     token : str
         The user's GitHub token
-    resource_id : str
+    project_id : str
         An id the upload is taking place on
     metadata_dict : dict
         The metadata to be written to the repo
@@ -26,7 +26,7 @@ def github_upload_metadata(token, resource_id, metadata_dict):
     metadata_bytes = json.dumps(metadata_dict, indent=4).encode('utf-8')
     base64_metadata = base64.b64encode(metadata_bytes).decode('utf-8')
 
-    put_url = "https://api.github.com/repos/{}/{}/contents/{}".format(username, resource_id,
+    put_url = "https://api.github.com/repos/{}/{}/contents/{}".format(username, project_id,
                                                                       file_name)
 
     data = {

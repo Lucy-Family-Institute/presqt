@@ -8,7 +8,7 @@ from presqt.targets.osf.utilities import get_osf_resource
 from presqt.utilities import PresQTError
 
 
-def osf_upload_metadata(token, resource_id, metadata_dict):
+def osf_upload_metadata(token, project_id, metadata_dict):
     """
     Upload the metadata of this PresQT action at the top level of the repo.
 
@@ -16,7 +16,7 @@ def osf_upload_metadata(token, resource_id, metadata_dict):
     ----------
     token : str
         The user's OSF token
-    resource_id : str
+    project_id : str
         An id the upload is taking place on
     metadata_dict : dict
         The metadata to be written to the project
@@ -29,7 +29,7 @@ def osf_upload_metadata(token, resource_id, metadata_dict):
 
     # We need to find out if this project already has metadata associated with it.
     project_data = osf_instance._get_all_paginated_data(
-        'https://api.osf.io/v2/nodes/{}/files/osfstorage'.format(resource_id))
+        'https://api.osf.io/v2/nodes/{}/files/osfstorage'.format(project_id))
 
     for data in project_data:
         if data['attributes']['name'] == file_name:
@@ -67,8 +67,8 @@ def osf_upload_metadata(token, resource_id, metadata_dict):
                         response.status_code))
             return
 
-    # If there is no resource_id or no existing metadata file, then create a new one.
-    response = requests.put(put_url.format(resource_id), headers=header, params={"name": file_name},
+    # If there is no existing metadata file, then create a new one.
+    response = requests.put(put_url.format(project_id), headers=header, params={"name": file_name},
                             data=encoded_metadata)
     if response.status_code != 201:
         raise PresQTError(
