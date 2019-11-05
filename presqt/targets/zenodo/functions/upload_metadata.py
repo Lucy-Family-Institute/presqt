@@ -33,7 +33,7 @@ def zenodo_upload_metadata(token, resource_id, metadata_dict, project_id):
             # Download the metadata
             old_metadata_file = requests.get(file['links']['download'],
                                              params=auth_parameter).content
-            # Update the existing metadata
+            # Load the existing metadata to be updated.
             updated_metadata = json.loads(old_metadata_file)
 
             if schema_validator('presqt/json_schemas/metadata_schema.json', updated_metadata) is not True:
@@ -41,41 +41,67 @@ def zenodo_upload_metadata(token, resource_id, metadata_dict, project_id):
                 # therefore invalid.
                 rename_payload = {"name": "INVALID_PRESQT_FTS_METADATA.json"}
                 headers = {"Content-Type": "application/json"}
-                response = requests.post(file['links']['self'], headers=headers,
-                                         params=auth_parameter, data=json.dumps(rename_payload))
-                if response.status_code != 201:
+                rename_response = requests.post(file['links']['self'], headers=headers,
+                                                params=auth_parameter, data=json.dumps(rename_payload))
+                if rename_response.status_code != 200:
                     raise PresQTError(
-                        "The request to rename the invalid metadata file has returned a {} error code from OSF.".format(
-                            response.status_code))
+                        "The request to rename the invalid metadata file has returned a {} error code from Zenodo.".format(
+                            rename_response.status_code))
                 break
 
             # Need to delete the old metadata file.....thanks Zenodo.
-            requests.delete(file['links']['self'], params=auth_parameter)
+            delete_response = requests.delete(file['links']['self'], params=auth_parameter)
+            if delete_response.status_code != 204:
+                raise PresQTError(
+                    "The request to delete old metadata file has resulted in a {} error code from Zenodo.".format(
+                        delete_response.status_code))
+
             # Loop through each 'action' in both metadata files and make a new list of them.
             joined_actions = [entry for entry in itertools.chain(metadata_dict['actions'],
                                                                  updated_metadata['actions'])]
             updated_metadata['actions'] = joined_actions
-            metadata_bytes = json.dumps(updated_metadata, indent=4).encode('utf-8')
-            files = {'file': metadata_bytes}
-            # Now we need to update the metadata file with this updated metadata
-            data = {'name': file_name}
-            response = requests.post(post_url, params=auth_parameter,
-                                     data=data, files=files)
+
+            response_status = metadata_post_request(file_name, updated_metadata, auth_parameter,
+                                                    post_url)
             # When updating an existing metadata file, Zenodo returns a 201 status
-            if response.status_code != 201:
+            if response_status != 201:
                 raise PresQTError(
                     "The request to update the metadata file has returned a {} error code from Zenodo.".format(
-                        response.status_code))
+                        response_status))
             return
 
-    data = {'name': file_name}
-    metadata_bytes = json.dumps(metadata_dict, indent=4).encode('utf-8')
-
-    files = {'file': metadata_bytes}
-
-    response = requests.post(post_url, params=auth_parameter, data=data, files=files)
-
-    if response.status_code != 201:
+    response_status = metadata_post_request(file_name, metadata_dict, auth_parameter, post_url)
+    if response_status != 201:
         raise PresQTError(
             "The request to create a metadata file has resulted in a {} error code from Zenodo.".format(
-                response.status_code))
+                response_status))
+
+
+def metadata_post_request(file_name, metadata, auth_parameter, url):
+    """
+    Used to structure and make the post request for metadata to Zenodo.
+
+    Parameters
+    ----------
+    file_name : str
+        The name of the file to be created.
+    metadata : dict
+        The PresQT metadata file to be created.
+    auth_parameter : dict
+        The Zenodo authentication parameter.
+    url : str
+        The url to issue the post request.
+
+    Returns
+    -------
+    The status code of the request.
+    """
+    # Prepare the request values
+    data = {'name': file_name}
+    metadata_bytes = json.dumps(metadata, indent=4).encode('utf-8')
+    files = {'file': metadata_bytes}
+
+    # Make the request
+    response = requests.post(url, params=auth_parameter, data=data, files=files)
+
+    return response.status_code

@@ -88,6 +88,11 @@ def zenodo_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                 # Make the upload request....
                 response = requests.post(post_url, params=auth_parameter,
                                          data=data, files=files)
+                if response.status_code != 201:
+                    raise PresQTResponseException(
+                        "Zenodo returned an error trying to upload {}".format(name),
+                        status.HTTP_400_BAD_REQUEST)
+
                 file_metadata_list.append({
                     'actionRootPath': os.path.join(path, name),
                     'destinationPath': '/{}/{}'.format(project_title, name),
@@ -121,6 +126,11 @@ def zenodo_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                 # Make the upload request....
                 response = requests.post(post_url, params=auth_parameter,
                                          data=data, files=files)
+                if response.status_code != 201:
+                    raise PresQTResponseException(
+                        "Zenodo returned an error trying to upload {}".format(name),
+                        status.HTTP_400_BAD_REQUEST)
+
                 file_metadata_list.append({
                     'actionRootPath': os.path.join(path, name),
                     'destinationPath': '/{}/{}'.format(project_title, name),
