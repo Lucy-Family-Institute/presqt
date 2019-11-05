@@ -184,8 +184,7 @@ def write_and_validate_metadata(instance, project_id, fts_metadata_data):
     metadata_func = FunctionRouter.get_function(instance.destination_target_name, 'metadata_upload')
 
     try:
-        metadata_func(instance.destination_token, instance.destination_resource_id,
-                      fts_metadata_data, project_id)
+        metadata_func(instance.destination_token, project_id, fts_metadata_data)
     except PresQTError as e:
         # If the upload fails then return that error
         metadata_validation = e
