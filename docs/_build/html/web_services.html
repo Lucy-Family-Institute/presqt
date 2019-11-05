@@ -1,0 +1,270 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Web Services &mdash; PresQT  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Resources" href="resources.html" />
+    <link rel="prev" title="Code Documentation" href="code_documentation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> PresQT
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="architecture_infrastructure.html">Architecture/Infrastructure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development_environment_setup.html">Development Environment Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authentication_authorization.html">Authentication/Authorization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_notes.html">Developer Notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="target_integration.html">Target Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integration_management_command.html">Integration Management Command</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code_documentation.html">Code Documentation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Web Services</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#fixity">Fixity</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#tools">Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#presqt-supported-hash-algorithms">PresQT Supported Hash Algorithms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#resource-download-fixity">Resource Download Fixity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#resource-upload-fixity">Resource Upload Fixity</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#preservation-quality">Preservation Quality</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#keyword-assignment">Keyword Assignment</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="resources.html">Resources</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PresQT</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Web Services</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/web_services.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="web-services">
+<h1>Web Services<a class="headerlink" href="#web-services" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="fixity">
+<h2>Fixity<a class="headerlink" href="#fixity" title="Permalink to this headline">¶</a></h2>
+<p>How fixity is calculated for each endpoint</p>
+<div class="section" id="tools">
+<h3>Tools<a class="headerlink" href="#tools" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Python Hashlib Library <a class="reference external" href="https://docs.python.org/3/library/hashlib.html">https://docs.python.org/3/library/hashlib.html</a></p></li>
+<li><p>BagIt Python Validation <a class="reference external" href="https://github.com/LibraryOfCongress/bagit-python#validation">https://github.com/LibraryOfCongress/bagit-python#validation</a></p></li>
+</ul>
+</div>
+<div class="section" id="presqt-supported-hash-algorithms">
+<h3>PresQT Supported Hash Algorithms<a class="headerlink" href="#presqt-supported-hash-algorithms" title="Permalink to this headline">¶</a></h3>
+<p>The following is a master list of hash algorithms that are both supported by a target and supported
+by Python’s HashLib library:</p>
+<ul class="simple">
+<li><p>sha256</p></li>
+<li><p>md5</p></li>
+</ul>
+<p>Each individual target’s supported hash algorithms can be found in presqt/targets.json as explained in the link below:</p>
+<p><strong>LINK TO TARGET ENDPOINTS HERE</strong></p>
+</div>
+<div class="section" id="resource-download-fixity">
+<h3>Resource Download Fixity<a class="headerlink" href="#resource-download-fixity" title="Permalink to this headline">¶</a></h3>
+<p>For resource downloads, fixity is checked after files are downloaded from the target and saved to disk.
+Fixity information is also written to a fixity_info.json file that is sent with the data in the bag
+so the user can compare checksums after they download them locally. Details can be found in the link
+below:</p>
+<p><strong>LINK TO DOWNLOAD FIXITY HERE</strong></p>
+</div>
+<div class="section" id="resource-upload-fixity">
+<h3>Resource Upload Fixity<a class="headerlink" href="#resource-upload-fixity" title="Permalink to this headline">¶</a></h3>
+<p>For resource uploads, fixity is checked after the files have been pulled from the request, unzipped,
+and saved to the server. That fixity checked is done through the built in BagIt validation.
+Fixity is checked again after files have been uploaded by comparing their original hashes with the
+hashes provided by the target. Details can be found in the link below:</p>
+<p><strong>LINK TO UPLOAD FIXITY HERE</strong></p>
+</div>
+</div>
+<div class="section" id="preservation-quality">
+<h2>Preservation Quality<a class="headerlink" href="#preservation-quality" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="keyword-assignment">
+<h2>Keyword Assignment<a class="headerlink" href="#keyword-assignment" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="resources.html" class="btn btn-neutral float-right" title="Resources" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="code_documentation.html" class="btn btn-neutral float-left" title="Code Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, ndlib
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

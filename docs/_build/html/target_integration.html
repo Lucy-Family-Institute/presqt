@@ -1,0 +1,1021 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Target Integration &mdash; PresQT  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Integration Management Command" href="integration_management_command.html" />
+    <link rel="prev" title="Developer Notes" href="developer_notes.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> PresQT
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="architecture_infrastructure.html">Architecture/Infrastructure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development_environment_setup.html">Development Environment Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authentication_authorization.html">Authentication/Authorization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_notes.html">Developer Notes</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Target Integration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#target-endpoints">Target Endpoints</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#target-collection-details">Target Collection/Details</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#resource-endpoints">Resource Endpoints</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#resource-collection">Resource Collection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#resource-detail">Resource Detail</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#resource-download-endpoint">Resource Download Endpoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#resource-upload-endpoint">Resource Upload Endpoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#resource-transfer-endpoint">Resource Transfer Endpoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#error-handling">Error Handling</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="integration_management_command.html">Integration Management Command</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code_documentation.html">Code Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web_services.html">Web Services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resources.html">Resources</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PresQT</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Target Integration</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/target_integration.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="target-integration">
+<h1>Target Integration<a class="headerlink" href="#target-integration" title="Permalink to this headline">¶</a></h1>
+<p>The goal of PresQT is to make it as simple as possible for a new target to integrate itself with the
+PresQT services. Below are lists of code actions to take when integrating a target.</p>
+<div class="section" id="target-endpoints">
+<h2>Target Endpoints<a class="headerlink" href="#target-endpoints" title="Permalink to this headline">¶</a></h2>
+<p>‘Targets’ are providers the PresQT API will connect to such as OSF, CurateND, HubZero, etc. Since
+PresQT doesn’t have a database, the Targets’ information will be held in a JSON file located in
+<code class="docutils literal notranslate"><span class="pre">/presqt/targets.json</span></code>.  You must add data to this file to integrate with PresQT.</p>
+<div class="section" id="target-collection-details">
+<h3>Target Collection/Details<a class="headerlink" href="#target-collection-details" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic">
+<li><p>Add your target dictionary to the file <code class="docutils literal notranslate"><span class="pre">presqt/targets.json</span></code></p>
+<blockquote>
+<div><p><strong>Target JSON Details:</strong></p>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 26%" />
+<col style="width: 5%" />
+<col style="width: 69%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>name</p></td>
+<td><p>str</p></td>
+<td><p>Name of the Target. This will be used as path parameters in the URL</p></td>
+</tr>
+<tr class="row-even"><td><p>readable_name</p></td>
+<td><p>str</p></td>
+<td><p>Human readable name of the Target for the front end</p></td>
+</tr>
+<tr class="row-odd"><td><p>supported_actions</p></td>
+<td><p>array</p></td>
+<td><p>Actions the target supports. Only make actions true when action is working</p></td>
+</tr>
+<tr class="row-even"><td><p>resource_collection</p></td>
+<td><p>bool</p></td>
+<td><p>Get all resources for the user in this target</p></td>
+</tr>
+<tr class="row-odd"><td><p>resource_detail</p></td>
+<td><p>bool</p></td>
+<td><p>Get an individual resource’s details</p></td>
+</tr>
+<tr class="row-even"><td><p>resource_download</p></td>
+<td><p>bool</p></td>
+<td><p>Download a resource</p></td>
+</tr>
+<tr class="row-odd"><td><p>resource_upload</p></td>
+<td><p>bool</p></td>
+<td><p>Upload a resource</p></td>
+</tr>
+<tr class="row-even"><td><p>resource_transfer_in</p></td>
+<td><p>bool</p></td>
+<td><p>Transfer a resource in to the target</p></td>
+</tr>
+<tr class="row-odd"><td><p>resource_transfer_out</p></td>
+<td><p>bool</p></td>
+<td><p>Transfer a resource out of the target</p></td>
+</tr>
+<tr class="row-even"><td><p>supported_transfer_partners</p></td>
+<td><p>dict</p></td>
+<td><p>Targets this target can transfer in and out of</p></td>
+</tr>
+<tr class="row-odd"><td><p>transfer_in</p></td>
+<td><p>array</p></td>
+<td><p>Targets this target can accept transfers from</p></td>
+</tr>
+<tr class="row-even"><td><p>transfer_out</p></td>
+<td><p>array</p></td>
+<td><p>Targets this target can transfer to</p></td>
+</tr>
+<tr class="row-odd"><td><p>supported_hash_algorithms</p></td>
+<td><p>array</p></td>
+<td><p>The hash algorithms supported by the target</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p><strong>Target JSON Example:</strong></p>
+<blockquote>
+<div><div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;osf&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;readable_name&quot;</span><span class="p">:</span> <span class="s2">&quot;OSF&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;supported_actions&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;resource_collection&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+        <span class="nt">&quot;resource_detail&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+        <span class="nt">&quot;resource_download&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+        <span class="nt">&quot;resource_upload&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+        <span class="nt">&quot;resource_transfer_in&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+        <span class="nt">&quot;resource_transfer_out&quot;</span><span class="p">:</span> <span class="kc">true</span>
+    <span class="p">},</span>
+    <span class="nt">&quot;supported_transfer_partners&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;transfer_in&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;github&quot;</span><span class="p">,</span> <span class="s2">&quot;curate_nd&quot;</span><span class="p">],</span>
+        <span class="nt">&quot;transfer_out&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;github&quot;</span><span class="p">]</span>
+    <span class="p">},</span>
+    <span class="nt">&quot;supported_hash_algorithms&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;sha256&quot;</span><span class="p">,</span> <span class="s2">&quot;md5&quot;</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>There is a management command that will validate <code class="docutils literal notranslate"><span class="pre">targets.json</span></code> that can be ran after you add your target.
+It can be run manually with:</p>
+<blockquote>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python manage.py validate_target_json
+</pre></div>
+</div>
+</div></blockquote>
+<p>Otherwise the same management command is run when <code class="docutils literal notranslate"><span class="pre">docker-compose</span> <span class="pre">up</span></code> is ran.
+If the validation fails then it does not allow the docker containers to be spun up.</p>
+</div></blockquote>
+</li>
+<li><p>Add your target directory inside <code class="docutils literal notranslate"><span class="pre">presqt/targets/</span></code></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Your target integration functionality will exist here.</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ol>
+</div>
+</div>
+<div class="section" id="resource-endpoints">
+<h2>Resource Endpoints<a class="headerlink" href="#resource-endpoints" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="resource-collection">
+<h3>Resource Collection<a class="headerlink" href="#resource-collection" title="Permalink to this headline">¶</a></h3>
+<p>Targets that integrate with the Resources Collection API Endpoint must have a function that returns
+a specifically structured dataset. This structure allows us to recreate the hierarchy of the file
+structure on the front end.</p>
+<p>1. Update your target in <code class="docutils literal notranslate"><span class="pre">presqt/targets.json</span></code> by setting
+<code class="docutils literal notranslate"><span class="pre">supported_actions.resource_collection</span></code> to <code class="docutils literal notranslate"><span class="pre">true</span></code>.</p>
+<ol class="arabic" start="2">
+<li><p>Add a function to return the resource collection inside of your target directory.</p>
+<blockquote>
+<div><ul>
+<li><p>If you would like to keep your file/function names consistent with what already exists
+add this function at <code class="docutils literal notranslate"><span class="pre">presqt/targets/&lt;target_name&gt;/functions/fetch/&lt;target_name&gt;_fetch_resources()</span></code></p></li>
+<li><p>The function must have the following parameters <strong>in this order</strong>:</p>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 9%" />
+<col style="width: 77%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>token</p></td>
+<td><p>str</p></td>
+<td><p>User’s token for the target</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</li>
+<li><p>The function must return the following <strong>in this order</strong>:</p>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 7%" />
+<col style="width: 78%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>resources</p></td>
+<td><p>list</p></td>
+<td><p>list of Python dictionaries for each resource</p></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<div><p><strong>Resource dictionary details:</strong></p>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 7%" />
+<col style="width: 2%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>kind</p></td>
+<td><p>str</p></td>
+<td><p>Type of Resource</p>
+<p>Options: [container, item]</p>
+</td>
+</tr>
+<tr class="row-even"><td><p>kind_name</p></td>
+<td><p>str</p></td>
+<td><p>Target specific name for that kind</p>
+<blockquote>
+<div><p>For example OSF kind_names are: [node, folder, file]</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="row-odd"><td><p>container</p></td>
+<td><p>str</p></td>
+<td><p>ID of the container for the resource.</p>
+<p>For example if the resource is a file in a folder then the <strong>container</strong> value would be the ID of the folder</p>
+<p>Can be None if the resource has no container</p>
+</td>
+</tr>
+<tr class="row-even"><td><p>id</p></td>
+<td><p>str</p></td>
+<td><p>ID of the resource</p></td>
+</tr>
+<tr class="row-odd"><td><p>title</p></td>
+<td><p>str</p></td>
+<td><p>Title of the resource</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div></blockquote>
+</div></blockquote>
+</li>
+</ul>
+<p><strong>Example Resource Collection Function:</strong></p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="o">&lt;</span><span class="n">your_target_name</span><span class="o">&gt;</span><span class="n">_fetch_resources</span><span class="p">(</span><span class="n">token</span><span class="p">):</span>
+    <span class="c1"># Process to obtain resource collection goes here.</span>
+    <span class="c1"># Variables below are defined here to show examples of structure.</span>
+    <span class="n">resources</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;kind&#39;</span><span class="p">:</span> <span class="s1">&#39;container&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;kind_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Project&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;12345&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;container&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;New Project</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;kind&#39;</span><span class="p">:</span> <span class="s1">&#39;item&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;kind_name&#39;</span><span class="p">:</span> <span class="s1">&#39;file&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="s1">&#39;34567,</span>
+            <span class="s1">&#39;container&#39;</span><span class="p">:</span> <span class="s1">&#39;12345&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;TheFile.jpg&#39;</span>
+        <span class="p">}</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">resources</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div></blockquote>
+</li>
+<li><p>Add the resource collection function to <code class="docutils literal notranslate"><span class="pre">presqt/api_v1/utilities/utils/function_router.py</span></code></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Follow the naming conventions laid out in this class’ docstring</p></li>
+<li><p>This will make the function available in core PresQT code</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ol>
+</div>
+<div class="section" id="resource-detail">
+<h3>Resource Detail<a class="headerlink" href="#resource-detail" title="Permalink to this headline">¶</a></h3>
+<p>Targets that integrate with the Resources Detail API Endpoint must have a function that returns
+a specifically structured dataset that represents the resource.</p>
+<p>1. Update your target in <code class="docutils literal notranslate"><span class="pre">presqt/targets.json</span></code> by setting
+<code class="docutils literal notranslate"><span class="pre">supported_actions.resource_detail</span></code> to <code class="docutils literal notranslate"><span class="pre">true</span></code>.</p>
+<ol class="arabic" start="2">
+<li><p>Add a function to return the resource details inside of your target directory.</p>
+<blockquote>
+<div><ul>
+<li><p>If you would like to keep your file/function names consistent with what already exists add this function at
+<code class="docutils literal notranslate"><span class="pre">presqt/targets/&lt;target_name&gt;/functions/fetch/&lt;target_name&gt;_fetch_resource()</span></code></p></li>
+<li><p>The function must have the following parameters <strong>in this order</strong>:</p>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 6%" />
+<col style="width: 72%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>token</p></td>
+<td><p>str</p></td>
+<td><p>User’s token for the target</p></td>
+</tr>
+<tr class="row-even"><td><p>resource_id</p></td>
+<td><p>str</p></td>
+<td><p>ID for the resource we want to fetch</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</li>
+<li><p>The function must return the following <strong>in this order</strong>:</p>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 13%" />
+<col style="width: 10%" />
+<col style="width: 78%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>resource</p></td>
+<td><p>object</p></td>
+<td><p>Python object representing the resource requested</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Resource dictionary details:</strong></p>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 5%" />
+<col style="width: 80%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>kind</p></td>
+<td><p>str</p></td>
+<td><p>Type of Resource</p>
+<p>Options: [container, item]</p>
+</td>
+</tr>
+<tr class="row-even"><td><p>kind_name</p></td>
+<td><p>str</p></td>
+<td><p>Target specific name for that kind</p>
+<p>For example OSF kind_names are: [node, folder, file]</p>
+</td>
+</tr>
+<tr class="row-odd"><td><p>id</p></td>
+<td><p>str</p></td>
+<td><p>ID of the resource</p></td>
+</tr>
+<tr class="row-even"><td><p>title</p></td>
+<td><p>str</p></td>
+<td><p>Title of the resource</p></td>
+</tr>
+<tr class="row-odd"><td><p>date_created</p></td>
+<td><p>str</p></td>
+<td><p>Date the resource was created</p></td>
+</tr>
+<tr class="row-even"><td><p>date_modified</p></td>
+<td><p>str</p></td>
+<td><p>Date the resource was last modified</p></td>
+</tr>
+<tr class="row-odd"><td><p>hashes</p></td>
+<td><p>dict</p></td>
+<td><p>Hashes of the resource in the target</p>
+<p>Key must be the hash algorithm used value must be the hash itself</p>
+<p>Can be an empty dict if no hashes exist</p>
+</td>
+</tr>
+<tr class="row-even"><td><p>extra</p></td>
+<td><p>dict</p></td>
+<td><p>Any extra target specific data.</p>
+<p>Can be an empty dict</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p><strong>Example Resource Collection Function:</strong></p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="o">&lt;</span><span class="n">your_target_name</span><span class="o">&gt;</span><span class="n">_fetch_resource</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">resource_id</span><span class="p">):</span>
+        <span class="c1"># Process to obtain resource details goes here.</span>
+        <span class="c1"># Variables below are defined here to show examples of structure.</span>
+
+    <span class="n">resource</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;kind&quot;</span><span class="p">:</span> <span class="s2">&quot;item&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;kind_name&quot;</span><span class="p">:</span> <span class="s2">&quot;file&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;12345&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;o_o.jpg&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;date_created&quot;</span><span class="p">:</span> <span class="s2">&quot;2019-05-13T14:54:17.129170Z&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;date_modified&quot;</span><span class="p">:</span> <span class="s2">&quot;2019-05-13T14:54:17.129170Z&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;hashes&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;md5&quot;</span><span class="p">:</span> <span class="s2">&quot;abca7ef057dcab7cb8d79c36243823e4&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;sha256&quot;</span><span class="p">:</span> <span class="s2">&quot;ea94ce55261720c56abb508c6dcd1fd481c30c09b7f2f5ab0b79e3199b7e2b55&quot;</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;extra&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="s2">&quot;project&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;fork&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+            <span class="s2">&quot;current_user_is_contributor&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+            <span class="s2">&quot;preprint&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+            <span class="s2">&quot;current_user_permissions&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">&quot;read&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;write&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;admin&quot;</span>
+            <span class="p">],</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">resource</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Add the resource detail function to <code class="docutils literal notranslate"><span class="pre">presqt/api_v1/utilities/utils/function_router.py</span></code></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Follow the naming conventions laid out in this class’ docstring</p></li>
+<li><p>This will make the function available in core PresQT code</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ol>
+</div>
+</div>
+<div class="section" id="resource-download-endpoint">
+<h2>Resource Download Endpoint<a class="headerlink" href="#resource-download-endpoint" title="Permalink to this headline">¶</a></h2>
+<p>1. Update your target in <code class="docutils literal notranslate"><span class="pre">presqt/targets.json</span></code> by setting
+<code class="docutils literal notranslate"><span class="pre">supported_actions.resource_download</span></code> to <code class="docutils literal notranslate"><span class="pre">true</span></code>.</p>
+<ol class="arabic" start="2">
+<li><p>Add a function to perform the resoucrce download inside of your target directory.</p>
+<blockquote>
+<div><ul>
+<li><p>If you would like to keep your file/function names consistent with what already exists add this function at <code class="docutils literal notranslate"><span class="pre">presqt/targets/&lt;target_name&gt;/functions/download/&lt;target_name&gt;_download_resource()</span></code></p></li>
+<li><p>The function must have the following parameters <strong>in this order</strong>:</p>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 21%" />
+<col style="width: 6%" />
+<col style="width: 74%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>token</p></td>
+<td><p>str</p></td>
+<td><p>User’s token for the target</p></td>
+</tr>
+<tr class="row-even"><td><p>resource_id</p></td>
+<td><p>str</p></td>
+<td><p>ID for the resource we want to download</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</li>
+<li><p>The function must return a <strong>dictionary</strong> with the following keys:</p>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 4%" />
+<col style="width: 82%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>resources</p></td>
+<td><p>list</p></td>
+<td><p>List of dictionaries containing resource data</p></td>
+</tr>
+<tr class="row-even"><td><p>empty_containers</p></td>
+<td><p>list</p></td>
+<td><p>List of strings identifying empty container paths.</p>
+<p>They need to be specified separately because they are written separate from the file data</p>
+</td>
+</tr>
+<tr class="row-odd"><td><p>action_metadata</p></td>
+<td><p>dict</p></td>
+<td><p>Dictionary containing FTS metadata about the action occurring</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Resource Dictionary Details</strong></p>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 6%" />
+<col style="width: 78%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>file</p></td>
+<td><p>bytes</p></td>
+<td><p>The file contents in byte format</p></td>
+</tr>
+<tr class="row-even"><td><p>hashes</p></td>
+<td><p>dict</p></td>
+<td><p>Hashes of the resource in the target</p>
+<p>Key must be the hash algorithm used value must be the hash itself</p>
+<p>Can be an empty dict if no hashes exist</p>
+</td>
+</tr>
+<tr class="row-odd"><td><p>title</p></td>
+<td><p>str</p></td>
+<td><p>Title of the file</p></td>
+</tr>
+<tr class="row-even"><td><p>path</p></td>
+<td><p>str</p></td>
+<td><p>Path to save the file to at the destination</p>
+<p>Start the path with a <code class="docutils literal notranslate"><span class="pre">/</span></code></p>
+</td>
+</tr>
+<tr class="row-odd"><td><p>source_path</p></td>
+<td><p>str</p></td>
+<td><p>Full path of the file at the source</p>
+<p>Start the path with a <code class="docutils literal notranslate"><span class="pre">/</span></code></p>
+</td>
+</tr>
+<tr class="row-even"><td><p>extra_metadata</p></td>
+<td><p>dict</p></td>
+<td><p>Dictionary containing any extra data to save to FTS metadata</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p><strong>Action Metadata Dictionary Details</strong></p>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 4%" />
+<col style="width: 78%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>sourceUsername</p></td>
+<td><p>str</p></td>
+<td><p>Username of the user making the request at the source target</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div></blockquote>
+</li>
+</ul>
+<p><strong>Example Resource Download Function:</strong></p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="o">&lt;</span><span class="n">your_target_name</span><span class="o">&gt;</span><span class="n">_download_resource</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">resource_id</span><span class="p">):</span>
+    <span class="c1"># Process to download resource goes here.</span>
+    <span class="c1"># Variables below are defined here to show examples of structure.</span>
+    <span class="n">resources</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;file&#39;</span><span class="p">:</span> <span class="n">binary_file_contents</span><span class="p">,</span>
+            <span class="s1">&#39;hashes&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;md5&#39;</span><span class="p">:</span> <span class="s1">&#39;1ab2c3d4e5f6g&#39;</span><span class="p">,</span> <span class="s1">&#39;sha256&#39;</span><span class="p">:</span> <span class="s1">&#39;fh3383h83fh&#39;</span><span class="p">},</span>
+            <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;file.jpg&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="s1">&#39;/path/to/file.jpg&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;source_path&#39;</span><span class="p">:</span> <span class="s1">&#39;project_name/path/to/file.jpg&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;extra_metadata&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;dateSubmitted&#39;</span><span class="p">:</span> <span class="s1">&#39;2019-10-22Z&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;creator&#39;</span><span class="p">:</span> <span class="s1">&#39;Justin Branco&#39;</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;file&#39;</span><span class="p">:</span> <span class="n">binary_file_contents</span><span class="p">,</span>
+            <span class="s1">&#39;hashes&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;md5&#39;</span><span class="p">:</span> <span class="s1">&#39;zadf23fg3&#39;</span><span class="p">,</span> <span class="s1">&#39;sha256&#39;</span><span class="p">:</span> <span class="s1">&#39;9382hash383h&#39;</span><span class="p">},</span>
+            <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;funnysong.mp3&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="s1">&#39;/path/to/file/funnysong.mp3&#39;</span>
+            <span class="s1">&#39;source_path&#39;</span><span class="p">:</span> <span class="s1">&#39;project_name/path/to/file/funnysong.mp3&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;extra_metadata&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;dateSubmitted&#39;</span><span class="p">:</span> <span class="s1">&#39;2019-10-22Z&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;creator&#39;</span><span class="p">:</span> <span class="s1">&#39;Justin Branco&#39;</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">]</span>
+    <span class="n">empty_containers</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;path/to/empty/container/&#39;</span><span class="p">,</span> <span class="s1">&#39;another/empty/&#39;</span><span class="p">]</span>
+    <span class="n">action_metadata</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;sourceUsername&quot;</span><span class="p">:</span> <span class="n">contributor_name</span><span class="p">}</span>
+    <span class="k">return</span> <span class="n">resources</span><span class="p">,</span> <span class="n">empty_containers</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div></blockquote>
+</li>
+<li><p>Add the resource download function to <code class="docutils literal notranslate"><span class="pre">presqt/api_v1/utilities/utils/function_router.py</span></code></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Follow the naming conventions laid out in this class’ docstring</p></li>
+<li><p>This will make the function available in core PresQT code</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ol>
+</div>
+<div class="section" id="resource-upload-endpoint">
+<h2>Resource Upload Endpoint<a class="headerlink" href="#resource-upload-endpoint" title="Permalink to this headline">¶</a></h2>
+<p>1. Update your target in <code class="docutils literal notranslate"><span class="pre">presqt/targets.json</span></code> by setting
+<code class="docutils literal notranslate"><span class="pre">supported_actions.resource_upload</span></code> to <code class="docutils literal notranslate"><span class="pre">true</span></code>.</p>
+<ol class="arabic" start="2">
+<li><p>Add a function to perform the resource upload inside of your target directory.</p>
+<blockquote>
+<div><ul>
+<li><p>If you would like to keep your file/function names consistent with what already exists add this function at <code class="docutils literal notranslate"><span class="pre">presqt/targets/&lt;target_name&gt;/functions/upload/&lt;target_name&gt;_upload_resource()</span></code></p></li>
+<li><p>The function must have the following parameters <strong>in this order</strong>:</p>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 21%" />
+<col style="width: 3%" />
+<col style="width: 76%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>token</p></td>
+<td><p>str</p></td>
+<td><p>User’s token for the target</p></td>
+</tr>
+<tr class="row-even"><td><p>resource_id</p></td>
+<td><p>str</p></td>
+<td><p>ID of the resource requested</p></td>
+</tr>
+<tr class="row-odd"><td><p>resource_main_dir</p></td>
+<td><p>str</p></td>
+<td><p>Path to the main directory on the server for the resources to be uploaded</p></td>
+</tr>
+<tr class="row-even"><td><p>hash_algorithm</p></td>
+<td><p>str</p></td>
+<td><p>Hash algorithm we are using to check for fixity</p></td>
+</tr>
+<tr class="row-odd"><td><p>file_duplicate_action</p></td>
+<td><p>str</p></td>
+<td><p>The action to take when a duplicate file is found</p>
+<p>Options: [ignore, update]</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</li>
+<li><p>The function must return a <strong>dictionary</strong> with the following keys:</p>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 5%" />
+<col style="width: 78%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>resources_ignored</p></td>
+<td><p>array</p></td>
+<td><p>Array of string paths of files that were ignored when uploading the resource</p>
+<p>Path should have the same base as resource_main_dir</p>
+</td>
+</tr>
+<tr class="row-even"><td><p>resources_updated</p></td>
+<td><p>array</p></td>
+<td><p>Array of string paths of files that were updated when uploading the resource</p>
+<p>Path should have the same base as resource_main_dir</p>
+</td>
+</tr>
+<tr class="row-odd"><td><p>file_metadata_list</p></td>
+<td><p>list</p></td>
+<td><p>List of dictionaries that contains FTS metadata and hash info for each file</p></td>
+</tr>
+<tr class="row-even"><td><p>action_metadata</p></td>
+<td><p>dict</p></td>
+<td><p>Dictionary containing FTS metadata about the action occurring</p></td>
+</tr>
+<tr class="row-odd"><td><p>project_id</p></td>
+<td><p>str</p></td>
+<td><p>ID of the parent project for this upload. Needed for metadata upload</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Metadata Dictionary Details</strong></p>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 12%" />
+<col style="width: 3%" />
+<col style="width: 85%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>actionRootPath</p></td>
+<td><p>str</p></td>
+<td><p>Original path of the file on the server before upload.</p>
+<p>This is used to connect this metadata with download metadata if the action is a transfer.</p>
+</td>
+</tr>
+<tr class="row-even"><td><p>destinationHash</p></td>
+<td><p>dict</p></td>
+<td><p>Hash of the resource in the target that was calculated using the hash_algorithm given as a function parameter</p>
+<p>Key must be the hash algorithm used value must be the hash itself</p>
+<p>Can be an empty dict if no hashes exist</p>
+</td>
+</tr>
+<tr class="row-odd"><td><p>destinationPath</p></td>
+<td><p>str</p></td>
+<td><p>Full path of the file at the destination</p>
+<p>Start the path with a <code class="docutils literal notranslate"><span class="pre">/</span></code></p>
+</td>
+</tr>
+<tr class="row-even"><td><p>title</p></td>
+<td><p>str</p></td>
+<td><p>Title of the file</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p><strong>Action Metadata Dictionary Details</strong></p>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 3%" />
+<col style="width: 75%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>destinationUsername</p></td>
+<td><p>str</p></td>
+<td><p>Username of the user making the request at the destination target</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div></blockquote>
+</li>
+</ul>
+<p><strong>Example Resource Upload Function:</strong></p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="o">&lt;</span><span class="n">your_target_name</span><span class="o">&gt;</span><span class="n">_upload_resource</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">resource_id</span><span class="p">,</span> <span class="n">resource_main_dir</span><span class="p">,</span>
+                        <span class="n">hash_algorithm</span><span class="p">,</span> <span class="n">file_duplicate_action</span><span class="p">):</span>
+    <span class="c1"># Process to upload resource goes here.</span>
+    <span class="c1"># Variables below are defined here to show examples of structure.</span>
+    <span class="n">file_metadata_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;actionRootPath&quot;</span><span class="p">:</span> <span class="s1">&#39;resource_main_dir/path/to/updated/file.jpg&#39;</span><span class="p">,</span>
+            <span class="s2">&quot;destinationPath&quot;</span><span class="p">:</span> <span class="s1">&#39;/path/to/updated/file.jpg&#39;</span><span class="p">,</span>
+            <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s1">&#39;file.jpg,</span>
+            <span class="s2">&quot;destinationHash&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;md5&#39;</span><span class="p">:</span> <span class="s1">&#39;123456&#39;</span><span class="p">}</span> <span class="c1"># hash_algorithm = &#39;md5&#39;</span>
+        <span class="p">}</span>
+    <span class="p">]</span>
+    <span class="n">resources_ignored</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;path/to/ignored/file.png&#39;</span><span class="p">,</span> <span class="s1">&#39;another/ignored/file.jpg&#39;</span><span class="p">]</span>
+    <span class="n">resources_updated</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;path/to/updated/file.jpg&#39;</span><span class="p">]</span>
+    <span class="n">action_metadata</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;destinationUsername&quot;</span><span class="p">:</span> <span class="s1">&#39;destination_username&#39;</span><span class="p">}</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s1">&#39;resources_ignored&#39;</span><span class="p">:</span> <span class="n">resources_ignored</span><span class="p">,</span>
+        <span class="s1">&#39;resources_updated&#39;</span><span class="p">:</span> <span class="n">resources_updated</span><span class="p">,</span>
+        <span class="s1">&#39;action_metadata&#39;</span><span class="p">:</span> <span class="n">action_metadata</span><span class="p">,</span>
+        <span class="s1">&#39;file_metadata_list&#39;</span><span class="p">:</span> <span class="n">file_metadata_list</span><span class="p">,</span>
+        <span class="s1">&#39;project_id&#39;</span><span class="p">:</span> <span class="s1">&#39;1234&#39;</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div></blockquote>
+</li>
+<li><p>Add a function to upload FTS metadata to the correct location within the resource’s parent project.</p>
+<blockquote>
+<div><ul>
+<li><p>If you would like to keep your file/function names consistent with what already exists add this function at <code class="docutils literal notranslate"><span class="pre">presqt/targets/&lt;target_name&gt;/functions/upload_metadata/&lt;target_name&gt;_upload_metadata()</span></code></p></li>
+<li><p>The function must have the following parameters <strong>in this order</strong>:</p>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 6%" />
+<col style="width: 76%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>token</p></td>
+<td><p>str</p></td>
+<td><p>User’s token for the target</p></td>
+</tr>
+<tr class="row-even"><td><p>metadata_dict</p></td>
+<td><p>dict</p></td>
+<td><p>The FTS metadata dictionary to upload</p>
+<p>At this point it will be a Python dict</p>
+</td>
+</tr>
+<tr class="row-odd"><td><p>project_id</p></td>
+<td><p>str</p></td>
+<td><p>The id of the parent project for the resource uploaded</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</li>
+<li><p>The function doesn’t return anything</p></li>
+</ul>
+<p><strong>Example Resource Upload Function:</strong></p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="o">&lt;</span><span class="n">your_target_name</span><span class="o">&gt;</span><span class="n">_upload_metadata</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">metadata_dict</span><span class="p">,</span> <span class="n">project_id</span><span class="p">):</span>
+    <span class="c1"># Process to upload metadata goes here.</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div></blockquote>
+</li>
+</ol>
+<ol class="arabic" start="3">
+<li><p>Add the resource upload and upload metadata functions to  <code class="docutils literal notranslate"><span class="pre">presqt/api_v1/utilities/utils/function_router.py</span></code></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Follow the naming conventions laid out in this class’ docstring</p></li>
+<li><p>This will make the function available in core PresQT code</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ol>
+</div>
+<div class="section" id="resource-transfer-endpoint">
+<h2>Resource Transfer Endpoint<a class="headerlink" href="#resource-transfer-endpoint" title="Permalink to this headline">¶</a></h2>
+<p>1. Update your target in <code class="docutils literal notranslate"><span class="pre">presqt/targets.json</span></code> by setting
+<code class="docutils literal notranslate"><span class="pre">supported_actions.resource_transfer_in</span></code>, <code class="docutils literal notranslate"><span class="pre">supported_actions.resource_transfer_out</span></code>,
+<code class="docutils literal notranslate"><span class="pre">supported_actions.supported_transfer_partners.transfer_in</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">supported_actions.supported_transfer_partners.transfer_out</span></code> appropriately.</p>
+<p>The resource transfer endpoint utilizes the Download and Upload functions. If these two functions
+are in place then transfer is available.</p>
+</div>
+<div class="section" id="error-handling">
+<h2>Error Handling<a class="headerlink" href="#error-handling" title="Permalink to this headline">¶</a></h2>
+<p>When any of these target functions are called within PresQT core code they are wrapped inside of a
+<code class="docutils literal notranslate"><span class="pre">Try-Except</span></code> clause which looks for the exception <code class="docutils literal notranslate"><span class="pre">PresQTResponseException</span></code>. The definition of this
+exception can be found at <code class="docutils literal notranslate"><span class="pre">presqt.utilities.exceptions.exceptions.PresQTResponseException</span></code>.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="integration_management_command.html" class="btn btn-neutral float-right" title="Integration Management Command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="developer_notes.html" class="btn btn-neutral float-left" title="Developer Notes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, ndlib
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

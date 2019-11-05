@@ -2,7 +2,7 @@ FROM python:3.7-alpine
 ARG BUILD_ENVIRONMENT
 
 # Installing client libraries and any other package you need
-RUN apk update && apk add libpq
+RUN apk update && apk add libpq make
 
 # Installing build dependencies
 RUN apk add --virtual .build-deps gcc python-dev musl-dev postgresql-dev tzdata
