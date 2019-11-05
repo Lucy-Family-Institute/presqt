@@ -56,7 +56,7 @@ Updating Documentation
 As the project grows we encourage developers to add documentation.
 PresQT documentation is built using Sphinx and ReadtheDocs.
 
-When documentation is added you should just need to run while in the ``/documentation`` directory:
+When documentation is added you should just need to run while in the ``/docs`` directory:
 
 .. parsed-literal::
     $ make clean
