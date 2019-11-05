@@ -25,3 +25,5 @@ config/ssl/certs/
 config/ssl/private/
 .DS_Store
 
+#docs
+docs/_build*
