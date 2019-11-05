@@ -27,7 +27,6 @@ More information can be found here https://presqt.crc.nd.edu/
    authentication_authorization
    developer_notes
    target_integration
-   developer_documentation
    integration_management_command
    code_documentation
    web_services
