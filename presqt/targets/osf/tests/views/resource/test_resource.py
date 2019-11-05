@@ -1026,8 +1026,8 @@ class TestResourcePOST(SimpleTestCase):
         """
         Ensure that an error is returned if OSF doesn't return a 201 status code.
         """
-        self.assertRaises(PresQTError, osf_upload_metadata, self.token, None, {"bad": "metadata"},
-                          'eggtest')
+        self.assertRaises(PresQTError, osf_upload_metadata, self.token, 'eggtest',
+                          {"bad": "metadata"})
 
     def test_error_updating_metadata_file(self):
         """

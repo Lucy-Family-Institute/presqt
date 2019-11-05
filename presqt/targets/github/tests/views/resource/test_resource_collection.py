@@ -270,8 +270,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         Ensure that the proper error is raised when we get a non-201 resoponse from GitHub.
         """
         # Calling this function manually to confirm explicit error is raised.
-        self.assertRaises(PresQTError, github_upload_metadata, self.token, None, {"fake": "data"},
-                          "BAD")
+        self.assertRaises(PresQTError, github_upload_metadata, self.token, "BAD", {"fake": "data"},)
 
     def test_upload_with_invalid_metadata_file_and_valid_metadata(self):
         """
