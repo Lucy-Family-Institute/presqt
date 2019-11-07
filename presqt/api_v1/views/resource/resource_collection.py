@@ -32,18 +32,30 @@ class ResourceCollection(BaseResource):
             {
                 "kind": "container",
                 "kind_name": "folder",
-                "id": "a02d7b96-a4a9-4521-9913-e3cc68f4d9dc",
-                "container": "None",
-                "title": "Folder Name",
-                "detail": "http://localhost/api_v1/targets/osf/resources/a02d7b96-a4a9-4521-9913-e3cc68f4d9dc"
+                "id": "5cd9832cf244ec0021e5f245",
+                "container": "cmn5z:osfstorage",
+                "title": "Images",
+                "links": [
+                    {
+                        "name": "Detail",
+                        "link": "https://localhost/api_v1/targets/osf/resources/5cd9832cf244ec0021e5f245/",
+                        "method": "GET"
+                    }
+                ]
             },
             {
                 "kind": "item",
                 "kind_name": "file",
-                "id": "5b305f1b-0da6-4a1a-9861-3bb159d94c96",
-                "container": "a02d7b96-a4a9-4521-9913-e3cc68f4d9dc",
-                "title": "file.jpg",
-                "detail": "http://localhost/api_v1/targets/osf/resources/5b305f1b-0da6-4a1a-9861-3bb159d94c96"
+                "id": "5cd98510f244ec001fe5632f",
+                "container": "5cd9832cf244ec0021e5f245",
+                "title": "22776439564_7edbed7e10_o.jpg",
+                "links": [
+                    {
+                        "name": "Detail",
+                        "link": "https://localhost/api_v1/targets/osf/resources/5cd98510f244ec001fe5632f/",
+                        "method": "GET"
+                    }
+                ]
             }
         ]
 

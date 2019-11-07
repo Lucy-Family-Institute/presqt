@@ -52,26 +52,36 @@ class Resource(BaseResource):
         {
             "kind": "item",
             "kind_name": "file",
-            "id": "5cd98518f244ec001ee8606b",
-            "title": "23296359282_934200ec59_o.jpg",
-            "date_created": "2019-05-13T14:54:17.129170Z",
-            "date_modified": "2019-05-13T14:54:17.129170Z",
+            "id": "5cd98a30f2c01100177156be",
+            "title": "Character Sheet - Alternative - Print Version.pdf",
+            "date_created": "2019-05-13T15:06:34.521000Z",
+            "date_modified": "2019-05-13T15:06:34.521000Z",
             "hashes": {
-                "md5": "aaca7ef067dcab7cb8d79c36243823e4",
-                "sha256": "ea94ce54261720c16abb508c6dcd1fd481c30c09b7f2f5ab0b79e3199b7e2b55"
+                "md5": null,
+                "sha256": null
             },
             "extra": {
-                "last_touched": null,
-                "materialized_path": "/Images/23296359282_934200ec59_o.jpg",
+                "last_touched": "2019-11-07T17:00:51.680957",
+                "materialized_path": "/Character Sheet - Alternative - Print Version.pdf",
                 "current_version": 1,
-                "provider": "osfstorage",
-                "path": "/5cd98518f244ec001ee8606b",
+                "provider": "googledrive",
+                "path": "/Character%20Sheet%20-%20Alternative%20-%20Print%20Version.pdf",
                 "current_user_can_comment": true,
-                "guid": null,
+                "guid": "byz93",
                 "checkout": null,
-                "tags": []
+                "tags": [],
+                "size": null
             },
-            "download_url": "http://localhost/api_v1/targets/osf/resources/5cd98518f244ec001ee8606.zip/"
+            "links": [
+                {
+                    "name": "Download",
+                    "link": "https://localhost/api_v1/targets/osf/resources/5cd98a30f2c01100177156be.zip/",
+                    "method": "GET"
+                }
+            ],
+            "actions": [
+                "Transfer"
+            ]
         }
 
         202: Accepted

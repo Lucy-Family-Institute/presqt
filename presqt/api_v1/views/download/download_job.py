@@ -35,7 +35,7 @@ class DownloadJob(APIView):
 
         202: Accepted
         {
-            "status": "in_progress",
+            "status_code": null,
             "message": "Download is being processed on the server"
         }
 
