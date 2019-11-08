@@ -422,7 +422,7 @@ Download Job
     :statuscode 400: ``presqt-source-token`` missing in the request headers
     :statuscode 401: Header ``presqt-source-token`` does not match the ``presqt-source-token`` for this server process
     :statuscode 404: Invalid ``Ticket Number``
-    :statuscode 500: Download failed on the server
+    :statuscode 500: ``Download`` failed on the server
 
 Resource Upload Endpoints
 ---------------------------
@@ -541,7 +541,7 @@ Upload Job
     .. sourcecode:: http
 
         HTTP/1.1 200 OK
-        Content-Type: application/zip
+        Content-Type: application/json
 
         {
             "status_code": "200",
@@ -581,10 +581,19 @@ Upload Job
     :statuscode 400: ``presqt-destination-token`` missing in the request headers
     :statuscode 401: Header ``presqt-destination-token`` does not match the ``presqt-destination-token`` for this server process
     :statuscode 404: Invalid ``Ticket Number``
-    :statuscode 500: Download failed on the server
+    :statuscode 500: ``Upload`` failed on the server
 
 Resource Transfer Endpoints
 ---------------------------
+
+.. Note::
+
+    The Upload and Transfer endpoints are the same POST endpoints **except**
+    the specification of where the source resource is coming from.
+
+    For ``Uploads`` the resource will be a file provided as form-data
+
+    For ``Transfers`` the location of resource (source_target and resource_id) will be specified in the body as JSON
 
 Transfer New Top Level Resource
 +++++++++++++++++++++++++++++++
@@ -596,8 +605,177 @@ Transfer New Top Level Resource
     process. It returns a ``ticket_number`` which can be passed to the ``Transfer Job`` endpoint to
     check in on the process.
 
+    **Example request**:
+
+    .. sourcecode:: http
+
+        POST /api_v1/targets/OSF/resources/ HTTP/1.1
+        Host: localhost
+        Accept: application/json
+
+        Example body json:
+            {
+                "source_target_name":"github",
+                "source_resource_id": "209372336"
+            }
+
+    **Example response**:
+
+    ..  sourcecode:: http
+
+        HTTP/1.1 202 Accepted
+        Content-Type: application/json
+
+        {
+            "ticket_number": "6d65d1b1-5a04-479b-8519-8340187f0ffc",
+            "message": "The server is processing the request.",
+            "transfer_job": "https://localhost/api_v1/transfers/6d65d1b1-5a04-479b-8519-8340187f0ffc/"
+        }
+
+    :reqheader presqt-destination-token: User's ``Token`` for the destination target
+    :reqheader presqt-source-token: User's ``Token`` for the source target
+    :reqheader presqt-file-duplicate-action: Action to be taken if a duplicate file is found
+    :jsonparam string source_target_name: The ``Source Target`` where the ``Resource`` being ``Transferred`` exists
+    :jsonparam string source_resource_id: The ID of the ``Resource`` to ``Transfer``
+    :statuscode 202: ``Resource`` has begun transferring
+    :statuscode 400: The ``Source Target`` does not support the action ``resource_transfer_out``
+    :statuscode 400: The ``Destination Target`` does not support the action ``resource_transfer_in``
+    :statuscode 400: ``presqt-source-token`` missing in the request headers
+    :statuscode 400: ``presqt-destination-token`` missing in the request headers
+    :statuscode 400: ``presqt-file-duplicate-action`` missing in the request headers
+    :statuscode 400: Invalid ``file_duplicate_action`` header give. The options are ``ignore`` or ``update``
+    :statuscode 400: ``source_resource_id`` can't be none or blank
+    :statuscode 400: ``source_resource_id`` was not found in the request body
+    :statuscode 400: ``source_target_name`` was not found in the request body
+    :statuscode 401: ``Source Token`` is invalid
+    :statuscode 401: ``Destination Token`` is invalid
+    :statuscode 403: User does not have access to the ``Resource`` to transfer
+    :statuscode 404: Invalid ``Source Target`` name
+    :statuscode 404: Invalid ``Destination Target`` name
+    :statuscode 410: ``Resource`` to transfer is no longer available
+
 Transfer To Existing Resource
 +++++++++++++++++++++++++++++
 
+.. http:post::  /api_v1/targets/(str: target_name)/resources/(str: resource_id)/
+
+    Transfer a resource from a source target to a destination target. Transfer to an exiting resource.
+    This endpoint begins the ``Transfer``
+    process. It returns a ``ticket_number`` which can be passed to the ``Transfer Job`` endpoint to
+    check in on the process.
+
+     **Example request**:
+
+    .. sourcecode:: http
+
+        POST /api_v1/targets/OSF/resources/1234/ HTTP/1.1
+        Host: localhost
+        Accept: application/json
+
+        Example body json:
+            {
+                "source_target_name":"github",
+                "source_resource_id": "209372336"
+            }
+
+    **Example response**:
+
+    ..  sourcecode:: http
+
+        HTTP/1.1 202 Accepted
+        Content-Type: application/json
+
+        {
+            "ticket_number": "6d65d1b1-5a04-479b-8519-8340187f0ffc",
+            "message": "The server is processing the request.",
+            "transfer_job": "https://localhost/api_v1/transfers/6d65d1b1-5a04-479b-8519-8340187f0ffc/"
+        }
+
+    :reqheader presqt-destination-token: User's ``Token`` for the destination target
+    :reqheader presqt-source-token: User's ``Token`` for the source target
+    :reqheader presqt-file-duplicate-action: Action to be taken if a duplicate file is found
+    :jsonparam string source_target_name: The ``Source Target`` where the ``Resource`` being ``Transferred`` exists
+    :jsonparam string source_resource_id: The ID of the ``Resource`` to ``Transfer``
+    :statuscode 202: ``Resource`` has begun transferring
+    :statuscode 400: The ``Source Target`` does not support the action ``resource_transfer_out``
+    :statuscode 400: The ``Destination Target`` does not support the action ``resource_transfer_in``
+    :statuscode 400: ``presqt-source-token`` missing in the request headers
+    :statuscode 400: ``presqt-destination-token`` missing in the request headers
+    :statuscode 400: ``presqt-file-duplicate-action`` missing in the request headers
+    :statuscode 400: Invalid ``file_duplicate_action`` header give. The options are ``ignore`` or ``update``
+    :statuscode 400: ``source_resource_id`` can't be none or blank
+    :statuscode 400: ``source_resource_id`` was not found in the request body
+    :statuscode 400: ``source_target_name`` was not found in the request body
+    :statuscode 401: ``Source Token`` is invalid
+    :statuscode 401: ``Destination Token`` is invalid
+    :statuscode 403: User does not have access to the ``Resource`` to transfer
+    :statuscode 403: User does not have access to the ``Resource`` to transfer to
+    :statuscode 404: Invalid ``Source Target`` name
+    :statuscode 404: Invalid ``Destination Target`` name
+    :statuscode 410: ``Resource`` to transfer is no longer available
+    :statuscode 410: ``Resource`` to transfer to is longer available
+
+
 Transfer Job
 ++++++++++++
+
+.. http:get::  /api_v1/transfer/(str: ticket_number)/
+
+    Check on the ``Transfer Process`` for the given ``ticket_number``.
+
+    **Example request**:
+
+    .. sourcecode:: http
+
+        GET /api_v1/transfer/ra025c37-3b33-461c-88a1-659a33f3cf47/ HTTP/1.1
+        Host: localhost
+        Accept: application/json
+
+    **Example response if transfer finished successfully**:
+
+    .. sourcecode:: http
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json
+
+        {
+            "status_code": "200",
+            "message": "Transfer successful.",
+            "failed_fixity": [],
+            "resources_ignored": [],
+            "resources_updated": []
+        }
+
+    **Example response if transfer is in progress**:
+
+    .. sourcecode:: http
+
+        HTTP/1.1 202 Accepted
+        Content-Type: application/json
+
+        {
+            "status_code": null,
+            "message": "Transfer is being processed on the server"
+        }
+
+    **Example response if transfer failed**:
+
+    .. sourcecode:: http
+
+        HTTP/1.1 500 Internal Server Error
+        Content-Type: application/json
+
+        {
+            "error": "Header 'presqt-destination-token' does not match the 'presqt-destination-token' for this server process."
+        }
+
+    :reqheader presqt-destination-token: User's ``Token`` for the destination target
+    :reqheader presqt-source-token: User's ``Token`` for the source target
+    :statuscode 200: ``Transfer`` has finished successfully
+    :statuscode 202: ``Transfer`` is being processed on the server
+    :statuscode 400: ``presqt-destination-token`` missing in the request headers
+    :statuscode 400: ``presqt-source-token`` missing in the request headers
+    :statuscode 401: Header ``presqt-destination-token`` does not match the ``presqt-destination-token`` for this server process
+    :statuscode 401: Header ``presqt-source-token`` does not match the ``presqt-source-token`` for this server process
+    :statuscode 404: Invalid ``Ticket Number``
+    :statuscode 500: ``Transfer`` failed on the server
