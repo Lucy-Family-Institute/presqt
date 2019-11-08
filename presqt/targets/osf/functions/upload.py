@@ -38,11 +38,11 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
          uploading the resource. Path should have the same base as resource_main_dir.
                                  Example:
                                     ['path/to/updated/file.jpg']
-        'action_metadata': Dictionary containing action metadata. Must be in the following format:
+        'action_metadata': Dictionary containing FTS action metadata. Must be in the following format:
                             {
                                 'destinationUsername': 'some_username'
                             }
-        'file_metadata_list': List of dictionaries for each file that contains metadata
+        'file_metadata_list': List of dictionaries for each file that contains FTS metadata
                               and hash info. Must be in the following format:
                                 {
                                     "actionRootPath": '/path/on/disk',
@@ -137,7 +137,6 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
         file_metadata['destinationPath'] = '{}/{}'.format(project.title, file_metadata['destinationPath'])
 
     return {
-        'hashes': hashes,
         'resources_ignored': resources_ignored,
         'resources_updated': resources_updated,
         'action_metadata': action_metadata,

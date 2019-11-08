@@ -18,7 +18,7 @@ class Command(BaseCommand):
 
         failure_string = "Target JSON Schema Validation Failed!\n" \
                          "You've modified the targets.json in such a way that it is incorrectly " \
-                         "formatted.\nPlease refer to the project documentation."
+                         "formatted.\nPlease refer to the project docs."
 
         # If JSON Schema validation has failed
         if validation is not True:

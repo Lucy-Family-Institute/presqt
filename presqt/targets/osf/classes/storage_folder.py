@@ -32,13 +32,12 @@ class ContainerMixin:
 
             if kind == 'file':
                 file = File(child, self.session)
-                file_metadata = osf_download_metadata(file)
                 files.append({
                     'file': file,
                     'hashes': file.hashes,
                     'title': file.title,
                     'path': '{}{}'.format(initial_path, file.materialized_path),
-                    'metadata': file_metadata
+                    'extra_metadata': osf_download_metadata(file)
                 })
             elif kind == 'folder':
                 folder = Folder(child, self.session)
@@ -199,6 +198,8 @@ class ContainerMixin:
             List of duplicate resources ignored.
         resources_updated : list
             List of duplicate resources updated.
+        file_metadata_list: list
+            List of file metadata
 
         Returns
         -------

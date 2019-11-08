@@ -2,7 +2,7 @@
 
 def osf_download_metadata(file):
     """"
-    For a given OSF file, generate the metadata expected.
+    For a given OSF file, generate the extra metadata expected.
 
     Parameters
     ----------
@@ -13,14 +13,10 @@ def osf_download_metadata(file):
     -------
         The metadata dict
     """
-    file_metadata = {
-        "sourcePath": '{}{}'.format(file.provider, file.materialized_path),
-        "title": file.title,
-        "sourceHashes": file.hashes,
-        "extra": {}}
+    extra_metadata = {}
     for key, value in file.__dict__.items():
         if key not in ['materialized_path', 'title', 'md5', 'sha256', 'hashes',
                        'session', 'kind', 'kind_name']:
-            file_metadata['extra'][key] = value
+            extra_metadata[key] = value
 
-    return file_metadata
+    return extra_metadata

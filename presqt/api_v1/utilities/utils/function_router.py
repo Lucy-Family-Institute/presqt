@@ -37,6 +37,9 @@ class FunctionRouter(object):
     Target Resource Upload:
         {target_name}_resource_upload
 
+    Target Resource FTS Metadata Upload:
+        {target_name}_metadata_upload
+
     """
     @classmethod
     def get_function(cls, target_name, action):

@@ -1,4 +1,4 @@
-Django==2.2.4
+Django==2.2.6
 gunicorn==19.9.0
 psycopg2==2.7.6.1
 pytz==2018.9
@@ -8,6 +8,11 @@ python-dateutil==2.8.0              # The dateutil module provides powerful exte
 aiohttp==3.5.4                      # Asynchronous HTTP Client/Server for asyncio and Python
 bagit==1.7.0                        # Utility for working with BagIt style packages
 natsort==6.0.0                      # Utility for sorting lists with a mix of letters and numbers
+
+# Documentation
+Sphinx==2.2.0                       # Documentation Tool
+sphinx-rtd-theme==0.4.3             # Sphinx Theme
+sphinxcontrib-httpdomain==1.7.0     # API plugin for Readthedocs
 
 # Requirements for RESTful API Support
 djangorestframework==3.9.2          # Latest version of DRF

@@ -73,12 +73,8 @@ def github_download_resource(token, resource_id):
                             'hashes': {'hash_algorithm': 'the_hash'},
                             'title': 'file.jpg',
                             'path': '/path/to/file',
-                            'metadata': {
-                                'sourcePath': '/full/path/at/source.jpg',
-                                'title': 'file_title',
-                                'sourceHashes': {'hash_algorithm': 'the_hash'},
-                                'extra': {'any': 'extra'}
-                             }
+                            'source_path: '/full/path/to/file',
+                            'extra_metadata': {'any': 'extra'}
                          }
         'empty_containers: List of string paths representing empty containers that must be written.
                               Example: ['empty/folder/to/write/', 'another/empty/folder/]
