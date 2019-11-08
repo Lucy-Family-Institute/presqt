@@ -36,7 +36,7 @@ class UploadJob(APIView):
 
         202: Accepted
         {
-            "status": "in_progress",
+            "status_code": null,
             "message": "Upload is being processed on the server"
         }
 

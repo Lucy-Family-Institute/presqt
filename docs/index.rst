@@ -37,9 +37,7 @@ Zenodo      ✅             ✅         ✅           ✅          ✅[OSF, Gith
    authentication_authorization
    developer_notes
    target_integration
-   integration_management_command
-   code_documentation
-   web_services
+   api_endpoints
    resources
 
 Indices

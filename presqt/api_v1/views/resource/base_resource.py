@@ -47,8 +47,9 @@ class BaseResource(APIView):
         -------
         202: Accepted
         {
-            "ticket_number": "some_uuid"
-            "message": "The server is processing the request."
+            "ticket_number": "ba025c37-3b33-461c-88a1-659a33f3cf47",
+            "message": "The server is processing the request.",
+            "upload_job": "https://localhost/api_v1/uploads/ba025c37-3b33-461c-88a1-659a33f3cf47/"
         }
 
         400: Bad Request

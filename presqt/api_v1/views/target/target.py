@@ -36,15 +36,26 @@ class TargetCollection(APIView):
                     "resource_transfer_in": true,
                     "resource_transfer_out": true
                 },
-                "supported_transfer_targets": {
-                    "transfer_in": [],
-                    "transfer_out": []
+                "supported_transfer_partners": {
+                    "transfer_in": [
+                        "github",
+                        "curate_nd"
+                    ],
+                    "transfer_out": [
+                        "github"
+                    ]
                 },
                 "supported_hash_algorithms": [
                     "sha256",
                     "md5"
                 ],
-                "detail": "http://localhost/api_v1/target/osf/"
+                "links": [
+                    {
+                        "name": "Detail",
+                        "link": "https://localhost/api_v1/targets/osf/",
+                        "method": "GET"
+                    }
+                ]
             },
             {
                 "name": "curate_nd",
@@ -54,20 +65,27 @@ class TargetCollection(APIView):
                     "resource_detail": true,
                     "resource_download": true,
                     "resource_upload": false,
-                    "resource_transfer_in": true,
+                    "resource_transfer_in": false,
                     "resource_transfer_out": true
                 },
-                "supported_transfer_targets": {
+                "supported_transfer_partners": {
                     "transfer_in": [],
-                    "transfer_out": []
+                    "transfer_out": [
+                        "osf",
+                        "github"
+                    ]
                 },
                 "supported_hash_algorithms": [
-                    "sha256",
                     "md5"
                 ],
-                "detail": "http://localhost/api_v1/target/curate_nd/"
-            },
-            ...
+                "links": [
+                    {
+                        "name": "Detail",
+                        "link": "https://localhost/api_v1/targets/curate_nd/",
+                        "method": "GET"
+                    }
+                ]
+            },...
         ]
         """
         with open('presqt/targets.json') as json_file:
@@ -108,16 +126,37 @@ class Target(APIView):
                 "resource_upload": true,
                 "resource_transfer_in": true,
                 "resource_transfer_out": true
-                },
-            "supported_transfer_targets": {
-                "transfer_in": [],
-                "transfer_out": []
+            },
+            "supported_transfer_partners": {
+                "transfer_in": [
+                    "github",
+                    "curate_nd"
+                ],
+                "transfer_out": [
+                    "github"
+                ]
             },
             "supported_hash_algorithms": [
                 "sha256",
                 "md5"
+            ],
+            "links": [
+                {
+                    "name": "Collection",
+                    "link": "https://localhost/api_v1/targets/osf/resources/",
+                    "method": "GET"
+                },
+                {
+                    "name": "Upload",
+                    "link": "https://localhost/api_v1/targets/osf/resources/",
+                    "method": "POST"
+                },
+                {
+                    "name": "Transfer",
+                    "link": "https://localhost/api_v1/targets/osf/resources/",
+                    "method": "POST"
+                }
             ]
-            "detail": "http://localhost/api_v1/target/osf/resources/
         }
 
         404: Not Found
