@@ -4,6 +4,7 @@ import requests
 
 from rest_framework import status
 
+from presqt.targets.utilities import get_duplicate_title
 from presqt.targets.zenodo.utilities import zenodo_validation_check, zenodo_upload_helper
 from presqt.utilities import PresQTValidationError, PresQTResponseException
 
@@ -109,8 +110,12 @@ def zenodo_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                 status.HTTP_400_BAD_REQUEST)
 
         project_title = os_path[1][0]
+        name_helper = requests.get("https://zenodo.org/api/deposit/depositions",
+                                   params=auth_parameter).json()
+        titles = [project['title'] for project in name_helper]
+        new_title = get_duplicate_title(project_title, titles, ' (PresQT*)')
 
-        resource_id, username = zenodo_upload_helper(auth_parameter, project_title)
+        resource_id, username = zenodo_upload_helper(auth_parameter, new_title)
         action_metadata = {"destinationUsername": str(username)}
 
         post_url = "https://zenodo.org/api/deposit/depositions/{}/files".format(resource_id)
@@ -133,7 +138,7 @@ def zenodo_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
 
                 file_metadata_list.append({
                     'actionRootPath': os.path.join(path, name),
-                    'destinationPath': '/{}/{}'.format(project_title, name),
+                    'destinationPath': '/{}/{}'.format(new_title, name),
                     'title': name,
                     'destinationHash': response.json()['checksum']})
 

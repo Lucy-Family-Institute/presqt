@@ -42,7 +42,7 @@ def zenodo_upload_helper(auth_parameter, project_title=None):
             'description': 'PresQT Upload',
             'creators': [{'name': str(project_owner)}]}}
 
-    egg = requests.put('https://zenodo.org/api/deposit/depositions/{}'.format(project_id),
-                       params=auth_parameter, data=json.dumps(data), headers=headers)
+    requests.put('https://zenodo.org/api/deposit/depositions/{}'.format(project_id),
+                 params=auth_parameter, data=json.dumps(data), headers=headers)
 
     return project_id, project_owner

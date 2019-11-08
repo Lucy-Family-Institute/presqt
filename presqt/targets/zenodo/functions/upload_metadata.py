@@ -16,7 +16,7 @@ def zenodo_upload_metadata(token, resource_id, metadata_dict, project_id):
     token : str
         The user's Zenodo token
     resource_id : str
-        An id the upload is taking place on (not used for Zenodo)
+        An id the upload is taking place on
     metadata_dict : dict
         The metadata to be written to the repo
     project_id : str
@@ -38,15 +38,15 @@ def zenodo_upload_metadata(token, resource_id, metadata_dict, project_id):
 
             if schema_validator('presqt/json_schemas/metadata_schema.json', updated_metadata) is not True:
                 # We need to change the file name, this metadata is improperly formatted and
-                # therefore invalid.
-                rename_payload = {"name": "INVALID_PRESQT_FTS_METADATA.json"}
-                headers = {"Content-Type": "application/json"}
-                rename_response = requests.post(file['links']['self'], headers=headers,
-                                                params=auth_parameter, data=json.dumps(rename_payload))
-                if rename_response.status_code != 200:
+                # therefore invalid. Zenodo is having issues with their put method atm.......
+                # Need to delete the old metadata file.....thanks Zenodo.
+                delete_response = requests.delete(file['links']['self'], params=auth_parameter)
+                response_status = metadata_post_request('INVALID_PRESQT_FTS_METADATA.json',
+                                                        updated_metadata, auth_parameter, post_url)
+                if response_status != 201:
                     raise PresQTError(
                         "The request to rename the invalid metadata file has returned a {} error code from Zenodo.".format(
-                            rename_response.status_code))
+                            response_status))
                 break
 
             # Need to delete the old metadata file.....thanks Zenodo.
