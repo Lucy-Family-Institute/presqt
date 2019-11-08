@@ -5,6 +5,15 @@ Authentication
 --------------
 Refer to the authentication details :doc:`here </authentication_authorization>`.
 
+Duplicate File Handling
+-----------------------
+When ``Uploading`` or ``Transferring`` resources a header, ``presqt-file-duplicate-action``, must be
+included. The options are ``ignore`` or ``update``. This header tells the target uploading the
+resource what to do when a file being uploaded already exists in the source target.
+
+``Ignore`` will not update the duplicate file, even if the contents of the files don't match.
+
+``Update`` will only update the duplicate file if the contents of the files don't match.
 
 Target Endpoints
 ----------------

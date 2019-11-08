@@ -38,6 +38,7 @@ Zenodo      ✅             ✅         ✅           ✅          ✅[OSF, Gith
    developer_notes
    target_integration
    api_endpoints
+   web_services
    resources
 
 Indices
