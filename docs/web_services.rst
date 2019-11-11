@@ -147,6 +147,12 @@ is checked using all methods already existing in those endpoints.
 
 File Transfer Service (FTS) Metadata
 ------------------------------------
+PresQT keeps track of file history of resources being updated by PresQT by passing along an
+FTS Metadata file with each PresQT action. The file is titled ``PRESQT_FTS_METADATA.json``.
+Every time PresQT takes action on a resource, the source details about the files moved are written
+to the metadata file.
+
+
 
 Preservation Quality
 --------------------
