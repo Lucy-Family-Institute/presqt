@@ -905,6 +905,9 @@ class TestResourcePOST(SimpleTestCase):
         self.hash_algorithm = 'sha256'
         shared_upload_function_osf(self)
 
+        # delete upload folder
+        shutil.rmtree(self.ticket_path)
+
         # Verify files exist in OSF
         file_data = requests.get(folder_data['data'][0]['relationships']
                                  ['files']['links']['related']['href'], headers=headers).json()
@@ -938,9 +941,6 @@ class TestResourcePOST(SimpleTestCase):
         # Make sure the file we have replaced has a different hash than the original
         self.assertNotEqual(original_file_hash, new_file_hash)
 
-        # delete upload folder
-        shutil.rmtree(self.ticket_path)
-
         # ######## 202 when uploading to an existing container with mismatched algorithms ########
         self.resource_id = node_id
         self.duplicate_action = 'ignore'
@@ -952,7 +952,7 @@ class TestResourcePOST(SimpleTestCase):
         self.hash_algorithm = 'sha256'
         shared_upload_function_osf(self)
 
-        # # delete upload folder
+        # delete upload folder
         shutil.rmtree(self.ticket_path)
 
     def test_success_202_large_duplicate_connection_error(self):

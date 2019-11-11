@@ -68,7 +68,6 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
     resources_ignored = []
     resources_updated = []
     file_metadata_list = []
-    project_id = None
 
     # If we are uploading to an existing container
     if resource_id:
@@ -83,6 +82,7 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
 
         elif resource.kind_name == 'project':
             project = resource
+            project_id = project.id
             resource.storage('osfstorage').create_directory(
                 resource_main_dir, file_duplicate_action, hashes,
                 resources_ignored, resources_updated, file_metadata_list)
