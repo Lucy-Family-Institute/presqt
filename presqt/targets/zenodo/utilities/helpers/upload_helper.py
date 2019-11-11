@@ -17,7 +17,7 @@ def zenodo_upload_helper(auth_parameter, project_title=None):
 
     Returns
     -------
-    The new Project ID and zenodo 'username'.
+    The new Project ID.
     """
 
     headers = {"Content-Type": "application/json"}
@@ -45,4 +45,4 @@ def zenodo_upload_helper(auth_parameter, project_title=None):
     requests.put('https://zenodo.org/api/deposit/depositions/{}'.format(project_id),
                  params=auth_parameter, data=json.dumps(data), headers=headers)
 
-    return project_id, project_owner
+    return project_id

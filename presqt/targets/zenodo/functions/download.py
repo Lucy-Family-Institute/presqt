@@ -20,7 +20,7 @@ async def async_get(url, session, params):
     session: ClientSession object
         aiohttp ClientSession Object
     token: str
-        User's GitHub token
+        User's Zenodo token
 
     Returns
     -------
@@ -42,7 +42,7 @@ async def async_main(url_list, params):
     url_list: list
         List of urls to call
     token: str
-        User's GitHub token
+        User's Zenodo token
 
     Returns
     -------
@@ -54,12 +54,12 @@ async def async_main(url_list, params):
 
 def zenodo_download_resource(token, resource_id):
     """
-    Fetch the requested resource from GitHub along with its hash information.
+    Fetch the requested resource from Zenodo along with its hash information.
 
     Parameters
     ----------
     token : str
-        User's GitHub token
+        User's Zenodo token
     resource_id : str
         ID of the resource requested
 
@@ -97,6 +97,7 @@ def zenodo_download_resource(token, resource_id):
     empty_containers = []
     base_url = None
 
+    # If the resource_id is longer than 7 characters, the resource is an individual file
     if len(resource_id) > 7:
         zenodo_projects = requests.get('https://zenodo.org/api/deposit/depositions',
                                        params=auth_parameter).json()
@@ -116,6 +117,7 @@ def zenodo_download_resource(token, resource_id):
         files, action_metadata = zenodo_download_helper(base_url, auth_parameter, files,
                                                         file_url)
 
+    # Otherwise, it's a full project
     else:
         base_url = 'https://zenodo.org/api/deposit/depositions/{}'.format(resource_id)
 

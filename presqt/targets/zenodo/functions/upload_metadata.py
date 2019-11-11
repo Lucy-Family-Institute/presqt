@@ -24,9 +24,9 @@ def zenodo_upload_metadata(token, project_id, metadata_dict):
     post_url = "https://zenodo.org/api/deposit/depositions/{}/files".format(project_id)
     file_name = 'PRESQT_FTS_METADATA.json'
 
-    find_old_metadata = requests.get(post_url, params=auth_parameter).json()
+    project_files = requests.get(post_url, params=auth_parameter).json()
 
-    for file in find_old_metadata:
+    for file in project_files:
         if file['filename'] == file_name:
             # Download the metadata
             old_metadata_file = requests.get(file['links']['download'],
@@ -37,7 +37,7 @@ def zenodo_upload_metadata(token, project_id, metadata_dict):
             if schema_validator('presqt/json_schemas/metadata_schema.json', updated_metadata) is not True:
                 # We need to change the file name, this metadata is improperly formatted and
                 # therefore invalid. Zenodo is having issues with their put method atm.......
-                # Need to delete the old metadata file.....thanks Zenodo.
+                # Need to delete the old metadata file.
                 requests.delete(file['links']['self'], params=auth_parameter)
                 response_status = metadata_post_request('INVALID_PRESQT_FTS_METADATA.json',
                                                         updated_metadata, auth_parameter, post_url)
@@ -47,7 +47,7 @@ def zenodo_upload_metadata(token, project_id, metadata_dict):
                             response_status))
                 break
 
-            # Need to delete the old metadata file.....thanks Zenodo.
+            # Need to delete the old metadata file.
             requests.delete(file['links']['self'], params=auth_parameter)
 
             # Loop through each 'action' in both metadata files and make a new list of them.

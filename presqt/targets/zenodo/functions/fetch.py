@@ -115,11 +115,15 @@ def zenodo_fetch_resource(token, resource_id):
                             "md5": entry['checksum']
                         },
                         "extra": {}}
+                    # We found the file, break out of file loop
                     break
+            # If the file wasn't found, we want to continue looping through the other projects.
             else:
                 continue
+            # File has been found, break out of project loop
             break
 
+        # File not found, raise exception
         else:
             raise PresQTResponseException("The resource could not be found by the requesting user.",
                                           status.HTTP_404_NOT_FOUND)

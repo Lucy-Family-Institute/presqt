@@ -71,9 +71,8 @@ def zenodo_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         name_helper = requests.get("https://zenodo.org/api/deposit/depositions/{}".format(
             resource_id), params=auth_parameter).json()
 
-        username = name_helper['owner']
         project_title = name_helper['title']
-        action_metadata = {"destinationUsername": str(username)}
+        action_metadata = {"destinationUsername": None}
         post_url = "https://zenodo.org/api/deposit/depositions/{}/files".format(resource_id)
 
         upload_dict = zenodo_upload_loop(action_metadata, resource_id, resource_main_dir,
@@ -86,13 +85,13 @@ def zenodo_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                 "Repository is not formatted correctly. Files exist at the top level.",
                 status.HTTP_400_BAD_REQUEST)
 
+        action_metadata = {"destinationUsername": None}
         project_title = os_path[1][0]
         name_helper = requests.get("https://zenodo.org/api/deposit/depositions",
                                    params=auth_parameter).json()
         titles = [project['title'] for project in name_helper]
         new_title = get_duplicate_title(project_title, titles, ' (PresQT*)')
-        resource_id, username = zenodo_upload_helper(auth_parameter, new_title)
-        action_metadata = {"destinationUsername": str(username)}
+        resource_id = zenodo_upload_helper(auth_parameter, new_title)
 
         post_url = "https://zenodo.org/api/deposit/depositions/{}/files".format(resource_id)
 
