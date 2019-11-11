@@ -287,7 +287,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         self.assertEqual(metadata_file['actions'][0]['actionType'], 'resource_upload')
         self.assertEqual(metadata_file['actions'][0]['sourceTargetName'], 'Local Machine')
         self.assertEqual(metadata_file['actions'][0]['destinationTargetName'], 'zenodo')
-        self.assertEqual(metadata_file['actions'][0]['destinationUsername'], '81621')
+        self.assertEqual(metadata_file['actions'][0]['destinationUsername'], None)
 
         # File metadata
         self.assertEqual(metadata_file['actions'][0]['files']['created'][0]['title'],
@@ -465,13 +465,6 @@ class TestResourceCollectionPOST(SimpleTestCase):
 
         # Delete upload folder
         shutil.rmtree(self.ticket_path)
-
-    # def test_bad_metadata_request(self):
-    #     """
-    #     Ensure that an error is returned if OSF doesn't return a 201 status code.
-    #     """
-    #     self.assertRaises(PresQTError, zenodo_upload_metadata,
-    #                       self.token, "NoThanks", {"bad": "metadata"})
 
     def test_401_unauthorized_user(self):
         """
