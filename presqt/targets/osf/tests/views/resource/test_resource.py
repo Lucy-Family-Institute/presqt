@@ -832,8 +832,6 @@ class TestResourcePOST(SimpleTestCase):
                 break
 
         metadata_dict = json.loads(metadata)
-        self.assertEqual(metadata_dict['context']['globus'],
-                         'https://docs.globus.org/api/transfer/overview/')
         self.assertEqual(metadata_dict['actions'][0]['actionType'], 'resource_upload')
         self.assertEqual(metadata_dict['actions'][0]['sourceTargetName'], 'Local Machine')
         self.assertEqual(metadata_dict['actions'][0]['destinationTargetName'], 'osf')
@@ -929,8 +927,6 @@ class TestResourcePOST(SimpleTestCase):
                 new_metadata_dict = json.loads(new_metadata)
         self.assertEqual(invalid_dict, metadata_dict)
 
-        self.assertEqual(new_metadata_dict['context']['globus'],
-                         'https://docs.globus.org/api/transfer/overview/')
         self.assertEqual(len(new_metadata_dict['actions']), 1)
         self.assertEqual(len(new_metadata_dict['actions'][0]['files']['created']), 0)
         self.assertEqual(len(new_metadata_dict['actions'][0]['files']['updated']), 1)

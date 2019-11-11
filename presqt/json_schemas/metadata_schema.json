@@ -1,14 +1,6 @@
 {
   "type": "object",
   "properties": {
-    "context": {
-      "type": "object",
-      "properties": {
-        "globus": { "type": "string" }
-      },
-      "required": ["globus"],
-      "additionalProperties": false
-    },
     "actions": {
       "type": "array",
       "items": {
@@ -91,6 +83,6 @@
       }
     }
   },
-  "required": ["context", "actions"],
+  "required": ["actions"],
   "additionalProperties": false
 }

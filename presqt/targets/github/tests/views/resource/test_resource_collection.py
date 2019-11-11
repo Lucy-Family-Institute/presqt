@@ -247,8 +247,6 @@ class TestResourceCollectionPOST(SimpleTestCase):
         metadata_file = json.loads(response.content)
 
         # Action metadata
-        self.assertEqual(metadata_file['context']['globus'],
-                         'https://docs.globus.org/api/transfer/overview/')
         self.assertEqual(metadata_file['actions'][0]['actionType'], 'resource_upload')
         self.assertEqual(metadata_file['actions'][0]['sourceTargetName'], 'Local Machine')
         self.assertEqual(metadata_file['actions'][0]['destinationTargetName'], 'github')
