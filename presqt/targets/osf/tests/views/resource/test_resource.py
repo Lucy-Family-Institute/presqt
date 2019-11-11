@@ -781,11 +781,11 @@ class TestResourcePOST(SimpleTestCase):
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
         self.good_zip_file = 'presqt/api_v1/tests/resources/upload/GoodBagIt.zip'
 
-    # def tearDown(self):
-    #     """
-    #     This should run at the end of this test class
-    #     """
-    #     delete_users_projects(self.token)
+    def tearDown(self):
+        """
+        This should run at the end of this test class
+        """
+        delete_users_projects(self.token)
 
     def test_success_202_upload(self):
         """

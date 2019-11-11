@@ -4,7 +4,6 @@ import requests
 
 from presqt.json_schemas.schema_handlers import schema_validator
 from presqt.targets.osf.classes.main import OSF
-from presqt.targets.osf.utilities import get_osf_resource
 from presqt.utilities import PresQTError
 
 
@@ -21,7 +20,6 @@ def osf_upload_metadata(token, project_id, metadata_dict):
     metadata_dict : dict
         The metadata to be written to the project
     """
-    print("We HERE")
     osf_instance = OSF(token)
     header = {'Authorization': 'Bearer {}'.format(token)}
     file_name = 'PRESQT_FTS_METADATA.json'
@@ -45,8 +43,6 @@ def osf_upload_metadata(token, project_id, metadata_dict):
                                   "rename": "INVALID_PRESQT_FTS_METADATA.json"}
                 response = requests.post(data['links']['move'], headers=header,
                                          data=json.dumps(rename_payload).encode('utf-8'))
-                print('INVALID METADATA')
-                print(response.json())
                 if response.status_code != 201:
                     raise PresQTError(
                         "The request to rename the invalid metadata file has returned a {} error code from OSF.".format(
@@ -63,8 +59,7 @@ def osf_upload_metadata(token, project_id, metadata_dict):
             # Now we need to update the metadata file with this updated metadata
             response = requests.put(data['links']['upload'], headers=header,
                                     params={'kind': 'file'}, data=encoded_metadata)
-            print('VALID METADATA')
-            print(response.json())
+
             # When updating an existing metadata file, OSF returns a 200 status
             if response.status_code != 200:
                 raise PresQTError(
@@ -75,8 +70,7 @@ def osf_upload_metadata(token, project_id, metadata_dict):
     # If there is no existing metadata file, then create a new one.
     response = requests.put(put_url.format(project_id), headers=header, params={"name": file_name},
                             data=encoded_metadata)
-    print('NEW METADATA')
-    print(response.json())
+
     if response.status_code != 201:
         raise PresQTError(
             "The request to create a metadata file has resulted in a {} error code from OSF".format(
