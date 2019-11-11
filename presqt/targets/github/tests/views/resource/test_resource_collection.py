@@ -1,8 +1,6 @@
 import json
-import os
 import requests
 import shutil
-import time
 from unittest.mock import patch
 
 from django.test import SimpleTestCase
