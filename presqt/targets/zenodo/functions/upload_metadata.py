@@ -7,7 +7,7 @@ from presqt.targets.zenodo.utilities import zenodo_validation_check
 from presqt.utilities import PresQTError
 
 
-def zenodo_upload_metadata(token, resource_id, metadata_dict, project_id):
+def zenodo_upload_metadata(token, project_id, metadata_dict):
     """
     Upload the metadata of this PresQT action at the top level of the project.
 
@@ -15,12 +15,10 @@ def zenodo_upload_metadata(token, resource_id, metadata_dict, project_id):
     ----------
     token : str
         The user's Zenodo token
-    resource_id : str
-        An id the upload is taking place on
+    project_id : str
+        The id of the top level project that the upload took place on
     metadata_dict : dict
         The metadata to be written to the repo
-    project_id : str
-        The id of the project that has been created
     """
     auth_parameter = zenodo_validation_check(token)
     post_url = "https://zenodo.org/api/deposit/depositions/{}/files".format(project_id)
@@ -40,7 +38,7 @@ def zenodo_upload_metadata(token, resource_id, metadata_dict, project_id):
                 # We need to change the file name, this metadata is improperly formatted and
                 # therefore invalid. Zenodo is having issues with their put method atm.......
                 # Need to delete the old metadata file.....thanks Zenodo.
-                delete_response = requests.delete(file['links']['self'], params=auth_parameter)
+                requests.delete(file['links']['self'], params=auth_parameter)
                 response_status = metadata_post_request('INVALID_PRESQT_FTS_METADATA.json',
                                                         updated_metadata, auth_parameter, post_url)
                 if response_status != 201:
@@ -50,11 +48,7 @@ def zenodo_upload_metadata(token, resource_id, metadata_dict, project_id):
                 break
 
             # Need to delete the old metadata file.....thanks Zenodo.
-            delete_response = requests.delete(file['links']['self'], params=auth_parameter)
-            if delete_response.status_code != 204:
-                raise PresQTError(
-                    "The request to delete old metadata file has resulted in a {} error code from Zenodo.".format(
-                        delete_response.status_code))
+            requests.delete(file['links']['self'], params=auth_parameter)
 
             # Loop through each 'action' in both metadata files and make a new list of them.
             joined_actions = [entry for entry in itertools.chain(metadata_dict['actions'],

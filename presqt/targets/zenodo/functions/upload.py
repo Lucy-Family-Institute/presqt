@@ -73,34 +73,11 @@ def zenodo_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
 
         username = name_helper['owner']
         project_title = name_helper['title']
-
         action_metadata = {"destinationUsername": str(username)}
-
         post_url = "https://zenodo.org/api/deposit/depositions/{}/files".format(resource_id)
-        resources_ignored = []
-        file_metadata_list = []
 
-        for path, subdirs, files in os.walk(resource_main_dir):
-            if not subdirs and not files:
-                resources_ignored.append(path)
-            for name in files:
-                data = {'name': name}
-                files = {'file': open(os.path.join(path, name), "rb")}
-                # Make the upload request....
-                response = requests.post(post_url, params=auth_parameter,
-                                         data=data, files=files)
-                if response.status_code != 201:
-                    raise PresQTResponseException(
-                        "Zenodo returned an error trying to upload {}".format(name),
-                        status.HTTP_400_BAD_REQUEST)
-
-                file_metadata_list.append({
-                    'actionRootPath': os.path.join(path, name),
-                    'destinationPath': '/{}/{}'.format(project_title, name),
-                    'title': name,
-                    'destinationHash': response.json()['checksum']})
-
-        resources_updated = []
+        upload_dict = zenodo_upload_loop(action_metadata, resource_id, resource_main_dir,
+                                         post_url, auth_parameter, project_title)
 
     else:
         # Make sure if this is a new project, there are no files at the top level of the project.
@@ -114,35 +91,84 @@ def zenodo_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                                    params=auth_parameter).json()
         titles = [project['title'] for project in name_helper]
         new_title = get_duplicate_title(project_title, titles, ' (PresQT*)')
-
         resource_id, username = zenodo_upload_helper(auth_parameter, new_title)
         action_metadata = {"destinationUsername": str(username)}
 
         post_url = "https://zenodo.org/api/deposit/depositions/{}/files".format(resource_id)
-        resources_ignored = []
-        file_metadata_list = []
 
-        for path, subdirs, files in os.walk(resource_main_dir):
-            if not subdirs and not files:
-                resources_ignored.append(path)
-            for name in files:
-                data = {'name': name}
-                files = {'file': open(os.path.join(path, name), "rb")}
-                # Make the upload request....
-                response = requests.post(post_url, params=auth_parameter,
-                                         data=data, files=files)
-                if response.status_code != 201:
-                    raise PresQTResponseException(
-                        "Zenodo returned an error trying to upload {}".format(name),
-                        status.HTTP_400_BAD_REQUEST)
+        upload_dict = zenodo_upload_loop(action_metadata, resource_id, resource_main_dir,
+                                         post_url, auth_parameter, new_title)
 
-                file_metadata_list.append({
-                    'actionRootPath': os.path.join(path, name),
-                    'destinationPath': '/{}/{}'.format(new_title, name),
-                    'title': name,
-                    'destinationHash': response.json()['checksum']})
+    return upload_dict
 
-        resources_updated = []
+
+def zenodo_upload_loop(action_metadata, resource_id, resource_main_dir, post_url, auth_parameter,
+                       title):
+    """
+    Loop through the files to be uploaded and return the dictionary.
+
+    Parameters
+    ----------
+    action_metadata : dict
+        The metadata for this PresQT action
+    resource_id : str
+        The id of the resource the upload is happening on
+    post_url : str
+        The url to upload files to
+    auth_parameter : dict
+        Zenodo's authorization paramater
+    title : str
+        The title of the project created
+
+    Returns
+    -------
+    Dictionary with the following keys: values
+        'resources_ignored' : Array of string file paths of files that were ignored when
+        uploading the resource. Path should have the same base as resource_main_dir.
+                                Example:
+                                    ['path/to/ignored/file.pg', 'another/ignored/file.jpg']
+
+        'resources_updated' : Array of string file paths of files that were updated when
+         uploading the resource. Path should have the same base as resource_main_dir.
+                                 Example:
+                                    ['path/to/updated/file.jpg']
+        'action_metadata': Dictionary containing action metadata. Must be in the following format:
+                            {
+                                'destinationUsername': 'some_username'
+                            }
+        'file_metadata_list': List of dictionaries for each file that contains metadata
+                              and hash info. Must be in the following format:
+                                {
+                                    "actionRootPath": '/path/on/disk',
+                                    "destinationPath": '/path/on/target/destination',
+                                    "title": 'file_title',
+                                    "destinationHash": {'hash_algorithm': 'the_hash'}}
+                                }
+        'project_id': ID of the parent project for this upload. Needed for metadata upload.
+    """
+    resources_ignored = []
+    file_metadata_list = []
+    resources_updated = []
+
+    for path, subdirs, files in os.walk(resource_main_dir):
+        if not subdirs and not files:
+            resources_ignored.append(path)
+        for name in files:
+            data = {'name': name}
+            files = {'file': open(os.path.join(path, name), "rb")}
+            # Make the upload request....
+            response = requests.post(post_url, params=auth_parameter,
+                                     data=data, files=files)
+            if response.status_code != 201:
+                raise PresQTResponseException(
+                    "Zenodo returned an error trying to upload {}".format(name),
+                    status.HTTP_400_BAD_REQUEST)
+
+            file_metadata_list.append({
+                'actionRootPath': os.path.join(path, name),
+                'destinationPath': '/{}/{}'.format(title, name),
+                'title': name,
+                'destinationHash': response.json()['checksum']})
 
     return {
         "resources_ignored": resources_ignored,

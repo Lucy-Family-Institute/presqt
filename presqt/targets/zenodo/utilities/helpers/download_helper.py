@@ -39,12 +39,6 @@ def zenodo_download_helper(base_url, auth_parameter, files, file_url=None):
     if file_url:
         metadata_helper = requests.get(file_url, params=auth_parameter).json()
 
-        file_metadata = {
-            "sourcePath": "/{}/{}".format(project_name, metadata_helper['filename']),
-            "title": metadata_helper['filename'],
-            "sourceHashes": {"md5": metadata_helper['checksum']},
-            "extra": {}}
-
         file_contents = requests.get(
             metadata_helper['links']['download'], params=auth_parameter).content
 
@@ -54,21 +48,17 @@ def zenodo_download_helper(base_url, auth_parameter, files, file_url=None):
             'title': metadata_helper['filename'],
             # If the file is the only resource we are downloading then we don't need it's full path.
             'path': '/{}'.format(metadata_helper['filename']),
-            'metadata': file_metadata})
+            'source_path': "/{}/{}".format(project_name, metadata_helper['filename']),
+            'extra_metadata': {}})
 
     else:
         for resource in project_helper['files']:
-            file_metadata = {
-                "sourcePath": "/{}/{}".format(project_name, resource['filename']),
-                "title": resource['filename'],
-                "sourceHashes": {"md5": resource['checksum']},
-                "extra": {}}
-
             files.append({
                 "file": resource['links']['download'],
                 "hashes": {'md5': resource['checksum']},
                 "title": resource['filename'],
                 "path": "/{}/{}".format(project_name, resource['filename']),
-                "metadata": file_metadata})
+                "source_path": "/{}/{}".format(project_name, resource['filename']),
+                "extra_metadata": {}})
 
     return files, action_metadata
