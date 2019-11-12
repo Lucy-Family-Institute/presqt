@@ -467,7 +467,7 @@ class BaseResource(APIView):
         # Create directory and process_info json file
         self.process_info_obj = {
             'presqt-source-token': hash_tokens(self.source_token),
-            'presqt-destination-token': self.destination_token,
+            'presqt-destination-token': hash_tokens(self.destination_token),
             'status': 'in_progress',
             'expiration': str(timezone.now() + relativedelta(days=5)),
             'message': 'Transfer is being processed on the server',
