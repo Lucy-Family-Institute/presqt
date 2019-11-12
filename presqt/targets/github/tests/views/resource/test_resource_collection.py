@@ -168,6 +168,9 @@ class TestResourceCollectionPOST(SimpleTestCase):
         repo_name_list = [repo['title'] for repo in response_json]
         self.assertNotIn(duplicate_title, repo_name_list)
 
+        # Delete upload folder
+        shutil.rmtree(self.ticket_path)
+
         # Make the second post attempt
         self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
         response = self.client.post(
