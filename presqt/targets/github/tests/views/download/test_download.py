@@ -18,6 +18,7 @@ class TestDownload(SimpleTestCase):
 
     Testing only GitHub download function.
     """
+
     def setUp(self):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}
@@ -49,8 +50,9 @@ class TestDownload(SimpleTestCase):
         with zip_file.open('github_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 1)
-        
-        file_path = "{}_download_{}/data/PrivateProject/README.md".format(self.target_name, resource_id)
+
+        file_path = "{}_download_{}/data/PrivateProject/README.md".format(
+            self.target_name, resource_id)
         # Verify that the folder exists
         self.assertIn(file_path, zip_file.namelist())
 
@@ -88,7 +90,8 @@ class TestDownload(SimpleTestCase):
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 1)
 
-        file_path = "{}_download_{}/data/ProjectEight/README.md".format(self.target_name, resource_id)
+        file_path = "{}_download_{}/data/ProjectEight/README.md".format(
+            self.target_name, resource_id)
         # Verify that the file exists
         self.assertIn(file_path, zip_file.namelist())
 
@@ -98,7 +101,42 @@ class TestDownload(SimpleTestCase):
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
-    
+
+    def test_success_download_unowned_public_repo(self):
+        """
+        Return a 200 along with a zip file of the unowned public repo requested.
+        """
+        resource_id = '248'
+        shared_call_get_resource_zip(self, resource_id)
+
+        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
+        response = self.client.get(url, **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 200)
+
+        zip_file = zipfile.ZipFile(io.BytesIO(response.content))
+        # Verify the name of the zip file
+        self.assertEquals(
+            response._headers['content-disposition'][1],
+            'attachment; filename={}_download_{}.zip'.format(self.target_name, resource_id))
+        # Verify content type
+        self.assertEqual(response._headers['content-type'][1], 'application/zip')
+        # Verify the number of resources in the zip is correct
+        # self.assertEqual(len(zip_file.namelist()), 13)
+
+        # Verify the fixity file is empty as there was nothing to check.
+        with zip_file.open('github_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
+            zip_json = json.load(fixityfile)
+            self.assertEqual(len(zip_json), 20)
+
+        file_path = "{}_download_{}/data/rorem/lib/rorem/distribution.rb".format(self.target_name,
+                                                                                 resource_id)
+        # Verify that the file exists
+        self.assertIn(file_path, zip_file.namelist())
+
+        # Delete corresponding folder
+        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
+
     def test_success_full_code_repo(self):
         """
         Return a 200 along with a zip file of the repo and assosciated files requested.
@@ -151,12 +189,13 @@ class TestDownload(SimpleTestCase):
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
-        
+
         download_response = self.client.get(download_url, **{'HTTP_PRESQT_SOURCE_TOKEN': 'eggs'})
         # The endpoint lumps all errors into a 500 status code
         self.assertEqual(download_response.status_code, 500)
         self.assertEqual(download_response.data['status_code'], 401)
-        self.assertEqual(download_response.data['message'], "The response returned a 401 unauthorized status code.")
+        self.assertEqual(download_response.data['message'],
+                         "The response returned a 401 unauthorized status code.")
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(ticket_number))
@@ -186,7 +225,8 @@ class TestDownload(SimpleTestCase):
         # The endpoint lumps all errors into a 500 status code
         self.assertEqual(download_response.status_code, 500)
         self.assertEqual(download_response.data['status_code'], 404)
-        self.assertEqual(download_response.data['message'], "The resource with id, bad, does not exist for this user.")
+        self.assertEqual(download_response.data['message'],
+                         "The resource with id, bad, does not exist for this user.")
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(ticket_number))
