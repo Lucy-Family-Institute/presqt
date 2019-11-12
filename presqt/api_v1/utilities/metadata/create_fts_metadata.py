@@ -14,8 +14,5 @@ def create_fts_metadata(action_metadata, source_fts_metadata_actions):
     Dictionary of FTS metadata.
     """
     return {
-        'context': {
-            'globus': "https://docs.globus.org/api/transfer/overview/"
-        },
         'actions':  [action_metadata] + source_fts_metadata_actions
     }

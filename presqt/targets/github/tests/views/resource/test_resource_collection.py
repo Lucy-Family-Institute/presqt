@@ -33,7 +33,6 @@ class TestResourceCollection(SimpleTestCase):
         response = self.client.get(url, **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
-        # Verify the dict keys match what we expect,
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
         for data in response.data:
@@ -248,8 +247,6 @@ class TestResourceCollectionPOST(SimpleTestCase):
         metadata_file = json.loads(response.content)
 
         # Action metadata
-        self.assertEqual(metadata_file['context']['globus'],
-                         'https://docs.globus.org/api/transfer/overview/')
         self.assertEqual(metadata_file['actions'][0]['actionType'], 'resource_upload')
         self.assertEqual(metadata_file['actions'][0]['sourceTargetName'], 'Local Machine')
         self.assertEqual(metadata_file['actions'][0]['destinationTargetName'], 'github')
