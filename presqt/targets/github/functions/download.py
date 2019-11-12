@@ -1,5 +1,6 @@
 import asyncio
 import aiohttp
+import requests
 
 from rest_framework import status
 
@@ -89,20 +90,21 @@ def github_download_resource(token, resource_id):
         raise PresQTResponseException('The response returned a 401 unauthorized status code.',
                                       status.HTTP_401_UNAUTHORIZED)
 
-    data = github_paginated_data(token)
+    project_url = 'https://api.github.com/repositories/{}'.format(resource_id)
 
-    for entry in data:
-        if str(entry['id']) == resource_id:
-            repo_name = entry['name']
-            # Strip off the unnecessary {+path} that's included in the url
-            # Example: https://api.github.com/repos/eggyboi/djangoblog/contents/{+path} becomes
-            # https://api.github.com/repos/eggyboi/djangoblog/contents
-            contents_url = entry['contents_url'].partition('/{+path}')[0]
-            break
-    else:
+    response = requests.get(project_url, headers=header)
+
+    if response.status_code != 200:
         raise PresQTResponseException(
             'The resource with id, {}, does not exist for this user.'.format(resource_id),
             status.HTTP_404_NOT_FOUND)
+    data = response.json()
+
+    repo_name = data['name']
+    # Strip off the unnecessary {+path} that's included in the url
+    # Example: https://api.github.com/repos/eggyboi/djangoblog/contents/{+path} becomes
+    # https://api.github.com/repos/eggyboi/djangoblog/contents
+    contents_url = data['contents_url'].partition('/{+path}')[0]
 
     files, empty_containers, action_metadata = download_content(
         username, contents_url, header, repo_name, [])

@@ -832,8 +832,6 @@ class TestResourcePOST(SimpleTestCase):
                 break
 
         metadata_dict = json.loads(metadata)
-        self.assertEqual(metadata_dict['context']['globus'],
-                         'https://docs.globus.org/api/transfer/overview/')
         self.assertEqual(metadata_dict['actions'][0]['actionType'], 'resource_upload')
         self.assertEqual(metadata_dict['actions'][0]['sourceTargetName'], 'Local Machine')
         self.assertEqual(metadata_dict['actions'][0]['destinationTargetName'], 'osf')
@@ -905,6 +903,9 @@ class TestResourcePOST(SimpleTestCase):
         self.hash_algorithm = 'sha256'
         shared_upload_function_osf(self)
 
+        # delete upload folder
+        shutil.rmtree(self.ticket_path)
+
         # Verify files exist in OSF
         file_data = requests.get(folder_data['data'][0]['relationships']
                                  ['files']['links']['related']['href'], headers=headers).json()
@@ -929,17 +930,12 @@ class TestResourcePOST(SimpleTestCase):
                 new_metadata_dict = json.loads(new_metadata)
         self.assertEqual(invalid_dict, metadata_dict)
 
-        self.assertEqual(new_metadata_dict['context']['globus'],
-                         'https://docs.globus.org/api/transfer/overview/')
         self.assertEqual(len(new_metadata_dict['actions']), 1)
         self.assertEqual(len(new_metadata_dict['actions'][0]['files']['created']), 0)
         self.assertEqual(len(new_metadata_dict['actions'][0]['files']['updated']), 1)
         self.assertEqual(len(new_metadata_dict['actions'][0]['files']['ignored']), 1)
         # Make sure the file we have replaced has a different hash than the original
         self.assertNotEqual(original_file_hash, new_file_hash)
-
-        # delete upload folder
-        shutil.rmtree(self.ticket_path)
 
         # ######## 202 when uploading to an existing container with mismatched algorithms ########
         self.resource_id = node_id
@@ -952,7 +948,7 @@ class TestResourcePOST(SimpleTestCase):
         self.hash_algorithm = 'sha256'
         shared_upload_function_osf(self)
 
-        # # delete upload folder
+        # delete upload folder
         shutil.rmtree(self.ticket_path)
 
     def test_success_202_large_duplicate_connection_error(self):
