@@ -18,6 +18,7 @@ from presqt.api_v1.utilities.validation.process_token_validation import process_
 from presqt.api_v1.utilities.validation.target_validation import target_validation
 from presqt.api_v1.utilities.validation.get_process_info_data import get_process_info_data
 from presqt.api_v1.utilities.validation.token_validation import (get_source_token,
-    get_destination_token)
+                                                                 get_destination_token)
 from presqt.api_v1.utilities.validation.transfer_post_body_validation import \
     transfer_post_body_validation
+from presqt.api_v1.utilities.utils.hash_tokens import hash_tokens
