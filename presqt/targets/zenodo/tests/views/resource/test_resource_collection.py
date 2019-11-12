@@ -92,9 +92,6 @@ class TestResourceCollectionPOST(SimpleTestCase):
         self.hash_algorithm = 'md5'
         self.auth_params = {'access_token': self.token}
         self.metadata_dict = {
-            "context": {
-                "globus": "link"
-            },
             "actions": [
                 {
                     "id": "uuid",
@@ -282,8 +279,6 @@ class TestResourceCollectionPOST(SimpleTestCase):
                         response = requests.get(file['links']['download'], params=self.auth_params)
                         metadata_file = json.loads(response.content)
         # Action metadata
-        self.assertEqual(metadata_file['context']['globus'],
-                         'https://docs.globus.org/api/transfer/overview/')
         self.assertEqual(metadata_file['actions'][0]['actionType'], 'resource_upload')
         self.assertEqual(metadata_file['actions'][0]['sourceTargetName'], 'Local Machine')
         self.assertEqual(metadata_file['actions'][0]['destinationTargetName'], 'zenodo')
@@ -347,6 +342,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         bag_with_good_metadata = 'presqt/api_v1/tests/resources/upload/Valid_Metadata_Upload.zip'
         response = self.client.post(self.url, {'presqt-file': open(bag_with_good_metadata, 'rb')},
                                     **self.headers)
+
         ticket_number = response.data['ticket_number']
         ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
