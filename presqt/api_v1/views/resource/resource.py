@@ -9,7 +9,7 @@ from rest_framework.reverse import reverse
 
 from presqt.api_v1.serializers.resource import ResourceSerializer
 from presqt.api_v1.utilities import (get_source_token, target_validation, FunctionRouter,
-                                     spawn_action_process)
+                                     spawn_action_process, hash_tokens)
 from presqt.utilities import write_file
 from presqt.api_v1.views.resource.base_resource import BaseResource
 from presqt.utilities import PresQTValidationError, PresQTResponseException
@@ -28,6 +28,7 @@ class Resource(BaseResource):
         or
         - Transfer resources from one Target to another.
     """
+
     def get(self, request, target_name, resource_id, resource_format=None):
         """
         Retrieve details about a specific Resource.
@@ -199,7 +200,7 @@ class Resource(BaseResource):
 
         # Create directory and process_info json file
         self.process_info_obj = {
-            'presqt-source-token': self.source_token,
+            'presqt-source-token': hash_tokens(self.source_token),
             'status': 'in_progress',
             'expiration': str(timezone.now() + relativedelta(days=5)),
             'message': 'Download is being processed on the server',

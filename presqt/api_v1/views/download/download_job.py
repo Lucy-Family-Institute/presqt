@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from presqt.api_v1.utilities import (get_source_token, get_process_info_data,
-                                     process_token_validation)
+                                     process_token_validation, hash_tokens)
 from presqt.utilities import PresQTValidationError
 
 
@@ -65,7 +65,7 @@ class DownloadJob(APIView):
         try:
             token = get_source_token(request)
             data = get_process_info_data('downloads', ticket_number)
-            process_token_validation(token, data, 'presqt-source-token')
+            process_token_validation(hash_tokens(token), data, 'presqt-source-token')
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
