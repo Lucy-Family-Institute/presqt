@@ -1,8 +1,6 @@
 import json
-import os
 import requests
 import shutil
-import time
 from unittest.mock import patch
 
 from django.test import SimpleTestCase
@@ -35,7 +33,6 @@ class TestResourceCollection(SimpleTestCase):
         response = self.client.get(url, **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
-        # Verify the dict keys match what we expect,
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
         for data in response.data:
@@ -170,6 +167,9 @@ class TestResourceCollectionPOST(SimpleTestCase):
         repo_name_list = [repo['title'] for repo in response_json]
         self.assertNotIn(duplicate_title, repo_name_list)
 
+        # Delete upload folder
+        shutil.rmtree(self.ticket_path)
+
         # Make the second post attempt
         self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
         response = self.client.post(
@@ -247,8 +247,6 @@ class TestResourceCollectionPOST(SimpleTestCase):
         metadata_file = json.loads(response.content)
 
         # Action metadata
-        self.assertEqual(metadata_file['context']['globus'],
-                         'https://docs.globus.org/api/transfer/overview/')
         self.assertEqual(metadata_file['actions'][0]['actionType'], 'resource_upload')
         self.assertEqual(metadata_file['actions'][0]['sourceTargetName'], 'Local Machine')
         self.assertEqual(metadata_file['actions'][0]['destinationTargetName'], 'github')

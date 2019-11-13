@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from presqt.api_v1.utilities import (get_destination_token, get_process_info_data,
-                                     process_token_validation)
+                                     process_token_validation, get_source_token, hash_tokens)
 from presqt.utilities import PresQTValidationError
 
 
@@ -14,6 +14,7 @@ class TransferJob(APIView):
     * GET:
         - Check if a given resource transfer is finished.
     """
+
     def get(self, request, ticket_number):
         """
         Check in on the resource's transfer process state.
@@ -29,12 +30,15 @@ class TransferJob(APIView):
         """
         # Perform token validation. Read data from the process_info file.
         try:
-            token = get_destination_token(request)
+            destination_token = get_destination_token(request)
+            source_token = get_source_token(request)
             process_data = get_process_info_data('transfers', ticket_number)
-            process_token_validation(token, process_data, 'presqt-destination-token')
+            process_token_validation(hash_tokens(destination_token),
+                                     process_data, 'presqt-destination-token')
+            process_token_validation(hash_tokens(source_token), process_data, 'presqt-source-token')
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
-        
+
         transfer_status = process_data['status']
         data = {'status_code': process_data['status_code'], 'message': process_data['message']}
 

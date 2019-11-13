@@ -20,7 +20,7 @@ import sphinx_rtd_theme
 
 project = 'PresQT'
 copyright = '2019, ndlib'
-author = 'ndlib'
+author = 'Center For Research Computing'
 
 
 # -- General configuration ---------------------------------------------------
@@ -29,7 +29,8 @@ master_doc = 'index'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx_rtd_theme'
+    'sphinx_rtd_theme',
+    'sphinxcontrib.httpdomain'
 ]
 
 # Add any paths that contain templates here, relative to this directory.

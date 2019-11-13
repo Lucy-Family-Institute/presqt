@@ -17,7 +17,7 @@ from presqt.api_v1.utilities import (target_validation, get_destination_token,
                                      spawn_action_process, get_or_create_hashes_from_bag,
                                      create_fts_metadata, create_download_metadata,
                                      create_upload_transfer_metadata, create_upload_metadata,
-                                     get_action_message, get_upload_source_metadata)
+                                     get_action_message, get_upload_source_metadata, hash_tokens)
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
@@ -47,8 +47,9 @@ class BaseResource(APIView):
         -------
         202: Accepted
         {
-            "ticket_number": "some_uuid"
-            "message": "The server is processing the request."
+            "ticket_number": "ba025c37-3b33-461c-88a1-659a33f3cf47",
+            "message": "The server is processing the request.",
+            "upload_job": "https://localhost/api_v1/uploads/ba025c37-3b33-461c-88a1-659a33f3cf47/"
         }
 
         400: Bad Request
@@ -190,7 +191,7 @@ class BaseResource(APIView):
 
         # Write process_info.json file
         self.process_info_obj = {
-            'presqt-destination-token': self.destination_token,
+            'presqt-destination-token': hash_tokens(self.destination_token),
             'status': 'in_progress',
             'expiration': str(timezone.now() + relativedelta(days=5)),
             'message': 'Upload is being processed on the server',
@@ -259,7 +260,8 @@ class BaseResource(APIView):
         self.new_fts_metadata_files = []
         for resource in func_dict['resources']:
             # Perform the fixity check and add extra info to the returned fixity object.
-            fixity_obj, self.download_fixity = download_fixity_checker.download_fixity_checker(resource)
+            fixity_obj, self.download_fixity = download_fixity_checker.download_fixity_checker(
+                resource)
             fixity_info.append(fixity_obj)
 
             # Create metadata for this resource. Return True if a valid FTS metadata file is found.
@@ -464,8 +466,8 @@ class BaseResource(APIView):
 
         # Create directory and process_info json file
         self.process_info_obj = {
-            'presqt-source-token': self.source_token,
-            'presqt-destination-token': self.destination_token,
+            'presqt-source-token': hash_tokens(self.source_token),
+            'presqt-destination-token': hash_tokens(self.destination_token),
             'status': 'in_progress',
             'expiration': str(timezone.now() + relativedelta(days=5)),
             'message': 'Transfer is being processed on the server',
@@ -528,7 +530,8 @@ class BaseResource(APIView):
         self.process_info_obj['status'] = 'finished'
 
         transfer_fixity = False if not self.download_fixity or not self.upload_fixity else True
-        self.process_info_obj['message'] = get_action_message('Transfer', transfer_fixity, self.metadata_validation)
+        self.process_info_obj['message'] = get_action_message(
+            'Transfer', transfer_fixity, self.metadata_validation)
 
         write_file(self.process_info_path, self.process_info_obj, True)
 

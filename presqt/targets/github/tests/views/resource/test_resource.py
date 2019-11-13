@@ -27,12 +27,14 @@ class TestResourceGETJSON(SimpleTestCase):
         Returns a 200 if the GET method is successful when getting a GitHub `item`.
         """
         resource_id = '209372092'
-        extra_keys = ['id', 'node_id', 'name', 'full_name', 'private', 'owner', 
+        extra_keys = ['id', 'node_id', 'name', 'full_name', 'private', 'owner',
                       'description', 'fork', 'url', 'created_at', 'updated_at', 'pushed_at',
                       'homepage', 'size', 'stargazers_count', 'watchers_count', 'language',
                       'has_issues', 'has_projects', 'has_downloads', 'has_wiki', 'has_pages',
                       'forks_count', 'archived', 'disabled', 'open_issues_count', 'license',
-                      'forks', 'open_issues', 'watchers', 'default_branch', 'permissions']
+                      'forks', 'open_issues', 'watchers', 'default_branch', 'permissions',
+                      'allow_squash_merge', 'allow_merge_commit', 'allow_rebase_merge',
+                      'network_count', 'subscribers_count']
 
         url = reverse('resource', kwargs={'target_name': 'github',
                                           'resource_id': resource_id,

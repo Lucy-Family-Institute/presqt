@@ -1,3 +1,5 @@
+import requests
+
 from rest_framework import status
 
 from presqt.targets.github.utilities import validation_check, github_paginated_data
@@ -79,33 +81,35 @@ def github_fetch_resource(token, resource_id):
     }
     """
     try:
-        validation_check(token)
+        header, username = validation_check(token)
     except PresQTResponseException:
         raise PresQTResponseException('The response returned a 401 unauthorized status code.',
                                       status.HTTP_401_UNAUTHORIZED)
 
-    data = github_paginated_data(token)
+    project_url = 'https://api.github.com/repositories/{}'.format(resource_id)
 
-    for entry in data:
-        if str(entry['id']) == resource_id:
-            resource = {
-                "kind": "container",
-                "kind_name": "repo",
-                "id": entry['id'],
-                "title": entry['name'],
-                "date_created": entry['created_at'],
-                "date_modified": entry['updated_at'],
-                "hashes": {},
-                "extra": {}
-            }
-            for key, value in entry.items():
-                if '_url' in key:
-                    pass
-                else:
-                    resource['extra'][key] = value
-            break
-    else:
+    response = requests.get(project_url, headers=header)
+
+    if response.status_code != 200:
         raise PresQTResponseException("The resource could not be found by the requesting user.",
                                       status.HTTP_404_NOT_FOUND)
+
+    data = response.json()
+
+    resource = {
+        "kind": "container",
+        "kind_name": "repo",
+        "id": data['id'],
+        "title": data['name'],
+        "date_created": data['created_at'],
+        "date_modified": data['updated_at'],
+        "hashes": {},
+        "extra": {}
+    }
+    for key, value in data.items():
+        if '_url' in key:
+            pass
+        else:
+            resource['extra'][key] = value
 
     return resource
