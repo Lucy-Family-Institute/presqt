@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from presqt.api_v1.utilities import (get_destination_token, get_process_info_data,
-                                     process_token_validation)
+                                     process_token_validation, hash_tokens)
 from presqt.utilities import PresQTValidationError
 
 
@@ -14,6 +14,7 @@ class UploadJob(APIView):
     * GET:
         - Check if a given resource upload is finished.
     """
+
     def get(self, request, ticket_number):
         """
         Check in on the resource's upload process state.
@@ -66,7 +67,7 @@ class UploadJob(APIView):
         try:
             token = get_destination_token(request)
             process_data = get_process_info_data('uploads', ticket_number)
-            process_token_validation(token, process_data, 'presqt-destination-token')
+            process_token_validation(hash_tokens(token), process_data, 'presqt-destination-token')
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
