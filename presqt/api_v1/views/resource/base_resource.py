@@ -152,8 +152,10 @@ class BaseResource(APIView):
         try:
             self.destination_token = get_destination_token(self.request)
             self.file_duplicate_action = file_duplicate_action_validation(self.request)
-            target_validation(self.destination_target_name, self.action)
+            target_valid, infinite_depth = target_validation(
+                self.destination_target_name, self.action)
             resource = file_validation(self.request)
+            print(infinite_depth)
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
