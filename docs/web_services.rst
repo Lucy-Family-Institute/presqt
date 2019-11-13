@@ -42,13 +42,15 @@ It also counts this situation as fixity passing since we didn't know what the or
         "md5": "a4536efb47b26eaf509edfdaca442037"
     }
 
-    will yield
+will yield
+
+.. code-block:: json
 
     {
-        'hash_algorithm': sha256,
-        'given_hash': 343e249fdb0818a58edcc64663e1eb116843b4e1c4e74790ff331628593c02be,
-        'calculated_hash': 343e249fdb0818a58edcc64663e1eb116843b4e1c4e74790ff331628593c02be,
-        'fixity': True
+        "hash_algorithm": "sha256",
+        "given_hash": "343e249fdb0818a58edcc64663e1eb116843b4e1c4e74790ff331628593c02be",
+        "calculated_hash": "343e249fdb0818a58edcc64663e1eb116843b4e1c4e74790ff331628593c02be",
+        "fixity": true
     }
 
 **Valid Hashes Provided + Fixity Fails Example**:
@@ -60,13 +62,15 @@ It also counts this situation as fixity passing since we didn't know what the or
         "md5": "a4536efb47b26eaf509edfdaca442037"
     }
 
-    will yield
+will yield
+
+.. code-block:: json
 
     {
-        'hash_algorithm': sha256,
-        'given_hash': 343e249fdb0818a58edcc64663e1eb116843b4e1c4e74790ff331628593c02be,
-        'calculated_hash': 12345678,
-        'fixity': False
+        "hash_algorithm": "sha256",
+        "given_hash": "343e249fdb0818a58edcc64663e1eb116843b4e1c4e74790ff331628593c02be",
+        "calculated_hash": "12345678",
+        "fixity": false
     }
 
 **Blank Hashes Provided Example**:
@@ -74,17 +78,19 @@ It also counts this situation as fixity passing since we didn't know what the or
 .. code-block:: json
 
     {
-        "sha256": None,
-        "md5": None
+        "sha256": null,
+        "md5": null
     }
 
-    will yield
+will yield
+
+.. code-block:: json
 
     {
-        'hash_algorithm': md5,
-        'given_hash': None,
-        'calculated_hash': 343e249fdb0818a58edcc64663e1eb116843b4e1c4e74790ff331628593c02be,
-        'fixity': True
+        "hash_algorithm": "md5",
+        "given_hash": null,
+        "calculated_hash": "343e249fdb0818a58edcc64663e1eb116843b4e1c4e74790ff331628593c02be",
+        "fixity": true
     }
 
 **Unknown Hashes Provided Example**:
@@ -92,17 +98,19 @@ It also counts this situation as fixity passing since we didn't know what the or
 .. code-block:: json
 
     {
-        "unknown_hasher": 12345,
-        "special_hasher": 1234567
+        "unknown_hasher": "12345",
+        "special_hasher": "1234567"
     }
 
-    will yield
+will yield
+
+.. code-block:: json
 
     {
-        'hash_algorithm': md5,
-        'given_hash': None,
-        'calculated_hash': 343e249fdb0818a58edcc64663e1eb116843b4e1c4e74790ff331628593c02be,
-        'fixity': True
+        "hash_algorithm": "md5",
+        "given_hash": null,
+        "calculated_hash": "343e249fdb0818a58edcc64663e1eb116843b4e1c4e74790ff331628593c02be",
+        "fixity": true
     }
 
 
@@ -207,21 +215,21 @@ destinationHashes     dict   Object that contains the file hashes at the destina
                                     "reasonFixityFailed": "Either a Source Hash was not provided or the source hash algorithm is not supported."
                                 }
                             ],
-                            "title": "Screen_Shot_2019-07-15_at_3.26.49_PM.png",
+                            "title": "Screen_Shot.png",
                             "sourceHashes": {},
-                            "sourcePath": "/NewProject/funnyfunnyimages/Screen_Shot_2019-07-15_at_3.26.49_PM.png",
+                            "sourcePath": "/NewProject/funnyfunnyimages/Screen_Shot.png",
                             "extra": {
                                 "commit_hash": "211ef8db83612802aeea151a0e04badfe287bcb9",
                                 "size": 731202,
-                                "url": "https://api.github.com/repos/presqt-test-user/NewProject/contents/funnyfunnyimages/Screen_Shot_2019-07-15_at_3.26.49_PM.png?ref=master",
-                                "html_url": "https://github.com/presqt-test-user/NewProject/blob/master/funnyfunnyimages/Screen_Shot_2019-07-15_at_3.26.49_PM.png",
+                                "url": "https://api.github.com/repos/presqt-test-user/NewProject/contents/funnyfunnyimages/Screen_Shot.png?ref=master",
+                                "html_url": "https://github.com/presqt-test-user/NewProject/blob/master/funnyfunnyimages/Screen_Shot.png",
                                 "git_url": "https://api.github.com/repos/presqt-test-user/NewProject/git/blobs/211ef8db83612802aeea151a0e04badfe287bcb9",
-                                "download_url": "https://raw.githubusercontent.com/presqt-test-user/NewProject/master/funnyfunnyimages/Screen_Shot_2019-07-15_at_3.26.49_PM.png",
+                                "download_url": "https://raw.githubusercontent.com/presqt-test-user/NewProject/master/funnyfunnyimages/Screen_Shot.png",
                                 "type": "file",
                                 "_links": {
-                                    "self": "https://api.github.com/repos/presqt-test-user/NewProject/contents/funnyfunnyimages/Screen_Shot_2019-07-15_at_3.26.49_PM.png?ref=master",
+                                    "self": "https://api.github.com/repos/presqt-test-user/NewProject/contents/funnyfunnyimages/Screen_Shot.png?ref=master",
                                     "git": "https://api.github.com/repos/presqt-test-user/NewProject/git/blobs/211ef8db83612802aeea151a0e04badfe287bcb9",
-                                    "html": "https://github.com/presqt-test-user/NewProject/blob/master/funnyfunnyimages/Screen_Shot_2019-07-15_at_3.26.49_PM.png"
+                                    "html": "https://github.com/presqt-test-user/NewProject/blob/master/funnyfunnyimages/Screen_Shot.png"
                                 }
                             }
                         }
@@ -261,21 +269,21 @@ destinationHashes     dict   Object that contains the file hashes at the destina
                                     "reasonFixityFailed": "Either a Source Hash was not provided or the source hash algorithm is not supported."
                                 }
                             ],
-                            "title": "Screen_Shot_2019-07-15_at_3.26.49_PM.png",
+                            "title": "Screen_Shot.png",
                             "sourceHashes": {},
-                            "sourcePath": "/NewProject/funnyfunnyimages/Screen_Shot_2019-07-15_at_3.26.49_PM.png",
+                            "sourcePath": "/NewProject/funnyfunnyimages/Screen_Shot",
                             "extra": {
                                 "commit_hash": "211ef8db83612802aeea151a0e04badfe287bcb9",
                                 "size": 731202,
-                                "url": "https://api.github.com/repos/presqt-test-user/NewProject/contents/funnyfunnyimages/Screen_Shot_2019-07-15_at_3.26.49_PM.png?ref=master",
-                                "html_url": "https://github.com/presqt-test-user/NewProject/blob/master/funnyfunnyimages/Screen_Shot_2019-07-15_at_3.26.49_PM.png",
+                                "url": "https://api.github.com/repos/presqt-test-user/NewProject/contents/funnyfunnyimages/Screen_Shot.png?ref=master",
+                                "html_url": "https://github.com/presqt-test-user/NewProject/blob/master/funnyfunnyimages/Screen_Shot.png",
                                 "git_url": "https://api.github.com/repos/presqt-test-user/NewProject/git/blobs/211ef8db83612802aeea151a0e04badfe287bcb9",
-                                "download_url": "https://raw.githubusercontent.com/presqt-test-user/NewProject/master/funnyfunnyimages/Screen_Shot_2019-07-15_at_3.26.49_PM.png",
+                                "download_url": "https://raw.githubusercontent.com/presqt-test-user/NewProject/master/funnyfunnyimages/Screen_Shot.png",
                                 "type": "file",
                                 "_links": {
-                                    "self": "https://api.github.com/repos/presqt-test-user/NewProject/contents/funnyfunnyimages/Screen_Shot_2019-07-15_at_3.26.49_PM.png?ref=master",
+                                    "self": "https://api.github.com/repos/presqt-test-user/NewProject/contents/funnyfunnyimages/Screen_Shot.png?ref=master",
                                     "git": "https://api.github.com/repos/presqt-test-user/NewProject/git/blobs/211ef8db83612802aeea151a0e04badfe287bcb9",
-                                    "html": "https://github.com/presqt-test-user/NewProject/blob/master/funnyfunnyimages/Screen_Shot_2019-07-15_at_3.26.49_PM.png"
+                                    "html": "https://github.com/presqt-test-user/NewProject/blob/master/funnyfunnyimages/Screen_Shot.png"
                                 }
                             }
                         }
@@ -291,19 +299,19 @@ destinationHashes     dict   Object that contains the file hashes at the destina
                 "sourceTargetName": "osf",
                 "sourceUsername": "osf_username",
                 "destinationTargetName": "Local Machine",
-                "destinationUsername": None,
+                "destinationUsername": null,
                 "files": {
                     "created": [
                         {
                             "destinationPath": "/NewProject/osfstorage/funnyfunnyimages/Screen_Shot.png",
                             "destinationHashes": {},
                             "failedFixityInfo": [],
-                            "title": "Screen_Shot_2019-07-15_at_3.26.49_PM.png",
+                            "title": "Screen_Shot.png",
                             "sourceHashes": {
                                 "sha256": "6d33275234b28d77348e4e1049f58b95a485a7a441684a9eb9175d01c7f141ea",
                                 "md5": "3505a89c3cbb82873a107ae41f3997c3"
                             },
-                            "sourcePath": "/NewProject/osfstorage/funnyfunnyimages/Screen_Shot_2019-07-15_at_3.26.49_PM.png",
+                            "sourcePath": "/NewProject/osfstorage/funnyfunnyimages/Screen_Shot.png",
                             "extra": {
                                 "id": "5dcc215848a1d9000cd0a3fb",
                                 "parent_project_id": "2bw9j",
