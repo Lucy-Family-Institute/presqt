@@ -40,6 +40,7 @@ Zenodo      ✅             ✅         ✅           ✅          ✅[OSF, Gith
    api_endpoints
    web_services
    resources
+   project_history
 
 Indices
 ==================
