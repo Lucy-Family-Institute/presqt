@@ -71,7 +71,7 @@ def shared_upload_function_github(test_case_instance):
     process_info = read_file('{}/process_info.json'.format(test_case_instance.ticket_path), True)
     test_case_instance.assertEqual(process_info['status'], 'finished')
     test_case_instance.assertEqual(
-        process_info['message'], 'Upload successful but with fixity and metadata errors.')
+        process_info['message'], 'Upload successful but with fixity errors.')
     test_case_instance.assertEqual(process_info['status_code'], '200')
     test_case_instance.assertNotEqual(process_info['failed_fixity'], [])
     test_case_instance.assertEqual(
