@@ -259,6 +259,8 @@ class TestResourceCollectionPOST(SimpleTestCase):
                          '/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png')
         self.assertEqual(metadata_file['actions'][0]['files']['created'][0]['destinationPath'],
                          '/NewProject/funnyfunnyimages/Screen_Shot_2019-07-15_at_3.26.49_PM.png')
+        self.assertEqual(metadata_file['actions'][0]['files']['created'][0]['destinationHashes'],
+                         {})
 
         # Delete upload folder
         shutil.rmtree(self.ticket_path)
