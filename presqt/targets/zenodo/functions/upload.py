@@ -148,6 +148,7 @@ def zenodo_upload_loop(action_metadata, resource_id, resource_main_dir, post_url
     resources_ignored = []
     file_metadata_list = []
     resources_updated = []
+    action_metadata = {'destinationUsername': None}
 
     for path, subdirs, files in os.walk(resource_main_dir):
         if not subdirs and not files:
