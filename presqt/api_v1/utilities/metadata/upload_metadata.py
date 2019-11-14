@@ -78,6 +78,7 @@ def create_upload_transfer_metadata(instance, file_metadata_list, action_metadat
                                                       resource['actionRootPath']
                                                       [len(instance.data_directory):])
 
+        print(fts_metadata_entry)
         # Add destination metadata
         fts_metadata_entry['destinationHashes'] = {}
         if resource['destinationHash']:
