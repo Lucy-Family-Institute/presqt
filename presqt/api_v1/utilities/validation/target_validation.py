@@ -25,9 +25,9 @@ def target_validation(target_name, action):
         if data['name'] == target_name:
             if data["supported_actions"][action] is False:
                 raise PresQTValidationError(
-                    "'{}' does not support the action '{}'.".format(target_name,action),
+                    "'{}' does not support the action '{}'.".format(target_name, action),
                     status.HTTP_400_BAD_REQUEST)
-            return True
+            return True, data['infinite_depth']
     else:
         raise PresQTValidationError(
             "'{}' is not a valid Target name.".format(target_name), status.HTTP_404_NOT_FOUND)

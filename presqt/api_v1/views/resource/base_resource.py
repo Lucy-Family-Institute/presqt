@@ -17,7 +17,8 @@ from presqt.api_v1.utilities import (target_validation, get_destination_token,
                                      spawn_action_process, get_or_create_hashes_from_bag,
                                      create_fts_metadata, create_download_metadata,
                                      create_upload_transfer_metadata, create_upload_metadata,
-                                     get_action_message, get_upload_source_metadata, hash_tokens)
+                                     get_action_message, get_upload_source_metadata, hash_tokens,
+                                     finite_depth_upload_helper)
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
@@ -152,7 +153,8 @@ class BaseResource(APIView):
         try:
             self.destination_token = get_destination_token(self.request)
             self.file_duplicate_action = file_duplicate_action_validation(self.request)
-            target_validation(self.destination_target_name, self.action)
+            target_valid, self.infinite_depth = target_validation(
+                self.destination_target_name, self.action)
             resource = file_validation(self.request)
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
@@ -350,7 +352,26 @@ class BaseResource(APIView):
         # Data directory in the bag
         self.data_directory = '{}/data'.format(self.resource_main_dir)
 
-        # Fetch the proper function to call
+        if self.infinite_depth is False:
+            try:
+                finite_depth_upload_helper(self)
+            except PresQTResponseException as e:
+                # Catch any errors that happen within the target fetch.
+                # Update the server process_info file appropriately.
+                self.process_info_obj['status_code'] = e.status_code
+                self.process_info_obj['status'] = 'failed'
+                if self.action == 'resource_transfer_in':
+                    self.process_info_obj['upload_status'] = 'failed'
+                self.process_info_obj['message'] = e.data
+                # Update the expiration from 5 days to 1 hour from now. We can delete this faster because
+                # it's an incomplete/failed directory.
+                self.process_info_obj['expiration'] = str(timezone.now() + relativedelta(hours=1))
+                write_file(self.process_info_path, self.process_info_obj, True)
+                #  Update the shared memory map so the watchdog process can stop running.
+                self.process_state.value = 1
+                return False
+
+            # Fetch the proper function to call
         func = FunctionRouter.get_function(self.destination_target_name, action)
 
         # Upload the resources. func_dict has the following format:
@@ -384,25 +405,29 @@ class BaseResource(APIView):
         self.process_info_obj['failed_fixity'] = []
         self.upload_fixity = True
         for resource in func_dict['file_metadata_list']:
+            print(resource)
             resource['failed_fixity_info'] = []
-            if resource['destinationHash'] != self.file_hashes[resource['actionRootPath']] \
-                    and resource['actionRootPath'] not in func_dict['resources_ignored']:
-                self.upload_fixity = False
-                self.process_info_obj['failed_fixity'].append(resource['actionRootPath']
-                                                              [len(self.data_directory) + 1:])
-                resource['failed_fixity_info'].append({
-                    'NewGeneratedHash': resource['destinationHash'],
-                    'algorithmUsed': self.hash_algorithm,
-                    'reasonFixityFailed': "Either the destination did not provide a hash "
-                                          "or fixity failed during upload."
-                })
+            try:
+                if resource['destinationHash'] != self.file_hashes[resource['actionRootPath']] \
+                        and resource['actionRootPath'] not in func_dict['resources_ignored']:
+                    self.upload_fixity = False
+                    self.process_info_obj['failed_fixity'].append(resource['actionRootPath']
+                                                                  [len(self.data_directory) + 1:])
+                    resource['failed_fixity_info'].append({
+                        'NewGeneratedHash': resource['destinationHash'],
+                        'algorithmUsed': self.hash_algorithm,
+                        'reasonFixityFailed': "Either the destination did not provide a hash "
+                        "or fixity failed during upload."
+                    })
+            except KeyError:
+                print("We changed everything, now we need to do something else.")
 
         # Strip the server created directory prefix of the file paths for ignored and updated files
-        resources_ignored = \
-            [file[len(self.data_directory):] for file in func_dict['resources_ignored']]
+        resources_ignored = [file[len(self.data_directory):]
+                             for file in func_dict['resources_ignored']]
         self.process_info_obj['resources_ignored'] = resources_ignored
-        resources_updated = \
-            [file[len(self.data_directory):] for file in func_dict['resources_updated']]
+        resources_updated = [file[len(self.data_directory):]
+                             for file in func_dict['resources_updated']]
         self.process_info_obj['resources_updated'] = resources_updated
 
         # If we are transferring the resources then add metadata to the existing fts metadata
@@ -453,7 +478,8 @@ class BaseResource(APIView):
             self.file_duplicate_action = file_duplicate_action_validation(self.request)
             self.source_target_name, self.source_resource_id = transfer_post_body_validation(
                 self.request)
-            target_validation(self.destination_target_name, self.action)
+            target_valid, self.infinite_depth = target_validation(
+                self.destination_target_name, self.action)
             target_validation(self.source_target_name, 'resource_transfer_out')
             ############# VALIDATION TO ADD #############
             # CHECK THAT source_target_name CAN TRANSFER TO destination_target_name
