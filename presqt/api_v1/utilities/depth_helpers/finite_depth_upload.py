@@ -29,7 +29,8 @@ def finite_depth_upload_helper(instance):
             status.HTTP_400_BAD_REQUEST)
 
     # Make a directory to store the zipped items
-    os.mkdir(os.path.join(instance.resource_main_dir, 'zip_format'))
+    zip_format_path = os.path.join(instance.resource_main_dir, 'zip_format')
+    os.mkdir(zip_format_path)
 
     try:
         # Check to see if this is a project.
@@ -40,20 +41,22 @@ def finite_depth_upload_helper(instance):
         file_title = files[0]
 
         # Zip the file and store it in the created `zip_format` directory
-        zip_directory(instance.data_directory, '{}/{}.zip'.format(
-            os.path.join(instance.resource_main_dir, 'zip_format'), file_title),
-            os.path.join(instance.data_directory))
-
-        instance.data_directory = os.path.join(instance.resource_main_dir, 'zip_format')
+        zip_directory(instance.data_directory,
+                      '{}/{}.zip'.format(zip_format_path, file_title),
+                      instance.data_directory)
 
     else:
         # Otherwise the whole directory needs to be zipped
         # Make a new directory to contain the zip
-        os.mkdir(os.path.join(instance.resource_main_dir, 'zip_format', project_title))
+        project_zip_path = os.path.join(zip_format_path, project_title)
+        os.mkdir(project_zip_path)
+
+        project_data_path = os.path.join(instance.data_directory, project_title)
 
         # Zip the file and store it in the created `zip_format/<project_title>` directory
-        zip_directory(os.path.join(instance.data_directory, project_title), '{}/{}.zip'.format(
-            os.path.join(instance.resource_main_dir, 'zip_format', project_title), project_title),
-            os.path.join(instance.data_directory, project_title))
+        zip_directory(project_data_path,
+                      '{}/{}.zip'.format(project_zip_path, project_title),
+                      project_data_path)
 
-        instance.data_directory = os.path.join(instance.resource_main_dir, 'zip_format')
+    # Change the data directory to send to upload
+    instance.data_directory = zip_format_path
