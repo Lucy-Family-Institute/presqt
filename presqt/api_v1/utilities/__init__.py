@@ -22,4 +22,4 @@ from presqt.api_v1.utilities.validation.token_validation import (get_source_toke
 from presqt.api_v1.utilities.validation.transfer_post_body_validation import \
     transfer_post_body_validation
 from presqt.api_v1.utilities.utils.hash_tokens import hash_tokens
-from presqt.api_v1.utilities.infinite_depth.finite_depth_upload import finite_depth_upload_helper
+from presqt.api_v1.utilities.depth_helpers.finite_depth_upload import finite_depth_upload_helper
