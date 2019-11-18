@@ -70,7 +70,6 @@ def create_upload_transfer_metadata(instance, file_metadata_list, action_metadat
     instance.action_metadata['files'] = build_file_dict(instance.action_metadata['files']['created'],
                                                         resources_ignored, resources_updated,
                                                         'destinationPath')
-    print(instance.new_fts_metadata_files)
 
     for resource in file_metadata_list:
         # Get the resource's metadata dict that has already been created during download
@@ -78,18 +77,17 @@ def create_upload_transfer_metadata(instance, file_metadata_list, action_metadat
                                                       'destinationPath',
                                                       resource['actionRootPath']
                                                       [len(instance.data_directory):])
-        if fts_metadata_entry is None:
-            print('Do stuff here....')
-        else:
-            # Add destination metadata
-            fts_metadata_entry['destinationHashes'] = {}
-            if resource['destinationHash']:
-                fts_metadata_entry['destinationHashes'][instance.hash_algorithm] = resource['destinationHash']
 
-            if resource['failed_fixity_info']:
-                fts_metadata_entry['failedFixityInfo'].append(resource['failed_fixity_info'])
+        # Add destination metadata
+        fts_metadata_entry['destinationHashes'] = {}
+        if resource['destinationHash']:
+            fts_metadata_entry['destinationHashes'][instance.hash_algorithm] = resource['destinationHash']
 
-            fts_metadata_entry['destinationPath'] = resource['destinationPath']
+        if resource['failed_fixity_info']:
+            fts_metadata_entry['failedFixityInfo'].append(resource['failed_fixity_info'])
+
+        fts_metadata_entry['destinationPath'] = resource['destinationPath']
+
     # Create FTS metadata object
     from presqt.api_v1.utilities import create_fts_metadata
     fts_metadata_data = create_fts_metadata(instance.action_metadata,

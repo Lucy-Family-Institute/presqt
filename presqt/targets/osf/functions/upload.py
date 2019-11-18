@@ -134,7 +134,7 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
         # Only send forward the hash we need based on the hash_algorithm provided
         file_metadata['destinationHash'] = file_metadata['destinationHash'][hash_algorithm]
         # Prepend the project title to each resource's the metadata destinationPath
-        file_metadata['destinationPath'] = '{}/{}'.format(project.title, file_metadata['destinationPath'])
+        file_metadata['destinationPath'] = '/{}/{}'.format(project.title, file_metadata['destinationPath'])
 
     return {
         'resources_ignored': resources_ignored,

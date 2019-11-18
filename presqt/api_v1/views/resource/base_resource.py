@@ -372,7 +372,7 @@ class BaseResource(APIView):
                 self.process_state.value = 1
                 return False
 
-            # Fetch the proper function to call
+        # Fetch the proper function to call
         func = FunctionRouter.get_function(self.destination_target_name, action)
 
         # Upload the resources. func_dict has the following format:
@@ -406,22 +406,18 @@ class BaseResource(APIView):
         self.process_info_obj['failed_fixity'] = []
         self.upload_fixity = True
         for resource in func_dict['file_metadata_list']:
-            print(resource)
             resource['failed_fixity_info'] = []
-            try:
-                if resource['destinationHash'] != self.file_hashes[resource['actionRootPath']] \
-                        and resource['actionRootPath'] not in func_dict['resources_ignored']:
-                    self.upload_fixity = False
-                    self.process_info_obj['failed_fixity'].append(resource['actionRootPath']
-                                                                  [len(self.data_directory) + 1:])
-                    resource['failed_fixity_info'].append({
-                        'NewGeneratedHash': resource['destinationHash'],
-                        'algorithmUsed': self.hash_algorithm,
-                        'reasonFixityFailed': "Either the destination did not provide a hash "
-                        "or fixity failed during upload."
-                    })
-            except KeyError:
-                print("We changed everything, now we need to do something else.")
+            if resource['destinationHash'] != self.file_hashes[resource['actionRootPath']] \
+                    and resource['actionRootPath'] not in func_dict['resources_ignored']:
+                self.upload_fixity = False
+                self.process_info_obj['failed_fixity'].append(resource['actionRootPath']
+                                                              [len(self.data_directory) + 1:])
+                resource['failed_fixity_info'].append({
+                    'NewGeneratedHash': resource['destinationHash'],
+                    'algorithmUsed': self.hash_algorithm,
+                    'reasonFixityFailed': "Either the destination did not provide a hash "
+                    "or fixity failed during upload."
+                })
 
         # Strip the server created directory prefix of the file paths for ignored and updated files
         resources_ignored = [file[len(self.data_directory):]
