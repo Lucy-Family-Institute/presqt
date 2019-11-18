@@ -164,20 +164,21 @@ class BaseResource(APIView):
         for index in range(3):
             # Generate ticket number
             ticket_number = uuid4()
-            ticket_path = os.path.join("mediafiles", "uploads", str(ticket_number))
+            self.ticket_path = os.path.join("mediafiles", "uploads", str(ticket_number))
 
             # Extract each file in the zip file to disk
             with zipfile.ZipFile(resource) as myzip:
-                myzip.extractall(ticket_path)
+                myzip.extractall(self.ticket_path)
 
-            self.resource_main_dir = os.path.join(ticket_path, next(os.walk(ticket_path))[1][0])
+            self.base_directory_name = next(os.walk(self.ticket_path))[1][0]
+            self.resource_main_dir = os.path.join(self.ticket_path, self.base_directory_name)
 
             # Validate the 'bag' and check for checksum mismatches
             try:
                 bag = bagit.Bag(self.resource_main_dir)
                 validate_bag(bag)
             except PresQTValidationError as e:
-                shutil.rmtree(ticket_path)
+                shutil.rmtree(self.ticket_path)
                 # If we've reached the maximum number of attempts then return an error response
                 if index == 2:
                     return Response(data={'error': e.data}, status=e.status_code)
@@ -199,7 +200,7 @@ class BaseResource(APIView):
             'message': 'Upload is being processed on the server',
             'status_code': None
         }
-        self.process_info_path = os.path.join(ticket_path, 'process_info.json')
+        self.process_info_path = os.path.join(self.ticket_path, 'process_info.json')
         write_file(self.process_info_path, self.process_info_obj, True)
 
         # Create a hash dictionary to compare with the hashes returned from the target after upload
@@ -532,16 +533,16 @@ class BaseResource(APIView):
 
         ####### PREPARE UPLOAD FROM DOWNLOAD BAG #######
         # Validate the 'bag' and check for checksum mismatches
-        bag = bagit.Bag(self.resource_main_dir)
+        self.bag = bagit.Bag(self.resource_main_dir)
         try:
-            validate_bag(bag)
+            validate_bag(self.bag)
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Create a hash dictionary to compare with the hashes returned from the target after upload
-        # If the destination target supports a hash provided by the bag then use those hashes,
+        # If the destination target supports a hash provided by the self. then use those hashes,
         # otherwise create new hashes with a target supported hash.
-        self.file_hashes, self.hash_algorithm = get_or_create_hashes_from_bag(self, bag)
+        self.file_hashes, self.hash_algorithm = get_or_create_hashes_from_bag(self, self.bag)
 
         ####### UPLOAD THE RESOURCES #######
         upload_status = self._upload_resource()
