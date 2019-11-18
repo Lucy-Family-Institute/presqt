@@ -71,7 +71,12 @@ def zenodo_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         name_helper = requests.get("https://zenodo.org/api/deposit/depositions/{}".format(
             resource_id), params=auth_parameter).json()
 
-        project_title = name_helper['title']
+        try:
+            project_title = name_helper['title']
+        except KeyError:
+            raise PresQTResponseException(
+                "Can't find the resource with id {}, on Zenodo".format(resource_id),
+                status.HTTP_404_NOT_FOUND)
         action_metadata = {"destinationUsername": None}
         post_url = "https://zenodo.org/api/deposit/depositions/{}/files".format(resource_id)
 
