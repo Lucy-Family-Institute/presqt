@@ -367,21 +367,20 @@ class BaseResource(APIView):
                     'updated': [],
                     'ignored': []}}
 
-            self.file_metadata_list = []
+            self.new_fts_metadata_files = []
 
             for path, subdirs, files in os.walk(self.data_directory):
                 for name in files:
-                    self.file_metadata_list.append({
+                    self.new_fts_metadata_files.append({
                         'destinationHashes': {},
+                        'destinationPath': os.path.join(path, name)[len(self.data_directory):],
                         'failedFixityInfo': [],
                         'title': name,
                         'sourceHashes': {self.hash_algorithm:
                                          self.file_hashes[os.path.join(path, name)]},
                         'sourcePath': os.path.join(path, name)[len(self.data_directory):],
                         'extra': {}})
-            self.action_metadata['files']['created'] = self.file_metadata_list
-
-        print(self.action_metadata)
+            self.action_metadata['files']['created'] = self.new_fts_metadata_files
 
         if self.infinite_depth is False:
             try:
