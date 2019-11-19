@@ -19,7 +19,7 @@ def get_upload_source_metadata(instance, bag):
     bag: Bag Class instance
         The bag we want to traverse and update.
     """
-    instance.source_metadata_actions = []
+    instance.source_fts_metadata_actions = []
     for bag_file in bag.payload_files():
         if os.path.split(bag_file)[-1] == 'PRESQT_FTS_METADATA.json':
             metadata_path = os.path.join(instance.resource_main_dir, bag_file)
@@ -27,7 +27,7 @@ def get_upload_source_metadata(instance, bag):
             # If the FTS metadata is valid then remove it from the bag and save the actions.
             if schema_validator('presqt/json_schemas/metadata_schema.json',
                                 source_metadata_content) is True:
-                instance.source_metadata_actions = instance.source_metadata_actions + \
+                instance.source_fts_metadata_actions = instance.source_fts_metadata_actions + \
                     source_metadata_content['actions']
                 os.remove(os.path.join(instance.resource_main_dir, bag_file))
                 bag.save(manifests=True)
@@ -155,7 +155,7 @@ def create_upload_metadata(instance, file_metadata_list, action_metadata, projec
 
     # Create FTS metadata object
     from presqt.api_v1.utilities import create_fts_metadata
-    fts_metadata_data = create_fts_metadata(action_metadata, instance.source_metadata_actions)
+    fts_metadata_data = create_fts_metadata(action_metadata, instance.source_fts_metadata_actions)
     # Write the metadata file to the destination target and validate the metadata file
     metadata_validation = write_and_validate_metadata(instance, project_id, fts_metadata_data)
     return metadata_validation

@@ -175,8 +175,8 @@ class BaseResource(APIView):
 
             # Validate the 'bag' and check for checksum mismatches
             try:
-                bag = bagit.Bag(self.resource_main_dir)
-                validate_bag(bag)
+                self.bag = bagit.Bag(self.resource_main_dir)
+                validate_bag(self.bag)
             except PresQTValidationError as e:
                 shutil.rmtree(self.ticket_path)
                 # If we've reached the maximum number of attempts then return an error response
@@ -188,7 +188,7 @@ class BaseResource(APIView):
                     return Response(data=e.args, status=status.HTTP_400_BAD_REQUEST)
             else:
                 # Collect and remove any existing source metadata
-                get_upload_source_metadata(self, bag)
+                get_upload_source_metadata(self, self.bag)
                 # If the bag validated successfully then break from the loop
                 break
 
@@ -206,7 +206,7 @@ class BaseResource(APIView):
         # Create a hash dictionary to compare with the hashes returned from the target after upload
         # If the destination target supports a hash provided by the bag then use those hashes
         # otherwise create new hashes with a target supported hash.
-        self.file_hashes, self.hash_algorithm = get_or_create_hashes_from_bag(self, bag)
+        self.file_hashes, self.hash_algorithm = get_or_create_hashes_from_bag(self, self.bag)
 
         # Spawn the upload_resource method separate from the request server by using multiprocess.
         spawn_action_process(self, self._upload_resource)
@@ -352,8 +352,34 @@ class BaseResource(APIView):
 
         # Data directory in the bag
         self.data_directory = '{}/data'.format(self.resource_main_dir)
-
         if self.infinite_depth is False:
+            if self.action == 'resource_upload':
+                self.action_metadata = {
+                    'id': str(uuid4()),
+                    'actionDateTime': str(timezone.now()),
+                    'actionType': self.action,
+                    'sourceTargetName': 'Local Machine',
+                    'sourceUsername': None,
+                    'destinationTargetName': self.destination_target_name,
+                    'destinationUsername': None,
+                    'files': {
+                        'created': [],
+                        'updated': [],
+                        'ignored': []}}
+
+                file_metadata_list = []
+                for path, subdirs, files in os.walk(self.data_directory):
+                    for name in files:
+                        file_metadata_list.append({
+                            'destinationHashes': {},
+                            'failedFixityInfo': [],
+                            'title': name,
+                            'sourceHashes': {},
+                            'sourcePath': os.path.join(path, name),
+                            'extra': {}})
+
+                self.action_metadata['files']['created'] = file_metadata_list
+            print(self.action_metadata)
             try:
                 finite_depth_upload_helper(self)
             except PresQTResponseException as e:
