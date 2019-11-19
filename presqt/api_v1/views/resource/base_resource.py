@@ -352,34 +352,38 @@ class BaseResource(APIView):
 
         # Data directory in the bag
         self.data_directory = '{}/data'.format(self.resource_main_dir)
+
+        if self.action == 'resource_upload':
+            self.action_metadata = {
+                'id': str(uuid4()),
+                'actionDateTime': str(timezone.now()),
+                'actionType': self.action,
+                'sourceTargetName': 'Local Machine',
+                'sourceUsername': None,
+                'destinationTargetName': self.destination_target_name,
+                'destinationUsername': None,
+                'files': {
+                    'created': [],
+                    'updated': [],
+                    'ignored': []}}
+
+            self.file_metadata_list = []
+
+            for path, subdirs, files in os.walk(self.data_directory):
+                for name in files:
+                    self.file_metadata_list.append({
+                        'destinationHashes': {},
+                        'failedFixityInfo': [],
+                        'title': name,
+                        'sourceHashes': {self.hash_algorithm:
+                                         self.file_hashes[os.path.join(path, name)]},
+                        'sourcePath': os.path.join(path, name)[len(self.data_directory):],
+                        'extra': {}})
+            self.action_metadata['files']['created'] = self.file_metadata_list
+
+        print(self.action_metadata)
+
         if self.infinite_depth is False:
-            if self.action == 'resource_upload':
-                self.action_metadata = {
-                    'id': str(uuid4()),
-                    'actionDateTime': str(timezone.now()),
-                    'actionType': self.action,
-                    'sourceTargetName': 'Local Machine',
-                    'sourceUsername': None,
-                    'destinationTargetName': self.destination_target_name,
-                    'destinationUsername': None,
-                    'files': {
-                        'created': [],
-                        'updated': [],
-                        'ignored': []}}
-
-                file_metadata_list = []
-                for path, subdirs, files in os.walk(self.data_directory):
-                    for name in files:
-                        file_metadata_list.append({
-                            'destinationHashes': {},
-                            'failedFixityInfo': [],
-                            'title': name,
-                            'sourceHashes': {},
-                            'sourcePath': os.path.join(path, name),
-                            'extra': {}})
-
-                self.action_metadata['files']['created'] = file_metadata_list
-            print(self.action_metadata)
             try:
                 finite_depth_upload_helper(self)
             except PresQTResponseException as e:

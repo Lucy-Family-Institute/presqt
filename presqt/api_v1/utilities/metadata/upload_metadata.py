@@ -123,39 +123,47 @@ def create_upload_metadata(instance, file_metadata_list, action_metadata, projec
     Will be True if valid and an error string if invalid.
     """
     # Build metadata dicts for each resource
-    fts_metadata = []
-    for resource in file_metadata_list:
-        resource_hash = {}
-        if resource['destinationHash']:
-            resource_hash = {instance.hash_algorithm: resource['destinationHash']}
-        fts_metadata.append({
-            'title': resource['title'],
-            'sourcePath': resource['actionRootPath'][len(instance.data_directory):],
-            'destinationPath': resource['destinationPath'],
-            'sourceHashes': {instance.hash_algorithm:
-                             instance.file_hashes[resource['actionRootPath']]},
-            'destinationHashes': resource_hash,
-            'failedFixityInfo': resource['failed_fixity_info'],
-            'extra': {}
-        })
+    # fts_metadata = []
+    # for resource in file_metadata_list:
+    #     resource_hash = {}
+    #     if resource['destinationHash']:
+    #         resource_hash = {instance.hash_algorithm: resource['destinationHash']}
+    #     fts_metadata.append({
+    #         'title': resource['title'],
+    #         'sourcePath': resource['actionRootPath'][len(instance.data_directory):],
+    #         'destinationPath': resource['destinationPath'],
+    #         'sourceHashes': {instance.hash_algorithm:
+    #                          instance.file_hashes[resource['actionRootPath']]},
+    #         'destinationHashes': resource_hash,
+    #         'failedFixityInfo': resource['failed_fixity_info'],
+    #         'extra': {}
+    #     })
 
     # Put the file metadata in the correct file list
-    files = build_file_dict(fts_metadata, resources_ignored, resources_updated, 'sourcePath')
+    files = build_file_dict(instance.file_metadata_list, resources_ignored, resources_updated, 'sourcePath')
+    instance.action_metadata['files'] = files
+    instance.action_metadata['destinationUsername'] = action_metadata['destinationUsername']
+    for resource in file_metadata_list:
 
-    action_metadata = {
-        'id': str(uuid4()),
-        'actionDateTime': str(timezone.now()),
-        'actionType': instance.action,
-        'sourceTargetName': 'Local Machine',
-        'destinationTargetName': instance.destination_target_name,
-        'sourceUsername': None,
-        'destinationUsername': action_metadata['destinationUsername'],
-        'files': files
-    }
+
+    # action_metadata = {
+    #     'id': str(uuid4()),
+    #     'actionDateTime': str(timezone.now()),
+    #     'actionType': instance.action,
+    #     'sourceTargetName': 'Local Machine',
+    #     'destinationTargetName': instance.destination_target_name,
+    #     'sourceUsername': None,
+    #     'destinationUsername': action_metadata['destinationUsername'],
+    #     'files': files
+    # }
+
+
+    # ADD FILE DESTINATION HASHES
+    # ADD FILE DESTINATION PATH
 
     # Create FTS metadata object
     from presqt.api_v1.utilities import create_fts_metadata
-    fts_metadata_data = create_fts_metadata(action_metadata, instance.source_fts_metadata_actions)
+    fts_metadata_data = create_fts_metadata(instance.action_metadata, instance.source_fts_metadata_actions)
     # Write the metadata file to the destination target and validate the metadata file
     metadata_validation = write_and_validate_metadata(instance, project_id, fts_metadata_data)
     return metadata_validation
