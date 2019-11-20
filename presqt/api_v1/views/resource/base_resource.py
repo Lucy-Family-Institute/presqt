@@ -16,7 +16,7 @@ from presqt.api_v1.utilities import (target_validation, get_destination_token,
                                      get_source_token, transfer_post_body_validation,
                                      spawn_action_process, get_or_create_hashes_from_bag,
                                      create_fts_metadata, create_download_metadata,
-                                     create_upload_transfer_metadata, create_upload_metadata,
+                                     create_upload_metadata,
                                      get_action_message, get_upload_source_metadata, hash_tokens,
                                      finite_depth_upload_helper)
 from presqt.api_v1.utilities.fixity import download_fixity_checker
@@ -353,22 +353,10 @@ class BaseResource(APIView):
         # Data directory in the bag
         self.data_directory = '{}/data'.format(self.resource_main_dir)
 
+        # If we are uploading (not transferring) then create the initial metadata based on the
+        # zipped bag provided.
         if self.action == 'resource_upload':
-            self.action_metadata = {
-                'id': str(uuid4()),
-                'actionDateTime': str(timezone.now()),
-                'actionType': self.action,
-                'sourceTargetName': 'Local Machine',
-                'sourceUsername': None,
-                'destinationTargetName': self.destination_target_name,
-                'destinationUsername': None,
-                'files': {
-                    'created': [],
-                    'updated': [],
-                    'ignored': []}}
-
             self.new_fts_metadata_files = []
-
             for path, subdirs, files in os.walk(self.data_directory):
                 for name in files:
                     self.new_fts_metadata_files.append({
@@ -380,8 +368,23 @@ class BaseResource(APIView):
                                          self.file_hashes[os.path.join(path, name)]},
                         'sourcePath': os.path.join(path, name)[len(self.data_directory):],
                         'extra': {}})
-            self.action_metadata['files']['created'] = self.new_fts_metadata_files
 
+            self.action_metadata = {
+                'id': str(uuid4()),
+                'actionDateTime': str(timezone.now()),
+                'actionType': self.action,
+                'sourceTargetName': 'Local Machine',
+                'sourceUsername': None,
+                'destinationTargetName': self.destination_target_name,
+                'destinationUsername': None,
+                'files': {
+                    'created': self.new_fts_metadata_files,
+                    'updated': [],
+                    'ignored': []}}
+
+        # If the target destination's storage hierarchy has a finite depth then zip the resources
+        # to be uploaded along with their metadata.
+        # Also, create metadata files for the new zip file to be uploaded.
         if self.infinite_depth is False:
             try:
                 finite_depth_upload_helper(self)
@@ -456,29 +459,18 @@ class BaseResource(APIView):
                              for file in func_dict['resources_updated']]
         self.process_info_obj['resources_updated'] = resources_updated
 
-        # If we are transferring the resources then add metadata to the existing fts metadata
-        if self.action == 'resource_transfer_in':
-            self.metadata_validation = create_upload_transfer_metadata(self,
-                                                                       func_dict['file_metadata_list'],
-                                                                       func_dict['action_metadata'],
-                                                                       func_dict['project_id'],
-                                                                       resources_ignored,
-                                                                       resources_updated)
-            self.process_info_obj['upload_status'] = get_action_message('Upload',
-                                                                        self.upload_fixity,
-                                                                        self.metadata_validation)
-        # Otherwise if we are uploading from a local source then create fts metadata
-        # and update the server process file
-        else:
-            self.metadata_validation = create_upload_metadata(self, func_dict['file_metadata_list'],
-                                                              func_dict['action_metadata'],
-                                                              func_dict['project_id'],
-                                                              resources_ignored, resources_updated)
-            # Validate the final metadata
-            self.process_info_obj['message'] = get_action_message('Upload',
-                                                                  self.upload_fixity,
-                                                                  self.metadata_validation)
+        self.metadata_validation = create_upload_metadata(self,
+                                                          func_dict['file_metadata_list'],
+                                                          func_dict['action_metadata'],
+                                                          func_dict['project_id'],
+                                                          resources_ignored,
+                                                          resources_updated)
+        # Validate the final metadata
+        self.process_info_obj['message'] = get_action_message('Upload',
+                                                              self.upload_fixity,
+                                                              self.metadata_validation)
 
+        if self.action == 'resource_upload':
             # Update server process file
             self.process_info_obj['status_code'] = '200'
             self.process_info_obj['status'] = 'finished'

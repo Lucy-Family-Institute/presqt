@@ -38,11 +38,10 @@ def get_upload_source_metadata(instance, bag):
                 os.rename(metadata_path, invalid_metadata_path)
                 bag.save(manifests=True)
 
-
-def create_upload_transfer_metadata(instance, file_metadata_list, action_metadata, project_id,
-                                    resources_ignored, resources_updated):
+def create_upload_metadata(instance, file_metadata_list, action_metadata, project_id,
+                           resources_ignored, resources_updated):
     """
-    Create FTS file metadata for the action's resources when the action is a transfer.
+    Create FTS file metadata for the action's resources.
 
     Parameters
     ----------
@@ -70,21 +69,16 @@ def create_upload_transfer_metadata(instance, file_metadata_list, action_metadat
     instance.action_metadata['files'] = build_file_dict(instance.action_metadata['files']['created'],
                                                         resources_ignored, resources_updated,
                                                         'destinationPath')
-
     for resource in file_metadata_list:
-        # Get the resource's metadata dict that has already been created during download
+        # Get the resource's metadata dict that has already been created
         fts_metadata_entry = get_dictionary_from_list(instance.new_fts_metadata_files,
                                                       'destinationPath',
                                                       resource['actionRootPath']
                                                       [len(instance.data_directory):])
-
         # Add destination metadata
         fts_metadata_entry['destinationHashes'] = {}
         if resource['destinationHash']:
             fts_metadata_entry['destinationHashes'][instance.hash_algorithm] = resource['destinationHash']
-
-        if resource['failed_fixity_info']:
-            fts_metadata_entry['failedFixityInfo'].append(resource['failed_fixity_info'])
 
         fts_metadata_entry['destinationPath'] = resource['destinationPath']
 
@@ -92,55 +86,6 @@ def create_upload_transfer_metadata(instance, file_metadata_list, action_metadat
     from presqt.api_v1.utilities import create_fts_metadata
     fts_metadata_data = create_fts_metadata(instance.action_metadata,
                                             instance.source_fts_metadata_actions)
-    # Write the metadata file to the destination target and validate the metadata file
-    metadata_validation = write_and_validate_metadata(instance, project_id, fts_metadata_data)
-    return metadata_validation
-
-
-def create_upload_metadata(instance, file_metadata_list, action_metadata, project_id,
-                           resources_ignored, resources_updated):
-    """
-    Create FTS file metadata for the action's resources when the action is an upload.
-
-    Parameters
-    ----------
-    instance: BaseResource Class Instance
-        Class instance for the action
-    file_metadata_list: list
-        List of file metadata brought back from the upload function
-    action_metadata: dict
-        Metadata about the action itself
-    project_id: str
-        ID of the project the resource metadata should be uploaded to
-    resources_ignored: list
-        List of resource string paths that were ignored during upload
-    resources_updated: list
-        List of resource string paths that were updated during upload
-
-    Returns
-    -------
-    Returns the result of schema validation against the final FTS metadata.
-    Will be True if valid and an error string if invalid.
-    """
-
-    # Put the file metadata in the correct file list
-    files = build_file_dict(instance.new_fts_metadata_files, resources_ignored, resources_updated, 'sourcePath')
-    instance.action_metadata['files'] = files
-    instance.action_metadata['destinationUsername'] = action_metadata['destinationUsername']
-    for resource in file_metadata_list:
-        print(resource)
-        print('******')
-        print(instance.new_fts_metadata_files)
-        fts_metadata_entry = get_dictionary_from_list(instance.new_fts_metadata_files,
-                                                      'destinationPath',
-                                                      resource['actionRootPath']
-                                                      [len(instance.data_directory):])
-        fts_metadata_entry['destinationHashes'][instance.hash_algorithm] = resource['destinationHash']
-        fts_metadata_entry['destinationPath'] = resource['destinationPath']
-
-    # Create FTS metadata object
-    from presqt.api_v1.utilities import create_fts_metadata
-    fts_metadata_data = create_fts_metadata(instance.action_metadata, instance.source_fts_metadata_actions)
     # Write the metadata file to the destination target and validate the metadata file
     metadata_validation = write_and_validate_metadata(instance, project_id, fts_metadata_data)
     return metadata_validation
