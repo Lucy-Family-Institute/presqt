@@ -48,7 +48,7 @@
     },
     "supported_transfer_partners": {
       "transfer_in": ["osf", "curate_nd"],
-      "transfer_out": ["osf"]
+      "transfer_out": ["osf", "zenodo"]
     },
     "supported_hash_algorithms": [],
     "infinite_depth": true
