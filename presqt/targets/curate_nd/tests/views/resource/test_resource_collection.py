@@ -3,6 +3,7 @@ import os
 from django.test import SimpleTestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
+from unittest import skip
 
 
 class TestResourceCollection(SimpleTestCase):
@@ -16,6 +17,7 @@ class TestResourceCollection(SimpleTestCase):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': os.environ['CURATE_ND_TEST_TOKEN']}
 
+    @skip('Curate Test Server Issues')
     def test_success_curate_nd(self):
         """
         Return a 200 if the GET method is successful when grabbing CurateND resources.
@@ -34,6 +36,7 @@ class TestResourceCollection(SimpleTestCase):
         for data in response.data:
             self.assertEqual(len(data['links']), 1)
 
+    @skip('Curate Test Server Issues')
     def test_error_400_missing_token_curate_nd(self):
         """
         Return a 400 if the GET method fails because the presqt-source-token was not provided.
@@ -45,6 +48,7 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.data,
                          {'error': "'presqt-source-token' missing in the request headers."})
 
+    @skip('Curate Test Server Issues')
     def test_error_401_invalid_token_curate_nd(self):
         """
         Return a 401 if the token provided is not a valid token.
