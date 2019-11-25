@@ -50,7 +50,6 @@ def finite_depth_upload_helper(instance):
         project_zip_path = zip_format_path
         zip_path = '/{}'.format(zip_title)
 
-
     # Write the metadata file into the data directory of the bag
     update_bagit_with_metadata(instance, zip_title)
 
@@ -60,30 +59,31 @@ def finite_depth_upload_helper(instance):
                   instance.resource_main_dir)
 
     # Reset
-    target_supported_algorithms = get_target_data(instance.destination_target_name)['supported_hash_algorithms']
+    target_supported_algorithms = get_target_data(instance.destination_target_name)[
+        'supported_hash_algorithms']
     for hash_algorithm in target_supported_algorithms:
         if hash_algorithm in hashlib.algorithms_available:
             instance.hash_algorithm = hash_algorithm
             break
-    else:
+    else:  # pragma: no cover
         instance.hash_algorithm = 'md5'
 
     # Since the metadata belonging with the files gets written inside of the zip,
     # Reset the metadata to associate with the zip file actually being uploaded
     zip_file = read_file('{}/{}'.format(project_zip_path, zip_title))
     zip_hash = hash_generator(zip_file, instance.hash_algorithm)
-    instance.file_hashes = {'{}/{}'.format(project_zip_path, zip_title): zip_hash }
+    instance.file_hashes = {'{}/{}'.format(project_zip_path, zip_title): zip_hash}
 
     instance.source_fts_metadata_actions = []
     instance.new_fts_metadata_files = [{
-                'title': zip_title,
-                'sourcePath': '/{}'.format(zip_title),
-                'destinationPath': zip_path,
-                'sourceHashes': {instance.hash_algorithm: zip_hash},
-                'destinationHashes': {},
-                'failedFixityInfo': [],
-                'extra': {}
-            }]
+        'title': zip_title,
+        'sourcePath': '/{}'.format(zip_title),
+        'destinationPath': zip_path,
+        'sourceHashes': {instance.hash_algorithm: zip_hash},
+        'destinationHashes': {},
+        'failedFixityInfo': [],
+        'extra': {}
+    }]
 
     instance.action_metadata = {
         'id': str(uuid4()),
@@ -116,7 +116,9 @@ def update_bagit_with_metadata(instance, zip_title):
         Title of the zipped resource
     """
     for action_metadata in instance.action_metadata['files']['created']:
-        action_metadata['destinationPath'] = '/{}/data{}'.format(zip_title, action_metadata['sourcePath'])
+        root_path = action_metadata['destinationPath']
+        action_metadata['destinationPath'] = '/{}/data{}'.format(
+            zip_title, root_path)
     instance.action_metadata['destinationTargetName'] = 'Zip File'
 
     final_fts_metadata_data = create_fts_metadata(instance.action_metadata,
