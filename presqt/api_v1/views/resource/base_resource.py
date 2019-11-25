@@ -261,11 +261,15 @@ class BaseResource(APIView):
         self.download_fixity = True
         self.source_fts_metadata_actions = []
         self.new_fts_metadata_files = []
+        self.download_failed_fixity = []
         for resource in func_dict['resources']:
             # Perform the fixity check and add extra info to the returned fixity object.
             fixity_obj, self.download_fixity = download_fixity_checker.download_fixity_checker(
                 resource)
             fixity_info.append(fixity_obj)
+
+            if not fixity_obj['fixity']:
+                self.download_failed_fixity.append(resource['path'])
 
             # Create metadata for this resource. Return True if a valid FTS metadata file is found.
             if create_download_metadata(self, resource, fixity_obj):
@@ -338,6 +342,8 @@ class BaseResource(APIView):
             self.process_info_obj['status_code'] = '200'
             self.process_info_obj['status'] = 'finished'
             self.process_info_obj['zip_name'] = '{}.zip'.format(self.base_directory_name)
+            self.process_info_obj['failed_fixity'] = self.download_failed_fixity
+
             write_file(self.process_info_path, self.process_info_obj, True)
 
             # Update the shared memory map so the watchdog process can stop running.
@@ -437,24 +443,17 @@ class BaseResource(APIView):
         # Check if fixity has failed on any files during a transfer. If so, then update the process_info_data
         # file.
         self.upload_fixity = True
-        self.process_info_obj['failed_fixity'] = []
-        # if self.action == 'resource_transfer_in':
-        #     for resource in self.new_fts_metadata_files:
-        #         if len(resource['failedFixityInfo']) > 0:
-        #             self.upload_fixity = False
-        #             self.process_info_obj['failed_fixity'].append(
-        #                 resource['destinationPath'])
+        self.upload_failed_fixity = []
 
-        ###### If it's not a transfer, we need to run this check. #########
         for resource in func_dict['file_metadata_list']:
             resource['failed_fixity_info'] = []
             if resource['destinationHash'] != self.file_hashes[resource['actionRootPath']] \
                     and resource['actionRootPath'] not in func_dict['resources_ignored']:
                 self.upload_fixity = False
-                self.process_info_obj['failed_fixity'].append(resource['actionRootPath']
-                                                              [len(self.data_directory) + 1:])
+                self.upload_failed_fixity.append(resource['actionRootPath']
+                                                 [len(self.data_directory) + 1:])
                 resource['failed_fixity_info'].append({
-                    'NewGeneratedHash': resource['destinationHash'],
+                    'NewGeneratedHash': self.file_hashes[resource['actionRootPath']],
                     'algorithmUsed': self.hash_algorithm,
                     'reasonFixityFailed': "Either the destination did not provide a hash "
                     "or fixity failed during upload."})
@@ -484,6 +483,7 @@ class BaseResource(APIView):
             self.process_info_obj['status_code'] = '200'
             self.process_info_obj['status'] = 'finished'
             self.process_info_obj['hash_algorithm'] = self.hash_algorithm
+            self.process_info_obj['failed_fixity'] = self.upload_failed_fixity
             write_file(self.process_info_path, self.process_info_obj, True)
 
             # Update the shared memory map so the watchdog process can stop running.
@@ -582,6 +582,7 @@ class BaseResource(APIView):
         # Transfer was a success so update the server metadata file.
         self.process_info_obj['status_code'] = '200'
         self.process_info_obj['status'] = 'finished'
+        self.process_info_obj['failed_fixity'] = list(set(self.download_failed_fixity + self.upload_failed_fixity))
 
         transfer_fixity = False if not self.download_fixity or not self.upload_fixity else True
         self.process_info_obj['message'] = get_action_message(

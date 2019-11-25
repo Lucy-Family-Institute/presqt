@@ -81,6 +81,7 @@ def create_upload_metadata(instance, file_metadata_list, action_metadata, projec
             fts_metadata_entry['destinationHashes'][instance.hash_algorithm] = resource['destinationHash']
 
         fts_metadata_entry['destinationPath'] = resource['destinationPath']
+        fts_metadata_entry['failedFixityInfo'] += resource['failed_fixity_info']
 
     # Create FTS metadata object
     from presqt.api_v1.utilities import create_fts_metadata
