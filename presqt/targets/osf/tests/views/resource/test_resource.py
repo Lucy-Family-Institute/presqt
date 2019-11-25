@@ -878,10 +878,10 @@ class TestResourcePOST(SimpleTestCase):
         # Verify that a file was created and one was ignored
         self.assertEqual(len(metadata_dict['actions'][0]['files']['created']), 1)
         self.assertEqual(metadata_dict['actions'][0]['files']['created'][0]['destinationPath'],
-                         'NewProject/osfstorage/funnyfunnyimages/Screen Shot 2019-07-15 at 3.51.13 PM.png')
+                         '/NewProject/osfstorage/funnyfunnyimages/Screen Shot 2019-07-15 at 3.51.13 PM.png')
         self.assertEqual(len(metadata_dict['actions'][0]['files']['ignored']), 1)
         self.assertEqual(metadata_dict['actions'][0]['files']['ignored'][0]['destinationPath'],
-                         'NewProject/osfstorage/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png')
+                         '/NewProject/osfstorage/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png')
 
         # Update metadata to be invalid for testing purposes.
         metadata_dict['test_bad_metadata'] = metadata_dict.pop('actions')

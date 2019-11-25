@@ -14,7 +14,8 @@ from presqt.api_v1.utilities.metadata.create_fts_metadata import create_fts_meta
 from presqt.api_v1.utilities.validation.file_duplicate_action_validation import \
     file_duplicate_action_validation
 from presqt.api_v1.utilities.validation.process_token_validation import process_token_validation
-from presqt.api_v1.utilities.validation.target_validation import target_validation
+from presqt.api_v1.utilities.validation.target_validation import (
+    target_validation, transfer_target_validation)
 from presqt.api_v1.utilities.validation.get_process_info_data import get_process_info_data
 from presqt.api_v1.utilities.validation.token_validation import (get_source_token,
                                                                  get_destination_token)
