@@ -214,7 +214,7 @@ class TestResourcePOSTWithFile(SimpleTestCase):
         process_info = read_file(process_info_path, True)
         self.assertEqual(process_info['message'], 'Upload successful but with fixity errors.')
         self.assertEqual(process_info['failed_fixity'], [
-                         'NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png'])
+                         '/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png'])
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/uploads/{}'.format(ticket_number))
