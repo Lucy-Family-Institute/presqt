@@ -30,6 +30,7 @@ Target Collection/Details
         transfer_in                  array Targets this target can accept transfers from
         transfer_out                 array Targets this target can transfer to
         supported_hash_algorithms    array The hash algorithms supported by the target
+        infinite_depth               bool  Does the target support an infinite depth hierarchy?
         ============================ ===== ========================================================================
 
     **Target JSON Example:**
@@ -51,7 +52,8 @@ Target Collection/Details
                     "transfer_in": ["github", "curate_nd"],
                     "transfer_out": ["github"]
                 },
-                "supported_hash_algorithms": ["sha256", "md5"]
+                "supported_hash_algorithms": ["sha256", "md5"],
+                "infinite_depth": true
             }
 
     There is a management command that will validate ``targets.json`` that can be ran after you add your target.
