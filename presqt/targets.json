@@ -1,0 +1,70 @@
+[
+  {
+    "name": "osf",
+    "readable_name": "OSF",
+    "supported_actions": {
+      "resource_collection": true,
+      "resource_detail": true,
+      "resource_download": true,
+      "resource_upload": true,
+      "resource_transfer_in": true,
+      "resource_transfer_out": true
+    },
+    "supported_transfer_partners": {
+      "transfer_in": ["github", "curate_nd", "zenodo"],
+      "transfer_out": ["github", "zenodo"]
+    },
+    "supported_hash_algorithms": ["sha256", "md5"]
+  },
+  {
+    "name": "curate_nd",
+    "readable_name": "CurateND",
+    "supported_actions": {
+      "resource_collection": true,
+      "resource_detail": true,
+      "resource_download": true,
+      "resource_upload": false,
+      "resource_transfer_in": false,
+      "resource_transfer_out": true
+    },
+    "supported_transfer_partners": {
+      "transfer_in": [],
+      "transfer_out": ["osf", "github", "zenodo"]
+    },
+    "supported_hash_algorithms": ["md5"]
+  },
+  {
+    "name": "github",
+    "readable_name": "GitHub",
+    "supported_actions": {
+      "resource_collection": true,
+      "resource_detail": true,
+      "resource_download": true,
+      "resource_upload": true,
+      "resource_transfer_in": true,
+      "resource_transfer_out": true
+    },
+    "supported_transfer_partners": {
+      "transfer_in": ["osf", "curate_nd", "zenodo"],
+      "transfer_out": ["osf", "zenodo"]
+    },
+    "supported_hash_algorithms": []
+  },
+  {
+    "name": "zenodo",
+    "readable_name": "Zenodo",
+    "supported_actions": {
+      "resource_collection": true,
+      "resource_detail": true,
+      "resource_download": true,
+      "resource_upload": true,
+      "resource_transfer_in": true,
+      "resource_transfer_out": false
+    },
+    "supported_transfer_partners": {
+      "transfer_in": ["osf", "github", "curate_nd"],
+      "transfer_out": ["osf", "github"]
+    },
+    "supported_hash_algorithms": ["md5"]
+  }
+]

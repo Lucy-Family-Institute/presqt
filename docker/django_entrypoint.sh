@@ -4,13 +4,10 @@
 
 set -e
 
-until python docker/postgres_health_check.py; do
-  >&2 echo "Postgres is unavailable - sleeping"
-  sleep 1
-done
-
-python manage.py migrate
 python manage.py collectstatic --no-input
+
+python manage.py validate_target_json
+python manage.py delete_outdated_mediafiles
 
 if [ "$ENVIRONMENT" = "development" ]
 then

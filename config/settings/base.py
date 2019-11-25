@@ -27,6 +27,10 @@ BASE_DIR = Path(os.path.abspath(__file__)).parents[2]
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ['SECRET_KEY']
 
+# configure your proxy to set a custom HTTP header that tells Django whether the request came
+# in via HTTPS, and set SECURE_PROXY_SSL_HEADER so that Django knows what header to look for.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 DEBUG = False
 ALLOWED_HOSTS = []
 
@@ -39,11 +43,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'presqt',
-    'presqt.upload'
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -76,18 +82,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.environ['POSTGRES_DB'],
-        'USER': os.environ['POSTGRES_USER'],
-        'PASSWORD': os.environ['POSTGRES_PASSWORD'],
-        'HOST': 'presqt_postgres',
-        'PORT': '5432',
-    }
-}
-
+DATABASES = {}
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
@@ -113,7 +108,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/New_York'
 
 USE_I18N = True
 
@@ -130,5 +125,18 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL = '/mediafiles/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'mediafiles')
 
-# extending Django user class via AbstractUser
-AUTH_USER_MODEL = 'presqt.User'
+# If we don't do this, NGINX will not be able to serve large files that are uploaded to the server
+# since the default permissions set for large files deny it access.
+FILE_UPLOAD_PERMISSIONS = 0o644
+
+# Test user tokens. Used for unit tests.
+# DON'T EVER USE THESE TOKENS TO STORE NON-PUBLIC DATA AS THEY ARE NOT SECURE
+OSF_TEST_USER_TOKEN = '3f5ULLSX3OaJcNVmj6N6cTomvcmlZf5YQYYKl6ek6c6SKXMG7V0R63ueMB0uiiGwrkXQi8'
+OSF_PRIVATE_USER_TOKEN = '0UAX3rbdd59OUXkGIu19gY0BMQODAbtGimcLNAfAie6dUQGGPig93mpFOpJQ8ceynlGScp'
+OSF_UPLOAD_TEST_USER_TOKEN = 'E9luKQU9Ywe5QFG2HpgupjBqqSeH4fZKG6IxUMVP8fa242dSyECYuB5lhFvekbmjhxq1zT'
+OSF_PRESQT_FORK_TOKEN = 'Airlov2nBOb41T1d3FkTIbzC8ahq3nBWDxMbGyrUYvWDinKWJgrPO52uuS6KJIBXKXFtlv'
+ZENODO_TEST_USER_TOKEN = 'DgV5z8saMSspC6CShOaCvgwGttxJVz9LzpCNPEvjaTtS0cCzX2jzd35B7ENb'
+
+CURATE_ND_TEST_TOKEN = os.environ['CURATE_ND_TEST_TOKEN']
+
+GITHUB_TEST_USER_TOKEN = os.environ['GITHUB_TEST_USER_TOKEN']

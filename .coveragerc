@@ -1,0 +1,25 @@
+[run]
+# A list of file name patterns, the files to leave out of measurement or reporting.
+omit =
+        # Omit this single file
+        presqt/management/commands/bag_zip.py
+        presqt/management/commands/validate_target_json.py
+        presqt/management/commands/add_new_target.py
+        presqt/management/tests/*
+        presqt/api_v1/tests/*
+        presqt/json_schemas/tests/*
+        presqt/targets/osf/tests/*
+        presqt/targets/curate_nd/tests/*
+        presqt/targets/utilities/tests/*
+        presqt/targets/github/tests/*
+        presqt/targets/zenodo/tests/*
+
+# A list of packages or directories, the source to measure during execution.
+source = presqt
+
+concurrency = multiprocessing
+
+[html]
+
+# The name of the data file/directory to use for storing or reporting coverage.
+directory = coverage_html
