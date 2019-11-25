@@ -1,48 +1,52 @@
 {
   "type": "array",
   "items": {
-      "type": "object",
-      "properties": {
-        "name": {"type": "string"},
-        "readable_name": {"type": "string"},
-        "supported_actions": {
-            "type": "object",
-            "properties": {
-                "resource_collection": {"type": "boolean"},
-                "resource_detail": {"type": "boolean"},
-                "resource_download": {"type": "boolean"},
-                "resource_upload": {"type": "boolean"},
-                "resource_transfer_in": {"type": "boolean"},
-                "resource_transfer_out": {"type": "boolean"}
-            }
-        },
-        "supported_transfer_partners": {
-          "type": "object",
-          "properties": {
-            "transfer_in": {"type": "array", 
-              "items": {
-                "type": "string"
-              }
-            },
-            "transfer_out": {"type": "array", 
-              "items": {
-                "type": "string"
-              }
-            }
-          }
-        },
-        "supported_hash_algorithms": {
+    "type": "object",
+    "properties": {
+      "name": { "type": "string" },
+      "readable_name": { "type": "string" },
+      "supported_actions": {
+        "type": "object",
+        "properties": {
+          "resource_collection": { "type": "boolean" },
+          "resource_detail": { "type": "boolean" },
+          "resource_download": { "type": "boolean" },
+          "resource_upload": { "type": "boolean" },
+          "resource_transfer_in": { "type": "boolean" },
+          "resource_transfer_out": { "type": "boolean" }
+        }
+      },
+      "supported_transfer_partners": {
+        "type": "object",
+        "properties": {
+          "transfer_in": {
             "type": "array",
             "items": {
               "type": "string"
             }
+          },
+          "transfer_out": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
         }
       },
-      "required": [
-        "name",
-        "readable_name",
-        "supported_actions",
-        "supported_hash_algorithms"
-      ]
-    }
+      "supported_hash_algorithms": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "infinite_depth": { "type": "boolean" }
+    },
+    "required": [
+      "name",
+      "readable_name",
+      "supported_actions",
+      "supported_hash_algorithms",
+      "infinite_depth"
+    ]
+  }
 }

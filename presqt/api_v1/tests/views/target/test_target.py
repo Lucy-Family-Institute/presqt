@@ -21,8 +21,8 @@ class TestTargetCollection(SimpleTestCase):
 
         # Verify that the first dictionary in the payload's array has the correct keys
         expected_keys = ['name', 'readable_name', 'supported_actions', 'supported_transfer_partners',
-                         'supported_hash_algorithms', 'links']
-        
+                         'supported_hash_algorithms', 'infinite_depth', 'links']
+
         expected_supported_keys = ['resource_collection', 'resource_detail', 'resource_download',
                                    'resource_upload', 'resource_transfer_in', 'resource_transfer_out']
         for dict_item in response.data:

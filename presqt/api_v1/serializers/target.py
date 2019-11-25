@@ -4,6 +4,7 @@ from rest_framework import serializers
 from presqt.api_v1.utilities import action_checker, link_builder
 from presqt.utilities import list_intersection
 
+
 class SupportedActions(serializers.Serializer):
     """
     Serializer for supported_actions objects inside the Target JSON.
@@ -15,12 +16,14 @@ class SupportedActions(serializers.Serializer):
     resource_transfer_in = serializers.BooleanField()
     resource_transfer_out = serializers.BooleanField()
 
+
 class SupportedTransferPartners(serializers.Serializer):
     """
     Serializer for supported_transfer_partners objects inside the Target JSON.
     """
     transfer_in = serializers.ListField(child=serializers.CharField())
     transfer_out = serializers.ListField(child=serializers.CharField())
+
 
 class TargetsSerializer(serializers.Serializer):
     """
@@ -31,6 +34,7 @@ class TargetsSerializer(serializers.Serializer):
     supported_actions = SupportedActions()
     supported_transfer_partners = SupportedTransferPartners()
     supported_hash_algorithms = serializers.StringRelatedField(many=True)
+    infinite_depth = serializers.BooleanField()
     links = serializers.SerializerMethodField()
 
     def get_links(self, instance):
@@ -61,6 +65,7 @@ class TargetSerializer(serializers.Serializer):
     supported_actions = SupportedActions()
     supported_transfer_partners = SupportedTransferPartners()
     supported_hash_algorithms = serializers.StringRelatedField(many=True)
+    infinite_depth = serializers.BooleanField()
     links = serializers.SerializerMethodField()
 
     def get_links(self, instance):

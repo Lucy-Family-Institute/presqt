@@ -144,7 +144,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         self.duplicate_action = 'ignore'
         self.url = reverse('resource', kwargs={
                            'target_name': 'zenodo', 'resource_id': self.resource_id})
-        self.file = 'presqt/api_v1/tests/resources/upload/ProjectSingleFileToUpload.zip'
+        self.file = 'presqt/api_v1/tests/resources/upload/SingleFileDuplicate.zip'
         shared_upload_function_osf(self)
 
         # Ensure there are two actions in the metadata.
@@ -161,44 +161,6 @@ class TestResourceCollectionPOST(SimpleTestCase):
 
         # Delete upload folder
         shutil.rmtree(self.ticket_path)
-
-    def test_success_202_ignored_resource(self):
-        """
-        If an empty directory is included in the uploaded project, we want to ensure the user is
-        made aware.
-        """
-        bag_with_empty_directory = 'presqt/api_v1/tests/resources/upload/Empty_Directory_Bag.zip'
-        self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
-        response = self.client.post(self.url, {'presqt-file': open(bag_with_empty_directory, 'rb')},
-                                    **self.headers)
-
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
-
-        # Wait until the spawned off process finishes in the background
-        # to do validation on the resulting files
-        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
-            try:
-                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-            except json.decoder.JSONDecodeError:
-                # Pass while the process_info file is being written to
-                pass
-
-        upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
-
-        # Verify status code and message
-        self.assertEqual(upload_job_response.data['resources_ignored'], ['/Egg/Empty_Folder'])
-
-        # Delete the project on Zenodo.
-        test_user_projects = requests.get('https://zenodo.org/api/deposit/depositions',
-                                          params=self.auth_params).json()
-        for project in test_user_projects:
-            if project['title'] == 'Egg':
-                requests.delete(project['links']['self'], params=self.auth_params)
-
-        # Delete upload folder
-        shutil.rmtree(ticket_path)
 
     def test_error_uploading_to_exisitng_container(self):
         """
@@ -256,7 +218,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
             upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
             self.assertEqual(upload_job_response.data['status_code'], 400)
             self.assertEqual(upload_job_response.data['message'],
-                             'Zenodo returned an error trying to upload Screen Shot 2019-07-15 at 3.51.13 PM.png')
+                             'Zenodo returned an error trying to upload NewProject.presqt.zip')
 
             # Delete the upload folder
             shutil.rmtree(ticket_path)
@@ -280,17 +242,9 @@ class TestResourceCollectionPOST(SimpleTestCase):
                         metadata_file = json.loads(response.content)
         # Action metadata
         self.assertEqual(metadata_file['actions'][0]['actionType'], 'resource_upload')
-        self.assertEqual(metadata_file['actions'][0]['sourceTargetName'], 'Local Machine')
+        self.assertEqual(metadata_file['actions'][0]['sourceTargetName'], 'Server Created Zip')
         self.assertEqual(metadata_file['actions'][0]['destinationTargetName'], 'zenodo')
         self.assertEqual(metadata_file['actions'][0]['destinationUsername'], None)
-
-        # File metadata
-        self.assertEqual(metadata_file['actions'][0]['files']['created'][0]['title'],
-                         'Screen Shot 2019-07-15 at 3.26.49 PM.png')
-        self.assertEqual(metadata_file['actions'][0]['files']['created'][0]['sourcePath'],
-                         '/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png')
-        self.assertEqual(metadata_file['actions'][0]['files']['created'][0]['destinationPath'],
-                         '/NewProject/Screen Shot 2019-07-15 at 3.26.49 PM.png')
 
         # Delete upload folder
         shutil.rmtree(self.ticket_path)
@@ -300,44 +254,6 @@ class TestResourceCollectionPOST(SimpleTestCase):
         If the upload file contains an invalid metadata file, it needs to be renamed and a new metadata
         file is to be made. If it is valid, we need to append the new action.
         """
-        bag_with_bad_metadata = 'presqt/api_v1/tests/resources/upload/Invalid_Metadata_Upload.zip'
-        self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
-        response = self.client.post(self.url, {'presqt-file': open(bag_with_bad_metadata, 'rb')},
-                                    **self.headers)
-
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
-
-        # Wait until the spawned off process finishes in the background
-        # to do validation on the resulting files
-        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
-            try:
-                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-            except json.decoder.JSONDecodeError:
-                # Pass while the process_info file is being written to
-                pass
-
-        # On the project that was just created, we need to get the contents of the metadata file.
-        metadata_helper = requests.get('https://zenodo.org/api/deposit/depositions',
-                                       params=self.auth_params).json()
-        for project in metadata_helper:
-            if project['title'] == 'Bad_Egg':
-                project_link_to_delete = project['links']['self']
-                get_files = requests.get(project['links']['files'], params=self.auth_params).json()
-                for file in get_files:
-                    if file['filename'] == 'INVALID_PRESQT_FTS_METADATA.json':
-                        response = requests.get(file['links']['download'], params=self.auth_params)
-                        invalid_metadata_file = json.loads(response.content)
-
-        self.assertEqual(invalid_metadata_file, {'invalid_metadata': 'no bueno'})
-
-        # Delete this project
-        requests.delete(project_link_to_delete, params=self.auth_params)
-
-        # Delete upload folder
-        shutil.rmtree(ticket_path)
-
         ###### VALID METADATA #######
         bag_with_good_metadata = 'presqt/api_v1/tests/resources/upload/Valid_Metadata_Upload.zip'
         response = self.client.post(self.url, {'presqt-file': open(bag_with_good_metadata, 'rb')},
@@ -368,7 +284,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
                         file_url = file['links']['self']
                         response = requests.get(file['links']['download'], params=self.auth_params)
                         valid_metadata_file = json.loads(response.content)
-        self.assertEqual(len(valid_metadata_file['actions']), 2)
+        self.assertEqual(len(valid_metadata_file['actions']), 1)
 
         ### EXPLICIT TEST UPLOADING UPDATED METADATA BUT THERE'S AN ERROR ###
         class MockResponse:
@@ -404,6 +320,34 @@ class TestResourceCollectionPOST(SimpleTestCase):
 
         # Delete this project
         requests.delete(project_link_to_delete, params=self.auth_params)
+
+        # Delete upload folder
+        shutil.rmtree(ticket_path)
+
+    def test_bad_resource_id(self):
+        """
+        If the resource id given is invalid, we want to raise an error.
+        """
+        self.url = reverse('resource', kwargs={
+                           'target_name': 'zenodo', 'resource_id': '52162'})
+
+        response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')},
+                                    **self.headers)
+
+        ticket_number = response.data['ticket_number']
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+
+        details = self.client.get(response.data['upload_job'], **self.headers).data
+
+        self.assertEqual(details['status_code'], 404)
+        self.assertEqual(details['message'], "Can't find the resource with id 52162, on Zenodo")
 
         # Delete upload folder
         shutil.rmtree(ticket_path)
@@ -444,7 +388,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         self.duplicate_action = 'ignore'
         self.url = reverse('resource', kwargs={
             'target_name': 'zenodo', 'resource_id': self.resource_id})
-        self.file = 'presqt/api_v1/tests/resources/upload/ProjectSingleFileToUpload.zip'
+        self.file = 'presqt/api_v1/tests/resources/upload/SingleFileDuplicate.zip'
         shared_upload_function_osf(self)
 
         # Ensure there are two actions in the metadata.

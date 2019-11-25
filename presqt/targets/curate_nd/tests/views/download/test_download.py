@@ -8,6 +8,7 @@ import os
 from django.test import SimpleTestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
+from unittest import skip
 
 from presqt.api_v1.utilities.fixity.download_fixity_checker import download_fixity_checker
 from presqt.utilities import read_file
@@ -20,11 +21,13 @@ class TestDownload(SimpleTestCase):
 
     Testing only CurateND download function.
     """
+
     def setUp(self):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': os.environ['CURATE_ND_TEST_TOKEN']}
         self.target_name = 'curate_nd'
 
+    @skip('Curate Test Server Issues')
     def test_success_empty_item(self):
         """
         Return a 200 along with a zip file of the empty item requested.
@@ -64,6 +67,7 @@ class TestDownload(SimpleTestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
 
+    @skip('Curate Test Server Issues')
     def test_success_individual_file(self):
         """
         Return a 200 along with a zip file of the file requested.
@@ -111,6 +115,7 @@ class TestDownload(SimpleTestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
 
+    @skip('Curate Test Server Issues')
     def test_success_item_multiple_files(self):
         """
         Return a 200 along with a zip file of the item and assosciated files requested.
@@ -139,13 +144,13 @@ class TestDownload(SimpleTestCase):
             for file_fixity in zip_json:
                 self.assertEqual(file_fixity['fixity'], True)
                 self.assertEqual(file_fixity['fixity_details'],
-                                'Source Hash and PresQT Calculated hash matched.')
+                                 'Source Hash and PresQT Calculated hash matched.')
                 self.assertEqual(file_fixity['hash_algorithm'], 'md5')
                 self.assertEqual(file_fixity['presqt_hash'], file_fixity['source_hash'])
 
         # Run the files through the fixity checker again to make sure they downloaded correctly
         with zip_file.open('{}_download_{}/data{}'.format(
-            self.target_name, resource_id, zip_json[0]['path'])) as myfile:
+                self.target_name, resource_id, zip_json[0]['path'])) as myfile:
             temp_file = myfile.read()
             resource_dict = {
                 "file": temp_file,
@@ -157,7 +162,7 @@ class TestDownload(SimpleTestCase):
             fixity, fixity_match = download_fixity_checker(resource_dict)
             self.assertEqual(fixity['fixity'], True)
         with zip_file.open('{}_download_{}/data{}'.format(
-            self.target_name, resource_id, zip_json[1]['path'])) as myfile:
+                self.target_name, resource_id, zip_json[1]['path'])) as myfile:
             temp_file = myfile.read()
             resource_dict = {
                 "file": temp_file,
@@ -172,6 +177,7 @@ class TestDownload(SimpleTestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
 
+    @skip('Curate Test Server Issues')
     def test_error_500_401(self):
         """
         Return a 500 if an invalid token is provided.
@@ -192,16 +198,18 @@ class TestDownload(SimpleTestCase):
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
-        
+
         download_response = self.client.get(download_url, **{'HTTP_PRESQT_SOURCE_TOKEN': 'eggs'})
         # The endpoint lumps all errors into a 500 status code
         self.assertEqual(download_response.status_code, 500)
         self.assertEqual(download_response.data['status_code'], 401)
-        self.assertEqual(download_response.data['message'], "Token is invalid. Response returned a 401 status code.")
+        self.assertEqual(download_response.data['message'],
+                         "Token is invalid. Response returned a 401 status code.")
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(ticket_number))
 
+    @skip('Curate Test Server Issues')
     def test_error_500_403_unauthorized_item_resource(self):
         """
         Return a 500 if the Resource._download_resource() function running on the server gets a 403 error
@@ -220,6 +228,7 @@ class TestDownload(SimpleTestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
 
+    @skip('Curate Test Server Issues')
     def test_error_500_404_resource_not_found(self):
         """
         Return a 500 if the Resource._download_resource() function running on the server gets a 404 error
