@@ -107,6 +107,14 @@ class BaseResource(APIView):
         {
         "error": "source_target_name was not found in the request body."
         }
+        or
+        {
+        "error": 'source_target' does not allow transfer to 'destination_target'.
+        }
+        or
+        {
+        "error": 'destination_target' does not allow transfer from 'source_target'.
+        }
 
         401: Unauthorized
         {
@@ -432,16 +440,16 @@ class BaseResource(APIView):
             if self.action == 'resource_transfer_in':
                 self.process_info_obj['upload_status'] = 'failed'
             self.process_info_obj['message'] = e.data
-            # Update the expiration from 5 days to 1 hour from now. We can delete this faster because
-            # it's an incomplete/failed directory.
+            # Update the expiration from 5 days to 1 hour from now. We can delete this faster
+            # because it's an incomplete/failed directory.
             self.process_info_obj['expiration'] = str(timezone.now() + relativedelta(hours=1))
             write_file(self.process_info_path, self.process_info_obj, True)
             #  Update the shared memory map so the watchdog process can stop running.
             self.process_state.value = 1
             return False
 
-        # Check if fixity has failed on any files during a transfer. If so, then update the process_info_data
-        # file.
+        # Check if fixity has failed on any files during a transfer. If so, update the
+        # process_info_data file.
         self.upload_fixity = True
         self.upload_failed_fixity = []
 
@@ -451,7 +459,7 @@ class BaseResource(APIView):
                     and resource['actionRootPath'] not in func_dict['resources_ignored']:
                 self.upload_fixity = False
                 self.upload_failed_fixity.append(resource['actionRootPath']
-                                                 [len(self.data_directory) + 1:])
+                                                 [len(self.data_directory):])
                 resource['failed_fixity_info'].append({
                     'NewGeneratedHash': self.file_hashes[resource['actionRootPath']],
                     'algorithmUsed': self.hash_algorithm,
@@ -582,7 +590,8 @@ class BaseResource(APIView):
         # Transfer was a success so update the server metadata file.
         self.process_info_obj['status_code'] = '200'
         self.process_info_obj['status'] = 'finished'
-        self.process_info_obj['failed_fixity'] = list(set(self.download_failed_fixity + self.upload_failed_fixity))
+        self.process_info_obj['failed_fixity'] = list(
+            set(self.download_failed_fixity + self.upload_failed_fixity))
 
         transfer_fixity = False if not self.download_fixity or not self.upload_fixity else True
         self.process_info_obj['message'] = get_action_message(
