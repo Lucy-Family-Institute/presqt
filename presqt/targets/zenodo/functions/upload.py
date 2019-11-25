@@ -60,18 +60,17 @@ def zenodo_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
 
     os_path = next(os.walk(resource_main_dir))
 
-    # Verify that the top level directory to upload only has one folder and no files.
-    # This one folder will be the project title and the base for project upload.
-    if len(os_path[1]) > 1:
-        raise PresQTResponseException(
-            "Repository is not formatted correctly. Multiple directories exist at the top level.",
-            status.HTTP_400_BAD_REQUEST)
-
+    # Since Zenodo is a finite depth target, the checks for path validity have already been done.
     if resource_id:
         name_helper = requests.get("https://zenodo.org/api/deposit/depositions/{}".format(
             resource_id), params=auth_parameter).json()
 
-        project_title = name_helper['title']
+        try:
+            project_title = name_helper['title']
+        except KeyError:
+            raise PresQTResponseException(
+                "Can't find the resource with id {}, on Zenodo".format(resource_id),
+                status.HTTP_404_NOT_FOUND)
         action_metadata = {"destinationUsername": None}
         post_url = "https://zenodo.org/api/deposit/depositions/{}/files".format(resource_id)
 
@@ -79,12 +78,6 @@ def zenodo_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                                          post_url, auth_parameter, project_title)
 
     else:
-        # Make sure if this is a new project, there are no files at the top level of the project.
-        if len(os_path[2]) > 0:
-            raise PresQTResponseException(
-                "Repository is not formatted correctly. Files exist at the top level.",
-                status.HTTP_400_BAD_REQUEST)
-
         action_metadata = {"destinationUsername": None}
         project_title = os_path[1][0]
         name_helper = requests.get("https://zenodo.org/api/deposit/depositions",
@@ -148,6 +141,7 @@ def zenodo_upload_loop(action_metadata, resource_id, resource_main_dir, post_url
     resources_ignored = []
     file_metadata_list = []
     resources_updated = []
+    action_metadata = {'destinationUsername': None}
 
     for path, subdirs, files in os.walk(resource_main_dir):
         if not subdirs and not files:

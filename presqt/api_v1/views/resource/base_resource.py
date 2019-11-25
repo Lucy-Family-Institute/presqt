@@ -11,13 +11,14 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 
-from presqt.api_v1.utilities import (target_validation, get_destination_token,
-                                     file_duplicate_action_validation, FunctionRouter,
-                                     get_source_token, transfer_post_body_validation,
+from presqt.api_v1.utilities import (target_validation, transfer_target_validation,
+                                     get_destination_token, file_duplicate_action_validation,
+                                     FunctionRouter, get_source_token, transfer_post_body_validation,
                                      spawn_action_process, get_or_create_hashes_from_bag,
                                      create_fts_metadata, create_download_metadata,
-                                     create_upload_transfer_metadata, create_upload_metadata,
-                                     get_action_message, get_upload_source_metadata, hash_tokens)
+                                     create_upload_metadata,
+                                     get_action_message, get_upload_source_metadata, hash_tokens,
+                                     finite_depth_upload_helper)
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
@@ -106,6 +107,14 @@ class BaseResource(APIView):
         {
         "error": "source_target_name was not found in the request body."
         }
+        or
+        {
+        "error": 'source_target' does not allow transfer to 'destination_target'.
+        }
+        or
+        {
+        "error": 'destination_target' does not allow transfer from 'source_target'.
+        }
 
         401: Unauthorized
         {
@@ -152,7 +161,8 @@ class BaseResource(APIView):
         try:
             self.destination_token = get_destination_token(self.request)
             self.file_duplicate_action = file_duplicate_action_validation(self.request)
-            target_validation(self.destination_target_name, self.action)
+            target_valid, self.infinite_depth = target_validation(
+                self.destination_target_name, self.action)
             resource = file_validation(self.request)
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
@@ -162,20 +172,21 @@ class BaseResource(APIView):
         for index in range(3):
             # Generate ticket number
             ticket_number = uuid4()
-            ticket_path = os.path.join("mediafiles", "uploads", str(ticket_number))
+            self.ticket_path = os.path.join("mediafiles", "uploads", str(ticket_number))
 
             # Extract each file in the zip file to disk
             with zipfile.ZipFile(resource) as myzip:
-                myzip.extractall(ticket_path)
+                myzip.extractall(self.ticket_path)
 
-            self.resource_main_dir = os.path.join(ticket_path, next(os.walk(ticket_path))[1][0])
+            self.base_directory_name = next(os.walk(self.ticket_path))[1][0]
+            self.resource_main_dir = os.path.join(self.ticket_path, self.base_directory_name)
 
             # Validate the 'bag' and check for checksum mismatches
             try:
-                bag = bagit.Bag(self.resource_main_dir)
-                validate_bag(bag)
+                self.bag = bagit.Bag(self.resource_main_dir)
+                validate_bag(self.bag)
             except PresQTValidationError as e:
-                shutil.rmtree(ticket_path)
+                shutil.rmtree(self.ticket_path)
                 # If we've reached the maximum number of attempts then return an error response
                 if index == 2:
                     return Response(data={'error': e.data}, status=e.status_code)
@@ -185,7 +196,7 @@ class BaseResource(APIView):
                     return Response(data=e.args, status=status.HTTP_400_BAD_REQUEST)
             else:
                 # Collect and remove any existing source metadata
-                get_upload_source_metadata(self, bag)
+                get_upload_source_metadata(self, self.bag)
                 # If the bag validated successfully then break from the loop
                 break
 
@@ -197,13 +208,13 @@ class BaseResource(APIView):
             'message': 'Upload is being processed on the server',
             'status_code': None
         }
-        self.process_info_path = os.path.join(ticket_path, 'process_info.json')
+        self.process_info_path = os.path.join(self.ticket_path, 'process_info.json')
         write_file(self.process_info_path, self.process_info_obj, True)
 
         # Create a hash dictionary to compare with the hashes returned from the target after upload
         # If the destination target supports a hash provided by the bag then use those hashes
         # otherwise create new hashes with a target supported hash.
-        self.file_hashes, self.hash_algorithm = get_or_create_hashes_from_bag(self, bag)
+        self.file_hashes, self.hash_algorithm = get_or_create_hashes_from_bag(self)
 
         # Spawn the upload_resource method separate from the request server by using multiprocess.
         spawn_action_process(self, self._upload_resource)
@@ -258,11 +269,15 @@ class BaseResource(APIView):
         self.download_fixity = True
         self.source_fts_metadata_actions = []
         self.new_fts_metadata_files = []
+        self.download_failed_fixity = []
         for resource in func_dict['resources']:
             # Perform the fixity check and add extra info to the returned fixity object.
             fixity_obj, self.download_fixity = download_fixity_checker.download_fixity_checker(
                 resource)
             fixity_info.append(fixity_obj)
+
+            if not fixity_obj['fixity']:
+                self.download_failed_fixity.append(resource['path'])
 
             # Create metadata for this resource. Return True if a valid FTS metadata file is found.
             if create_download_metadata(self, resource, fixity_obj):
@@ -335,6 +350,8 @@ class BaseResource(APIView):
             self.process_info_obj['status_code'] = '200'
             self.process_info_obj['status'] = 'finished'
             self.process_info_obj['zip_name'] = '{}.zip'.format(self.base_directory_name)
+            self.process_info_obj['failed_fixity'] = self.download_failed_fixity
+
             write_file(self.process_info_path, self.process_info_obj, True)
 
             # Update the shared memory map so the watchdog process can stop running.
@@ -349,6 +366,57 @@ class BaseResource(APIView):
 
         # Data directory in the bag
         self.data_directory = '{}/data'.format(self.resource_main_dir)
+
+        # If we are uploading (not transferring) then create the initial metadata based on the
+        # zipped bag provided.
+        if self.action == 'resource_upload':
+            self.new_fts_metadata_files = []
+            for path, subdirs, files in os.walk(self.data_directory):
+                for name in files:
+                    self.new_fts_metadata_files.append({
+                        'destinationHashes': {},
+                        'destinationPath': os.path.join(path, name)[len(self.data_directory):],
+                        'failedFixityInfo': [],
+                        'title': name,
+                        'sourceHashes': {self.hash_algorithm:
+                                         self.file_hashes[os.path.join(path, name)]},
+                        'sourcePath': os.path.join(path, name)[len(self.data_directory):],
+                        'extra': {}})
+
+            self.action_metadata = {
+                'id': str(uuid4()),
+                'actionDateTime': str(timezone.now()),
+                'actionType': self.action,
+                'sourceTargetName': 'Local Machine',
+                'sourceUsername': None,
+                'destinationTargetName': self.destination_target_name,
+                'destinationUsername': None,
+                'files': {
+                    'created': self.new_fts_metadata_files,
+                    'updated': [],
+                    'ignored': []}}
+
+        # If the target destination's storage hierarchy has a finite depth then zip the resources
+        # to be uploaded along with their metadata.
+        # Also, create metadata files for the new zip file to be uploaded.
+        if self.infinite_depth is False:
+            try:
+                finite_depth_upload_helper(self)
+            except PresQTResponseException as e:
+                # Catch any errors that happen within the target fetch.
+                # Update the server process_info file appropriately.
+                self.process_info_obj['status_code'] = e.status_code
+                self.process_info_obj['status'] = 'failed'
+                if self.action == 'resource_transfer_in':
+                    self.process_info_obj['upload_status'] = 'failed'
+                self.process_info_obj['message'] = e.data
+                # Update the expiration from 5 days to 1 hour from now. We can delete this faster because
+                # it's an incomplete/failed directory.
+                self.process_info_obj['expiration'] = str(timezone.now() + relativedelta(hours=1))
+                write_file(self.process_info_path, self.process_info_obj, True)
+                #  Update the shared memory map so the watchdog process can stop running.
+                self.process_state.value = 1
+                return False
 
         # Fetch the proper function to call
         func = FunctionRouter.get_function(self.destination_target_name, action)
@@ -372,70 +440,64 @@ class BaseResource(APIView):
             if self.action == 'resource_transfer_in':
                 self.process_info_obj['upload_status'] = 'failed'
             self.process_info_obj['message'] = e.data
-            # Update the expiration from 5 days to 1 hour from now. We can delete this faster because
-            # it's an incomplete/failed directory.
+            # Update the expiration from 5 days to 1 hour from now. We can delete this faster
+            # because it's an incomplete/failed directory.
             self.process_info_obj['expiration'] = str(timezone.now() + relativedelta(hours=1))
             write_file(self.process_info_path, self.process_info_obj, True)
             #  Update the shared memory map so the watchdog process can stop running.
             self.process_state.value = 1
             return False
 
-        # Check if fixity fails on any files. If so, then update the process_info_data file.
-        self.process_info_obj['failed_fixity'] = []
+        # Check if fixity has failed on any files during a transfer. If so, update the
+        # process_info_data file.
         self.upload_fixity = True
+        self.upload_failed_fixity = []
+
         for resource in func_dict['file_metadata_list']:
             resource['failed_fixity_info'] = []
             if resource['destinationHash'] != self.file_hashes[resource['actionRootPath']] \
                     and resource['actionRootPath'] not in func_dict['resources_ignored']:
                 self.upload_fixity = False
-                self.process_info_obj['failed_fixity'].append(resource['actionRootPath']
-                                                              [len(self.data_directory) + 1:])
+                self.upload_failed_fixity.append(resource['actionRootPath']
+                                                 [len(self.data_directory):])
                 resource['failed_fixity_info'].append({
-                    'NewGeneratedHash': resource['destinationHash'],
+                    'NewGeneratedHash': self.file_hashes[resource['actionRootPath']],
                     'algorithmUsed': self.hash_algorithm,
                     'reasonFixityFailed': "Either the destination did not provide a hash "
-                                          "or fixity failed during upload."
-                })
+                    "or fixity failed during upload."})
 
         # Strip the server created directory prefix of the file paths for ignored and updated files
-        resources_ignored = \
-            [file[len(self.data_directory):] for file in func_dict['resources_ignored']]
+        resources_ignored = [file[len(self.data_directory):]
+                             for file in func_dict['resources_ignored']]
         self.process_info_obj['resources_ignored'] = resources_ignored
-        resources_updated = \
-            [file[len(self.data_directory):] for file in func_dict['resources_updated']]
+        resources_updated = [file[len(self.data_directory):]
+                             for file in func_dict['resources_updated']]
         self.process_info_obj['resources_updated'] = resources_updated
 
-        # If we are transferring the resources then add metadata to the existing fts metadata
-        if self.action == 'resource_transfer_in':
-            self.metadata_validation = create_upload_transfer_metadata(self,
-                                                                       func_dict['file_metadata_list'],
-                                                                       func_dict['action_metadata'],
-                                                                       func_dict['project_id'],
-                                                                       resources_ignored,
-                                                                       resources_updated)
-            self.process_info_obj['upload_status'] = get_action_message('Upload',
-                                                                        self.upload_fixity,
-                                                                        self.metadata_validation)
-        # Otherwise if we are uploading from a local source then create fts metadata
-        # and update the server process file
-        else:
-            self.metadata_validation = create_upload_metadata(self, func_dict['file_metadata_list'],
-                                                              func_dict['action_metadata'],
-                                                              func_dict['project_id'],
-                                                              resources_ignored, resources_updated)
-            # Validate the final metadata
-            self.process_info_obj['message'] = get_action_message('Upload',
-                                                                  self.upload_fixity,
-                                                                  self.metadata_validation)
+        self.metadata_validation = create_upload_metadata(self,
+                                                          func_dict['file_metadata_list'],
+                                                          func_dict['action_metadata'],
+                                                          func_dict['project_id'],
+                                                          resources_ignored,
+                                                          resources_updated)
+        # Validate the final metadata
+        upload_message = get_action_message('Upload',
+                                            self.upload_fixity,
+                                            self.metadata_validation)
+        self.process_info_obj['message'] = upload_message
 
+        if self.action == 'resource_upload':
             # Update server process file
             self.process_info_obj['status_code'] = '200'
             self.process_info_obj['status'] = 'finished'
             self.process_info_obj['hash_algorithm'] = self.hash_algorithm
+            self.process_info_obj['failed_fixity'] = self.upload_failed_fixity
             write_file(self.process_info_path, self.process_info_obj, True)
 
             # Update the shared memory map so the watchdog process can stop running.
             self.process_state.value = 1
+        else:
+            self.process_info_obj['upload_status'] = upload_message
 
         return True
 
@@ -453,10 +515,10 @@ class BaseResource(APIView):
             self.file_duplicate_action = file_duplicate_action_validation(self.request)
             self.source_target_name, self.source_resource_id = transfer_post_body_validation(
                 self.request)
-            target_validation(self.destination_target_name, self.action)
+            target_valid, self.infinite_depth = target_validation(
+                self.destination_target_name, self.action)
             target_validation(self.source_target_name, 'resource_transfer_out')
-            ############# VALIDATION TO ADD #############
-            # CHECK THAT source_target_name CAN TRANSFER TO destination_target_name
+            transfer_target_validation(self.source_target_name, self.destination_target_name)
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
@@ -506,16 +568,16 @@ class BaseResource(APIView):
 
         ####### PREPARE UPLOAD FROM DOWNLOAD BAG #######
         # Validate the 'bag' and check for checksum mismatches
-        bag = bagit.Bag(self.resource_main_dir)
+        self.bag = bagit.Bag(self.resource_main_dir)
         try:
-            validate_bag(bag)
+            validate_bag(self.bag)
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Create a hash dictionary to compare with the hashes returned from the target after upload
-        # If the destination target supports a hash provided by the bag then use those hashes,
+        # If the destination target supports a hash provided by the self. then use those hashes,
         # otherwise create new hashes with a target supported hash.
-        self.file_hashes, self.hash_algorithm = get_or_create_hashes_from_bag(self, bag)
+        self.file_hashes, self.hash_algorithm = get_or_create_hashes_from_bag(self)
 
         ####### UPLOAD THE RESOURCES #######
         upload_status = self._upload_resource()
@@ -528,6 +590,8 @@ class BaseResource(APIView):
         # Transfer was a success so update the server metadata file.
         self.process_info_obj['status_code'] = '200'
         self.process_info_obj['status'] = 'finished'
+        self.process_info_obj['failed_fixity'] = list(
+            set(self.download_failed_fixity + self.upload_failed_fixity))
 
         transfer_fixity = False if not self.download_fixity or not self.upload_fixity else True
         self.process_info_obj['message'] = get_action_message(

@@ -65,6 +65,7 @@ Target Collection
                     "sha256",
                     "md5"
                 ],
+                "infinite_depth": true
                 "links": [
                     {
                         "name": "Detail",
@@ -94,6 +95,7 @@ Target Collection
                 "supported_hash_algorithms": [
                     "md5"
                 ],
+                "infinite_depth": false
                 "links": [
                     {
                         "name": "Detail",
@@ -152,6 +154,7 @@ Target Details
                 "sha256",
                 "md5"
             ],
+            "infinite_depth": true
             "links": [
                 {
                     "name": "Collection",
@@ -656,6 +659,8 @@ Transfer New Top Level Resource
     :statuscode 400: ``source_resource_id`` can't be none or blank
     :statuscode 400: ``source_resource_id`` was not found in the request body
     :statuscode 400: ``source_target_name`` was not found in the request body
+    :statuscode 400: Source target does not allow transfer to the destination target
+    :statuscode 400: Destination target does not allow transfer to the source target
     :statuscode 401: ``Source Token`` is invalid
     :statuscode 401: ``Destination Token`` is invalid
     :statuscode 403: User does not have access to the ``Resource`` to transfer
@@ -715,6 +720,8 @@ Transfer To Existing Resource
     :statuscode 400: ``source_resource_id`` can't be none or blank
     :statuscode 400: ``source_resource_id`` was not found in the request body
     :statuscode 400: ``source_target_name`` was not found in the request body
+    :statuscode 400: Source target does not allow transfer to the destination target
+    :statuscode 400: Destination target does not allow transfer to the source target
     :statuscode 401: ``Source Token`` is invalid
     :statuscode 401: ``Destination Token`` is invalid
     :statuscode 403: User does not have access to the ``Resource`` to transfer

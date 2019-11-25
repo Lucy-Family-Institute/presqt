@@ -5,6 +5,7 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from config.settings.base import OSF_TEST_USER_TOKEN
+from presqt.api_v1.utilities import get_action_message
 
 
 class TestResourceCollection(SimpleTestCase):
@@ -58,3 +59,24 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             response.data, {'error': "'bad_name' is not a valid Target name."})
+
+    def test_action_message_with_fixity_and_metadata_errors(self):
+        """
+        If get_action_message is called and fixity and metadata has failed, we need to make the user
+        aware.
+        """
+        error_message = get_action_message('Download', False, False)
+
+        self.assertEqual(error_message, 'Download successful but with fixity and metadata errors.')
+
+    def test_write_and_validate_metadata_error(self):
+        """
+        If write and validate metadata call returns an error, we need to make the user aware.
+        """
+        self.destination_target_name = 'osf'
+        self.destination_token = 'bad_token_eggs'
+        from presqt.api_v1.utilities.metadata.upload_metadata import write_and_validate_metadata
+
+        response = write_and_validate_metadata(self, 'nope', {'BAD': 'METADATA'})
+        self.assertEqual(response.__str__(),
+                         'Token is invalid. Response returned a 401 status code.')
