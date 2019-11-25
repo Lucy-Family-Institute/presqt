@@ -206,7 +206,7 @@ class BaseResource(APIView):
         # Create a hash dictionary to compare with the hashes returned from the target after upload
         # If the destination target supports a hash provided by the bag then use those hashes
         # otherwise create new hashes with a target supported hash.
-        self.file_hashes, self.hash_algorithm = get_or_create_hashes_from_bag(self, self.bag)
+        self.file_hashes, self.hash_algorithm = get_or_create_hashes_from_bag(self)
 
         # Spawn the upload_resource method separate from the request server by using multiprocess.
         spawn_action_process(self, self._upload_resource)
@@ -438,27 +438,26 @@ class BaseResource(APIView):
         # file.
         self.upload_fixity = True
         self.process_info_obj['failed_fixity'] = []
-        if self.action == 'resource_transfer_in':
-            for resource in self.new_fts_metadata_files:
-                if len(resource['failedFixityInfo']) > 0:
-                    self.upload_fixity = False
-                    self.process_info_obj['failed_fixity'].append(
-                        resource['destinationPath'])
+        # if self.action == 'resource_transfer_in':
+        #     for resource in self.new_fts_metadata_files:
+        #         if len(resource['failedFixityInfo']) > 0:
+        #             self.upload_fixity = False
+        #             self.process_info_obj['failed_fixity'].append(
+        #                 resource['destinationPath'])
 
         ###### If it's not a transfer, we need to run this check. #########
-        else:
-            for resource in func_dict['file_metadata_list']:
-                resource['failed_fixity_info'] = []
-                if resource['destinationHash'] != self.file_hashes[resource['actionRootPath']] \
-                        and resource['actionRootPath'] not in func_dict['resources_ignored']:
-                    self.upload_fixity = False
-                    self.process_info_obj['failed_fixity'].append(resource['actionRootPath']
-                                                                  [len(self.data_directory) + 1:])
-                    resource['failed_fixity_info'].append({
-                        'NewGeneratedHash': resource['destinationHash'],
-                        'algorithmUsed': self.hash_algorithm,
-                        'reasonFixityFailed': "Either the destination did not provide a hash "
-                        "or fixity failed during upload."})
+        for resource in func_dict['file_metadata_list']:
+            resource['failed_fixity_info'] = []
+            if resource['destinationHash'] != self.file_hashes[resource['actionRootPath']] \
+                    and resource['actionRootPath'] not in func_dict['resources_ignored']:
+                self.upload_fixity = False
+                self.process_info_obj['failed_fixity'].append(resource['actionRootPath']
+                                                              [len(self.data_directory) + 1:])
+                resource['failed_fixity_info'].append({
+                    'NewGeneratedHash': resource['destinationHash'],
+                    'algorithmUsed': self.hash_algorithm,
+                    'reasonFixityFailed': "Either the destination did not provide a hash "
+                    "or fixity failed during upload."})
 
         # Strip the server created directory prefix of the file paths for ignored and updated files
         resources_ignored = [file[len(self.data_directory):]
@@ -570,7 +569,7 @@ class BaseResource(APIView):
         # Create a hash dictionary to compare with the hashes returned from the target after upload
         # If the destination target supports a hash provided by the self. then use those hashes,
         # otherwise create new hashes with a target supported hash.
-        self.file_hashes, self.hash_algorithm = get_or_create_hashes_from_bag(self, self.bag)
+        self.file_hashes, self.hash_algorithm = get_or_create_hashes_from_bag(self)
 
         ####### UPLOAD THE RESOURCES #######
         upload_status = self._upload_resource()

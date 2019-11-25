@@ -50,7 +50,7 @@ def transfer_target_validation(source_target, destination_target):
 
     Returns
     -------
-    True if they play nicely.
+    True if the targets allow transfer with each other.
     """
     json_data = read_file('presqt/targets.json', True)
 

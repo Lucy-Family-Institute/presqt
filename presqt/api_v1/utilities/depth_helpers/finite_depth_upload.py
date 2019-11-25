@@ -47,8 +47,8 @@ def finite_depth_upload_helper(instance):
     except IndexError:
         # If not, we will zip up the file to be uploaded.
         zip_title = '{}.presqt.zip'.format(files[0])
-        project_zip_path = zip_format_path
         zip_path = '/{}'.format(zip_title)
+        project_zip_path = zip_format_path
 
     # Write the metadata file into the data directory of the bag
     update_bagit_with_metadata(instance, zip_title)
@@ -58,7 +58,9 @@ def finite_depth_upload_helper(instance):
                   '{}/{}'.format(project_zip_path, zip_title),
                   instance.resource_main_dir)
 
-    # Reset
+    # Since the metadata belonging with the files gets written inside of the zip,
+    # Reset the metadata to associate with the zip file actually being uploaded
+    # Set the target hash algorithm
     target_supported_algorithms = get_target_data(instance.destination_target_name)[
         'supported_hash_algorithms']
     for hash_algorithm in target_supported_algorithms:
@@ -68,8 +70,6 @@ def finite_depth_upload_helper(instance):
     else:  # pragma: no cover
         instance.hash_algorithm = 'md5'
 
-    # Since the metadata belonging with the files gets written inside of the zip,
-    # Reset the metadata to associate with the zip file actually being uploaded
     zip_file = read_file('{}/{}'.format(project_zip_path, zip_title))
     zip_hash = hash_generator(zip_file, instance.hash_algorithm)
     instance.file_hashes = {'{}/{}'.format(project_zip_path, zip_title): zip_hash}
