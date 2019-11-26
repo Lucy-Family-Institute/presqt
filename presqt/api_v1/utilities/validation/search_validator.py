@@ -13,9 +13,6 @@ def search_validator(search_parameter):
     ----------
     search_parameter : dict
         The query parameter passed to the view.
-
-    Returns
-    -------
     """
     # Check that the search query only has one key.
     if len(search_parameter.keys()) > 1:
