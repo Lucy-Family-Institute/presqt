@@ -49,7 +49,7 @@ class TestResourceCollection(SimpleTestCase):
         parameters.
         """
         url = reverse('resource_collection', kwargs={'target_name': 'github'})
-        response = self.client.get(url + '?title=nhl+light', **self.header)
+        response = self.client.get(url + '?title=automated+nhl+goal+light', **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
@@ -57,8 +57,9 @@ class TestResourceCollection(SimpleTestCase):
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
 
-        # Verify the count of resource objects is what we expect.
-        self.assertEqual(len(response.data), 8)
+        # Verify the count of resource objects is what we expect. As of the writing of this test
+        # there is only one repo that meets the search criteria, this may change.
+        self.assertEqual(len(response.data), 1)
 
     def test_error_400_missing_token_github(self):
         """
