@@ -72,6 +72,10 @@ class ResourceCollection(BaseResource):
         {
             "error": "'presqt-source-token' missing in the request headers."
         }
+        or
+        {
+            "error": "The search query is not formatted correctly."
+        }
 
         401: Unauthorized
         {
