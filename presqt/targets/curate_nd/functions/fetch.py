@@ -5,7 +5,7 @@ from presqt.targets.curate_nd.classes.main import CurateND
 from presqt.targets.curate_nd.utilities import get_curate_nd_resource
 
 
-def curate_nd_fetch_resources(token):
+def curate_nd_fetch_resources(token, search_parameter):
     """
     Fetch all CurateND resources for the user connected to the given token.
 
@@ -13,6 +13,9 @@ def curate_nd_fetch_resources(token):
     ----------
     token : str
         User's CurateND token
+    search_parameter : dict
+        The search parameter passed to the API View
+        Gets passed formatted as {'title': 'search_info'}
 
     Returns
     -------

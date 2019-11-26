@@ -5,7 +5,7 @@ from presqt.utilities import PresQTResponseException, PresQTInvalidTokenError
 from presqt.targets.osf.classes.main import OSF
 
 
-def osf_fetch_resources(token):
+def osf_fetch_resources(token, search_parameter):
     """
     Fetch all OSF resources for the user connected to the given token.
 
@@ -13,6 +13,9 @@ def osf_fetch_resources(token):
     ----------
     token : str
         User's OSF token
+    search_parameter : dict
+        The search parameter passed to the API View
+        Gets passed formatted as {'title': 'search_info'}
 
     Returns
     -------
