@@ -16,9 +16,9 @@ from presqt.api_v1.utilities import (target_validation, transfer_target_validati
                                      FunctionRouter, get_source_token, transfer_post_body_validation,
                                      spawn_action_process, get_or_create_hashes_from_bag,
                                      create_fts_metadata, create_download_metadata,
-                                     create_upload_metadata,
-                                     get_action_message, get_upload_source_metadata, hash_tokens,
-                                     finite_depth_upload_helper)
+                                     create_upload_metadata, get_action_message,
+                                     get_upload_source_metadata, hash_tokens,
+                                     finite_depth_upload_helper, structure_validation)
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
@@ -88,12 +88,12 @@ class BaseResource(APIView):
         }
         or
         {
-            "error": "Project is not formatted correctly. Multiple directories
+            "error": "Repository is not formatted correctly. Multiple directories
             exist at the top level."
         }
         or
         {
-            "error": "Project is not formatted correctly. Files exist at the top level."
+            "error": "Repository is not formatted correctly. Files exist at the top level."
         }
         or
         {
@@ -164,6 +164,7 @@ class BaseResource(APIView):
             target_valid, self.infinite_depth = target_validation(
                 self.destination_target_name, self.action)
             resource = file_validation(self.request)
+
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
@@ -401,6 +402,7 @@ class BaseResource(APIView):
         # Also, create metadata files for the new zip file to be uploaded.
         if self.infinite_depth is False:
             try:
+                structure_validation(self)
                 finite_depth_upload_helper(self)
             except PresQTResponseException as e:
                 # Catch any errors that happen within the target fetch.
@@ -430,6 +432,7 @@ class BaseResource(APIView):
         #        'project_id': title
         #    }
         try:
+            structure_validation(self)
             func_dict = func(self.destination_token, self.destination_resource_id,
                              self.data_directory, self.hash_algorithm, self.file_duplicate_action)
         except PresQTResponseException as e:
