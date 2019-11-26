@@ -41,30 +41,20 @@ def github_fetch_resources(token, search_parameter):
         search_parameters = search_parameter['title'].replace(' ', '+')
         search_url = "https://api.github.com/search/repositories?q={}+in:name".format(
             search_parameters)
-        data = requests.get(search_url, headers=header).json()
-
-        resources = []
-        for repo in data['items']:
-            resource = {
-                "kind": "container",
-                "kind_name": "repo",
-                "container": None,
-                "id": repo["id"],
-                "title": repo["name"]}
-            resources.append(resource)
+        data = requests.get(search_url, headers=header).json()['items']
 
     else:
         data = github_paginated_data(token)
 
-        resources = []
-        for repo in data:
-            resource = {
-                "kind": "container",
-                "kind_name": "repo",
-                "container": None,
-                "id": repo["id"],
-                "title": repo["name"]}
-            resources.append(resource)
+    resources = []
+    for repo in data:
+        resource = {
+            "kind": "container",
+            "kind_name": "repo",
+            "container": None,
+            "id": repo["id"],
+            "title": repo["name"]}
+        resources.append(resource)
     return resources
 
 
