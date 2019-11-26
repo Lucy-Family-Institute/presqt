@@ -43,6 +43,24 @@ class TestResourceCollection(SimpleTestCase):
         for data in response.data:
             self.assertEqual(len(data['links']), 1)
 
+    def test_success_github_with_search(self):
+        """
+        Return a 200 if the GET method is successful when grabbing GitHub resources with search 
+        parameters.
+        """
+        url = reverse('resource_collection', kwargs={'target_name': 'github'})
+        response = self.client.get(url + '?title=automated+nhl+goal+light', **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 200)
+        # Verify the dict keys match what we expect
+        keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
+        for data in response.data:
+            self.assertListEqual(keys, list(data.keys()))
+
+        # Verify the count of resource objects is what we expect. As of the writing of this test
+        # there is only one repo that meets the search criteria, this may change.
+        self.assertEqual(len(response.data), 1)
+
     def test_error_400_missing_token_github(self):
         """
         Return a 400 if the GET method fails because the presqt-source-token was not provided.
@@ -66,6 +84,28 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.data,
                          {'error': "The response returned a 401 unauthorized status code."})
+
+    def test_error_400_bad_search_parameters(self):
+        """
+        """
+        url = reverse('resource_collection', kwargs={'target_name': 'github'})
+        # TOO MANY KEYS
+        response = self.client.get(url + '?title=hat&spaghetti=egg', **self.header)
+
+        self.assertEqual(response.data['error'], 'The search query is not formatted correctly.')
+        self.assertEqual(response.status_code, 400)
+
+        # BAD KEY
+        response = self.client.get(url + '?spaghetti=egg', **self.header)
+
+        self.assertEqual(response.data['error'], 'The search query is not formatted correctly.')
+        self.assertEqual(response.status_code, 400)
+
+        # SPECIAL CHARACTERS IN REQUEST
+        response = self.client.get(url + '?title=egg:boi', **self.header)
+
+        self.assertEqual(response.data['error'], 'The search query is not formatted correctly.')
+        self.assertEqual(response.status_code, 400)
 
 
 class TestResourceCollectionPOST(SimpleTestCase):

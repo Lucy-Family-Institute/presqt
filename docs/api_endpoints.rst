@@ -265,6 +265,7 @@ Resource Collection
     :statuscode 200: ``Resources`` successfully retrieved
     :statuscode 400: The ``Target`` does not support the action ``resource_collection``
     :statuscode 400: ``presqt-source-token`` missing in the request headers
+    :statuscode 400: The ``search query`` is not formatted correctly.
     :statuscode 401: ``Token`` is invalid
     :statuscode 404: Invalid ``Target`` name
 

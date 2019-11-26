@@ -6,14 +6,17 @@ from presqt.targets.zenodo.utilities import zenodo_validation_check
 from presqt.utilities import PresQTValidationError, PresQTResponseException
 
 
-def zenodo_fetch_resources(token):
+def zenodo_fetch_resources(token, search_parameter):
     """
     Fetch all users repos from Zenodo.
 
     Parameters
     ----------
     token : str
-            User's Zenodo token
+        User's Zenodo token
+    search_parameter : dict
+        The search parameter passed to the API View
+        Gets passed formatted as {'title': 'search_info'}
 
     Returns
     -------
