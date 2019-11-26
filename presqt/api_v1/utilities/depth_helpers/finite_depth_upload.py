@@ -22,16 +22,6 @@ def finite_depth_upload_helper(instance):
     # Get information about the data directory
     os_path, folders, files = next(os.walk(instance.data_directory))
 
-    if len(folders) > 1:
-        raise PresQTResponseException(
-            "Repository is not formatted correctly. Multiple directories exist at the top level.",
-            status.HTTP_400_BAD_REQUEST)
-
-    if len(files) > 0 and instance.destination_resource_id is None:
-        raise PresQTResponseException(
-            "Repository is not formatted correctly. Files exist at the top level.",
-            status.HTTP_400_BAD_REQUEST)
-
     # Make a directory to store the zipped items
     zip_format_path = os.path.join(instance.ticket_path, 'zip_format')
     os.mkdir(zip_format_path)

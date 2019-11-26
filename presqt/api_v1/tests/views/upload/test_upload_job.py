@@ -502,7 +502,7 @@ class TestUploadJob(SimpleTestCase):
         response = self.client.get(url, **self.headers)
         self.assertEqual(response.status_code, 500)
         self.assertEqual(response.data,
-                         {'message': "Project is not formatted correctly. Multiple directories exist at the top level.",
+                         {'message': "Repository is not formatted correctly. Multiple directories exist at the top level.",
                           'status_code': 400})
 
         # Delete corresponding folders
@@ -522,7 +522,7 @@ class TestUploadJob(SimpleTestCase):
         response = self.client.get(url, **self.headers)
         self.assertEqual(response.status_code, 500)
         self.assertEqual(response.data,
-                         {'message': "Project is not formatted correctly. Files exist at the top level.",
+                         {'message': "Repository is not formatted correctly. Files exist at the top level.",
                           'status_code': 400})
 
         # Delete corresponding folders
@@ -535,8 +535,8 @@ class TestUploadJob(SimpleTestCase):
         """
         self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
         self.file = 'presqt/api_v1/tests/resources/upload/not_a_bag.zip'
-        response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+        response = self.client.post(
+            self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
 
         # Verify the status code
         self.assertEqual(response.status_code, 400)
-

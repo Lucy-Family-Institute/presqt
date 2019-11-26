@@ -65,17 +65,6 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
 
     os_path = next(os.walk(resource_main_dir))
 
-    # Verify that the top level directory to upload only has one folder and no files.
-    # This one folder will be the project title and the base for project upload.
-    if len(os_path[1]) > 1:
-        raise PresQTResponseException(
-            'Repository is not formatted correctly. Multiple directories exist at the top level.',
-            status.HTTP_400_BAD_REQUEST)
-    elif len(os_path[2]) > 0:
-        raise PresQTResponseException(
-            'Repository is not formatted correctly. Files exist at the top level.',
-            status.HTTP_400_BAD_REQUEST)
-
     # Create a new repository with the name being the top level directory's name.
     # Note: GitHub doesn't allow spaces in repo_names
     repo_title = os_path[1][0].replace(' ', '_')

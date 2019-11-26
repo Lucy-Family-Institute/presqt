@@ -481,8 +481,8 @@ Upload New Top Level Resource
     :statuscode 400: Checksums failed to validate
     :statuscode 400: ``presqt-file-duplicate-action`` missing in the request headers
     :statuscode 400: Invalid ``file_duplicate_action`` header give. The options are ``ignore`` or ``update``
-    :statuscode 400: Project is not formatted correctly. Multiple directories exist at the top level
-    :statuscode 400: Project is not formatted correctly. Files exist at the top level
+    :statuscode 400: Repository is not formatted correctly. Multiple directories exist at the top level
+    :statuscode 400: Repository is not formatted correctly. Files exist at the top level
     :statuscode 401: ``Token`` is invalid
     :statuscode 404: Invalid ``Target`` name
 

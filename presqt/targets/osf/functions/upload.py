@@ -102,17 +102,6 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
     else:
         os_path = next(os.walk(resource_main_dir))
 
-        # Verify that the top level directory to upload only has one folder and no files.
-        # This one folder will be the project title and the base for project upload.
-        if len(os_path[1]) > 1:
-            raise PresQTResponseException(
-                'Project is not formatted correctly. Multiple directories exist at the top level.',
-                status.HTTP_400_BAD_REQUEST)
-        elif len(os_path[2]) > 0:
-            raise PresQTResponseException(
-                'Project is not formatted correctly. Files exist at the top level.',
-                status.HTTP_400_BAD_REQUEST)
-
         # Get the actual data we want to upload
         data_to_upload_path = '{}/{}'.format(os_path[0], os_path[1][0])
 
@@ -134,7 +123,8 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
         # Only send forward the hash we need based on the hash_algorithm provided
         file_metadata['destinationHash'] = file_metadata['destinationHash'][hash_algorithm]
         # Prepend the project title to each resource's the metadata destinationPath
-        file_metadata['destinationPath'] = '/{}/{}'.format(project.title, file_metadata['destinationPath'])
+        file_metadata['destinationPath'] = '/{}/{}'.format(
+            project.title, file_metadata['destinationPath'])
 
     return {
         'resources_ignored': resources_ignored,
