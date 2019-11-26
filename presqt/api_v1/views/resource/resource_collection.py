@@ -1,7 +1,11 @@
+import re
+
+from rest_framework import status
 from rest_framework.response import Response
 
 from presqt.api_v1.serializers.resource import ResourcesSerializer
-from presqt.api_v1.utilities import target_validation, FunctionRouter, get_source_token
+from presqt.api_v1.utilities import (
+    target_validation, FunctionRouter, get_source_token, search_validator)
 from presqt.api_v1.views.resource.base_resource import BaseResource
 from presqt.utilities import PresQTValidationError, PresQTResponseException
 
@@ -15,6 +19,7 @@ class ResourceCollection(BaseResource):
     * POST
         -  Upload a top level resource for a user.
     """
+
     def get(self, request, target_name):
         """
         Retrieve all Resources.
@@ -87,12 +92,19 @@ class ResourceCollection(BaseResource):
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
+        # Validate the search query if there is one.
+        if request.query_params != {}:
+            try:
+                search_validator(request.query_params)
+            except PresQTResponseException as e:
+                # Catch any errors that happen within the search validation
+                return Response(data={'error': e.data}, status=e.status_code)
         # Fetch the proper function to call
         func = FunctionRouter.get_function(target_name, action)
 
         # Fetch the target's resources
         try:
-            resources = func(token)
+            resources = func(token, request.query_params)
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch
             return Response(data={'error': e.data}, status=e.status_code)
