@@ -1,3 +1,5 @@
+import requests
+
 from rest_framework import status
 
 from presqt.utilities import PresQTResponseException, PresQTInvalidTokenError
@@ -5,7 +7,7 @@ from presqt.targets.curate_nd.classes.main import CurateND
 from presqt.targets.curate_nd.utilities import get_curate_nd_resource
 
 
-def curate_nd_fetch_resources(token):
+def curate_nd_fetch_resources(token, search_parameter):
     """
     Fetch all CurateND resources for the user connected to the given token.
 
@@ -13,6 +15,9 @@ def curate_nd_fetch_resources(token):
     ----------
     token : str
         User's CurateND token
+    search_parameter : dict
+        The search parameter passed to the API View
+        Gets passed formatted as {'title': 'search_info'}
 
     Returns
     -------
@@ -31,10 +36,15 @@ def curate_nd_fetch_resources(token):
     except PresQTInvalidTokenError:
         raise PresQTResponseException(
             "Token is invalid. Response returned a 401 status code.",
-            status.HTTP_401_UNAUTHORIZED,
-        )
+            status.HTTP_401_UNAUTHORIZED)
 
-    resources = curate_instance.get_user_resources()
+    if search_parameter:
+        # Format the search that is coming in to be passed to the Curate API
+        search_parameters = search_parameter['title'].replace(' ', '+')
+        search_url = 'https://curate.nd.edu/api/items?q={}'.format(search_parameters)
+        resources = curate_instance.get_resources(search_url)
+    else:
+        resources = curate_instance.get_resources()
     return resources
 
 

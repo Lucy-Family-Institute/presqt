@@ -16,7 +16,7 @@ class CurateNDBase(object):
     def __init__(self, json, session=None):
         # Set the session attribute with the existing session or a new one if one doesn't exist.
         if session is None:
-            self.session = PresQTSession('https://libvirt6.library.nd.edu/api/items')
+            self.session = PresQTSession('https://curate.nd.edu/api/items')
         else:
             self.session = session
 
