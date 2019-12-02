@@ -41,7 +41,7 @@ def curate_nd_fetch_resources(token, search_parameter):
     if search_parameter:
         # Format the search that is coming in to be passed to the Curate API
         search_parameters = search_parameter['title'].replace(' ', '+')
-        search_url = 'https://libvirt6.library.nd.edu/api/items?q={}'.format(search_parameters)
+        search_url = 'https://curate.nd.edu/api/items?q={}'.format(search_parameters)
         # Pull the results out from the search request
         data = requests.get(search_url, headers={'X-Api-Token': token}).json()['results']
 

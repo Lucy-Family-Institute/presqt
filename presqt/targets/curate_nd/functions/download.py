@@ -33,7 +33,7 @@ async def async_get(url, session, token):
         assert response.status == 200
         content = await response.read()
         md5 = response.headers['Content-Md5']
-        return {'url': url, 'binary_content': content, 'md5': md5}
+        return {'url': url, 'binary_content': content}
 
 
 async def async_main(url_list, token):
@@ -124,17 +124,21 @@ def curate_nd_download_resource(token, resource_id):
             empty_containers.append('{}'.format(resource.title))
         else:
             title_helper = {}
+            hash_helper = {}
             file_urls = []
             project_title = resource.title
             file_metadata = []
             for file in resource.extra['containedFiles']:
+                download_url = file['downloadUrl']
+                contained_file = get_curate_nd_resource(file['id'], curate_instance)
                 file_metadata_dict = {
-                    "title": file['label'],
-                    "extra": {}}
-                for key, value in file.items():
-                    if key not in ['label', 'depositor']:
-                        file_metadata_dict['extra'][key] = value
+                    "title": contained_file.title,
+                    "extra": contained_file.extra}
                 file_metadata.append(file_metadata_dict)
+
+                title_helper[download_url] = contained_file.title
+                hash_helper[download_url] = contained_file.md5
+                file_urls.append(download_url)
 
                 title_helper[file['downloadUrl']] = file['label']
                 file_urls.append(file['downloadUrl'])
@@ -144,9 +148,10 @@ def curate_nd_download_resource(token, resource_id):
 
             for file in download_data:
                 title = title_helper[file['url']]
+                hash = hash_helper[file['url']]
                 files.append({
                     'file': file['binary_content'],
-                    'hashes': {'md5': file['md5']},
+                    'hashes': {'md5': hash},
                     'title': title,
                     "source_path": '/{}/{}'.format(project_title, title),
                     'path': '/{}/{}'.format(resource.title, title),

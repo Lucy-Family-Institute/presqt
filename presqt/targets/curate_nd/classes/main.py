@@ -6,7 +6,7 @@ from presqt.targets.curate_nd.classes.base import CurateNDBase
 from presqt.targets.curate_nd.classes.file import File
 from presqt.targets.curate_nd.classes.item import Item
 from presqt.targets.utilities import run_urls_async
-from presqt.utilities import PresQTInvalidTokenError
+from presqt.utilities import PresQTInvalidTokenError, PresQTResponseException
 
 
 class CurateND(CurateNDBase):
@@ -31,7 +31,7 @@ class CurateND(CurateNDBase):
         """
         self.session.token_auth({'X-Api-Token': '{}'.format(token)})
         # Verify that the token provided is a valid one.
-        response = requests.get('https://libvirt6.library.nd.edu/api/items?editor=self',
+        response = requests.get('https://curate.nd.edu/api/items?editor=self',
                                 headers={'X-Api-Token': '{}'.format(token)})
         if response.status_code == 500:
             raise PresQTInvalidTokenError("Token is invalid. Response returned a 500 error.")
@@ -49,7 +49,7 @@ class CurateND(CurateNDBase):
         -------
         Instance of the desired Item.
         """
-        url = 'https://libvirt6.library.nd.edu/api/items?editor=self'
+        url = 'https://curate.nd.edu/api/items?editor=self'
         response_data = self._get_all_paginated_data(url)
         item_urls = []
         for response in response_data:
@@ -78,9 +78,15 @@ class CurateND(CurateNDBase):
         url = self.session.build_url(resource_id)
         response_data = self.get(url)
         response_json = response_data.json()
+        # If the id given can't be found or is of type person, we want to raise an exception.
+        # Error are only present in the payload if an error occured.
+        if 'error' in response_json.keys():
+            raise PresQTResponseException(
+                'The resource, {}, could not be found on CurateND.'.format(resource_id),
+                status.HTTP_404_NOT_FOUND)
 
         try:
-            contained_files = response_json['containedFiles']
+            response_json['containedFiles']
         except KeyError:
             # If the containedFiles key is not in the payload, we are creating a file.
             return File(response_data.json(), self.session)
