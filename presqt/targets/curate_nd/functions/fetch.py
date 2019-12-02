@@ -42,28 +42,9 @@ def curate_nd_fetch_resources(token, search_parameter):
         # Format the search that is coming in to be passed to the Curate API
         search_parameters = search_parameter['title'].replace(' ', '+')
         search_url = 'https://curate.nd.edu/api/items?q={}'.format(search_parameters)
-        # Pull the results out from the search request
-        data = requests.get(search_url, headers={'X-Api-Token': token}).json()['results']
-
-        resources = []
-        for item in data:
-            resource = {
-                "kind": "container",
-                "kind_name": "item",
-                "container": None,
-                "id": item["id"],
-                "title": item["title"]}
-            resources.append(resource)
-            for file in requests.get(item['itemUrl'], headers={'X-Api-Token': token}).json()['containedFiles']:
-                resource = {
-                    "kind": "item",
-                    "kind_name": "file",
-                    "container": item['id'],
-                    "id": file["id"],
-                    "title": file["label"]}
-                resources.append(resource)
+        resources = curate_instance.get_resources(search_url)
     else:
-        resources = curate_instance.get_user_resources()
+        resources = curate_instance.get_resources()
     return resources
 
 

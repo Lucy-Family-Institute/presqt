@@ -36,20 +36,19 @@ class CurateND(CurateNDBase):
         if response.status_code == 500:
             raise PresQTInvalidTokenError("Token is invalid. Response returned a 500 error.")
 
-    def items(self):
+    def items(self, url):
         """
-        Get an item with the given item_id.
+        Get all items.
 
         Parameters
         ----------
-        item_id : str
-            id of the Item we want to fetch.
+        url : str
+            The url used to retrive all items.
 
         Returns
         -------
         Instance of the desired Item.
         """
-        url = 'https://curate.nd.edu/api/items?editor=self'
         response_data = self._get_all_paginated_data(url)
         item_urls = []
         for response in response_data:
@@ -93,16 +92,21 @@ class CurateND(CurateNDBase):
         else:
             return Item(response_data.json(), self.session)
 
-    def get_user_resources(self):
+    def get_resources(self, url='https://curate.nd.edu/api/items?editor=self'):
         """
-        Get all of the user's resources. Return in the structure expected for the PresQT API.
+        Get all of the requested resources. Return in the structure expected for the PresQT API.
+
+        Parameters
+        ----------
+        url : str
+            The url used to retrive all items.
 
         Returns
         -------
         List of all items.
         """
         resources = []
-        for item in self.items():
+        for item in self.items(url):
             # Items
             resources.append({
                 'kind': 'container',
