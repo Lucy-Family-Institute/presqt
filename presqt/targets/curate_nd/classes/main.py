@@ -47,7 +47,7 @@ class CurateND(CurateNDBase):
 
         Returns
         -------
-        Instance of the desired Item.
+        List of the desired Items.
         """
         response_data = self._get_all_paginated_data(url)
         item_urls = []
