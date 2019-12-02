@@ -54,6 +54,14 @@ def curate_nd_fetch_resources(token, search_parameter):
                 "id": item["id"],
                 "title": item["title"]}
             resources.append(resource)
+            for file in requests.get(item['itemUrl'], headers={'X-Api-Token': token}).json()['containedFiles']:
+                resource = {
+                    "kind": "item",
+                    "kind_name": "file",
+                    "container": item['id'],
+                    "id": file["id"],
+                    "title": file["label"]}
+                resources.append(resource)
     else:
         resources = curate_instance.get_user_resources()
     return resources
