@@ -32,7 +32,6 @@ async def async_get(url, session, token):
     async with session.get(url, headers={'X-Api-Token': token}) as response:
         assert response.status == 200
         content = await response.read()
-        md5 = response.headers['Content-Md5']
         return {'url': url, 'binary_content': content}
 
 
