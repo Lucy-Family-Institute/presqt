@@ -164,7 +164,7 @@ class Command(BaseCommand):
                     resource_collection_function ='{}_fetch_resources'.format(target_name)
                     target_functions['fetch']['{}_resource_collection'.format(target_name)] = resource_collection_function
 
-                    file.write('def {}(token):\n\tpass'.format(resource_collection_function))
+                    file.write('def {}(token, search_parameter):\n\tpass'.format(resource_collection_function))
                     if resource_detail:
                         file.write('\n\n')
 

@@ -82,12 +82,13 @@ class OSF(OSFBase):
         else:
             return Folder(response_json, self.session)
 
-    def projects(self):
+    def projects(self, url=None):
         """
         Fetch all projects for this user. Returns both top level projects and the full list of
         sub projects.
         """
-        url = self.session.build_url('users', 'me', 'nodes')
+        if not url:
+            url = self.session.build_url('users', 'me', 'nodes')
 
         projects = []
         project_ids = []
@@ -106,14 +107,14 @@ class OSF(OSFBase):
             project for project in projects if project.parent_node_id in unique_project_ids]
         return projects, top_level_projects
 
-    def get_user_resources(self):
+    def get_resources(self, url=None):
         """
         Get all of the user's resources. To batch calls together asynchronously we will group calls
         together by projects, then storages, then each storage's resources.
         """
         resources = []
 
-        all_projects, top_level_projects = self.projects()
+        all_projects, top_level_projects = self.projects(url)
 
         # Add all top level projects and subprojects to the resources list
         self.iter_project_hierarchy(all_projects, top_level_projects, resources)
@@ -188,7 +189,6 @@ class OSF(OSFBase):
             self, [project._storages_url for project in projects])
 
         # Add each storage to the resource list
-        storage_objs = []
         for proj_storage in storages:
             for storage in proj_storage['data']:
                 storage_obj = Storage(storage, self.session)

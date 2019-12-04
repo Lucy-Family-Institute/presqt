@@ -35,7 +35,13 @@ def osf_fetch_resources(token, search_parameter):
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
-    resources = osf_instance.get_user_resources()
+    if search_parameter:
+        # Format the search that is coming in to be passed to the OSF API
+        search_parameters = search_parameter['title'].replace(' ', '+')
+        search_url = 'https://api.osf.io/v2/nodes/?filter[title]={}'.format(search_parameters)
+        resources = osf_instance.get_resources(search_url)
+    else:
+        resources = osf_instance.get_resources()
     return resources
 
 
