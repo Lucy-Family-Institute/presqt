@@ -4,7 +4,7 @@ IMLS grant funded project(PresQT) to build Preservation Quality Tools and RESTfu
 
 ## General Technical Documentation
 
-Please see our [Gitbook](https://crc-nd.gitbook.io/presqt/) documentation repo.
+Please see our [ReadTheDocs](https://presqt.readthedocs.io/en/latest/) documentation page.
 
 ## Developer Setup
 

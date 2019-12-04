@@ -260,6 +260,53 @@ Resource Collection
                 ]
             }
         ]
+    
+    **Example request w/ search parameter**:
+
+    .. sourcecode:: http
+
+        GET /api_v1/targets/OSF/resources?title=egg/ HTTP/1.1
+        Host: localhost
+        Accept: application/json
+
+    **Example response w/ sarch parameter**:
+
+    .. sourcecode:: http
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json
+
+        [
+            {
+                "kind": "container",
+                "kind_name": "project",
+                "id": "cmn5z",
+                "container": null,
+                "title": "The Egg Paradox",
+                "links": [
+                    {
+                        "name": "Detail",
+                        "link": "https://localhost/api_v1/targets/osf/resources/cmn5z/",
+                        "method": "GET"
+                    }
+                ]
+            },
+            {
+                "kind": "item",
+                "kind_name": "file",
+                "id": "71249827434129",
+                "container": "cmn5z",
+                "title": "alloftheeggs.jpg",
+                "links": [
+                    {
+                        "name": "Detail",
+                        "link": "https://localhost/api_v1/targets/osf/resources/71249827434129/",
+                        "method": "GET"
+                    }
+                ]
+            }
+        ]
+
 
     :reqheader presqt-source-token: User's token for the source target
     :statuscode 200: ``Resources`` successfully retrieved
