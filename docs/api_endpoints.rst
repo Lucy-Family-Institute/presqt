@@ -269,7 +269,7 @@ Resource Collection
         Host: localhost
         Accept: application/json
 
-    **Example response w/ sarch parameter**:
+    **Example response w/ search parameter**:
 
     .. sourcecode:: http
 
