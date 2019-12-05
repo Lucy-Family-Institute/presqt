@@ -30,7 +30,7 @@ Target Collection
     .. sourcecode:: http
 
         GET /api_v1/targets/ HTTP/1.1
-        Host: localhost
+        Host: presqt-prod.crc.nd.edu
         Accept: application/json
 
     **Example response**:
@@ -69,7 +69,7 @@ Target Collection
                 "links": [
                     {
                         "name": "Detail",
-                        "link": "https://localhost/api_v1/targets/osf/",
+                        "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/",
                         "method": "GET"
                     }
                 ]
@@ -99,7 +99,7 @@ Target Collection
                 "links": [
                     {
                         "name": "Detail",
-                        "link": "https://localhost/api_v1/targets/curate_nd/",
+                        "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/curate_nd/",
                         "method": "GET"
                     }
                 ]
@@ -120,7 +120,7 @@ Target Details
     .. sourcecode:: http
 
         GET /api_v1/targets/OSF/ HTTP/1.1
-        Host: localhost
+        Host: presqt-prod.crc.nd.edu
         Accept: application/json
 
     **Example response**:
@@ -158,17 +158,17 @@ Target Details
             "links": [
                 {
                     "name": "Collection",
-                    "link": "https://localhost/api_v1/targets/osf/resources/",
+                    "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/",
                     "method": "GET"
                 },
                 {
                     "name": "Upload",
-                    "link": "https://localhost/api_v1/targets/osf/resources/",
+                    "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/",
                     "method": "POST"
                 },
                 {
                     "name": "Transfer",
-                    "link": "https://localhost/api_v1/targets/osf/resources/",
+                    "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/",
                     "method": "POST"
                 }
             ]
@@ -192,7 +192,7 @@ Resource Collection
     .. sourcecode:: http
 
         GET /api_v1/targets/OSF/resources/ HTTP/1.1
-        Host: localhost
+        Host: presqt-prod.crc.nd.edu
         Accept: application/json
 
     **Example response**:
@@ -212,7 +212,7 @@ Resource Collection
                 "links": [
                     {
                         "name": "Detail",
-                        "link": "https://localhost/api_v1/targets/osf/resources/cmn5z/",
+                        "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/cmn5z/",
                         "method": "GET"
                     }
                 ]
@@ -226,7 +226,7 @@ Resource Collection
                 "links": [
                     {
                         "name": "Detail",
-                        "link": "https://localhost/api_v1/targets/osf/resources/cmn5z:osfstorage/",
+                        "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/cmn5z:osfstorage/",
                         "method": "GET"
                     }
                 ]
@@ -240,7 +240,7 @@ Resource Collection
                 "links": [
                     {
                         "name": "Detail",
-                        "link": "https://localhost/api_v1/targets/osf/resources/5cd9832cf244ec0021e5f245/",
+                        "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/5cd9832cf244ec0021e5f245/",
                         "method": "GET"
                     }
                 ]
@@ -254,7 +254,7 @@ Resource Collection
                 "links": [
                     {
                         "name": "Detail",
-                        "link": "https://localhost/api_v1/targets/osf/resources/5cd98510f244ec001fe5632f/",
+                        "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/5cd98510f244ec001fe5632f/",
                         "method": "GET"
                     }
                 ]
@@ -266,7 +266,7 @@ Resource Collection
     .. sourcecode:: http
 
         GET /api_v1/targets/OSF/resources?title=egg/ HTTP/1.1
-        Host: localhost
+        Host: presqt-prod.crc.nd.edu
         Accept: application/json
 
     **Example response w/ search parameter**:
@@ -286,7 +286,7 @@ Resource Collection
                 "links": [
                     {
                         "name": "Detail",
-                        "link": "https://localhost/api_v1/targets/osf/resources/cmn5z/",
+                        "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/cmn5z/",
                         "method": "GET"
                     }
                 ]
@@ -300,7 +300,7 @@ Resource Collection
                 "links": [
                     {
                         "name": "Detail",
-                        "link": "https://localhost/api_v1/targets/osf/resources/71249827434129/",
+                        "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/71249827434129/",
                         "method": "GET"
                     }
                 ]
@@ -328,7 +328,7 @@ Resource Detail
     .. sourcecode:: http
 
         GET /api_v1/targets/OSF/resources/1234.json/ HTTP/1.1
-        Host: localhost
+        Host: presqt-prod.crc.nd.edu
         Accept: application/json
 
     **Example response**:
@@ -364,7 +364,7 @@ Resource Detail
             "links": [
                 {
                     "name": "Download",
-                    "link": "https://localhost/api_v1/targets/osf/resources/5cd98a30f2c01100177156be.zip/",
+                    "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/5cd98a30f2c01100177156be.zip/",
                     "method": "GET"
                 }
             ],
@@ -402,7 +402,7 @@ Download Resource
     .. sourcecode:: http
 
         GET /api_v1/targets/OSF/resources/1234.zip/ HTTP/1.1
-        Host: localhost
+        Host: presqt-prod.crc.nd.edu
         Accept: application/json
 
     **Example response**:
@@ -415,7 +415,7 @@ Download Resource
         {
             "ticket_number": "75963741-8d7f-4278-ae3e-2c2544caa631",
             "message": "The server is processing the request.",
-            "download_job": "https://localhost/api_v1/downloads/75963741-8d7f-4278-ae3e-2c2544caa631/"
+            "download_job": "https://presqt-prod.crc.nd.edu/api_v1/downloads/75963741-8d7f-4278-ae3e-2c2544caa631/"
         }
 
     :reqheader presqt-source-token: User's token for the source target
@@ -440,7 +440,7 @@ Download Job
     .. sourcecode:: http
 
         GET /api_v1/download/c24442a7-fead-4fb8-b56e-d4196ad55482/ HTTP/1.1
-        Host: localhost
+        Host: presqt-prod.crc.nd.edu
         Accept: application/json
 
     **Example response if download finished successfully**:
@@ -501,7 +501,7 @@ Upload New Top Level Resource
     .. sourcecode:: http
 
         POST /api_v1/targets/OSF/resources/ HTTP/1.1
-        Host: localhost
+        Host: presqt-prod.crc.nd.edu
         Accept: application/json
 
     **Example response**:
@@ -514,7 +514,7 @@ Upload New Top Level Resource
         {
             "ticket_number": "ba025c37-3b33-461c-88a1-659a33f3cf47",
             "message": "The server is processing the request.",
-            "upload_job": "https://localhost/api_v1/uploads/ba025c37-3b33-461c-88a1-659a33f3cf47/"
+            "upload_job": "https://presqt-prod.crc.nd.edu/api_v1/uploads/ba025c37-3b33-461c-88a1-659a33f3cf47/"
         }
 
     :reqheader presqt-destination-token: User's ``Token`` for the destination target
@@ -548,7 +548,7 @@ Upload To Existing Resource
     .. sourcecode:: http
 
         POST /api_v1/targets/OSF/resources/1234/ HTTP/1.1
-        Host: localhost
+        Host: presqt-prod.crc.nd.edu
         Accept: application/json
 
     **Example response**:
@@ -561,7 +561,7 @@ Upload To Existing Resource
         {
             "ticket_number": "ba025c37-3b33-461c-88a1-659a33f3cf47",
             "message": "The server is processing the request.",
-            "upload_job": "https://localhost/api_v1/uploads/ba025c37-3b33-461c-88a1-659a33f3cf47/"
+            "upload_job": "https://presqt-prod.crc.nd.edu/api_v1/uploads/ba025c37-3b33-461c-88a1-659a33f3cf47/"
         }
 
     :reqheader presqt-destination-token: User's ``Token`` for the destination target
@@ -593,7 +593,7 @@ Upload Job
     .. sourcecode:: http
 
         GET /api_v1/upload/ba025c37-3b33-461c-88a1-659a33f3cf47/ HTTP/1.1
-        Host: localhost
+        Host: presqt-prod.crc.nd.edu
         Accept: application/json
 
     **Example response if upload finished successfully**:
@@ -670,7 +670,7 @@ Transfer New Top Level Resource
     .. sourcecode:: http
 
         POST /api_v1/targets/OSF/resources/ HTTP/1.1
-        Host: localhost
+        Host: presqt-prod.crc.nd.edu
         Accept: application/json
 
         Example body json:
@@ -689,7 +689,7 @@ Transfer New Top Level Resource
         {
             "ticket_number": "6d65d1b1-5a04-479b-8519-8340187f0ffc",
             "message": "The server is processing the request.",
-            "transfer_job": "https://localhost/api_v1/transfers/6d65d1b1-5a04-479b-8519-8340187f0ffc/"
+            "transfer_job": "https://presqt-prod.crc.nd.edu/api_v1/transfers/6d65d1b1-5a04-479b-8519-8340187f0ffc/"
         }
 
     :reqheader presqt-destination-token: User's ``Token`` for the destination target
@@ -731,7 +731,7 @@ Transfer To Existing Resource
     .. sourcecode:: http
 
         POST /api_v1/targets/OSF/resources/1234/ HTTP/1.1
-        Host: localhost
+        Host: presqt-prod.crc.nd.edu
         Accept: application/json
 
         Example body json:
@@ -750,7 +750,7 @@ Transfer To Existing Resource
         {
             "ticket_number": "6d65d1b1-5a04-479b-8519-8340187f0ffc",
             "message": "The server is processing the request.",
-            "transfer_job": "https://localhost/api_v1/transfers/6d65d1b1-5a04-479b-8519-8340187f0ffc/"
+            "transfer_job": "https://presqt-prod.crc.nd.edu/api_v1/transfers/6d65d1b1-5a04-479b-8519-8340187f0ffc/"
         }
 
     :reqheader presqt-destination-token: User's ``Token`` for the destination target
@@ -792,7 +792,7 @@ Transfer Job
     .. sourcecode:: http
 
         GET /api_v1/transfer/ra025c37-3b33-461c-88a1-659a33f3cf47/ HTTP/1.1
-        Host: localhost
+        Host: presqt-prod.crc.nd.edu
         Accept: application/json
 
     **Example response if transfer finished successfully**:

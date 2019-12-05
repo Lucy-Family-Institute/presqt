@@ -20,6 +20,10 @@ GitHub
 """"""
 After logging in, you can create a personal access token here https://github.com/settings/tokens
 
+Zenodo
+""""""
+After logging in, you can create a personal access token here https://zenodo.org/account/settings/applications/tokens/new/
+
 
 .. toctree::
    :maxdepth: 3
