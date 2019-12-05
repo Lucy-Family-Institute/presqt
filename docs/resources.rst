@@ -38,10 +38,10 @@ Example Workflow
 
 The following are instructions on how the BagIt files above can be used to test the Upload endpoint:
 
-1. Make a POST to ``https://localhost/api_v1/targets/osf/resources/`` with BagIt #2 to see a new top level container created.
-2. Get the id of the new container and make a POST to ``https://localhost/api_v1/targets/osf/resources/{resource_id}/`` with BagIt #3 and with the 'presqt-file-duplicate-action' set to 'ignore' to see that the duplicate file is found and it's contents are different but the file is updated.
+1. Make a POST to ``https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/`` with BagIt #2 to see a new top level container created.
+2. Get the id of the new container and make a POST to ``https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/{resource_id}/`` with BagIt #3 and with the 'presqt-file-duplicate-action' set to 'ignore' to see that the duplicate file is found and it's contents are different but the file is updated.
 3. Make the same request as 2 but set the header 'presqt-file-duplicate-action' to 'update' to see the file updated.
-4. With the same container id make a POST request to ``https://localhost/api_v1/targets/osf/resources/{resource_id}/`` with BagIt #4 to see new files and folders added to the top level container.
+4. With the same container id make a POST request to ``https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/{resource_id}/`` with BagIt #4 to see new files and folders added to the top level container.
 5. A POST request with BagIts 5-7 should return an error with nothing being uploaded.
 
 .. toctree::

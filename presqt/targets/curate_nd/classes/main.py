@@ -33,7 +33,11 @@ class CurateND(CurateNDBase):
         # Verify that the token provided is a valid one.
         response = requests.get('https://curate.nd.edu/api/items?editor=self',
                                 headers={'X-Api-Token': '{}'.format(token)})
-        if response.status_code == 500:
+        try:
+            response.json()['code']
+        except KeyError:
+            pass
+        else:
             raise PresQTInvalidTokenError("Token is invalid. Response returned a 500 error.")
 
     def items(self, url):
