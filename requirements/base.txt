@@ -1,4 +1,4 @@
-Django==2.2.7
+Django==3.0.0
 gunicorn==19.9.0
 psycopg2==2.7.6.1
 pytz==2018.9
@@ -15,8 +15,8 @@ sphinx-rtd-theme==0.4.3             # Sphinx Theme
 sphinxcontrib-httpdomain==1.7.0     # API plugin for Readthedocs
 
 # Requirements for RESTful API Support
-djangorestframework==3.9.2          # Latest version of DRF
-django-cors-headers==2.5.2          # Allows cross-domain HTTP communication
+djangorestframework==3.10.3         # Latest version of DRF
+django-cors-headers==3.2.0          # Allows cross-domain HTTP communication
 Markdown==3.1                       # Markdown support for browsable API
 coreapi==2.3.3                      # Schema generation support for API
 
