@@ -260,11 +260,59 @@ Resource Collection
                 ]
             }
         ]
+    
+    **Example request w/ search parameter**:
+
+    .. sourcecode:: http
+
+        GET /api_v1/targets/OSF/resources?title=egg/ HTTP/1.1
+        Host: localhost
+        Accept: application/json
+
+    **Example response w/ search parameter**:
+
+    .. sourcecode:: http
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json
+
+        [
+            {
+                "kind": "container",
+                "kind_name": "project",
+                "id": "cmn5z",
+                "container": null,
+                "title": "The Egg Paradox",
+                "links": [
+                    {
+                        "name": "Detail",
+                        "link": "https://localhost/api_v1/targets/osf/resources/cmn5z/",
+                        "method": "GET"
+                    }
+                ]
+            },
+            {
+                "kind": "item",
+                "kind_name": "file",
+                "id": "71249827434129",
+                "container": "cmn5z",
+                "title": "alloftheeggs.jpg",
+                "links": [
+                    {
+                        "name": "Detail",
+                        "link": "https://localhost/api_v1/targets/osf/resources/71249827434129/",
+                        "method": "GET"
+                    }
+                ]
+            }
+        ]
+
 
     :reqheader presqt-source-token: User's token for the source target
     :statuscode 200: ``Resources`` successfully retrieved
     :statuscode 400: The ``Target`` does not support the action ``resource_collection``
     :statuscode 400: ``presqt-source-token`` missing in the request headers
+    :statuscode 400: The ``search query`` is not formatted correctly.
     :statuscode 401: ``Token`` is invalid
     :statuscode 404: Invalid ``Target`` name
 
@@ -481,8 +529,8 @@ Upload New Top Level Resource
     :statuscode 400: Checksums failed to validate
     :statuscode 400: ``presqt-file-duplicate-action`` missing in the request headers
     :statuscode 400: Invalid ``file_duplicate_action`` header give. The options are ``ignore`` or ``update``
-    :statuscode 400: Project is not formatted correctly. Multiple directories exist at the top level
-    :statuscode 400: Project is not formatted correctly. Files exist at the top level
+    :statuscode 400: Repository is not formatted correctly. Multiple directories exist at the top level
+    :statuscode 400: Repository is not formatted correctly. Files exist at the top level
     :statuscode 401: ``Token`` is invalid
     :statuscode 404: Invalid ``Target`` name
 

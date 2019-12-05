@@ -6,7 +6,7 @@ from presqt.targets.curate_nd.classes.base import CurateNDBase
 from presqt.targets.curate_nd.classes.file import File
 from presqt.targets.curate_nd.classes.item import Item
 from presqt.targets.utilities import run_urls_async
-from presqt.utilities import PresQTInvalidTokenError
+from presqt.utilities import PresQTInvalidTokenError, PresQTResponseException
 
 
 class CurateND(CurateNDBase):
@@ -31,25 +31,24 @@ class CurateND(CurateNDBase):
         """
         self.session.token_auth({'X-Api-Token': '{}'.format(token)})
         # Verify that the token provided is a valid one.
-        response = requests.get('https://libvirt6.library.nd.edu/api/items?editor=self',
+        response = requests.get('https://curate.nd.edu/api/items?editor=self',
                                 headers={'X-Api-Token': '{}'.format(token)})
         if response.status_code == 500:
             raise PresQTInvalidTokenError("Token is invalid. Response returned a 500 error.")
 
-    def items(self):
+    def items(self, url):
         """
-        Get an item with the given item_id.
+        Get all items.
 
         Parameters
         ----------
-        item_id : str
-            id of the Item we want to fetch.
+        url : str
+            The url used to retrive all items.
 
         Returns
         -------
-        Instance of the desired Item.
+        List of the desired Items.
         """
-        url = 'https://libvirt6.library.nd.edu/api/items?editor=self'
         response_data = self._get_all_paginated_data(url)
         item_urls = []
         for response in response_data:
@@ -78,25 +77,36 @@ class CurateND(CurateNDBase):
         url = self.session.build_url(resource_id)
         response_data = self.get(url)
         response_json = response_data.json()
+        # If the id given can't be found or is of type person, we want to raise an exception.
+        # Error are only present in the payload if an error occured.
+        if 'error' in response_json.keys():
+            raise PresQTResponseException(
+                'The resource, {}, could not be found on CurateND.'.format(resource_id),
+                status.HTTP_404_NOT_FOUND)
 
         try:
-            contained_files = response_json['containedFiles']
+            response_json['containedFiles']
         except KeyError:
             # If the containedFiles key is not in the payload, we are creating a file.
             return File(response_data.json(), self.session)
         else:
             return Item(response_data.json(), self.session)
 
-    def get_user_resources(self):
+    def get_resources(self, url='https://curate.nd.edu/api/items?editor=self'):
         """
-        Get all of the user's resources. Return in the structure expected for the PresQT API.
+        Get all of the requested resources. Return in the structure expected for the PresQT API.
+
+        Parameters
+        ----------
+        url : str
+            The url used to retrive all items.
 
         Returns
         -------
         List of all items.
         """
         resources = []
-        for item in self.items():
+        for item in self.items(url):
             # Items
             resources.append({
                 'kind': 'container',

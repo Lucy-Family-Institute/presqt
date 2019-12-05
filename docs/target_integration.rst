@@ -88,9 +88,10 @@ structure on the front end.
 
     * The function must have the following parameters **in this order**:
 
-        ===== === ===========================
-        token str User's token for the target
-        ===== === ===========================
+        ================ === ===========================================
+        token            str User's token for the target
+        search_parameter str The search parameter passed to the API View
+        ================ === ===========================================
 
     * The function must return the following **in this order**:
 
@@ -120,7 +121,8 @@ structure on the front end.
 
         .. code-block:: python
 
-            def <your_target_name>_fetch_resources(token):
+            def <your_target_name>_fetch_resources(token, search_parameter):
+                # Process to obtain resource collection IF search_parameter goes here.
                 # Process to obtain resource collection goes here.
                 # Variables below are defined here to show examples of structure.
                 resources = [

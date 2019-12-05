@@ -1,3 +1,4 @@
+import re
 import requests
 
 from rest_framework import status
@@ -6,7 +7,7 @@ from presqt.targets.github.utilities import validation_check, github_paginated_d
 from presqt.utilities import PresQTResponseException
 
 
-def github_fetch_resources(token):
+def github_fetch_resources(token, search_parameter):
     """
     Fetch all users repos from GitHub.
 
@@ -14,6 +15,9 @@ def github_fetch_resources(token):
     ----------
     token : str
         User's GitHub token
+    search_parameter : dict
+        The search parameter passed to the API View
+        Gets passed formatted as {'title': 'search_info'}
 
     Returns
     -------
@@ -28,12 +32,19 @@ def github_fetch_resources(token):
         }
     """
     try:
-        validation_check(token)
+        header, username = validation_check(token)
     except PresQTResponseException:
         raise PresQTResponseException('The response returned a 401 unauthorized status code.',
                                       status.HTTP_401_UNAUTHORIZED)
 
-    data = github_paginated_data(token)
+    if search_parameter:
+        search_parameters = search_parameter['title'].replace(' ', '+')
+        search_url = "https://api.github.com/search/repositories?q={}+in:name".format(
+            search_parameters)
+        data = requests.get(search_url, headers=header).json()['items']
+
+    else:
+        data = github_paginated_data(token)
 
     resources = []
     for repo in data:
@@ -44,7 +55,6 @@ def github_fetch_resources(token):
             "id": repo["id"],
             "title": repo["name"]}
         resources.append(resource)
-
     return resources
 
 

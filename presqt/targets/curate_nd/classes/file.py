@@ -50,4 +50,4 @@ class File(CurateNDBase):
         The requested file in byte format and the file hash.
         """
         response = self.get(self.download_url)
-        return response.content, response.headers['Content-Md5']
+        return response.content, self.md5

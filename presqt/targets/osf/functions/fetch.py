@@ -5,7 +5,7 @@ from presqt.utilities import PresQTResponseException, PresQTInvalidTokenError
 from presqt.targets.osf.classes.main import OSF
 
 
-def osf_fetch_resources(token):
+def osf_fetch_resources(token, search_parameter):
     """
     Fetch all OSF resources for the user connected to the given token.
 
@@ -13,6 +13,9 @@ def osf_fetch_resources(token):
     ----------
     token : str
         User's OSF token
+    search_parameter : dict
+        The search parameter passed to the API View
+        Gets passed formatted as {'title': 'search_info'}
 
     Returns
     -------
@@ -32,7 +35,13 @@ def osf_fetch_resources(token):
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
-    resources = osf_instance.get_user_resources()
+    if search_parameter:
+        # Format the search that is coming in to be passed to the OSF API
+        search_parameters = search_parameter['title'].replace(' ', '+')
+        search_url = 'https://api.osf.io/v2/nodes/?filter[title]={}'.format(search_parameters)
+        resources = osf_instance.get_resources(search_url)
+    else:
+        resources = osf_instance.get_resources()
     return resources
 
 
