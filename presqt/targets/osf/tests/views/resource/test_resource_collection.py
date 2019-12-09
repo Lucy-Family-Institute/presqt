@@ -2,7 +2,7 @@ from django.test import SimpleTestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
-from config.settings.base import OSF_PRESQT_FORK_TOKEN, OSF_TEST_USER_TOKEN
+from config.settings.base import OSF_PRESQT_FORK_TOKEN, OSF_TEST_USER_TOKEN, OSF_PRIVATE_USER_TOKEN
 
 
 class TestResourceCollection(SimpleTestCase):
@@ -102,3 +102,10 @@ class TestResourceCollection(SimpleTestCase):
 
         self.assertEqual(response.data['error'], 'The search query is not formatted correctly.')
         self.assertEqual(response.status_code, 400)
+
+        # EMPTY SEARCH -- NOT AN ERROR
+        response = self.client.get(url + '?title=', **self.header)
+        # Should return users resources
+        self.assertEqual(response.status_code, 200)
+        # Verify the count of resource objects is what we expect.
+        self.assertEqual(75, len(response.data))
