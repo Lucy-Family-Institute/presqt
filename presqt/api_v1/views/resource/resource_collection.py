@@ -101,7 +101,7 @@ class ResourceCollection(BaseResource):
         if request.query_params != {}:
             try:
                 search_validator(query_params)
-                if request.query_params['title'].isspace():
+                if request.query_params['title'].isspace() or request.query_params['title'] == '':
                     # If title is empty, we want to only return user resources.
                     query_params = {}
             except PresQTResponseException as e:
