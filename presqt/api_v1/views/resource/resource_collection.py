@@ -96,10 +96,15 @@ class ResourceCollection(BaseResource):
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
+        query_params = request.query_params
         # Validate the search query if there is one.
         if request.query_params != {}:
             try:
-                search_validator(request.query_params)
+                search_validator(query_params)
+
+                if request.query_params['title'] == '':
+                    # If title is empty, we want to only return user resources.
+                    query_params = {}
             except PresQTResponseException as e:
                 # Catch any errors that happen within the search validation
                 return Response(data={'error': e.data}, status=e.status_code)
@@ -108,7 +113,7 @@ class ResourceCollection(BaseResource):
 
         # Fetch the target's resources
         try:
-            resources = func(token, request.query_params)
+            resources = func(token, query_params)
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch
             return Response(data={'error': e.data}, status=e.status_code)
