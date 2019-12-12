@@ -72,26 +72,21 @@ def zenodo_fetch_resource_helper(zenodo_project, resource_id, is_record=False, i
     -------
         PresQT Zenodo Resource (dict).
     """
+    if is_file is False:
+        kind = 'container'
+        title = zenodo_project['metadata']['title']
+        hashes = {}
+        extra = {}
+        for key, value in zenodo_project['metadata'].items():
+            extra[key] = value
 
     if is_record is True and is_file is False:
-        kind = 'container'
         kind_name = zenodo_project['metadata']['resource_type']['type']
-        title = zenodo_project['metadata']['title']
         date_modified = zenodo_project['updated']
-        hashes = {}
-        extra = {}
-        for key, value in zenodo_project['metadata'].items():
-            extra[key] = value
 
     elif is_record is False and is_file is False:
-        kind = 'container'
         kind_name = zenodo_project['metadata']['upload_type']
-        title = zenodo_project['metadata']['title']
         date_modified = zenodo_project['modified']
-        hashes = {}
-        extra = {}
-        for key, value in zenodo_project['metadata'].items():
-            extra[key] = value
 
     elif is_record is True and is_file is True:
         kind = 'item'
