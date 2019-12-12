@@ -2,7 +2,8 @@ import requests
 
 from rest_framework import status
 
-from presqt.targets.zenodo.utilities import zenodo_validation_check
+from presqt.targets.zenodo.utilities import (
+    zenodo_validation_check, zenodo_fetch_resources_helper, zenodo_fetch_resource_helper)
 from presqt.utilities import PresQTValidationError, PresQTResponseException
 
 
@@ -35,28 +36,18 @@ def zenodo_fetch_resources(token, search_parameter):
     except PresQTValidationError:
         raise PresQTValidationError("Zenodo returned a 401 unauthorized status code.",
                                     status.HTTP_401_UNAUTHORIZED)
-
     # Let's build them resources
-    base_url = "https://zenodo.org/api/deposit/depositions"
-    zenodo_projects = requests.get(base_url, params=auth_parameter).json()
+    if search_parameter:
+        search_parameters = search_parameter['title'].replace(' ', '+')
+        base_url = 'https://zenodo.org/api/records?q=title:"{}"'.format(search_parameters)
+        zenodo_projects = requests.get(base_url, params=auth_parameter).json()['hits']['hits']
+        is_record = True
+    else:
+        base_url = "https://zenodo.org/api/deposit/depositions"
+        zenodo_projects = requests.get(base_url, params=auth_parameter).json()
+        is_record = False
 
-    resources = []
-    for entry in zenodo_projects:
-        resource = {
-            "kind": "container",
-            "kind_name": entry['metadata']['upload_type'],
-            "container": None,
-            "id": entry['id'],
-            "title": entry['metadata']['title']}
-        resources.append(resource)
-        for item in requests.get(entry['links']['files'], params=auth_parameter).json():
-            resource = {
-                "kind": "item",
-                "kind_name": "file",
-                "container": entry['id'],
-                "id": item['id'],
-                "title": item['filename']}
-            resources.append(resource)
+    resources = zenodo_fetch_resources_helper(zenodo_projects, auth_parameter, is_record)
 
     return resources
 
@@ -99,56 +90,64 @@ def zenodo_fetch_resource(token, resource_id):
         raise PresQTValidationError("Zenodo returned a 401 unauthorized status code.",
                                     status.HTTP_401_UNAUTHORIZED)
 
-    base_url = "https://zenodo.org/api/deposit/depositions"
-    zenodo_projects = requests.get(base_url, params=auth_parameter).json()
-
-    if len(resource_id) > 7:
-        for entry in zenodo_projects:
-            project_files = requests.get(entry['links']['self'], params=auth_parameter).json()
-            for entry in project_files['files']:
-                if entry['id'] == resource_id:
-                    resource = {
-                        "kind": "item",
-                        "kind_name": "file",
-                        "id": resource_id,
-                        "title": entry['filename'],
-                        "date_created": None,
-                        "date_modified": None,
-                        "hashes": {
-                            "md5": entry['checksum']
-                        },
-                        "extra": {}}
-                    # We found the file, break out of file loop
-                    break
-            # If the file wasn't found, we want to continue looping through the other projects.
-            else:
-                continue
-            # File has been found, break out of project loop
-            break
-
-        # File not found, raise exception
+    # Let's first try to get the record with this id.
+    if len(resource_id) <= 7:
+        base_url = "https://zenodo.org/api/records/{}".format(resource_id)
+        zenodo_project = requests.get(base_url, params=auth_parameter).json()
+        try:
+            zenodo_project['status']
+        except KeyError:
+            # We found the record, pass the project to our function.
+            resource = zenodo_fetch_resource_helper(zenodo_project, resource_id, True)
         else:
-            raise PresQTResponseException("The resource could not be found by the requesting user.",
-                                          status.HTTP_404_NOT_FOUND)
+            # We need to get the resource from the depositions
+            base_url = "https://zenodo.org/api/deposit/depositions/{}".format(resource_id)
+            zenodo_project = requests.get(base_url, params=auth_parameter)
+            if zenodo_project.status_code != 200:
+                raise PresQTResponseException("The resource could not be found by the requesting user.",
+                                              status.HTTP_404_NOT_FOUND)
+            else:
+                resource = zenodo_fetch_resource_helper(
+                    zenodo_project.json(), resource_id, False, False)
 
     else:
-        for entry in zenodo_projects:
-            if str(entry['id']) == resource_id:
-                resource = {
-                    "kind": "container",
-                    "kind_name": entry['metadata']['upload_type'],
-                    "id": entry['id'],
-                    "title": entry['metadata']['title'],
-                    "date_created": entry['created'],
-                    "date_modified": entry['modified'],
-                    "hashes": {},
-                    "extra": {}
-                }
-                for key, value in entry.items():
-                    resource['extra'][key] = value
-                break
+        # We got ourselves a file.
+        base_url = "https://zenodo.org/api/files/{}".format(resource_id)
+        zenodo_project = requests.get(base_url, params=auth_parameter)
+        if zenodo_project.status_code == 200:
+            # Contents returns a list of the single file
+            resource = zenodo_fetch_resource_helper(
+                zenodo_project.json()['contents'][0], resource_id, True, True)
         else:
-            raise PresQTResponseException("The resource could not be found by the requesting user.",
-                                          status.HTTP_404_NOT_FOUND)
+            # We need to loop through the users depositions and see if the file is there.
+            base_url = 'https://zenodo.org/api/deposit/depositions'
+            zenodo_projects = requests.get(base_url, params=auth_parameter).json()
+            for entry in zenodo_projects:
+                project_files = requests.get(entry['links']['self'], params=auth_parameter).json()
+                for entry in project_files['files']:
+                    if entry['id'] == resource_id:
+                        resource = {
+                            "kind": "item",
+                            "kind_name": "file",
+                            "id": resource_id,
+                            "title": entry['filename'],
+                            "date_created": None,
+                            "date_modified": None,
+                            "hashes": {
+                                "md5": entry['checksum']
+                            },
+                            "extra": {}}
+                        # We found the file, break out of file loop
+                        break
+                # If the file wasn't found, we want to continue looping through the other projects.
+                else:
+                    continue
+                # File has been found, break out of project loop
+                break
+
+            # File not found, raise exception
+            else:
+                raise PresQTResponseException("The resource could not be found by the requesting user.",
+                                              status.HTTP_404_NOT_FOUND)
 
     return resource

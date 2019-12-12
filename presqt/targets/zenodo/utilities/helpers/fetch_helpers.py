@@ -1,0 +1,112 @@
+import requests
+
+
+def zenodo_fetch_resources_helper(zenodo_projects, auth_parameter, is_record):
+    """
+    Takes a dictionary of Zenodo depositions/records and builds Zenodo PresQT resources.
+
+    Parameters
+    ----------
+    zenodo_projects : dict
+        The requesting user's Zenodo projects.
+    auth_parameeter : dict
+        The user's Zenodo API token
+
+    Returns
+    -------
+        List of PresQT Zenodo Resources.
+    """
+    resources = []
+    for entry in zenodo_projects:
+        # This will determine if it's a record or a deposition
+        if is_record is True:
+            kind_name = entry['metadata']['resource_type']['type']
+        else:
+            kind_name = entry['metadata']['upload_type']
+        resource = {
+            "kind": "container",
+            "kind_name": kind_name,
+            "container": None,
+            "id": entry['id'],
+            "title": entry['metadata']['title']}
+        resources.append(resource)
+
+        # Now loop through the files
+        if is_record is True:
+            # This will work on the records endpoint
+            for item in entry['files']:
+                resource = {
+                    "kind": "item",
+                    "kind_name": "file",
+                    "container": entry['id'],
+                    "id": item['bucket'],
+                    "title": item['key']}
+                resources.append(resource)
+
+        # Otherwise we need to pull the info from the depositions endpoint
+        else:
+            for item in requests.get(entry['links']['files'], params=auth_parameter).json():
+                resource = {
+                    "kind": "item",
+                    "kind_name": "file",
+                    "container": entry['id'],
+                    "id": item['id'],
+                    "title": item['filename']}
+                resources.append(resource)
+
+    return resources
+
+
+def zenodo_fetch_resource_helper(zenodo_project, resource_id, is_record=False, is_file=False):
+    """
+    Takes a Zenodo deposition/record and builds a Zenodo PresQT resource.
+
+    Parameters
+    ----------
+    zenodo_project : dict
+        The requested Zenodo project.
+    auth_parameeter : dict
+        The user's Zenodo API token
+
+    Returns
+    -------
+        PresQT Zenodo Resource (dict).
+    """
+
+    if is_record is True and is_file is False:
+        kind = 'container'
+        kind_name = zenodo_project['metadata']['resource_type']['type']
+        title = zenodo_project['metadata']['title']
+        date_modified = zenodo_project['updated']
+        hashes = {}
+        extra = {}
+        for key, value in zenodo_project['metadata'].items():
+            extra[key] = value
+
+    elif is_record is False and is_file is False:
+        kind = 'container'
+        kind_name = zenodo_project['metadata']['upload_type']
+        title = zenodo_project['metadata']['title']
+        date_modified = zenodo_project['modified']
+        hashes = {}
+        extra = {}
+        for key, value in zenodo_project['metadata'].items():
+            extra[key] = value
+
+    elif is_record is True and is_file is True:
+        kind = 'item'
+        kind_name = 'file'
+        title = zenodo_project['key']
+        date_modified = zenodo_project['updated']
+        hashes = {'md5': zenodo_project['checksum'].partition(':')[2]}
+        extra = {}
+
+    return {
+        "kind": kind,
+        "kind_name": kind_name,
+        "id": resource_id,
+        "title": title,
+        "date_created": zenodo_project['created'],
+        "date_modified": date_modified,
+        "hashes": hashes,
+        "extra": extra}
