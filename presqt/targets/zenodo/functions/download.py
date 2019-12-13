@@ -112,6 +112,10 @@ def zenodo_download_resource(token, resource_id):
                         file_url = file['links']['self']
                         is_record = False
                         break
+                else:
+                    # If the file wasn't found we want to continue the loop.
+                    continue
+                break
         else:
             is_record = True
             base_url = 'https://zenodo.org/api/files/{}'.format(resource_id)
