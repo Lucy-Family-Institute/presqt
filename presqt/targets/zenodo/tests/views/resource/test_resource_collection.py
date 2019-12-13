@@ -32,13 +32,30 @@ class TestResourceCollection(SimpleTestCase):
         response = self.client.get(url, **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
-        # Verify the dict keys match what we expect,
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
         # Verify the count of resource objects is what we expect.
         self.assertEqual(len(response.data), 6)
+
+        for data in response.data:
+            self.assertEqual(len(data['links']), 1)
+
+    def test_success_zenodo_with_search(self):
+        """
+        Return a 200 if the GET method is successful when grabbing Zenodo resources.
+        """
+        url = reverse('resource_collection', kwargs={'target_name': 'zenodo'})
+        response = self.client.get(url + "?title=a+curious+egg", **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 200)
+        # Verify the dict keys match what we expect
+        keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
+        for data in response.data:
+            self.assertListEqual(keys, list(data.keys()))
+        # Verify the count of resource objects is what we expect.
+        self.assertEqual(len(response.data), 2)
 
         for data in response.data:
             self.assertEqual(len(data['links']), 1)
