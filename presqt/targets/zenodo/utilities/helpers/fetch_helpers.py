@@ -11,6 +11,8 @@ def zenodo_fetch_resources_helper(zenodo_projects, auth_parameter, is_record):
         The requesting user's Zenodo projects.
     auth_parameeter : dict
         The user's Zenodo API token
+    is_record : boolean
+        Flag for if the resource is a published record
 
     Returns
     -------
@@ -65,14 +67,25 @@ def zenodo_fetch_resource_helper(zenodo_project, resource_id, is_record=False, i
     ----------
     zenodo_project : dict
         The requested Zenodo project.
-    auth_parameeter : dict
+    auth_parameter : dict
         The user's Zenodo API token
+    is_record : boolean
+        Flag for if the resource is a published record
+    is_file : boolean
+        Flag for if the resource is a file
 
     Returns
     -------
         PresQT Zenodo Resource (dict).
     """
     if is_file is False:
+        if is_record is True:
+            kind_name = zenodo_project['metadata']['resource_type']['type']
+            date_modified = zenodo_project['updated']
+        else:
+            kind_name = zenodo_project['metadata']['upload_type']
+            date_modified = zenodo_project['modified']
+
         kind = 'container'
         title = zenodo_project['metadata']['title']
         hashes = {}
@@ -80,15 +93,7 @@ def zenodo_fetch_resource_helper(zenodo_project, resource_id, is_record=False, i
         for key, value in zenodo_project['metadata'].items():
             extra[key] = value
 
-    if is_record is True and is_file is False:
-        kind_name = zenodo_project['metadata']['resource_type']['type']
-        date_modified = zenodo_project['updated']
-
-    elif is_record is False and is_file is False:
-        kind_name = zenodo_project['metadata']['upload_type']
-        date_modified = zenodo_project['modified']
-
-    elif is_record is True and is_file is True:
+    else:
         kind = 'item'
         kind_name = 'file'
         title = zenodo_project['key']

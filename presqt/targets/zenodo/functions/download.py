@@ -99,9 +99,11 @@ def zenodo_download_resource(token, resource_id):
 
     # If the resource_id is longer than 7 characters, the resource is an individual file
     if len(resource_id) > 7:
+        # First we need to check if the file id given belongs to a public published record.
         zenodo_file = requests.get(
             'https://zenodo.org/api/files/{}'.format(resource_id), params=auth_parameter)
         if zenodo_file.status_code != 200:
+            # If not, we need to loop through their depositions to look for the file.
             zenodo_projects = requests.get('https://zenodo.org/api/deposit/depositions',
                                            params=auth_parameter).json()
             for entry in zenodo_projects:

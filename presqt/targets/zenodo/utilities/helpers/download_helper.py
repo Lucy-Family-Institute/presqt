@@ -11,6 +11,8 @@ def zenodo_download_helper(is_record, base_url, auth_parameter, files, file_url=
 
     Parameters
     ----------
+    is_record : boolean
+        Flag for if the download is a public record
     base_url : str
         The url of the Zenodo project.
     auth_parameter : str
@@ -109,7 +111,7 @@ def zenodo_file_download_helper(auth_parameter, is_record, project_name, metadat
 
 def zenodo_project_download_helper(is_record, project_name, project_helper, files):
     """
-    Downloads a full project from Zenodo and returns the expected dictionary.
+    Downloads a full project from Zenodo and returns the expected list of dictionaries.
 
     Parameters
     ----------
