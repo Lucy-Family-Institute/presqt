@@ -33,8 +33,8 @@ class TestResourceGETJSON(SimpleTestCase):
                       'has_issues', 'has_projects', 'has_downloads', 'has_wiki', 'has_pages',
                       'forks_count', 'archived', 'disabled', 'open_issues_count', 'license',
                       'forks', 'open_issues', 'watchers', 'default_branch', 'permissions',
-                      'allow_squash_merge', 'allow_merge_commit', 'allow_rebase_merge',
-                      'network_count', 'subscribers_count']
+                      'temp_clone_token', 'allow_squash_merge', 'allow_merge_commit',
+                      'allow_rebase_merge', 'network_count', 'subscribers_count']
 
         url = reverse('resource', kwargs={'target_name': 'github',
                                           'resource_id': resource_id,
