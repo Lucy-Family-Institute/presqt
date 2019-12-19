@@ -99,30 +99,49 @@ def zenodo_download_resource(token, resource_id):
 
     # If the resource_id is longer than 7 characters, the resource is an individual file
     if len(resource_id) > 7:
-        zenodo_projects = requests.get('https://zenodo.org/api/deposit/depositions',
-                                       params=auth_parameter).json()
-        for entry in zenodo_projects:
-            project_files = requests.get(entry['links']['self'], params=auth_parameter).json()
-            for file in project_files['files']:
-                if file['id'] == resource_id:
-                    base_url = entry['links']['self']
-                    file_url = file['links']['self']
-                    break
+        # First we need to check if the file id given belongs to a public published record.
+        zenodo_file = requests.get(
+            'https://zenodo.org/api/files/{}'.format(resource_id), params=auth_parameter)
+        if zenodo_file.status_code != 200:
+            # If not, we need to loop through their depositions to look for the file.
+            zenodo_projects = requests.get('https://zenodo.org/api/deposit/depositions',
+                                           params=auth_parameter).json()
+            for entry in zenodo_projects:
+                project_files = requests.get(entry['links']['self'], params=auth_parameter).json()
+                for file in project_files['files']:
+                    if file['id'] == resource_id:
+                        base_url = entry['links']['self']
+                        file_url = file['links']['self']
+                        is_record = False
+                        break
+                else:
+                    # If the file wasn't found we want to continue the loop.
+                    continue
+                break
+        else:
+            is_record = True
+            base_url = 'https://zenodo.org/api/files/{}'.format(resource_id)
+            file_url = 'https://zenodo.org/api/files/{}'.format(resource_id)
 
         if base_url is None:
             raise PresQTResponseException(
                 "The resource with id, {}, does not exist for this user.".format(resource_id),
                 status.HTTP_404_NOT_FOUND)
 
-        files, action_metadata = zenodo_download_helper(base_url, auth_parameter, files,
+        files, action_metadata = zenodo_download_helper(is_record, base_url, auth_parameter, files,
                                                         file_url)
 
     # Otherwise, it's a full project
     else:
-        base_url = 'https://zenodo.org/api/deposit/depositions/{}'.format(resource_id)
-
+        base_url = 'https://zenodo.org/api/records/{}'.format(resource_id)
+        zenodo_record = requests.get(base_url, params=auth_parameter)
+        is_record = True
+        if zenodo_record.status_code != 200:
+            base_url = 'https://zenodo.org/api/deposit/depositions/{}'.format(resource_id)
+            is_record = False
         try:
-            files, action_metadata = zenodo_download_helper(base_url, auth_parameter, files)
+            files, action_metadata = zenodo_download_helper(is_record, base_url, auth_parameter,
+                                                            files)
         except PresQTResponseException:
             raise PresQTResponseException(
                 "The resource with id, {}, does not exist for this user.".format(resource_id),

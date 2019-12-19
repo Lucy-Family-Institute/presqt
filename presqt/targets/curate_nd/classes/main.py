@@ -63,7 +63,17 @@ class CurateND(CurateNDBase):
 
         data = run_urls_async(self, item_urls)
 
-        return [Item(item_json, self.session) for item_json in data]
+        # Remove errors returned by CurateND
+        good_data = []
+        for item in data:
+            try:
+                item['status']
+            except KeyError:
+                good_data.append(item)
+            else:
+                pass
+
+        return [Item(item_json, self.session) for item_json in good_data]
 
     def resource(self, resource_id):
         """
