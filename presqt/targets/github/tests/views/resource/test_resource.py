@@ -44,7 +44,8 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         self.assertListEqual(self.keys, list(response.data.keys()))
-        self.assertListEqual(extra_keys, list(response.data['extra'].keys()))
+        for key in extra_keys:
+            self.assertIn(key, list(response.data['extra'].keys()))
         # Spot check some individual fields
         self.assertEqual('repo', response.data['kind_name'])
         self.assertEqual(resource_id, response.data['id'])
