@@ -194,7 +194,7 @@ class BaseResource(APIView):
             except bagit.BagError as e:
                 # If we've reached the maximum number of attempts then return an error response
                 if index == 2:
-                    return Response(data=e.args, status=status.HTTP_400_BAD_REQUEST)
+                    return Response(data={'error': e.args[0]}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 # Collect and remove any existing source metadata
                 get_upload_source_metadata(self, self.bag)
