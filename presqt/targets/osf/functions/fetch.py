@@ -1,7 +1,7 @@
 from rest_framework import status
 
 from presqt.targets.osf.utilities import get_osf_resource
-from presqt.utilities import PresQTResponseException, PresQTInvalidTokenError
+from presqt.utilities import PresQTResponseException, PresQTInvalidTokenError, PresQTValidationError
 from presqt.targets.osf.classes.main import OSF
 
 
@@ -38,10 +38,13 @@ def osf_fetch_resources(token, search_parameter):
     if search_parameter:
         # Format the search that is coming in to be passed to the OSF API
         search_parameters = search_parameter['title'].replace(' ', '+')
-        search_url = 'https://api.osf.io/v2/nodes/?filter[title]={}'.format(search_parameters)
-        resources = osf_instance.get_resources(search_url)
+        url = 'https://api.osf.io/v2/nodes/?filter[title]={}'.format(search_parameters)
     else:
-        resources = osf_instance.get_resources()
+        url = None
+    try:
+        resources = osf_instance.get_resources(url)
+    except PresQTValidationError as e:
+        raise e
     return resources
 
 
