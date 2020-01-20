@@ -1,6 +1,9 @@
 import asyncio
-
 import aiohttp
+
+from rest_framework import status
+
+from presqt.utilities import PresQTValidationError
 
 
 def run_urls_async(self_instance, url_list):
@@ -69,8 +72,12 @@ async def async_get(self_instance, url, session):
     Response JSON
     """
     async with session.get(url, headers=self_instance.session.headers) as response:
-        assert response.status == 200
-        return await response.json()
+        try:
+            assert response.status == 200
+            return await response.json()
+        except AssertionError:
+            raise PresQTValidationError("The source target API returned an error. Please try again.",
+                                        status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 async def async_main(self_instance, url_list):
