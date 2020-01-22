@@ -258,9 +258,9 @@ class TestResourceGETZip(SimpleTestCase):
         self.assertEqual(fixity_info[0]['fixity'], True)
         self.assertEqual(fixity_info[0]['fixity_details'],
                          'Source Hash and PresQT Calculated hash matched.')
-        self.assertEqual(fixity_info[0]['hash_algorithm'], 'sha256')
-        self.assertEqual(fixity_info[0]['presqt_hash'], self.hashes['sha256'])
-        self.assertEqual(fixity_info[0]['source_hash'], self.hashes['sha256'])
+        self.assertIn(fixity_info[0]['hash_algorithm'], ['sha256', 'md5'])
+        self.assertEqual(fixity_info[0]['presqt_hash'], self.hashes[fixity_info[0]['hash_algorithm']])
+        self.assertEqual(fixity_info[0]['source_hash'], self.hashes[fixity_info[0]['hash_algorithm']])
 
     def test_success_202_file_osfstorage_docx(self):
         """
@@ -281,9 +281,10 @@ class TestResourceGETZip(SimpleTestCase):
         self.assertEqual(fixity_info[0]['fixity'], True)
         self.assertEqual(fixity_info[0]['fixity_details'],
                          'Source Hash and PresQT Calculated hash matched.')
-        self.assertEqual(fixity_info[0]['hash_algorithm'], 'sha256')
-        self.assertEqual(fixity_info[0]['presqt_hash'], self.hashes['sha256'])
-        self.assertEqual(fixity_info[0]['source_hash'], self.hashes['sha256'])
+        self.assertIn(fixity_info[0]['hash_algorithm'], ['sha256', 'md5'])
+        self.assertEqual(fixity_info[0]['presqt_hash'], self.hashes[fixity_info[0]['hash_algorithm']])
+        self.assertEqual(fixity_info[0]['source_hash'], self.hashes[fixity_info[0]['hash_algorithm']])
+
 
     def test_success_202_file_osfstorage_pdf(self):
         """
@@ -304,9 +305,9 @@ class TestResourceGETZip(SimpleTestCase):
         self.assertEqual(fixity_info[0]['fixity'], True)
         self.assertEqual(fixity_info[0]['fixity_details'],
                          'Source Hash and PresQT Calculated hash matched.')
-        self.assertEqual(fixity_info[0]['hash_algorithm'], 'sha256')
-        self.assertEqual(fixity_info[0]['presqt_hash'], self.hashes['sha256'])
-        self.assertEqual(fixity_info[0]['source_hash'], self.hashes['sha256'])
+        self.assertIn(fixity_info[0]['hash_algorithm'], ['sha256', 'md5'])
+        self.assertEqual(fixity_info[0]['presqt_hash'], self.hashes[fixity_info[0]['hash_algorithm']])
+        self.assertEqual(fixity_info[0]['source_hash'], self.hashes[fixity_info[0]['hash_algorithm']])
 
     def test_success_202_file_osfstorage_mp3(self):
         """
@@ -327,9 +328,9 @@ class TestResourceGETZip(SimpleTestCase):
         self.assertEqual(fixity_info[0]['fixity'], True)
         self.assertEqual(fixity_info[0]['fixity_details'],
                          'Source Hash and PresQT Calculated hash matched.')
-        self.assertEqual(fixity_info[0]['hash_algorithm'], 'sha256')
-        self.assertEqual(fixity_info[0]['presqt_hash'], self.hashes['sha256'])
-        self.assertEqual(fixity_info[0]['source_hash'], self.hashes['sha256'])
+        self.assertIn(fixity_info[0]['hash_algorithm'], ['sha256', 'md5'])
+        self.assertEqual(fixity_info[0]['presqt_hash'], self.hashes[fixity_info[0]['hash_algorithm']])
+        self.assertEqual(fixity_info[0]['source_hash'], self.hashes[fixity_info[0]['hash_algorithm']])
 
     def test_success_202_file_googledrive(self):
         """
