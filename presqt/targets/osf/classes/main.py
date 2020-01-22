@@ -174,6 +174,8 @@ class OSF(OSFBase):
                 child_project = Project(child, self.session)
                 children_projects.append(child_project)
 
+                # If the collection is part of a search result then the children projects haven't
+                # been added to the main all_projects list yet. Add them in this case.
                 for proj in all_projects:
                     if proj.id == child_project.id:
                         break
