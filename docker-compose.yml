@@ -14,7 +14,7 @@ services:
       # This ties host port 8000 to nginx container port 80
       # Inside of the nginx config, it's port 80 it forwarded to Django 8000
       # It is a little confusing.
-      - 80:80
+      - 82:80
       - 443:443
     restart: always
     volumes:

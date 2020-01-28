@@ -1,0 +1,16 @@
+# Docker Compose File for Development / Single Machine Deployments
+# adds overrides to the default docker compose
+# docker-compose -f docker-compose.yml -f docker-suave.yml build
+# docker-compose -f docker-compose.yml -f docker-suave.yml up
+
+
+version: "3"
+services:
+
+  presqt_django:
+    environment:
+      SUAVE_USER: $SUAVE_USER
+      SUAVE_PASSWORD: $SUAVE_PASSWORD
+      SECRET_KEY: $SECRET_KEY
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      DJANGO_SETTINGS_MODULE: config.settings.${ENVIRONMENT:-production}

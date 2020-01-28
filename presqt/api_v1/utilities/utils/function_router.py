@@ -17,6 +17,9 @@ from presqt.targets.zenodo.functions.download import zenodo_download_resource
 from presqt.targets.zenodo.functions.upload import zenodo_upload_resource
 from presqt.targets.zenodo.functions.upload_metadata import zenodo_upload_metadata
 
+from presqt.targets.suave.functions.upload_file import suave_upload_resource
+from presqt.targets.suave.functions.upload_file import suave_metadata_upload
+
 
 class FunctionRouter(object):
     """
@@ -70,3 +73,6 @@ class FunctionRouter(object):
     zenodo_resource_download = zenodo_download_resource
     zenodo_resource_upload = zenodo_upload_resource
     zenodo_metadata_upload = zenodo_upload_metadata
+
+    suave_resource_upload= suave_upload_resource
+    suave_metadata_upload=suave_metadata_upload

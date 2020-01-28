@@ -402,7 +402,7 @@ class BaseResource(APIView):
         # Also, create metadata files for the new zip file to be uploaded.
         if self.infinite_depth is False:
             try:
-                structure_validation(self)
+ #               structure_validation(self)
                 finite_depth_upload_helper(self)
             except PresQTResponseException as e:
                 # Catch any errors that happen within the target fetch.
@@ -432,7 +432,8 @@ class BaseResource(APIView):
         #        'project_id': title
         #    }
         try:
-            structure_validation(self)
+            print("structure")
+ #           structure_validation(self)
             func_dict = func(self.destination_token, self.destination_resource_id,
                              self.data_directory, self.hash_algorithm, self.file_duplicate_action)
         except PresQTResponseException as e:
