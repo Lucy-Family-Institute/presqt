@@ -7,8 +7,12 @@ def suave_upload_resource(token, resource_id, resource_main_dir,
                         hash_algorithm, file_duplicate_action):
     # SUAVE upload to file
     #  token is username
+    # questions for username:
+    #  * do we make these surveys ephemeral? in which case a presqt login account would
+    #      share the information. A user would need to be redirected back to the appropriate url.
+    #  * do we associated with a suave user, it could be pressqt.
 
-    # Variables below are defined here to show examples of structure.
+
     file_metadata_list = [
         # {
         #     # "actionRootPath": '',
@@ -39,8 +43,8 @@ def suave_upload_resource(token, resource_id, resource_main_dir,
                 survey_name=name
                 afile = os.path.join(path , name)
                 username=token
-                upload_to_suave(survey_url,survey_name,username,afile,"null",views,view)
-
+                returnedUrl = upload_to_suave(survey_url,survey_name,username,afile,"null",views,view)
+                # this needs to be passed back to user
             else:
                 resources_ignored.append(name)
 
