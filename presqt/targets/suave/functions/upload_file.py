@@ -6,7 +6,8 @@ from presqt.utilities import PresQTResponseException
 def suave_upload_resource(token, resource_id, resource_main_dir,
                         hash_algorithm, file_duplicate_action):
     # SUAVE upload to file
-    #  token is username
+    #  token is username. permanetly setting to PresQT
+    token='PresQT'
     # questions for username:
     #  * do we make these surveys ephemeral? in which case a presqt login account would
     #      share the information. A user would need to be redirected back to the appropriate url.
