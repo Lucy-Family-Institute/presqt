@@ -52,6 +52,21 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(3, len(response.data))
         # Count includes top level project, osfstorage, and a single file.
 
+        # Ensure we are only get back the first page of results
+        response = self.client.get(url + '?title=egg', **self.header)
+        # Verify the Status Code
+        self.assertEqual(response.status_code, 200)
+        # Verify the dict keys match what we expect
+        keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
+        for data in response.data:
+            self.assertListEqual(keys, list(data.keys()))
+        # Ensure that there are only 10 projects
+        projects = 0
+        for resource in response.data:
+            if resource['container'] is None:
+                projects += 1
+        self.assertEqual(projects, 10)
+
     def test_success_large_project(self):
         """
         Return a 200 if the GET method is successful when grabbing OSF resources.
