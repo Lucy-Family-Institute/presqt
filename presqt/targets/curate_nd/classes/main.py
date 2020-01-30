@@ -106,7 +106,7 @@ class CurateND(CurateNDBase):
         else:
             return Item(response_data.json(), self.session)
 
-    def get_resources(self, url='https://curate.nd.edu/api/items?editor=self'):
+    def get_resources(self, url=None):
         """
         Get all of the requested resources. Return in the structure expected for the PresQT API.
 

@@ -11,8 +11,8 @@
           "actionType": { "type": "string" },
           "sourceTargetName": { "type": "string" },
           "destinationTargetName": { "type": ["string", "null"] },
-          "sourceUsername": { "type": ["string", "null"] },
-          "destinationUsername": { "type": ["string", "null"] },
+          "sourceUsername": { "type": ["string", "integer","null"] },
+          "destinationUsername": { "type": ["string", "integer", "null"] },
           "files": {
             "type": "object",
             "properties": {

@@ -171,7 +171,16 @@ class OSF(OSFBase):
         children_projects = []
         for child_data in child_projects_data:
             for child in child_data['data']:
-                children_projects.append(Project(child, self.session))
+                child_project = Project(child, self.session)
+                children_projects.append(child_project)
+
+                # If the collection is part of a search result then the children projects haven't
+                # been added to the main all_projects list yet. Add them in this case.
+                for proj in all_projects:
+                    if proj.id == child_project.id:
+                        break
+                else:
+                    all_projects.append(child_project)
 
         # recursively call the iter_project_hierarchy for all child projects
         if children_projects:

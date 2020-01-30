@@ -56,8 +56,8 @@ class TestDownloadJob(SimpleTestCase):
             self.assertEqual(zip_json['fixity'], True)
             self.assertEqual(zip_json['fixity_details'],
                              'Source Hash and PresQT Calculated hash matched.')
-            self.assertEqual(zip_json['hash_algorithm'], 'sha256')
-            self.assertEqual(zip_json['presqt_hash'], self.hashes['sha256'])
+            self.assertIn(zip_json['hash_algorithm'], ['sha256', 'md5'])
+            self.assertEqual(zip_json['presqt_hash'], self.hashes[zip_json['hash_algorithm']])
 
         # Run the file through the fixity checker again to make sure it downloaded correctly
         with zip_file.open('osf_download_{}/data/22776439564_7edbed7e10_o.jpg'.format(self.resource_id)) as myfile:

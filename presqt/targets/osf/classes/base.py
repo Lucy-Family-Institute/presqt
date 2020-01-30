@@ -45,7 +45,11 @@ class OSFBase(object):
         meta = response_json['links']['meta']
 
         # Calculate pagination pages
-        page_total = get_page_total(meta['total'], meta['per_page'])
+        if '?filter' in url:
+            page_total = 2
+        else:
+            page_total = get_page_total(meta['total'], meta['per_page'])
+
         url_list = ['{}?page={}'.format(url, number) for number in range(2, page_total + 1)]
 
         # Call all pagination pages asynchronously

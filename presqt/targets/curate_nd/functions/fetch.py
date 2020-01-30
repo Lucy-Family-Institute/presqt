@@ -2,7 +2,7 @@ import requests
 
 from rest_framework import status
 
-from presqt.utilities import PresQTResponseException, PresQTInvalidTokenError
+from presqt.utilities import PresQTResponseException, PresQTInvalidTokenError, PresQTValidationError
 from presqt.targets.curate_nd.classes.main import CurateND
 from presqt.targets.curate_nd.utilities import get_curate_nd_resource
 
@@ -42,7 +42,10 @@ def curate_nd_fetch_resources(token, search_parameter):
         # Format the search that is coming in to be passed to the Curate API
         search_parameters = search_parameter['title'].replace(' ', '+')
         search_url = 'https://curate.nd.edu/api/items?q={}'.format(search_parameters)
-        resources = curate_instance.get_resources(search_url)
+        try:
+            resources = curate_instance.get_resources(search_url)
+        except PresQTValidationError as e:
+            raise e
     else:
         resources = curate_instance.get_resources()
     return resources

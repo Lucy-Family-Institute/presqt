@@ -38,6 +38,7 @@ def get_upload_source_metadata(instance, bag):
                 os.rename(metadata_path, invalid_metadata_path)
                 bag.save(manifests=True)
 
+
 def create_upload_metadata(instance, file_metadata_list, action_metadata, project_id,
                            resources_ignored, resources_updated):
     """
