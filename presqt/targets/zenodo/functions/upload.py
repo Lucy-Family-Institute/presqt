@@ -56,7 +56,8 @@ def zenodo_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
     try:
         auth_parameter = zenodo_validation_check(token)
     except PresQTValidationError:
-        raise PresQTValidationError("Zenodo returned a 401 unauthorized status code.", 401)
+        raise PresQTValidationError("Token is invalid. Response returned a 401 status code.",
+                                    status.HTTP_401_UNAUTHORIZED)
 
     os_path = next(os.walk(resource_main_dir))
 
