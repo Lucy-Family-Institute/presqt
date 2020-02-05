@@ -78,4 +78,4 @@ class TestResourceGETJSON(SimpleTestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 401)
         self.assertEqual(
-            response.data, {'error': "The response returned a 401 unauthorized status code."})
+            response.data, {'error': "Token is invalid. Response returned a 401 status code."})

@@ -60,7 +60,7 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
     try:
         header, username = validation_check(token)
     except PresQTResponseException:
-        raise PresQTResponseException('The response returned a 401 unauthorized status code.',
+        raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
     os_path = next(os.walk(resource_main_dir))

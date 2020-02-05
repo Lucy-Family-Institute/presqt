@@ -34,7 +34,7 @@ def github_fetch_resources(token, search_parameter):
     try:
         header, username = validation_check(token)
     except PresQTResponseException:
-        raise PresQTResponseException('The response returned a 401 unauthorized status code.',
+        raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
     if search_parameter:
@@ -93,7 +93,7 @@ def github_fetch_resource(token, resource_id):
     try:
         header, username = validation_check(token)
     except PresQTResponseException:
-        raise PresQTResponseException('The response returned a 401 unauthorized status code.',
+        raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
     project_url = 'https://api.github.com/repositories/{}'.format(resource_id)
