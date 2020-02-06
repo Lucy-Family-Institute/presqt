@@ -34,7 +34,7 @@ def zenodo_fetch_resources(token, search_parameter):
     try:
         auth_parameter = zenodo_validation_check(token)
     except PresQTValidationError:
-        raise PresQTValidationError("Zenodo returned a 401 unauthorized status code.",
+        raise PresQTValidationError("Token is invalid. Response returned a 401 status code.",
                                     status.HTTP_401_UNAUTHORIZED)
     # Let's build them resources
     if search_parameter:
@@ -87,7 +87,7 @@ def zenodo_fetch_resource(token, resource_id):
     try:
         auth_parameter = zenodo_validation_check(token)
     except PresQTValidationError:
-        raise PresQTValidationError("Zenodo returned a 401 unauthorized status code.",
+        raise PresQTValidationError("Token is invalid. Response returned a 401 status code.",
                                     status.HTTP_401_UNAUTHORIZED)
 
     # Let's first try to get the record with this id.
