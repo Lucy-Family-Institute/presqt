@@ -21,8 +21,10 @@ def create_repository(title, token):
     token : str
         The users GitHub API token.
     """
+    header = {"Authorization": "token {}".format(token)}
     repository_payload = {"name": title}
-    response = requests.post('https://api.github.com/user/repos?access_token={}'.format(token),
+    response = requests.post('https://api.github.com/user/repos'.format(token),
+                             headers=header,
                              data=json.dumps(repository_payload))
 
     if response.status_code == 201:

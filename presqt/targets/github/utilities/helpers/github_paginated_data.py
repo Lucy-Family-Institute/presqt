@@ -16,15 +16,15 @@ def github_paginated_data(token):
     -------
     List of all paginated data.
     """
-    base_url = "https://api.github.com/user/repos?access_token={}".format(token)
-    data = requests.get(base_url).json()
+    header = {"Authorization": "token {}".format(token)}
+    base_url = "https://api.github.com/user/repos"
+    data = requests.get(base_url, headers=header).json()
     page_total = get_page_total(token)
     # We want to start building urls from page 2 as we already have the data from page 1.
     page_count = 2
     while page_count <= page_total:
-        next_url = "https://api.github.com/user/repos?page={}&access_token={}".format(page_count,
-                                                                                      token)
-        next_data = requests.get(next_url).json()
+        next_url = "https://api.github.com/user/repos?page={}".format(page_count)
+        next_data = requests.get(next_url, headers=header).json()
         data.extend(next_data)
         page_count += 1
 
