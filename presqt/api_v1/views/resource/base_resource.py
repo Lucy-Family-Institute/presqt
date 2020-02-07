@@ -31,7 +31,6 @@ class BaseResource(APIView):
     """
     Base View for Resource views. Handles shared POSTs (upload and transfer) and download methods.
     """
-
     def post(self, request, target_name, resource_id=None):
         """
         Upload resources to a specific resource or create a new resource.
@@ -226,7 +225,8 @@ class BaseResource(APIView):
         return Response(status=status.HTTP_202_ACCEPTED,
                         data={'ticket_number': ticket_number,
                               'message': 'The server is processing the request.',
-                              'upload_job': upload_hyperlink})
+                              'upload_job': upload_hyperlink,
+                              'function_process_pid': self.function_process.pid})
 
     def _download_resource(self):
         """
@@ -234,6 +234,10 @@ class BaseResource(APIView):
         zips them up in BagIt format.
         """
         action = 'resource_download'
+
+        # Write the process id to the process_info file
+        self.process_info_obj['function_process'] = self.function_process.pid
+        write_file(self.process_info_path, self.process_info_obj, True)
 
         # Fetch the proper function to call
         func = FunctionRouter.get_function(self.source_target_name, action)
@@ -364,6 +368,10 @@ class BaseResource(APIView):
         Upload resources to the target and perform a fixity check on the resulting hashes.
         """
         action = 'resource_upload'
+
+        # Write the process id to the process_info file
+        self.process_info_obj['function_process'] = self.function_process.pid
+        write_file(self.process_info_path, self.process_info_obj, True)
 
         # Data directory in the bag
         self.data_directory = '{}/data'.format(self.resource_main_dir)
@@ -556,12 +564,17 @@ class BaseResource(APIView):
         return Response(status=status.HTTP_202_ACCEPTED,
                         data={'ticket_number': ticket_number,
                               'message': 'The server is processing the request.',
-                              'transfer_job': transfer_hyperlink})
+                              'transfer_job': transfer_hyperlink,
+                              'function_process_pid': self.function_process.pid})
 
     def _transfer_resource(self):
         """
         Transfer resources from the source target to the destination target.
         """
+        # Write the process id to the process_info file
+        self.process_info_obj['function_process'] = self.function_process.pid
+        write_file(self.process_info_path, self.process_info_obj, True)
+
         ####### DOWNLOAD THE RESOURCES #######
         download_status = self._download_resource()
 

@@ -1,6 +1,7 @@
 import multiprocessing
 
 from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
+from presqt.utilities import write_file
 
 
 def spawn_action_process(self, method_to_call):
@@ -21,6 +22,8 @@ def spawn_action_process(self, method_to_call):
 
     # Spawn job separate from request memory thread
     function_process = multiprocessing.Process(target=method_to_call)
+    # Add the process obj to the base class so we can write the process id in the target function
+    self.function_process = function_process
     function_process.start()
 
     # Start the watchdog process that will monitor the spawned off process
