@@ -225,8 +225,7 @@ class BaseResource(APIView):
         return Response(status=status.HTTP_202_ACCEPTED,
                         data={'ticket_number': ticket_number,
                               'message': 'The server is processing the request.',
-                              'upload_job': upload_hyperlink,
-                              'function_process_pid': self.function_process.pid})
+                              'upload_job': upload_hyperlink})
 
     def _download_resource(self):
         """
@@ -236,7 +235,7 @@ class BaseResource(APIView):
         action = 'resource_download'
 
         # Write the process id to the process_info file
-        self.process_info_obj['function_process'] = self.function_process.pid
+        self.process_info_obj['function_process_id'] = self.function_process.pid
         write_file(self.process_info_path, self.process_info_obj, True)
 
         # Fetch the proper function to call
@@ -262,8 +261,6 @@ class BaseResource(APIView):
             # it's an incomplete/failed directory.
             self.process_info_obj['expiration'] = str(timezone.now() + relativedelta(hours=1))
             write_file(self.process_info_path, self.process_info_obj, True)
-            #  Update the shared memory map so the watchdog process can stop running.
-            self.process_state.value = 1
             return False
 
         # The directory all files should be saved in.
@@ -358,9 +355,6 @@ class BaseResource(APIView):
             self.process_info_obj['failed_fixity'] = self.download_failed_fixity
 
             write_file(self.process_info_path, self.process_info_obj, True)
-
-            # Update the shared memory map so the watchdog process can stop running.
-            self.process_state.value = 1
             return True
 
     def _upload_resource(self):
@@ -424,8 +418,6 @@ class BaseResource(APIView):
                 # it's an incomplete/failed directory.
                 self.process_info_obj['expiration'] = str(timezone.now() + relativedelta(hours=1))
                 write_file(self.process_info_path, self.process_info_obj, True)
-                #  Update the shared memory map so the watchdog process can stop running.
-                self.process_state.value = 1
                 return False
 
         # Fetch the proper function to call
@@ -455,8 +447,6 @@ class BaseResource(APIView):
             # because it's an incomplete/failed directory.
             self.process_info_obj['expiration'] = str(timezone.now() + relativedelta(hours=1))
             write_file(self.process_info_path, self.process_info_obj, True)
-            #  Update the shared memory map so the watchdog process can stop running.
-            self.process_state.value = 1
             return False
 
         # Check if fixity has failed on any files during a transfer. If so, update the
@@ -504,9 +494,6 @@ class BaseResource(APIView):
             self.process_info_obj['hash_algorithm'] = self.hash_algorithm
             self.process_info_obj['failed_fixity'] = self.upload_failed_fixity
             write_file(self.process_info_path, self.process_info_obj, True)
-
-            # Update the shared memory map so the watchdog process can stop running.
-            self.process_state.value = 1
         else:
             self.process_info_obj['upload_status'] = upload_message
 
@@ -564,8 +551,7 @@ class BaseResource(APIView):
         return Response(status=status.HTTP_202_ACCEPTED,
                         data={'ticket_number': ticket_number,
                               'message': 'The server is processing the request.',
-                              'transfer_job': transfer_hyperlink,
-                              'function_process_pid': self.function_process.pid})
+                              'transfer_job': transfer_hyperlink})
 
     def _transfer_resource(self):
         """
@@ -615,6 +601,4 @@ class BaseResource(APIView):
 
         write_file(self.process_info_path, self.process_info_obj, True)
 
-        # Update the shared memory map so the watchdog process can stop running.
-        self.process_state.value = 1
         return

@@ -1,9 +1,10 @@
+import json
 from time import sleep
 
 from presqt.utilities import read_file, write_file
 
 
-def process_watchdog(function_process, process_info_path, process_time, process_state):
+def process_watchdog(function_process, process_info_path, process_time):
     """
     Monitoring function for the file transfer processes spawned off using Multiprocessing.
     It will monitor if the process has either finished or has gone over it's processing time.
@@ -16,25 +17,31 @@ def process_watchdog(function_process, process_info_path, process_time, process_
         Path to the process_info.json file for the process running
     process_time : int
         Amount of seconds we want the watchdog to the let the monitored process run
-    process_state : class
-        Memory map that the spawned off process will update. 'value' attribute will be either 0 or 1
-    Returns
-    -------
-
     """
     slept_time = 0
     while slept_time <= process_time:
+        print(slept_time)
         sleep(1)
+
+        # Get the contents of process_info.json.
+        # While loop is required in case the json file is being written to while being read.
+        process_info_data = None
+        while process_info_data is None:
+            try:
+                process_info_data = read_file(process_info_path, True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+
         # If the monitored process has finished
-        if process_state.value == 1:
+        if process_info_data['status'] != 'in_progress':
             return
         slept_time += 1
 
     # If we've reached here then the process reached our time limit and we need to terminate
     # the monitored process and update the process_info.json file.
     function_process.terminate()
-    d = read_file(process_info_path, True)
-    d['status'] = 'failed'
-    d['message'] = 'The process took too long on the server.'
-    d['status_code'] = 504
-    write_file(process_info_path, d, True)
+    process_info_data['status'] = 'failed'
+    process_info_data['message'] = 'The process took too long on the server.'
+    process_info_data['status_code'] = 504
+    write_file(process_info_path, process_info_data, True)

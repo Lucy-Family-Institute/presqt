@@ -1,13 +1,15 @@
+import multiprocessing
 import os
 
 from django.http import HttpResponse
 from rest_framework import status
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from presqt.api_v1.utilities import (get_source_token, get_process_info_data,
                                      process_token_validation, hash_tokens)
-from presqt.utilities import PresQTValidationError
+from presqt.utilities import PresQTValidationError, write_file
 
 
 class DownloadJob(APIView):
@@ -17,6 +19,9 @@ class DownloadJob(APIView):
     * GET:
         - Check if a resource download is finished on the server matching the ticket number.
           If it is then download it otherwise return the state of it.
+    * PATCH:
+        - Cancel the resource download process on the server.
+
     """
 
     def get(self, request, ticket_number):
@@ -90,3 +95,55 @@ class DownloadJob(APIView):
 
             return Response(status=http_status,
                             data={'status_code': status_code, 'message': message})
+
+    def patch(self, request, ticket_number):
+        """
+        Cancel the resource download process on the server. Update the process_info.json
+        file appropriately.
+
+        Parameters
+        ----------
+        ticket_number : str
+            The ticket number of the download being prepared.
+
+        Returns
+        -------
+        400: Bad Request
+        {
+            "error": "'presqt-source-token' missing in the request headers."
+        }
+
+        401: Unauthorized
+        {
+            "error": "Header 'presqt-source-token' does not match the
+            'presqt-source-token' for this server process."
+        }
+
+        404: Not Found
+        {
+            "error": "Invalid ticket number, '1234'."
+        }
+        """
+
+        # Perform token validation. Read data from the process_info file.
+        try:
+            token = get_source_token(request)
+            data = get_process_info_data('downloads', ticket_number)
+            process_token_validation(hash_tokens(token), data, 'presqt-source-token')
+        except PresQTValidationError as e:
+            return Response(data={'error': e.data}, status=e.status_code)
+
+        if data['status'] == 'in_progress':
+            for process in multiprocessing.active_children():
+                if process.pid == data['function_process_id']:
+                    # Be doubly sure the process isn't finished yet
+                    if data['status'] == 'in_progress':
+                        process.terminate()
+                        process.join()
+                        data['status'] = 'failed'
+                        data['message'] = 'Download was cancelled by the user'
+                        data['status_code'] = 410
+                        process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(ticket_number)
+                        write_file(process_info_path, data, True)
+
+        return Response(status=status.HTTP_200_OK)

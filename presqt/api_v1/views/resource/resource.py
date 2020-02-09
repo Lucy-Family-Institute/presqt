@@ -222,5 +222,4 @@ class Resource(BaseResource):
         return Response(status=status.HTTP_202_ACCEPTED,
                         data={'ticket_number': ticket_number,
                               'message': 'The server is processing the request.',
-                              'download_job': download_hyperlink,
-                              'function_process_pid': self.function_process.pid})
+                              'download_job': download_hyperlink})
