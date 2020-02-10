@@ -15,9 +15,9 @@ class Command(BaseCommand):
         Delete all mediafiles that have run past their expiration date.
         """
         directories_list = [
-            'mediafiles/downloads/*/',
-            'mediafiles/uploads/*/',
-            'mediafiles/transfers/*/'
+            '/usr/src/app/mediafiles/downloads/*/',
+            '/usr/src/app/mediafiles/uploads/*/',
+            '/usr/src/app/mediafiles/transfers/*/'
         ]
         directories = []
         [directories.extend(glob(directory)) for directory in directories_list]
