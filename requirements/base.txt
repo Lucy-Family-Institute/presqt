@@ -1,6 +1,5 @@
 Django==3.0.0
 gunicorn==19.9.0
-psycopg2==2.8.4
 pytz==2018.9
 requests==2.22.0
 jsonschema==3.0.1                   # An implementation of JSON Schema for Python
