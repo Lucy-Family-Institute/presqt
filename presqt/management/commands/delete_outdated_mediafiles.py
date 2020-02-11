@@ -16,7 +16,7 @@ class Command(BaseCommand):
         Delete all mediafiles that have run past their expiration date.
         """
         if os.environ['ENVIRONMENT'] == 'development':
-            print('***delete_outdated_mediafiles is running with development rules.***')
+            print('***delete_outdated_mediafiles is running in development mode.***')
 
         directories_list = [
             '/usr/src/app/mediafiles/downloads/*/',
