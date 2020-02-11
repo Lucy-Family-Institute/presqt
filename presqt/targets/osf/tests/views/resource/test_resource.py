@@ -522,6 +522,7 @@ class TestResourceGETZip(SimpleTestCase):
             resource_instance.process_state = process_state
             resource_instance.process_info_obj = {}
             resource_instance.base_directory_name = base_name
+            resource_instance.function_process = multiprocessing.Process()
             resource_instance._download_resource()
 
         final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
@@ -593,7 +594,7 @@ class TestResourceGETZip(SimpleTestCase):
         function_process.start()
 
         # Start watchdog function manually
-        process_watchdog(function_process, process_info_path, 1, process_state)
+        process_watchdog(function_process, process_info_path, 1)
 
         # Make sure the process_watchdog reached a failure and updated the status to 'failed'
         process_info = read_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number),

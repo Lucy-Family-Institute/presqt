@@ -20,7 +20,6 @@ def process_watchdog(function_process, process_info_path, process_time):
     """
     slept_time = 0
     while slept_time <= process_time:
-        print(slept_time)
         sleep(1)
 
         # Get the contents of process_info.json.
@@ -32,6 +31,9 @@ def process_watchdog(function_process, process_info_path, process_time):
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
+            # Exception is mostly in place for testing
+            except FileNotFoundError:
+                return
 
         # If the monitored process has finished
         if process_info_data['status'] != 'in_progress':
