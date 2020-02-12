@@ -100,7 +100,7 @@ class UploadJob(APIView):
         Parameters
         ----------
         ticket_number : str
-            The ticket number of the download being prepared.
+            The ticket number of the upload being prepared.
 
         Returns
         -------

@@ -14,7 +14,7 @@ from presqt.targets.osf.utilities import delete_users_projects
 
 class TestUploadJobGET(SimpleTestCase):
     """
-    Test the `api_v1/downloads/<ticket_id>/` endpoint's GET method.
+    Test the `api_v1/uploads/<ticket_id>/` endpoint's GET method.
     """
 
     def setUp(self):
@@ -544,7 +544,7 @@ class TestUploadJobGET(SimpleTestCase):
 
 class TestUploadJobPATCH(SimpleTestCase):
     """
-    Test the `api_v1/downloads/<ticket_id>/` endpoint's PATCH method.
+    Test the `api_v1/upload/<ticket_id>/` endpoint's PATCH method.
     """
 
     def setUp(self):
@@ -568,7 +568,7 @@ class TestUploadJobPATCH(SimpleTestCase):
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         self.assertEqual(process_info['status'], 'in_progress')
 
-        # Wait until the spawned off process has a function_process_id to cancel the download
+        # Wait until the spawned off process has a function_process_id to cancel the upload
         while not process_info['function_process_id']:
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)

@@ -534,7 +534,8 @@ class BaseResource(APIView):
             'message': 'Transfer is being processed on the server',
             'download_status': None,
             'upload_status': None,
-            'status_code': None
+            'status_code': None,
+            'function_process_id': None
         }
         self.process_info_path = os.path.join(self.ticket_path, "process_info.json")
         write_file(self.process_info_path, self.process_info_obj, True)
