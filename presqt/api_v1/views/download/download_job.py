@@ -137,7 +137,6 @@ class DownloadJob(APIView):
             "message": "Download Successful"
         }
         """
-
         # Perform token validation. Read data from the process_info file.
         try:
             token = get_source_token(request)
@@ -149,21 +148,20 @@ class DownloadJob(APIView):
         if data['status'] == 'in_progress':
             for process in multiprocessing.active_children():
                 if process.pid == data['function_process_id']:
-                    # Be doubly sure the process isn't finished yet
-                    if data['status'] == 'in_progress':
-                        process.terminate()
-                        process.join()
-                        data['status'] = 'failed'
-                        data['message'] = 'Download was cancelled by the user'
-                        data['status_code'] = 410 # CHANGE THIS STATUS CODE
-                        data['expiration'] = str(timezone.now() + relativedelta(hours=1))
-                        process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(
-                            ticket_number)
-                        write_file(process_info_path, data, True)
-                        return Response(
-                            data={'status_code': data['status_code'], 'message': data['message']},
-                            status=status.HTTP_200_OK)
-                    else:
-                        return Response(
-                            data={'status_code': data['status_code'], 'message': data['message']},
-                            status=status.HTTP_406_NOT_ACCEPTABLE)
+                    process.terminate()
+                    process.join()
+                    data['status'] = 'failed'
+                    data['message'] = 'Download was cancelled by the user'
+                    data['status_code'] = '410' # CHANGE THIS STATUS CODE
+                    data['expiration'] = str(timezone.now() + relativedelta(hours=1))
+                    process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(
+                        ticket_number)
+                    write_file(process_info_path, data, True)
+
+                    return Response(
+                        data={'status_code': data['status_code'], 'message': data['message']},
+                        status=status.HTTP_200_OK)
+        else:
+            return Response(
+                data={'status_code': data['status_code'], 'message': data['message']},
+                status=status.HTTP_406_NOT_ACCEPTABLE)
