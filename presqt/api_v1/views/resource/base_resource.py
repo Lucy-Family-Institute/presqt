@@ -206,7 +206,8 @@ class BaseResource(APIView):
             'status': 'in_progress',
             'expiration': str(timezone.now() + relativedelta(days=5)),
             'message': 'Upload is being processed on the server',
-            'status_code': None
+            'status_code': None,
+            'function_process_id': None
         }
         self.process_info_path = os.path.join(self.ticket_path, 'process_info.json')
         write_file(self.process_info_path, self.process_info_obj, True)
@@ -364,7 +365,7 @@ class BaseResource(APIView):
         action = 'resource_upload'
 
         # Write the process id to the process_info file
-        self.process_info_obj['function_process'] = self.function_process.pid
+        self.process_info_obj['function_process_id'] = self.function_process.pid
         write_file(self.process_info_path, self.process_info_obj, True)
 
         # Data directory in the bag
@@ -558,7 +559,7 @@ class BaseResource(APIView):
         Transfer resources from the source target to the destination target.
         """
         # Write the process id to the process_info file
-        self.process_info_obj['function_process'] = self.function_process.pid
+        self.process_info_obj['function_process_id'] = self.function_process.pid
         write_file(self.process_info_path, self.process_info_obj, True)
 
         ####### DOWNLOAD THE RESOURCES #######

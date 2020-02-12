@@ -12,7 +12,7 @@ from presqt.utilities import read_file, write_file
 from presqt.targets.osf.utilities import delete_users_projects
 
 
-class TestUploadJob(SimpleTestCase):
+class TestUploadJobGET(SimpleTestCase):
     """
     Test the `api_v1/downloads/<ticket_id>/` endpoint's GET method.
     """
@@ -540,3 +540,126 @@ class TestUploadJob(SimpleTestCase):
 
         # Verify the status code
         self.assertEqual(response.status_code, 400)
+
+
+class TestUploadJobPATCH(SimpleTestCase):
+    """
+    Test the `api_v1/downloads/<ticket_id>/` endpoint's PATCH method.
+    """
+
+    def setUp(self):
+        self.client = APIClient()
+        self.token = OSF_UPLOAD_TEST_USER_TOKEN
+        self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token,
+                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+        self.upload_url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
+
+    def test_success_200(self):
+        """
+        Return a 200 for successful cancelled upload process.
+        """
+        upload_response = self.client.post(
+            self.upload_url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+
+        ticket_number = upload_response.data['ticket_number']
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        # Verify process_info file status is 'in_progress' initially
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        self.assertEqual(process_info['status'], 'in_progress')
+
+        # Wait until the spawned off process has a function_process_id to cancel the download
+        while not process_info['function_process_id']:
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+
+        upload_patch_url = reverse('upload_job', kwargs={'ticket_number': ticket_number})
+        upload_patch_url_response = self.client.patch(upload_patch_url, **self.headers)
+
+        self.assertEquals(upload_patch_url_response.status_code, 200)
+        self.assertEquals(
+            upload_patch_url_response.data['message'],
+            'Upload was cancelled by the user')
+
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+
+        self.assertEquals(process_info['message'], 'Upload was cancelled by the user')
+        self.assertEquals(process_info['status'], 'failed')
+        self.assertEquals(process_info['status_code'], '410')
+
+        # Delete corresponding folder
+        shutil.rmtree('mediafiles/uploads/{}'.format(ticket_number))
+
+    def test_success_406(self):
+        """
+        Return a 406 for unsuccessful cancel because the upload finished already.
+        """
+        upload_response = self.client.post(
+            self.upload_url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+
+        ticket_number = upload_response.data['ticket_number']
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        # Verify process_info file status is 'in_progress' initially
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        self.assertEqual(process_info['status'], 'in_progress')
+
+        # Wait until the spawned off process has a function_process_id to cancel the upload
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+
+        upload_patch_url = reverse('upload_job', kwargs={'ticket_number': ticket_number})
+        upload_patch_url_response = self.client.patch(upload_patch_url, **self.headers)
+
+        self.assertEquals(upload_patch_url_response.status_code, 406)
+        self.assertEquals(upload_patch_url_response.data['message'], 'Upload successful.')
+
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+
+        self.assertEquals(process_info['message'], 'Upload successful.')
+        self.assertEquals(process_info['status'], 'finished')
+        self.assertEquals(process_info['status_code'], '200')
+
+        # Delete corresponding folder
+        shutil.rmtree('mediafiles/uploads/{}'.format(ticket_number))
+
+    def test_get_error_400_osf(self):
+        """
+        Return a 400 if the `presqt-destination-token` is missing in the headers.
+        """
+        self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
+        upload_response = self.client.post(
+            self.upload_url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+
+        ticket_number = upload_response.data['ticket_number']
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        # Verify process_info file status is 'in_progress' initially
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        self.assertEqual(process_info['status'], 'in_progress')
+
+        # Wait until the spawned off process has a function_process_id to cancel the upload
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+
+        url = reverse('upload_job', kwargs={'ticket_number': ticket_number})
+        headers = {'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+        response = self.client.patch(url, **headers)
+
+        # Verify the status code and content
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['error'],
+                         "'presqt-destination-token' missing in the request headers.")
+
+        # Delete corresponding folder
+        shutil.rmtree('mediafiles/uploads/{}'.format(ticket_number))

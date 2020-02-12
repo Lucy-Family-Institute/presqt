@@ -1,3 +1,4 @@
+import json
 import multiprocessing
 import os
 
@@ -144,6 +145,14 @@ class DownloadJob(APIView):
             process_token_validation(hash_tokens(token), data, 'presqt-source-token')
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
+
+            # Wait until the spawned off process has started to cancel the download
+        while data['function_process_id'] is None:
+            try:
+                data = get_process_info_data('downloads', ticket_number)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
 
         if data['status'] == 'in_progress':
             for process in multiprocessing.active_children():
