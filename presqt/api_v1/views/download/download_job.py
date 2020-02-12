@@ -2,8 +2,9 @@ import multiprocessing
 import os
 
 from django.http import HttpResponse
+from dateutil.relativedelta import relativedelta
+from django.utils import timezone
 from rest_framework import status
-from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -108,6 +109,12 @@ class DownloadJob(APIView):
 
         Returns
         -------
+        200: OK
+        {
+            "status_code": "410",
+            "message": "Download was cancelled by the user"
+        }
+
         400: Bad Request
         {
             "error": "'presqt-source-token' missing in the request headers."
@@ -122,6 +129,12 @@ class DownloadJob(APIView):
         404: Not Found
         {
             "error": "Invalid ticket number, '1234'."
+        }
+
+        406: Not Acceptable
+        {
+            "status_code": "200",
+            "message": "Download Successful"
         }
         """
 
@@ -142,8 +155,15 @@ class DownloadJob(APIView):
                         process.join()
                         data['status'] = 'failed'
                         data['message'] = 'Download was cancelled by the user'
-                        data['status_code'] = 410
-                        process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(ticket_number)
+                        data['status_code'] = 410 # CHANGE THIS STATUS CODE
+                        data['expiration'] = str(timezone.now() + relativedelta(hours=1))
+                        process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(
+                            ticket_number)
                         write_file(process_info_path, data, True)
-
-        return Response(status=status.HTTP_200_OK)
+                        return Response(
+                            data={'status_code': data['status_code'], 'message': data['message']},
+                            status=status.HTTP_200_OK)
+                    else:
+                        return Response(
+                            data={'status_code': data['status_code'], 'message': data['message']},
+                            status=status.HTTP_406_NOT_ACCEPTABLE)

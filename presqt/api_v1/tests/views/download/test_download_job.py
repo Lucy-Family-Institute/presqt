@@ -13,7 +13,7 @@ from presqt.utilities import write_file, read_file
 from presqt.targets.utilities import shared_call_get_resource_zip
 
 
-class TestDownloadJob(SimpleTestCase):
+class TestDownloadJobGET(SimpleTestCase):
     """
     Test the `api_v1/downloads/<ticket_id>/` endpoint's GET method.
 
@@ -242,3 +242,25 @@ class TestDownloadJob(SimpleTestCase):
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
+
+class TestDownloadJobPATCH(SimpleTestCase):
+    """
+    Test the `api_v1/downloads/<ticket_id>/` endpoint's PATCH method.
+
+    Testing only PresQT core code.
+    """
+    def setUp(self):
+        self.client = APIClient()
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN}
+        self.resource_id = '5cd98510f244ec001fe5632f'
+        self.target_name = 'osf'
+
+        download_url = reverse('resource', kwargs={'target_name': self.target_name,
+                                                   'resource_id': self.resource_id,
+                                                   'resource_format': 'zip'})
+        download_response = self.client.get(download_url, **self.header)
+
+
+        download_job_patch = reverse('download_job', kwargs={'ticket_number': download_response.data['ticket_number']})
+        download_job_patch_response = self.client.patch(download_job_patch, **self.header)
+        print(download_job_patch_response.data)
