@@ -129,6 +129,7 @@ class TransferJob(APIView):
                 # Pass while the process_info file is being written to
                 pass
 
+        # If transfer is still in progress then cancel the subprocess
         if process_data['status'] == 'in_progress':
             for process in multiprocessing.active_children():
                 if process.pid == process_data['function_process_id']:
@@ -145,6 +146,7 @@ class TransferJob(APIView):
                     return Response(
                         data={'status_code': process_data['status_code'], 'message': process_data['message']},
                         status=status.HTTP_200_OK)
+        # If transfer is finished then don't attempt to cancel subprocess
         else:
             return Response(
                 data={'status_code': process_data['status_code'], 'message': process_data['message']},

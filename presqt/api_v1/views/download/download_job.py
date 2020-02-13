@@ -146,7 +146,7 @@ class DownloadJob(APIView):
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
-            # Wait until the spawned off process has started to cancel the download
+        # Wait until the spawned off process has started to cancel the download
         while data['function_process_id'] is None:
             try:
                 data = get_process_info_data('downloads', ticket_number)
@@ -154,6 +154,7 @@ class DownloadJob(APIView):
                 # Pass while the process_info file is being written to
                 pass
 
+        # If download is still in progress then cancel the subprocess
         if data['status'] == 'in_progress':
             for process in multiprocessing.active_children():
                 if process.pid == data['function_process_id']:
@@ -170,6 +171,7 @@ class DownloadJob(APIView):
                     return Response(
                         data={'status_code': data['status_code'], 'message': data['message']},
                         status=status.HTTP_200_OK)
+        # If download is finished then don't attempt to cancel subprocess
         else:
             return Response(
                 data={'status_code': data['status_code'], 'message': data['message']},
