@@ -204,7 +204,8 @@ class Resource(BaseResource):
             'status': 'in_progress',
             'expiration': str(timezone.now() + relativedelta(days=5)),
             'message': 'Download is being processed on the server',
-            'status_code': None
+            'status_code': None,
+            'function_process_id': None
         }
 
         self.process_info_path = os.path.join(str(self.ticket_path), 'process_info.json')

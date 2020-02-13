@@ -184,7 +184,6 @@ class TestResourcePOSTWithFile(SimpleTestCase):
         process_info_path = 'mediafiles/uploads/{}/process_info.json'.format(ticket_number)
         process_info = read_file(process_info_path, True)
         resource_main_dir = '{}/{}'.format(ticket_path, next(os.walk(ticket_path))[1][0])
-        process_state = multiprocessing.Value('b', 0)
 
         # Wait for the process to finish
         process_wait(process_info, ticket_path)
@@ -201,7 +200,6 @@ class TestResourcePOSTWithFile(SimpleTestCase):
         resource_instance.destination_target_name = 'osf'
         resource_instance.action = 'resource_upload'
         resource_instance.destination_token = OSF_UPLOAD_TEST_USER_TOKEN
-        resource_instance.process_state = process_state
         resource_instance.hash_algorithm = 'sha256'
         resource_instance.file_hashes = file_hashes
         resource_instance.file_duplicate_action = 'ignore'
@@ -209,6 +207,7 @@ class TestResourcePOSTWithFile(SimpleTestCase):
         resource_instance.infinite_depth = True
         resource_instance.process_info_obj = {}
         resource_instance.source_fts_metadata_actions = []
+        resource_instance.function_process = multiprocessing.Process()
         resource_instance._upload_resource()
 
         process_info = read_file(process_info_path, True)
