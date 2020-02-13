@@ -148,6 +148,7 @@ class UploadJob(APIView):
                 # Pass while the process_info file is being written to
                 pass
 
+        # If upload is still in progress then cancel the subprocess
         if data['status'] == 'in_progress':
             for process in multiprocessing.active_children():
                 if process.pid == data['function_process_id']:
@@ -164,6 +165,7 @@ class UploadJob(APIView):
                     return Response(
                         data={'status_code': data['status_code'], 'message': data['message']},
                         status=status.HTTP_200_OK)
+        # If upload is finished then don't attempt to cancel subprocess
         else:
             return Response(
                 data={'status_code': data['status_code'], 'message': data['message']},
