@@ -290,7 +290,7 @@ class TestDownloadJobPATCH(SimpleTestCase):
 
         self.assertEquals(process_info['message'], 'Download was cancelled by the user')
         self.assertEquals(process_info['status'], 'failed')
-        self.assertEquals(process_info['status_code'], '410')
+        self.assertEquals(process_info['status_code'], '499')
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(ticket_number))

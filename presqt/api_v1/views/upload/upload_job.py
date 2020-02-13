@@ -106,7 +106,7 @@ class UploadJob(APIView):
         -------
         200: OK
         {
-            "status_code": "410",
+            "status_code": "499",
             "message": "Upload was cancelled by the user"
         }
 
@@ -156,7 +156,7 @@ class UploadJob(APIView):
                     process.join()
                     data['status'] = 'failed'
                     data['message'] = 'Upload was cancelled by the user'
-                    data['status_code'] = '410' # CHANGE THIS STATUS CODE
+                    data['status_code'] = '499'
                     data['expiration'] = str(timezone.now() + relativedelta(hours=1))
                     process_info_path = 'mediafiles/uploads/{}/process_info.json'.format(
                         ticket_number)
