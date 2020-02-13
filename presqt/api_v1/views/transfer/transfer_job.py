@@ -74,7 +74,7 @@ class TransferJob(APIView):
         -------
         200: OK
         {
-            "status_code": "410",
+            "status_code": "499",
             "message": "Transfer was cancelled by the user"
         }
 
@@ -137,7 +137,7 @@ class TransferJob(APIView):
                     process.join()
                     process_data['status'] = 'failed'
                     process_data['message'] = 'Transfer was cancelled by the user'
-                    process_data['status_code'] = '410' # CHANGE THIS STATUS CODE
+                    process_data['status_code'] = '499'
                     process_data['expiration'] = str(timezone.now() + relativedelta(hours=1))
                     process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
                         ticket_number)

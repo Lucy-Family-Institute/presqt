@@ -112,7 +112,7 @@ class DownloadJob(APIView):
         -------
         200: OK
         {
-            "status_code": "410",
+            "status_code": "499",
             "message": "Download was cancelled by the user"
         }
 
@@ -162,7 +162,7 @@ class DownloadJob(APIView):
                     process.join()
                     data['status'] = 'failed'
                     data['message'] = 'Download was cancelled by the user'
-                    data['status_code'] = '410' # CHANGE THIS STATUS CODE
+                    data['status_code'] = '499'
                     data['expiration'] = str(timezone.now() + relativedelta(hours=1))
                     process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(
                         ticket_number)
