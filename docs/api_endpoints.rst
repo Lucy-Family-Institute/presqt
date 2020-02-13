@@ -506,7 +506,7 @@ Download Job
         Content-Type: application/json
 
         {
-            "status_code": "410",
+            "status_code": "499",
             "message": "Download was cancelled by the user"
         }
 
@@ -710,7 +710,7 @@ Upload Job
         Content-Type: application/json
 
         {
-            "status_code": "410",
+            "status_code": "499",
             "message": "Upload was cancelled by the user"
         }
 
@@ -956,7 +956,7 @@ Transfer Job
         Content-Type: application/json
 
         {
-            "status_code": "410",
+            "status_code": "499",
             "message": "Transfer was cancelled by the user"
         }
 
