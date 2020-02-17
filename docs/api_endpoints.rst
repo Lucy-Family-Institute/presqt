@@ -484,6 +484,51 @@ Download Job
     :statuscode 404: Invalid ``Ticket Number``
     :statuscode 500: ``Download`` failed on the server
 
+.. http:patch::  /api_v1/download/(str: ticket_number)/
+
+    Cancel the ``Download Process`` for the given ``ticket_number``.
+    If the download has finished before it can be cancelled it will return the finished info from process_info.json
+    If the download was successfully cancelled then it will return the cancelled info from process_info.json
+
+    **Example request**:
+
+    .. sourcecode:: http
+
+        PATCH /api_v1/download/c24442a7-fead-4fb8-b56e-d4196ad55482/ HTTP/1.1
+        Host: presqt-prod.crc.nd.edu
+        Accept: application/json
+
+    **Example response if download cancelled successfully**:
+
+    .. sourcecode:: http
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json
+
+        {
+            "status_code": "499",
+            "message": "Download was cancelled by the user"
+        }
+
+    **Example response if download finished before endpoint was able to cancel**:
+
+    .. sourcecode:: http
+
+        HTTP/1.1 406 OK
+        Content-Type: application/json
+
+        {
+            "status_code": "200",
+            "message": "Download successful."
+        }
+
+    :reqheader presqt-source-token: User's ``Token`` for the source target
+    :statuscode 200: ``Download`` cancelled
+    :statuscode 406: ``Download`` finished before cancellation
+    :statuscode 400: ``presqt-source-token`` missing in the request headers
+    :statuscode 401: Header ``presqt-source-token`` does not match the ``presqt-source-token`` for this server process
+    :statuscode 404: Invalid ``Ticket Number``
+
 Resource Upload Endpoints
 ---------------------------
 
@@ -642,6 +687,51 @@ Upload Job
     :statuscode 401: Header ``presqt-destination-token`` does not match the ``presqt-destination-token`` for this server process
     :statuscode 404: Invalid ``Ticket Number``
     :statuscode 500: ``Upload`` failed on the server
+
+.. http:patch::  /api_v1/upload/(str: ticket_number)/
+
+    Cancel the ``Upload Process`` for the given ``ticket_number``.
+    If the upload has finished before it can be cancelled it will return the finished info from process_info.json
+    If the upload was successfully cancelled then it will return the cancelled info from process_info.json
+
+    **Example request**:
+
+    .. sourcecode:: http
+
+        PATCH /api_v1/upload/c24442a7-fead-4fb8-b56e-d4196ad55482/ HTTP/1.1
+        Host: presqt-prod.crc.nd.edu
+        Accept: application/json
+
+    **Example response if upload cancelled successfully**:
+
+    .. sourcecode:: http
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json
+
+        {
+            "status_code": "499",
+            "message": "Upload was cancelled by the user"
+        }
+
+    **Example response if upload finished before endpoint was able to cancel**:
+
+    .. sourcecode:: http
+
+        HTTP/1.1 406 OK
+        Content-Type: application/json
+
+        {
+            "status_code": "200",
+            "message": "Upload successful."
+        }
+
+    :reqheader presqt-destination-token: User's ``Token`` for the destination target
+    :statuscode 200: ``Upload`` cancelled
+    :statuscode 406: ``Upload`` finished before cancellation
+    :statuscode 400: ``presqt-destination-token`` missing in the request headers
+    :statuscode 401: Header ``presqt-destination-token`` does not match the ``presqt-destination-token`` for this server process
+    :statuscode 404: Invalid ``Ticket Number``
 
 Resource Transfer Endpoints
 ---------------------------
@@ -843,3 +933,51 @@ Transfer Job
     :statuscode 401: Header ``presqt-source-token`` does not match the ``presqt-source-token`` for this server process
     :statuscode 404: Invalid ``Ticket Number``
     :statuscode 500: ``Transfer`` failed on the server
+
+.. http:patch::  /api_v1/transfer/(str: ticket_number)/
+
+    Cancel the ``Transfer Process`` for the given ``ticket_number``.
+    If the transfer has finished before it can be cancelled it will return the finished info from process_info.json
+    If the transfer was successfully cancelled then it will return the cancelled info from process_info.json
+
+    **Example request**:
+
+    .. sourcecode:: http
+
+        PATCH /api_v1/transfer/c24442a7-fead-4fb8-b56e-d4196ad55482/ HTTP/1.1
+        Host: presqt-prod.crc.nd.edu
+        Accept: application/json
+
+    **Example response if transfer cancelled successfully**:
+
+    .. sourcecode:: http
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json
+
+        {
+            "status_code": "499",
+            "message": "Transfer was cancelled by the user"
+        }
+
+    **Example response if transfer finished before endpoint was able to cancel**:
+
+    .. sourcecode:: http
+
+        HTTP/1.1 406 OK
+        Content-Type: application/json
+
+        {
+            "status_code": "200",
+            "message": "Transfer successful."
+        }
+
+    :reqheader presqt-destination-token: User's ``Token`` for the destination target
+    :reqheader presqt-source-token: User's ``Token`` for the source target
+    :statuscode 200: ``Transfer`` cancelled
+    :statuscode 406: ``Transfer`` finished before cancellation
+    :statuscode 400: ``presqt-destination-token`` missing in the request headers
+    :statuscode 400: ``presqt-source-token`` missing in the request headers
+    :statuscode 401: Header ``presqt-destination-token`` does not match the ``presqt-destination-token`` for this server process
+    :statuscode 401: Header ``presqt-source-token`` does not match the ``presqt-source-token`` for this server process
+    :statuscode 404: Invalid ``Ticket Number``

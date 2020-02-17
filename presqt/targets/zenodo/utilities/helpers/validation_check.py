@@ -1,5 +1,7 @@
 import requests
 
+from rest_framework import status
+
 from presqt.utilities import PresQTValidationError
 
 
@@ -24,6 +26,7 @@ def zenodo_validation_check(token):
                              params=auth_parameter).status_code
 
     if validator != 200:
-        raise PresQTValidationError("Zenodo returned a 401 unauthorized status code.", 401)
+        raise PresQTValidationError("Token is invalid. Response returned a 401 status code.",
+                                    status.HTTP_401_UNAUTHORIZED)
 
     return auth_parameter

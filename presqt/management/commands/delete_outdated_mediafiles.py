@@ -1,3 +1,4 @@
+import os
 
 from dateutil.parser import parse
 from glob import glob
@@ -14,10 +15,13 @@ class Command(BaseCommand):
         """
         Delete all mediafiles that have run past their expiration date.
         """
+        if os.environ['ENVIRONMENT'] == 'development':
+            print('***delete_outdated_mediafiles is running in development mode.***')
+
         directories_list = [
-            'mediafiles/downloads/*/',
-            'mediafiles/uploads/*/',
-            'mediafiles/transfers/*/'
+            '/usr/src/app/mediafiles/downloads/*/',
+            '/usr/src/app/mediafiles/uploads/*/',
+            '/usr/src/app/mediafiles/transfers/*/'
         ]
         directories = []
         [directories.extend(glob(directory)) for directory in directories_list]
@@ -31,7 +35,7 @@ class Command(BaseCommand):
             else:
                 expiration = parse(data['expiration'])
 
-                if expiration <= timezone.now():
+                if expiration <= timezone.now() or os.environ['ENVIRONMENT'] == 'development':
                     shutil.rmtree(directory)
                     print('{} has been deleted.'.format(directory))
                 else:

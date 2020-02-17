@@ -27,7 +27,7 @@ To run unit tests using Coverage with comprehensive code coverage report generat
     add files/directories you want to omit from the Coverage report.
 
 .. note::
-    'coverage combine' will take the coverage files created for multipricesses (located in the base directory)
+    'coverage combine' will take the coverage files created for multiprocesses (located in the base directory)
     and will combine them with the main coverage files . If a test using multiprocessing fails these
     coverage files will remain and must be deleted manually.
 

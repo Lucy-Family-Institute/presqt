@@ -82,7 +82,7 @@ class TestResourceCollection(SimpleTestCase):
         # Verify the error status code and message.
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.data,
-                         {'error': "Zenodo returned a 401 unauthorized status code."})
+                         {'error': "Token is invalid. Response returned a 401 status code."})
 
 
 class TestResourceCollectionPOST(SimpleTestCase):
@@ -448,7 +448,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         # Ensure the response is what we expect
         self.assertEqual(upload_job_response.data['status_code'], 401)
         self.assertEqual(upload_job_response.data['message'],
-                         'Zenodo returned a 401 unauthorized status code.')
+                         "Token is invalid. Response returned a 401 status code.")
 
         # Delete upload folder
         shutil.rmtree(ticket_path)

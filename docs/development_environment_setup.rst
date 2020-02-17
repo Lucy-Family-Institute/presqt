@@ -36,6 +36,14 @@ Local Development Environment Setup
  |  4. Execute ``docker-compose`` up within the repo's base folder.
 
      .. parsed-literal::
-        $ docker-compose up
+        $ docker-compose up --build
 
  5. Navigate to https://localhost/api_v1/ in your browser.
+
+Cron Container
++++++++++++++++++
+There is now a third docker container that is responsible for running clean up tasks at specified
+times. It has been implemented in development to run the `delete_outdated_mediafiles` command every
+15 minutes. The command has also been altered slightly to delete any mediafiles held in these
+directories when you are in a development environment. The command is set to run daily at 4:30am for
+our other servers.

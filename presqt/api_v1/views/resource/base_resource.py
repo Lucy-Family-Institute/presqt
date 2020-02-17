@@ -31,7 +31,6 @@ class BaseResource(APIView):
     """
     Base View for Resource views. Handles shared POSTs (upload and transfer) and download methods.
     """
-
     def post(self, request, target_name, resource_id=None):
         """
         Upload resources to a specific resource or create a new resource.
@@ -207,7 +206,8 @@ class BaseResource(APIView):
             'status': 'in_progress',
             'expiration': str(timezone.now() + relativedelta(days=5)),
             'message': 'Upload is being processed on the server',
-            'status_code': None
+            'status_code': None,
+            'function_process_id': None
         }
         self.process_info_path = os.path.join(self.ticket_path, 'process_info.json')
         write_file(self.process_info_path, self.process_info_obj, True)
@@ -235,6 +235,10 @@ class BaseResource(APIView):
         """
         action = 'resource_download'
 
+        # Write the process id to the process_info file
+        self.process_info_obj['function_process_id'] = self.function_process.pid
+        write_file(self.process_info_path, self.process_info_obj, True)
+
         # Fetch the proper function to call
         func = FunctionRouter.get_function(self.source_target_name, action)
 
@@ -258,8 +262,6 @@ class BaseResource(APIView):
             # it's an incomplete/failed directory.
             self.process_info_obj['expiration'] = str(timezone.now() + relativedelta(hours=1))
             write_file(self.process_info_path, self.process_info_obj, True)
-            #  Update the shared memory map so the watchdog process can stop running.
-            self.process_state.value = 1
             return False
 
         # The directory all files should be saved in.
@@ -354,9 +356,6 @@ class BaseResource(APIView):
             self.process_info_obj['failed_fixity'] = self.download_failed_fixity
 
             write_file(self.process_info_path, self.process_info_obj, True)
-
-            # Update the shared memory map so the watchdog process can stop running.
-            self.process_state.value = 1
             return True
 
     def _upload_resource(self):
@@ -364,6 +363,10 @@ class BaseResource(APIView):
         Upload resources to the target and perform a fixity check on the resulting hashes.
         """
         action = 'resource_upload'
+
+        # Write the process id to the process_info file
+        self.process_info_obj['function_process_id'] = self.function_process.pid
+        write_file(self.process_info_path, self.process_info_obj, True)
 
         # Data directory in the bag
         self.data_directory = '{}/data'.format(self.resource_main_dir)
@@ -416,8 +419,6 @@ class BaseResource(APIView):
                 # it's an incomplete/failed directory.
                 self.process_info_obj['expiration'] = str(timezone.now() + relativedelta(hours=1))
                 write_file(self.process_info_path, self.process_info_obj, True)
-                #  Update the shared memory map so the watchdog process can stop running.
-                self.process_state.value = 1
                 return False
 
         # Fetch the proper function to call
@@ -447,8 +448,6 @@ class BaseResource(APIView):
             # because it's an incomplete/failed directory.
             self.process_info_obj['expiration'] = str(timezone.now() + relativedelta(hours=1))
             write_file(self.process_info_path, self.process_info_obj, True)
-            #  Update the shared memory map so the watchdog process can stop running.
-            self.process_state.value = 1
             return False
 
         # Check if fixity has failed on any files during a transfer. If so, update the
@@ -496,9 +495,6 @@ class BaseResource(APIView):
             self.process_info_obj['hash_algorithm'] = self.hash_algorithm
             self.process_info_obj['failed_fixity'] = self.upload_failed_fixity
             write_file(self.process_info_path, self.process_info_obj, True)
-
-            # Update the shared memory map so the watchdog process can stop running.
-            self.process_state.value = 1
         else:
             self.process_info_obj['upload_status'] = upload_message
 
@@ -538,7 +534,8 @@ class BaseResource(APIView):
             'message': 'Transfer is being processed on the server',
             'download_status': None,
             'upload_status': None,
-            'status_code': None
+            'status_code': None,
+            'function_process_id': None
         }
         self.process_info_path = os.path.join(self.ticket_path, "process_info.json")
         write_file(self.process_info_path, self.process_info_obj, True)
@@ -562,6 +559,10 @@ class BaseResource(APIView):
         """
         Transfer resources from the source target to the destination target.
         """
+        # Write the process id to the process_info file
+        self.process_info_obj['function_process_id'] = self.function_process.pid
+        write_file(self.process_info_path, self.process_info_obj, True)
+
         ####### DOWNLOAD THE RESOURCES #######
         download_status = self._download_resource()
 
@@ -602,6 +603,4 @@ class BaseResource(APIView):
 
         write_file(self.process_info_path, self.process_info_obj, True)
 
-        # Update the shared memory map so the watchdog process can stop running.
-        self.process_state.value = 1
         return

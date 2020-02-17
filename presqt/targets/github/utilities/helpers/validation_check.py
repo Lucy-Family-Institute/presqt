@@ -1,5 +1,4 @@
 import requests
-from rest_framework import status
 
 from rest_framework import status
 
@@ -24,7 +23,7 @@ def validation_check(token):
     try:
         username = validation['login']
     except:
-        raise PresQTResponseException('The response returned a 401 unauthorized status code.', 
+        raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
     return header, username

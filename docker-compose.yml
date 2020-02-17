@@ -48,8 +48,34 @@ services:
     volumes:
       - .:/usr/src/app
       - presqt_static_volume:/usr/src/app/staticfiles
+      - presqt_media_volume:/usr/src/app/mediafiles
     networks:
       - frontend
+      - backend
+  
+  # Since only one service should be running
+  # per container, we need something separate
+  # to run scheduled jobs.
+  presqt_cron:
+    restart: always
+    depends_on:
+      - presqt_django
+    build:
+      context: .
+      dockerfile: cron.dockerfile
+      args:
+        BUILD_ENVIRONMENT: ${ENVIRONMENT:-production}
+    environment:
+      CURATE_ND_TEST_TOKEN: $CURATE_ND_TEST_TOKEN
+      GITHUB_TEST_USER_TOKEN: $GITHUB_TEST_USER_TOKEN
+      SECRET_KEY: $SECRET_KEY
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      DJANGO_SETTINGS_MODULE: config.settings.${ENVIRONMENT:-production}
+    volumes:
+      - .:/usr/src/app
+      - presqt_static_volume:/usr/src/app/staticfiles
+      - presqt_media_volume:/usr/src/app/mediafiles
+    networks:
       - backend
 
 # We create two top-level networks to provide some isolation

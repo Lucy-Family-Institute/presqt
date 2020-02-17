@@ -195,7 +195,7 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(download_response.status_code, 500)
         self.assertEqual(download_response.data['status_code'], 401)
         self.assertEqual(download_response.data['message'],
-                         "The response returned a 401 unauthorized status code.")
+                         "Token is invalid. Response returned a 401 status code.")
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(ticket_number))

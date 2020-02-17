@@ -13,7 +13,7 @@ from presqt.utilities import write_file, read_file
 from presqt.targets.utilities import shared_call_get_resource_zip
 
 
-class TestDownloadJob(SimpleTestCase):
+class TestDownloadJobGET(SimpleTestCase):
     """
     Test the `api_v1/downloads/<ticket_id>/` endpoint's GET method.
 
@@ -239,6 +239,114 @@ class TestDownloadJob(SimpleTestCase):
         self.assertEqual(response.data,
                          {'message': "The requested resource is no longer available.",
                           'status_code': 410})
+
+        # Delete corresponding folder
+        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
+
+class TestDownloadJobPATCH(SimpleTestCase):
+    """
+    Test the `api_v1/downloads/<ticket_id>/` endpoint's PATCH method.
+
+    Testing only PresQT core code.
+    """
+    def setUp(self):
+        self.client = APIClient()
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN}
+        self.resource_id = 'cmn5z'
+        self.target_name = 'osf'
+
+    def test_success_200(self):
+        """
+        Return a 200 for successful cancelled download process.
+        """
+        download_url = reverse('resource', kwargs={'target_name': self.target_name,
+                                                   'resource_id': self.resource_id,
+                                                   'resource_format': 'zip'})
+        download_response = self.client.get(download_url, **self.header)
+
+        ticket_number = download_response.data['ticket_number']
+        ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
+        # Verify process_info file status is 'in_progress' initially
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        self.assertEqual(process_info['status'], 'in_progress')
+
+        # Wait until the spawned off process has a function_process_id to cancel the download
+        while not process_info['function_process_id']:
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+
+        download_patch_url = reverse('download_job', kwargs={'ticket_number': ticket_number})
+        download_patch_url_response = self.client.patch(download_patch_url, **self.header)
+
+        self.assertEquals(download_patch_url_response.status_code, 200)
+        self.assertEquals(
+            download_patch_url_response.data['message'],
+            'Download was cancelled by the user')
+
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+
+        self.assertEquals(process_info['message'], 'Download was cancelled by the user')
+        self.assertEquals(process_info['status'], 'failed')
+        self.assertEquals(process_info['status_code'], '499')
+
+        # Delete corresponding folder
+        shutil.rmtree('mediafiles/downloads/{}'.format(ticket_number))
+
+    def test_success_406(self):
+        """
+        Return a 406 for unsuccessful cancel because the download finished already.
+        """
+        download_url = reverse('resource', kwargs={'target_name': self.target_name,
+                                                   'resource_id': '5cd98510f244ec001fe5632f',
+                                                   'resource_format': 'zip'})
+        download_response = self.client.get(download_url, **self.header)
+
+        ticket_number = download_response.data['ticket_number']
+        ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
+        # Verify process_info file status is 'in_progress' initially
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        self.assertEqual(process_info['status'], 'in_progress')
+
+        # Wait until the spawned off process finishes to attempt to cancel download
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+
+        download_patch_url = reverse('download_job', kwargs={'ticket_number': ticket_number})
+        download_patch_url_response = self.client.patch(download_patch_url, **self.header)
+
+        self.assertEquals(download_patch_url_response.status_code, 406)
+        self.assertEquals(download_patch_url_response.data['message'], 'Download successful.')
+
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+
+        self.assertEquals(process_info['message'], 'Download successful.')
+        self.assertEquals(process_info['status'], 'finished')
+        self.assertEquals(process_info['status_code'], '200')
+
+        # Delete corresponding folder
+        shutil.rmtree('mediafiles/downloads/{}'.format(ticket_number))
+
+    def test_error_400(self):
+        """
+        Return a 400 if the 'presqt-source-token' is missing in the headers
+        """
+        shared_call_get_resource_zip(self, '5cd98510f244ec001fe5632f')
+
+        header = {}
+        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
+        response = self.client.patch(url, **header)
+
+        # Verify the status code and content
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['error'],
+                         "'presqt-source-token' missing in the request headers.")
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
