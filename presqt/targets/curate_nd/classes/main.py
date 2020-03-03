@@ -34,7 +34,7 @@ class CurateND(CurateNDBase):
         response = requests.get('https://curate.nd.edu/api/items?editor=self',
                                 headers={'X-Api-Token': '{}'.format(token)})
         try:
-            response.json()['code']
+            response.json()['error']
         except KeyError:
             pass
         else:
