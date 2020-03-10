@@ -29,6 +29,11 @@ Local Development Environment Setup
 
     * **CURATE_ND_TEST_TOKEN**: The test token for Curate's API.
     * **GITHUB_TEST_USER_TOKEN**: The test token for GitHub's API.
+    * **OSF_TEST_USER_TOKEN**: The test token for OSF's API.
+    * **OSF_PRIVATE_USER_TOKEN**: The private test token for OSF's API.
+    * **OSF_UPLOAD_TEST_USER_TOKEN**: The upload test token for OSF's API.
+    * **OSF_PRESQT_FORK_TOKEN**: The PresQT fork user ttest token for OSF's API.
+    * **ZENODO_TEST_USER_TOKEN**: The test token for Zenodo's API.
 
     .. Note::
         Contact an administrator to get the target test tokens.
