@@ -462,7 +462,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         # Ensure the response is what we expect
         self.assertEqual(upload_job_response.data['status_code'], 400)
         self.assertEqual(upload_job_response.data['message'],
-                         'Repository is not formatted correctly. Multiple directories exist at the top level.')
+                         'PresQT Error: Repository is not formatted correctly. Multiple directories exist at the top level.')
 
         # Delete the upload folder
         shutil.rmtree(ticket_path)
@@ -490,7 +490,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         # Ensure the response is what we expect
         self.assertEqual(upload_job_response.data['status_code'], 400)
         self.assertEqual(upload_job_response.data['message'],
-                         'Repository is not formatted correctly. Files exist at the top level.')
+                         'PresQT Error: Repository is not formatted correctly. Files exist at the top level.')
 
         # Delete the upload folder
         shutil.rmtree(ticket_path)

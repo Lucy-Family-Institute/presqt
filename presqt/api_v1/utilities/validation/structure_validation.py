@@ -19,10 +19,10 @@ def structure_validation(instance):
 
     if len(folders) > 1:
         raise PresQTResponseException(
-            "Repository is not formatted correctly. Multiple directories exist at the top level.",
+            "PresQT Error: Repository is not formatted correctly. Multiple directories exist at the top level.",
             status.HTTP_400_BAD_REQUEST)
 
     if len(files) > 0 and instance.destination_resource_id is None:
         raise PresQTResponseException(
-            "Repository is not formatted correctly. Files exist at the top level.",
+            "PresQT Error: Repository is not formatted correctly. Files exist at the top level.",
             status.HTTP_400_BAD_REQUEST)

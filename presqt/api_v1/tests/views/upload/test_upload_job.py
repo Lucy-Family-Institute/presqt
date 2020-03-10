@@ -502,7 +502,7 @@ class TestUploadJobGET(SimpleTestCase):
         response = self.client.get(url, **self.headers)
         self.assertEqual(response.status_code, 500)
         self.assertEqual(response.data,
-                         {'message': "Repository is not formatted correctly. Multiple directories exist at the top level.",
+                         {'message': "PresQT Error: Repository is not formatted correctly. Multiple directories exist at the top level.",
                           'status_code': 400})
 
         # Delete corresponding folders

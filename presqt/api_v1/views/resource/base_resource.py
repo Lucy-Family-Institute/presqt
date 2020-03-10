@@ -114,6 +114,10 @@ class BaseResource(APIView):
         {
         "error": "PresQT Error: 'destination_target' does not allow transfer from 'source_target'."
         }
+        or
+        {
+        "error": "PresQT Error: PresQT FTS metadata cannot not be transferred by itself.
+        }
 
         401: Unauthorized
         {
@@ -250,6 +254,14 @@ class BaseResource(APIView):
         #   }
         try:
             func_dict = func(self.source_token, self.source_resource_id)
+            # If the resource is being transferred, has only one file, and that file is PresQT
+            # metadata then raise an error.
+            if self.action == 'resource_transfer_in' \
+                    and len(func_dict['resources']) == 1 \
+                    and func_dict['resources'][0]['title'] == 'PRESQT_FTS_METADATA.json':
+                raise PresQTResponseException(
+                    'PresQT Error: PresQT FTS metadata cannot not be transferred by itself.',
+                    status.HTTP_400_BAD_REQUEST)
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch.
             # Update the server process_info file appropriately.
@@ -263,6 +275,7 @@ class BaseResource(APIView):
             self.process_info_obj['expiration'] = str(timezone.now() + relativedelta(hours=1))
             write_file(self.process_info_path, self.process_info_obj, True)
             return False
+
 
         # The directory all files should be saved in.
         self.resource_main_dir = os.path.join(self.ticket_path, self.base_directory_name)
