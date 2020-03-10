@@ -69,7 +69,7 @@ class TestResourceCollection(SimpleTestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data,
-                         {'error': "'presqt-source-token' missing in the request headers."})
+                         {'error': "PresQT Error: 'presqt-source-token' missing in the request headers."})
 
     def test_error_401_invalid_token_zenodo(self):
         """

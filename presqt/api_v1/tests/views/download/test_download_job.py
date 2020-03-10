@@ -112,7 +112,7 @@ class TestDownloadJobGET(SimpleTestCase):
         # Verify the status code and content
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['error'],
-                         "'presqt-source-token' missing in the request headers.")
+                         "PresQT Error: 'presqt-source-token' missing in the request headers.")
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
@@ -131,7 +131,7 @@ class TestDownloadJobGET(SimpleTestCase):
         # Verify the status code and content
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.data['error'],
-                         "Header 'presqt-source-token' does not match the 'presqt-source-token' "
+                         "PresQT Error: Header 'presqt-source-token' does not match the 'presqt-source-token' "
                          "for this server process.")
 
         # Delete corresponding folder
@@ -148,7 +148,7 @@ class TestDownloadJobGET(SimpleTestCase):
 
         # Verify the status code and content
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data['error'], "Invalid ticket number, 'bad_ticket'.")
+        self.assertEqual(response.data['error'], "PresQT Error: Invalid ticket number, 'bad_ticket'.")
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
@@ -346,7 +346,7 @@ class TestDownloadJobPATCH(SimpleTestCase):
         # Verify the status code and content
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['error'],
-                         "'presqt-source-token' missing in the request headers.")
+                         "PresQT Error: 'presqt-source-token' missing in the request headers.")
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))

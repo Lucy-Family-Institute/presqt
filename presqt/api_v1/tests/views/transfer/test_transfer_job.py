@@ -150,7 +150,7 @@ class TestTransferJobGET(SimpleTestCase):
         # Verify the status code and content
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['error'],
-                         "'presqt-destination-token' missing in the request headers.")
+                         "PresQT Error: 'presqt-destination-token' missing in the request headers.")
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/transfers/{}'.format(ticket_number))
@@ -176,7 +176,7 @@ class TestTransferJobGET(SimpleTestCase):
         # Verify the status code and content
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.data['error'],
-                         "Header 'presqt-destination-token' does not match the 'presqt-destination-token' for this server process.")
+                         "PresQT Error: Header 'presqt-destination-token' does not match the 'presqt-destination-token' for this server process.")
 
         while process_info['status'] == 'in_progress':
             try:
@@ -310,7 +310,7 @@ class TestTransferJobGET(SimpleTestCase):
         response = self.client.post(self.url, data={"source_target_name": "eggs",
                                                     "source_resource_id": self.resource_id},
                                     **self.headers)
-        self.assertEqual(response.data['error'], "'eggs' is not a valid Target name.")
+        self.assertEqual(response.data['error'], "PresQT Error: 'eggs' is not a valid Target name.")
 
     def test_transfer_in_targets_not_allowed(self):
         """
@@ -440,7 +440,7 @@ class TestTransferJobPATCH(SimpleTestCase):
         # Verify the status code and content
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['error'],
-                         "'presqt-destination-token' missing in the request headers.")
+                         "PresQT Error: 'presqt-destination-token' missing in the request headers.")
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/transfers/{}'.format(ticket_number))

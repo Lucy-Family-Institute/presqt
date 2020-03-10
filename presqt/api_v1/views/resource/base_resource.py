@@ -189,11 +189,11 @@ class BaseResource(APIView):
                 shutil.rmtree(self.ticket_path)
                 # If we've reached the maximum number of attempts then return an error response
                 if index == 2:
-                    return Response(data={'error': e.data}, status=e.status_code)
+                    return Response(data={'error': 'PresQT Error: {}'.format(e.data)}, status=e.status_code)
             except bagit.BagError as e:
                 # If we've reached the maximum number of attempts then return an error response
                 if index == 2:
-                    return Response(data={'error': e.args[0]}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response(data={'error': 'PresQT Error: {}'.format(e.args[0])}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 # Collect and remove any existing source metadata
                 get_upload_source_metadata(self, self.bag)
