@@ -25,12 +25,12 @@ def target_validation(target_name, action):
         if data['name'] == target_name:
             if data["supported_actions"][action] is False:
                 raise PresQTValidationError(
-                    "'{}' does not support the action '{}'.".format(target_name, action),
+                    "PresQT Error: '{}' does not support the action '{}'.".format(target_name, action),
                     status.HTTP_400_BAD_REQUEST)
             return True, data['infinite_depth']
     else:
         raise PresQTValidationError(
-            "'{}' is not a valid Target name.".format(target_name), status.HTTP_404_NOT_FOUND)
+            "PresQT Error: '{}' is not a valid Target name.".format(target_name), status.HTTP_404_NOT_FOUND)
 
 
 def transfer_target_validation(source_target, destination_target):
@@ -58,14 +58,14 @@ def transfer_target_validation(source_target, destination_target):
         if data['name'] == source_target:
             if destination_target not in data['supported_transfer_partners']['transfer_out']:
                 raise PresQTValidationError(
-                    "'{}' does not allow transfer to '{}'.".format(
+                    "PresQT Error: '{}' does not allow transfer to '{}'.".format(
                         source_target, destination_target),
                     status.HTTP_400_BAD_REQUEST)
 
         elif data['name'] == destination_target:
             if source_target not in data['supported_transfer_partners']['transfer_in']:
                 raise PresQTValidationError(
-                    "'{}' does not allow transfer from '{}'.".format(
+                    "PresQT Error: '{}' does not allow transfer from '{}'.".format(
                         destination_target, source_target),
                     status.HTTP_400_BAD_REQUEST)
 

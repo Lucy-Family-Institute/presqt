@@ -95,15 +95,15 @@ class Resource(BaseResource):
 
         400: Bad Request
         {
-            "error": "'new_target' does not support the action 'resource_detail'."
+            "error": "PresQT Error: 'new_target' does not support the action 'resource_detail'."
         }
         or
         {
-            "error": "'presqt-source-token' missing in the request headers."
+            "error": "PresQT Error: 'presqt-source-token' missing in the request headers."
         }
         or
         {
-            "error": "csv is not a valid format for this endpoint."
+            "error": "PresQT Error: csv is not a valid format for this endpoint."
         }
 
         401: Unauthorized
@@ -118,7 +118,7 @@ class Resource(BaseResource):
 
         404: Not Found
         {
-            "error": "'bad_target' is not a valid Target name."
+            "error": "PresQT Error: 'bad_target' is not a valid Target name."
         }
         or
         {
@@ -145,7 +145,7 @@ class Resource(BaseResource):
         else:
             return Response(
                 data={
-                    'error': '{} is not a valid format for this endpoint.'.format(resource_format)},
+                    'error': 'PresQT Error: {} is not a valid format for this endpoint.'.format(resource_format)},
                 status=status.HTTP_400_BAD_REQUEST)
 
     def get_json_format(self):
