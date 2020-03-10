@@ -10,7 +10,7 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from config.settings.base import (OSF_UPLOAD_TEST_USER_TOKEN, GITHUB_TEST_USER_TOKEN,
-                                  ZENODO_TEST_USER_TOKEN)
+                                  ZENODO_TEST_USER_TOKEN, OSF_TEST_USER_TOKEN)
 
 from presqt.api_v1.utilities import transfer_target_validation
 from presqt.api_v1.views.resource.base_resource import BaseResource
@@ -132,8 +132,7 @@ class TestTransferJobGET(SimpleTestCase):
                                                     "source_resource_id": self.resource_id},
                                     **self.headers)
         ticket_number = response.data['ticket_number']
-        process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
-            ticket_number)
+        process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(ticket_number)
         process_info = read_file(process_info_path, True)
 
         while process_info['status'] == 'in_progress':
@@ -332,6 +331,42 @@ class TestTransferJobGET(SimpleTestCase):
             mock_file.return_value = json_file
             self.assertRaises(PresQTValidationError, transfer_target_validation, 'osf', 'github')
 
+    def test_get_error_500_400_metadata_file(self):
+        """
+        Return a 400 if the user attempts to transfer the PRESQT_FTS_METADATA.json file
+        """
+        headers = {'HTTP_PRESQT_DESTINATION_TOKEN': GITHUB_TEST_USER_TOKEN,
+                        'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN,
+                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+        url = reverse('resource_collection', kwargs={'target_name': 'github'})
+
+        response = self.client.post(url,
+                                    data={"source_target_name": "osf",
+                                          "source_resource_id": '5db34c37af84c3000ee1487d'},
+                                    **headers)
+
+        ticket_number = response.data['ticket_number']
+        process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(ticket_number)
+        process_info = read_file(process_info_path, True)
+
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file(process_info_path, True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+
+        url = reverse('transfer_job', kwargs={'ticket_number': ticket_number})
+        response = self.client.get(url, **headers)
+
+        # Verify the status code and content
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.data,
+                         {'message': "PresQT Error: PresQT FTS metadata cannot not be transferred by itself.",
+                          'status_code': 400})
+
+        # Delete corresponding folder
+        shutil.rmtree('mediafiles/transfers/{}'.format(ticket_number))
 
 class TestTransferJobPATCH(SimpleTestCase):
     """
