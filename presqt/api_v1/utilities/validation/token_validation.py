@@ -21,7 +21,7 @@ def get_source_token(request):
         return request.META['HTTP_PRESQT_SOURCE_TOKEN']
     except KeyError:
         raise PresQTValidationError(
-            "'presqt-source-token' missing in the request headers.",
+            "PresQT Error: 'presqt-source-token' missing in the request headers.",
             status.HTTP_400_BAD_REQUEST)
 
 def get_destination_token(request):
@@ -42,5 +42,5 @@ def get_destination_token(request):
         return request.META['HTTP_PRESQT_DESTINATION_TOKEN']
     except KeyError:
         raise PresQTValidationError(
-            "'presqt-destination-token' missing in the request headers.",
+            "PresQT Error: 'presqt-destination-token' missing in the request headers.",
             status.HTTP_400_BAD_REQUEST)

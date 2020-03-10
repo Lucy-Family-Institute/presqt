@@ -22,11 +22,11 @@ def file_validation(request):
         file = request.FILES['presqt-file']
     except MultiValueDictKeyError:
         raise PresQTValidationError(
-            "The file, 'presqt-file', is not found in the body of the request.",
+            "PresQT Error: The file, 'presqt-file', is not found in the body of the request.",
             status.HTTP_400_BAD_REQUEST)
 
     # Check if the file provided is a zip file
     if not zipfile.is_zipfile(file):
         raise PresQTValidationError(
-            "The file provided, 'presqt-file', is not a zip file.", status.HTTP_400_BAD_REQUEST)
+            "PresQT Error: The file provided, 'presqt-file', is not a zip file.", status.HTTP_400_BAD_REQUEST)
     return file

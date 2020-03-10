@@ -54,35 +54,35 @@ class BaseResource(APIView):
 
         400: Bad Request
         {
-            "error": "'new_target' does not support the action 'resource_upload'."
+            "error": "PresQT Error: 'new_target' does not support the action 'resource_upload'."
         }
         or
         {
-            "error": "'presqt-destination-token' missing in the request headers."
+            "error": "PresQT Error: 'presqt-destination-token' missing in the request headers."
         }
         or
         {
-            "error": "The file, 'presqt-file', is not found in the body of the request."
+            "error": "PresQT Error: The file, 'presqt-file', is not found in the body of the request."
         }
         or
         {
-            "error": "The file provided, 'presqt-file', is not a zip file."
+            "error": "PresQT Error: The file provided, 'presqt-file', is not a zip file."
         }
         or
         {
-            "error": "The file provided is not in BagIt format."
+            "error": "PresQT Error: The file provided is not in BagIt format."
         }
         or
         {
-            "error": "Checksums failed to validate."
+            "error": "PresQT Error: Checksums failed to validate."
         }
         or
         {
-            "error": "'presqt-file-duplicate-action' missing in the request headers."
+            "error": "PresQT Error: 'presqt-file-duplicate-action' missing in the request headers."
         }
         or
         {
-            "error": "'bad_action' is not a valid file_duplicate_action.
+            "error": "PresQT Error: 'bad_action' is not a valid file_duplicate_action.
             The options are 'ignore' or 'update'."
         }
         or
@@ -96,23 +96,23 @@ class BaseResource(APIView):
         }
         or
         {
-        "error": "source_resource_id can't be None or blank."
+        "error": "PresQT Error: source_resource_id can't be None or blank."
         }
         or
         {
-        "error": "source_resource_id was not found in the request body."
+        "error": "PresQT Error: source_resource_id was not found in the request body."
         }
         or
         {
-        "error": "source_target_name was not found in the request body."
+        "error": "PresQT Error: source_target_name was not found in the request body."
         }
         or
         {
-        "error": 'source_target' does not allow transfer to 'destination_target'.
+        "error": "PresQT Error: 'source_target' does not allow transfer to 'destination_target'."
         }
         or
         {
-        "error": 'destination_target' does not allow transfer from 'source_target'.
+        "error": "PresQT Error: 'destination_target' does not allow transfer from 'source_target'."
         }
 
         401: Unauthorized
@@ -127,7 +127,7 @@ class BaseResource(APIView):
 
         404: Not Found
         {
-            "error": "'bad_name' is not a valid Target name."
+            "error": "PresQT Error: 'bad_name' is not a valid Target name."
         }
 
         410: Not Found

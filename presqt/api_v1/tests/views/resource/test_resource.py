@@ -40,7 +40,7 @@ class TestResourceGET(SimpleTestCase):
         # Verify the Status Code and data
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data,
-                         {"error": "bad_format is not a valid format for this endpoint."})
+                         {"error": "PresQT Error: bad_format is not a valid format for this endpoint."})
 
     def test_error_400_missing_token(self):
         """

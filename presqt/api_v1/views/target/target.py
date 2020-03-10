@@ -161,7 +161,7 @@ class Target(APIView):
 
         404: Not Found
         {
-            "error": "Invalid Target Name 'bad_target'"
+            "error": "PresQT Error: Invalid Target Name 'bad_target'"
         }
 
         """
@@ -175,5 +175,5 @@ class Target(APIView):
         # If the target_name provided is not found in the Target JSON
         else:
             return Response(
-                data={'error': "Invalid Target Name '{}'".format(target_name)},
+                data={'error': "PresQT Error: Invalid Target Name '{}'".format(target_name)},
                 status=status.HTTP_404_NOT_FOUND)

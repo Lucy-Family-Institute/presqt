@@ -18,5 +18,5 @@ def process_token_validation(token, process_info, token_name):
     """
     if token != process_info[token_name]:
         raise PresQTValidationError(
-            "Header '{0}' does not match the '{0}' for this server process.".format(token_name),
+            "PresQT Error: Header '{0}' does not match the '{0}' for this server process.".format(token_name),
             status.HTTP_401_UNAUTHORIZED)

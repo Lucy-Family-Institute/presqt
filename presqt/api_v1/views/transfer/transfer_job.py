@@ -80,29 +80,29 @@ class TransferJob(APIView):
 
         400: Bad Request
         {
-            "error": "'presqt-destination-token' missing in the request headers."
+            "error": "PresQT Error: 'presqt-destination-token' missing in the request headers."
         }
 
         400: Bad Request
         {
-            "error": "'presqt-source-token' missing in the request headers."
+            "error": "PresQT Error: 'presqt-source-token' missing in the request headers."
         }
 
         401: Unauthorized
         {
-            "error": "Header 'presqt-destination-token' does not match the
+            "error": "PresQT Error: Header 'presqt-destination-token' does not match the
             'presqt-destination-token' for this server process."
         }
 
         401: Unauthorized
         {
-            "error": "Header 'presqt-source-token' does not match the
+            "error": "PresQT Error: Header 'presqt-source-token' does not match the
             'presqt-source-token' for this server process."
         }
 
         404: Not Found
         {
-            "error": "Invalid ticket number, '1234'."
+            "error": "PresQT Error: Invalid ticket number, '1234'."
         }
 
         406: Not Acceptable
