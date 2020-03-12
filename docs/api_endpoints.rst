@@ -489,8 +489,10 @@ Download Job
 
 .. http:get::  /api_v1/download/(str: ticket_number).zip/
 
-    Check on the ``Download Process`` for the given ``ticket_number`` and return the zip file if
-    resource has finished downloading.
+
+    Check on the ``Download Process`` for the given ``ticket_number``.
+    If download has failed or is in progress this endpoint will return a JSON payload detailing this.
+    If download has completed this endpoint will return the zip file of the resource originally requested.
 
     **Example request**:
 
