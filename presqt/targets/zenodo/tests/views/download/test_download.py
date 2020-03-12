@@ -31,7 +31,8 @@ class TestDownload(SimpleTestCase):
         resource_id = '3525310'
         shared_call_get_resource_zip(self, resource_id)
 
-        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
+        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number,
+                                              'response_format': 'zip'})
         response = self.client.get(url, **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
@@ -76,7 +77,8 @@ class TestDownload(SimpleTestCase):
         resource_id = '2441380'
         shared_call_get_resource_zip(self, resource_id)
 
-        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
+        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number,
+                                              'response_format': 'zip'})
         response = self.client.get(url, **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
@@ -115,7 +117,8 @@ class TestDownload(SimpleTestCase):
         resource_id = 'dea4211e-e240-4b2c-aede-c6c0eb84c9a0'
         shared_call_get_resource_zip(self, resource_id)
 
-        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
+        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number,
+                                              'response_format': 'zip'})
         response = self.client.get(url, **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
@@ -154,7 +157,8 @@ class TestDownload(SimpleTestCase):
         resource_id = '7c2a7648-44ec-4f17-98a1-b1736761d59b'
         shared_call_get_resource_zip(self, resource_id)
 
-        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
+        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number,
+                                              'response_format': 'zip'})
         response = self.client.get(url, **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
@@ -196,7 +200,7 @@ class TestDownload(SimpleTestCase):
 
         response = self.client.get(url, **{'HTTP_PRESQT_SOURCE_TOKEN': 'eggs'})
         ticket_number = response.data['ticket_number']
-        download_url = response.data['download_job']
+        download_url = response.data['download_job_zip']
         process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(ticket_number)
         process_info = read_file(process_info_path, True)
 
@@ -228,7 +232,7 @@ class TestDownload(SimpleTestCase):
 
         response = self.client.get(url, **self.header)
         ticket_number = response.data['ticket_number']
-        download_url = response.data['download_job']
+        download_url = response.data['download_job_zip']
         process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(ticket_number)
         process_info = read_file(process_info_path, True)
 
@@ -256,7 +260,7 @@ class TestDownload(SimpleTestCase):
 
         response = self.client.get(url, **self.header)
         ticket_number = response.data['ticket_number']
-        download_url = response.data['download_job']
+        download_url = response.data['download_job_zip']
         process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(ticket_number)
         process_info = read_file(process_info_path, True)
 
