@@ -429,17 +429,74 @@ Download Resource
 Download Job
 ++++++++++++
 
-.. http:get::  /api_v1/download/(str: ticket_number)/
+.. http:get::  /api_v1/download/(str: ticket_number).json/
 
     Check on the ``Download Process`` for the given ``ticket_number``.
-    If download has failed or is in progress this endpoint will return a JSON payload detailing this.
-    If download has completed this endpoint will return the zip file of the resource originally requested.
 
     **Example request**:
 
     .. sourcecode:: http
 
-        GET /api_v1/download/c24442a7-fead-4fb8-b56e-d4196ad55482/ HTTP/1.1
+        GET /api_v1/download/c24442a7-fead-4fb8-b56e-d4196ad55482.json/ HTTP/1.1
+        Host: presqt-prod.crc.nd.edu
+        Accept: application/json
+
+    **Example response if download finished successfully**:
+
+    .. sourcecode:: http
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json
+
+        {
+            "status_code": "200",
+            "message": "Download successful but with fixity errors.",
+            "failed_fixity": ["/Character SheetVersion.pdf"]
+        }
+
+    **Example response if download is in progress**:
+
+    .. sourcecode:: http
+
+        HTTP/1.1 202 Accepted
+        Content-Type: application/json
+
+        {
+            "status_code": null,
+            "message": "Download is being processed on the server"
+        }
+
+    **Example response if download failed**:
+
+    .. sourcecode:: http
+
+        HTTP/1.1 500 Internal Server Error
+        Content-Type: application/json
+
+        {
+            "status_code": "404",
+            "message": "Resource with id 'bad_id' not found for this user."
+        }
+
+    :reqheader presqt-source-token: User's ``Token`` for the source target
+    :statuscode 200: ``Download`` has finished successfully
+    :statuscode 202: ``Download`` is being processed on the server
+    :statuscode 400: ``presqt-source-token`` missing in the request headers
+    :statuscode 400: Invalid format given. Must be json or zip.
+    :statuscode 401: Header ``presqt-source-token`` does not match the ``presqt-source-token`` for this server process
+    :statuscode 404: Invalid ``Ticket Number``
+    :statuscode 500: ``Download`` failed on the server
+
+.. http:get::  /api_v1/download/(str: ticket_number).zip/
+
+    Check on the ``Download Process`` for the given ``ticket_number`` and return the zip file if
+    resource has finished downloading.
+
+    **Example request**:
+
+    .. sourcecode:: http
+
+        GET /api_v1/download/c24442a7-fead-4fb8-b56e-d4196ad55482.zip/ HTTP/1.1
         Host: presqt-prod.crc.nd.edu
         Accept: application/json
 
@@ -480,6 +537,7 @@ Download Job
     :statuscode 200: ``Download`` has finished successfully
     :statuscode 202: ``Download`` is being processed on the server
     :statuscode 400: ``presqt-source-token`` missing in the request headers
+    :statuscode 400: Invalid format given. Must be json or zip.
     :statuscode 401: Header ``presqt-source-token`` does not match the ``presqt-source-token`` for this server process
     :statuscode 404: Invalid ``Ticket Number``
     :statuscode 500: ``Download`` failed on the server
