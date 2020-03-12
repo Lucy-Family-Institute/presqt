@@ -216,11 +216,18 @@ class Resource(BaseResource):
         # Spawn the upload_resource method separate from the request server by using multiprocess.
         spawn_action_process(self, self._download_resource)
 
-        # Get the download url
-        reversed_url = reverse('download_job', kwargs={'ticket_number': ticket_number})
-        download_hyperlink = self.request.build_absolute_uri(reversed_url)
+        # Get the download url for zip format
+        reversed_url = reverse('download_job', kwargs={'ticket_number': ticket_number,
+                                                       'response_format': 'zip'})
+        download_zip_hyperlink = self.request.build_absolute_uri(reversed_url)
+
+        # Get the download url for json format
+        reversed_url = reverse('download_job', kwargs={'ticket_number': ticket_number,
+                                                           'response_format': 'json'})
+        download_json_hyperlink = self.request.build_absolute_uri(reversed_url)
 
         return Response(status=status.HTTP_202_ACCEPTED,
                         data={'ticket_number': ticket_number,
                               'message': 'The server is processing the request.',
-                              'download_job': download_hyperlink})
+                              'download_job_zip': download_zip_hyperlink,
+                              'download_job_json': download_json_hyperlink})
