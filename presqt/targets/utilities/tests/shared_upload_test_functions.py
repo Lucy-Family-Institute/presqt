@@ -72,7 +72,7 @@ def shared_upload_function_github(test_case_instance):
     test_case_instance.assertEqual(process_info['status'], 'finished')
     test_case_instance.assertEqual(
         process_info['message'],
-        'Upload successful. Fixity failed because github does not provide file checksums.')
+        'Upload successful. Fixity failed because GitHub does not provide file checksums.')
     test_case_instance.assertEqual(process_info['status_code'], '200')
     test_case_instance.assertNotEqual(process_info['failed_fixity'], [])
     test_case_instance.assertEqual(

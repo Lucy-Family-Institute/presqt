@@ -74,7 +74,7 @@ class TestTransferJobGET(SimpleTestCase):
         self.assertEqual(response.data['status_code'], '200')
         # Fixity errors because we're dealing with GitHub
         self.assertEqual(response.data['message'],
-                         'Transfer successful. Fixity failed because github does not provide file checksums.')
+                         'Transfer successful. Fixity failed because GitHub does not provide file checksums.')
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/transfers/{}'.format(self.ticket_number))
@@ -453,12 +453,12 @@ class TestTransferJobPATCH(SimpleTestCase):
 
         self.assertEquals(transfers_patch_url_response.status_code, 406)
         self.assertEquals(transfers_patch_url_response.data['message'],
-                          'Transfer successful. Fixity failed because github does not provide file checksums.')
+                          'Transfer successful. Fixity failed because GitHub does not provide file checksums.')
 
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
 
         self.assertEquals(process_info['message'],
-                          'Transfer successful. Fixity failed because github does not provide file checksums.')
+                          'Transfer successful. Fixity failed because GitHub does not provide file checksums.')
         self.assertEquals(process_info['status'], 'finished')
         self.assertEquals(process_info['status_code'], '200')
 
