@@ -335,7 +335,8 @@ class BaseResource(APIView):
             # Make a BagIt 'bag' of the resources.
             bagit.make_bag(self.resource_main_dir, checksums=['md5', 'sha1', 'sha256', 'sha512'])
             self.process_info_obj['download_status'] = get_action_message('Download',
-                                                                          self.download_fixity, True)
+                                                                          self.download_fixity, True,
+                                                                          self.action_metadata)
             return True
         # If we are only downloading the resource then create metadata, bag, zip,
         # and update the server process file.
@@ -350,7 +351,7 @@ class BaseResource(APIView):
             metadata_validation = schema_validator('presqt/json_schemas/metadata_schema.json',
                                                    final_fts_metadata_data)
             self.process_info_obj['message'] = get_action_message('Download', self.download_fixity,
-                                                                  metadata_validation)
+                                                                  metadata_validation, self.action_metadata)
 
             # Add the fixity file to the disk directory
             write_file(os.path.join(self.resource_main_dir, 'fixity_info.json'), fixity_info, True)
@@ -498,7 +499,8 @@ class BaseResource(APIView):
         # Validate the final metadata
         upload_message = get_action_message('Upload',
                                             self.upload_fixity,
-                                            self.metadata_validation)
+                                            self.metadata_validation,
+                                            self.action_metadata)
         self.process_info_obj['message'] = upload_message
 
         if self.action == 'resource_upload':
@@ -612,7 +614,7 @@ class BaseResource(APIView):
 
         transfer_fixity = False if not self.download_fixity or not self.upload_fixity else True
         self.process_info_obj['message'] = get_action_message(
-            'Transfer', transfer_fixity, self.metadata_validation)
+            'Transfer', transfer_fixity, self.metadata_validation, self.action_metadata)
 
         write_file(self.process_info_path, self.process_info_obj, True)
 
