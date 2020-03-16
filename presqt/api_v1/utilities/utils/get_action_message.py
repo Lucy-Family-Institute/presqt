@@ -26,11 +26,11 @@ def get_action_message(action, fixity_status, metadata_validation, action_metada
         if data['name'] == action_metadata['sourceTargetName']:
             if data['supported_hash_algorithms'] == []:
                 return "{} successful. Fixity failed because {} does not provide file checksums.".format(
-                    action, action_metadata['sourceTargetName'])
+                    action, data['readable_name'])
         elif data['name'] == action_metadata['destinationTargetName']:
             if data['supported_hash_algorithms'] == []:
                 return "{} successful. Fixity failed because {} does not provide file checksums.".format(
-                    action, action_metadata['destinationTargetName'])
+                    action, data['readable_name'])
 
     # Fixity failed and metadata succeeded
     if not fixity_status and metadata_validation is True:
