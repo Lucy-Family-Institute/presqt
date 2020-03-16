@@ -112,6 +112,7 @@ class DownloadJob(APIView):
             else:
                 response = Response(data={'status_code': status_code,
                                           'message': message,
+                                          'zip_name': data['zip_name'],
                                           'failed_fixity': data['failed_fixity']},
                                     status=status.HTTP_200_OK)
             return response
