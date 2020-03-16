@@ -1,3 +1,6 @@
+from presqt.utilities import read_file
+
+
 def get_action_message(action, fixity_status, metadata_validation, action_metadata):
     """
     Get the final action message depending on the status of fixity and metadata.
@@ -17,27 +20,17 @@ def get_action_message(action, fixity_status, metadata_validation, action_metada
     -------
     Returns a string message.
     """
-    if action != 'Download':
-        # Make a combined list of the file lists.
-        new_file_list = (action_metadata['files']['created'] + action_metadata['files']['updated'] +
-                         action_metadata['files']['ignored'])
-        total_file_count = len(new_file_list)
+    targets_data = read_file('presqt/targets.json', True)
 
-        hashless_destination_files = 0
-        hashless_source_files = 0
-
-        for entry in new_file_list:
-            if entry['destinationHashes'] == {}:
-                hashless_destination_files += 1
-            if entry['sourceHashes'] == {}:
-                hashless_source_files += 1
-
-        if hashless_destination_files == total_file_count:
-            return "{} successful. Fixity failed because {} does not provide file checksums.".format(
-                action, action_metadata['destinationTargetName'])
-        if hashless_source_files == total_file_count:
-            return "{} successful. Fixity failed because {} does not provide file checksums.".format(
-                action, action_metadata['sourceTargetName'])
+    for data in targets_data:
+        if data['name'] == action_metadata['sourceTargetName']:
+            if data['supported_hash_algorithms'] == []:
+                return "{} successful. Fixity failed because {} does not provide file checksums.".format(
+                    action, action_metadata['sourceTargetName'])
+        elif data['name'] == action_metadata['destinationTargetName']:
+            if data['supported_hash_algorithms'] == []:
+                return "{} successful. Fixity failed because {} does not provide file checksums.".format(
+                    action, action_metadata['destinationTargetName'])
 
     # Fixity failed and metadata succeeded
     if not fixity_status and metadata_validation is True:
