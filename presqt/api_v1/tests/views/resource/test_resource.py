@@ -40,7 +40,7 @@ class TestResourceGET(SimpleTestCase):
         # Verify the Status Code and data
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data,
-                         {"error": "bad_format is not a valid format for this endpoint."})
+                         {"error": "PresQT Error: bad_format is not a valid format for this endpoint."})
 
     def test_error_400_missing_token(self):
         """
@@ -53,7 +53,7 @@ class TestResourceGET(SimpleTestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data,
-                         {'error': "'presqt-source-token' missing in the request headers."})
+                         {'error': "PresQT Error: 'presqt-source-token' missing in the request headers."})
 
     def test_error_400_target_not_supported_test_target(self):
         """
@@ -71,7 +71,7 @@ class TestResourceGET(SimpleTestCase):
                 self.assertEqual(response.status_code, 400)
                 self.assertEqual(
                     response.data,
-                    {'error': "'test' does not support the action 'resource_detail'."})
+                    {'error': "PresQT Error: 'test' does not support the action 'resource_detail'."})
 
     def test_error_404_bad_target_name(self):
         """
@@ -83,7 +83,7 @@ class TestResourceGET(SimpleTestCase):
         response = self.client.get(url, **self.header)
         # Verify the error status code and message
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data, {'error': "'bad_name' is not a valid Target name."})
+        self.assertEqual(response.data, {'error': "PresQT Error: 'bad_name' is not a valid Target name."})
 
 
 class TestResourceGETZip(SimpleTestCase):
@@ -114,7 +114,7 @@ class TestResourceGETZip(SimpleTestCase):
                 self.assertEqual(response.status_code, 400)
                 self.assertEqual(
                     response.data,
-                    {'error': "'test' does not support the action 'resource_download'."})
+                    {'error': "PresQT Error: 'test' does not support the action 'resource_download'."})
 
     def test_error_404_bad_target_name(self):
         """
@@ -126,7 +126,7 @@ class TestResourceGETZip(SimpleTestCase):
         response = self.client.get(url, **self.header)
         # Verify the error status code and message
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data, {'error': "'bad_name' is not a valid Target name."})
+        self.assertEqual(response.data, {'error': "PresQT Error: 'bad_name' is not a valid Target name."})
 
     def test_error_400_missing_token(self):
         """
@@ -139,7 +139,7 @@ class TestResourceGETZip(SimpleTestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data,
-                         {'error': "'presqt-source-token' missing in the request headers."})
+                         {'error': "PresQT Error: 'presqt-source-token' missing in the request headers."})
 
 
 class TestResourcePOSTWithFile(SimpleTestCase):
@@ -234,7 +234,7 @@ class TestResourcePOSTWithFile(SimpleTestCase):
                 # Verify the error status code and message
                 self.assertEqual(response.status_code, 400)
                 self.assertEqual(
-                    response.data, {'error': "'test' does not support the action 'resource_upload'."})
+                    response.data, {'error': "PresQT Error: 'test' does not support the action 'resource_upload'."})
 
     def test_error_400_missing_token(self):
         """
@@ -247,7 +247,7 @@ class TestResourcePOSTWithFile(SimpleTestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
-            response.data, {'error': "'presqt-destination-token' missing in the request headers."})
+            response.data, {'error': "PresQT Error: 'presqt-destination-token' missing in the request headers."})
 
     def test_error_400_presqt_file_missing(self):
         """
@@ -259,7 +259,7 @@ class TestResourcePOSTWithFile(SimpleTestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
-            response.data, {'error': "The file, 'presqt-file', is not found in the body of the request."})
+            response.data, {'error': "PresQT Error: The file, 'presqt-file', is not found in the body of the request."})
 
     def test_error_400_not_zip_file(self):
         """
@@ -271,7 +271,7 @@ class TestResourcePOSTWithFile(SimpleTestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
-            response.data, {'error': "The file provided, 'presqt-file', is not a zip file."})
+            response.data, {'error': "PresQT Error: The file provided, 'presqt-file', is not a zip file."})
 
     def test_error_400_duplicate_action_missing(self):
         """
@@ -284,7 +284,7 @@ class TestResourcePOSTWithFile(SimpleTestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data,
-                         {'error': "'presqt-file-duplicate-action' missing in the request headers."})
+                         {'error': "PresQT Error: 'presqt-file-duplicate-action' missing in the request headers."})
 
     def test_error_400_invalid_action(self):
         """
@@ -297,7 +297,7 @@ class TestResourcePOSTWithFile(SimpleTestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data, {
-                         'error': "'bad_action' is not a valid file_duplicate_action. The options are 'ignore' or 'update'."})
+                         'error': "PresQT Error: 'bad_action' is not a valid file_duplicate_action. The options are 'ignore' or 'update'."})
 
     def test_error_400_bagit_manifest_error(self):
         """
@@ -309,7 +309,7 @@ class TestResourcePOSTWithFile(SimpleTestCase):
             url, {'presqt-file': open('presqt/api_v1/tests/resources/upload/BadBagItManifest.zip', 'rb')}, **self.headers)
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data, {'error': "Checksums failed to validate."})
+        self.assertEqual(response.data, {'error': "PresQT Error: Checksums failed to validate."})
 
     def test_error_400_bagit_missing_file(self):
         """
@@ -322,7 +322,7 @@ class TestResourcePOSTWithFile(SimpleTestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data, {
-                         'error': "Payload-Oxum validation failed. Expected 2 files and 283274 bytes but found 1 files and 87111 bytes"})
+                         'error': "PresQT Error: Payload-Oxum validation failed. Expected 2 files and 283274 bytes but found 1 files and 87111 bytes"})
 
     def test_error_400_bagit_unknown_file(self):
         """
@@ -335,7 +335,7 @@ class TestResourcePOSTWithFile(SimpleTestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data, {
-                         'error': "data/fixity_info.json exists in manifest but was not found on filesystem"})
+                         'error': "PresQT Error: data/fixity_info.json exists in manifest but was not found on filesystem"})
 
 
 class TestResourcePOSTWithBody(SimpleTestCase):
@@ -367,7 +367,7 @@ class TestResourcePOSTWithBody(SimpleTestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data,
-                         {'error': "'presqt-destination-token' missing in the request headers."})
+                         {'error': "PresQT Error: 'presqt-destination-token' missing in the request headers."})
 
     def test_error_400_missing_source_token(self):
         """
@@ -381,7 +381,7 @@ class TestResourcePOSTWithBody(SimpleTestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data,
-                         {'error': "'presqt-source-token' missing in the request headers."})
+                         {'error': "PresQT Error: 'presqt-source-token' missing in the request headers."})
 
     def test_error_400_duplicate_action_missing(self):
         """
@@ -395,7 +395,7 @@ class TestResourcePOSTWithBody(SimpleTestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data,
-                         {'error': "'presqt-file-duplicate-action' missing in the request headers."})
+                         {'error': "PresQT Error: 'presqt-file-duplicate-action' missing in the request headers."})
 
     def test_error_400_invalid_action(self):
         """
@@ -409,7 +409,7 @@ class TestResourcePOSTWithBody(SimpleTestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data, {
-            'error': "'bad_action' is not a valid file_duplicate_action. The options are 'ignore' or 'update'."})
+            'error': "PresQT Error: 'bad_action' is not a valid file_duplicate_action. The options are 'ignore' or 'update'."})
 
     def test_error_400_source_target_name_missing(self):
         """
@@ -420,7 +420,7 @@ class TestResourcePOSTWithBody(SimpleTestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
-            response.data, {'error': "source_target_name was not found in the request body."})
+            response.data, {'error': "PresQT Error: source_target_name was not found in the request body."})
 
     def test_error_400_source_resource_id_missing(self):
         """
@@ -431,7 +431,7 @@ class TestResourcePOSTWithBody(SimpleTestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data,
-                         {'error': "source_resource_id was not found in the request body."})
+                         {'error': "PresQT Error: source_resource_id was not found in the request body."})
 
     def test_error_400_source_id_cant_be_none(self):
         """
@@ -443,7 +443,7 @@ class TestResourcePOSTWithBody(SimpleTestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data,
-                         {'error': "source_resource_id can't be None or blank."})
+                         {'error': "PresQT Error: source_resource_id can't be None or blank."})
 
     def test_error_404_source_target_name_invalid(self):
         """
@@ -454,7 +454,7 @@ class TestResourcePOSTWithBody(SimpleTestCase):
             url, {"source_target_name": "bad_name", "source_resource_id": "dj52w379504"}, **self.headers)
         # Verify the error status code and message
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data, {'error': "'bad_name' is not a valid Target name."})
+        self.assertEqual(response.data, {'error': "PresQT Error: 'bad_name' is not a valid Target name."})
 
     def test_error_404_destination_target_name_invalid(self):
         """
@@ -465,7 +465,7 @@ class TestResourcePOSTWithBody(SimpleTestCase):
                                           "source_resource_id": "dj52w379504"}, **self.headers)
         # Verify the error status code and message
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data, {'error': "'bad_name' is not a valid Target name."})
+        self.assertEqual(response.data, {'error': "PresQT Error: 'bad_name' is not a valid Target name."})
 
     def test_error_400_source_target_not_destination_action(self):
         """
@@ -484,4 +484,4 @@ class TestResourcePOSTWithBody(SimpleTestCase):
             # Verify the error status code and message
             self.assertEqual(response.status_code, 400)
             self.assertEqual(response.data,
-                             {'error': "'test' does not support the action 'resource_transfer_in'."})
+                             {'error': "PresQT Error: 'test' does not support the action 'resource_transfer_in'."})

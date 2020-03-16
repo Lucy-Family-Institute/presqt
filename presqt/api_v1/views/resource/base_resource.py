@@ -54,35 +54,35 @@ class BaseResource(APIView):
 
         400: Bad Request
         {
-            "error": "'new_target' does not support the action 'resource_upload'."
+            "error": "PresQT Error: 'new_target' does not support the action 'resource_upload'."
         }
         or
         {
-            "error": "'presqt-destination-token' missing in the request headers."
+            "error": "PresQT Error: 'presqt-destination-token' missing in the request headers."
         }
         or
         {
-            "error": "The file, 'presqt-file', is not found in the body of the request."
+            "error": "PresQT Error: The file, 'presqt-file', is not found in the body of the request."
         }
         or
         {
-            "error": "The file provided, 'presqt-file', is not a zip file."
+            "error": "PresQT Error: The file provided, 'presqt-file', is not a zip file."
         }
         or
         {
-            "error": "The file provided is not in BagIt format."
+            "error": "PresQT Error: The file provided is not in BagIt format."
         }
         or
         {
-            "error": "Checksums failed to validate."
+            "error": "PresQT Error: Checksums failed to validate."
         }
         or
         {
-            "error": "'presqt-file-duplicate-action' missing in the request headers."
+            "error": "PresQT Error: 'presqt-file-duplicate-action' missing in the request headers."
         }
         or
         {
-            "error": "'bad_action' is not a valid file_duplicate_action.
+            "error": "PresQT Error: 'bad_action' is not a valid file_duplicate_action.
             The options are 'ignore' or 'update'."
         }
         or
@@ -96,23 +96,27 @@ class BaseResource(APIView):
         }
         or
         {
-        "error": "source_resource_id can't be None or blank."
+        "error": "PresQT Error: source_resource_id can't be None or blank."
         }
         or
         {
-        "error": "source_resource_id was not found in the request body."
+        "error": "PresQT Error: source_resource_id was not found in the request body."
         }
         or
         {
-        "error": "source_target_name was not found in the request body."
+        "error": "PresQT Error: source_target_name was not found in the request body."
         }
         or
         {
-        "error": 'source_target' does not allow transfer to 'destination_target'.
+        "error": "PresQT Error: 'source_target' does not allow transfer to 'destination_target'."
         }
         or
         {
-        "error": 'destination_target' does not allow transfer from 'source_target'.
+        "error": "PresQT Error: 'destination_target' does not allow transfer from 'source_target'."
+        }
+        or
+        {
+        "error": "PresQT Error: PresQT FTS metadata cannot not be transferred by itself.
         }
 
         401: Unauthorized
@@ -127,7 +131,7 @@ class BaseResource(APIView):
 
         404: Not Found
         {
-            "error": "'bad_name' is not a valid Target name."
+            "error": "PresQT Error: 'bad_name' is not a valid Target name."
         }
 
         410: Not Found
@@ -189,11 +193,11 @@ class BaseResource(APIView):
                 shutil.rmtree(self.ticket_path)
                 # If we've reached the maximum number of attempts then return an error response
                 if index == 2:
-                    return Response(data={'error': e.data}, status=e.status_code)
+                    return Response(data={'error': 'PresQT Error: {}'.format(e.data)}, status=e.status_code)
             except bagit.BagError as e:
                 # If we've reached the maximum number of attempts then return an error response
                 if index == 2:
-                    return Response(data={'error': e.args[0]}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response(data={'error': 'PresQT Error: {}'.format(e.args[0])}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 # Collect and remove any existing source metadata
                 get_upload_source_metadata(self, self.bag)
@@ -250,6 +254,14 @@ class BaseResource(APIView):
         #   }
         try:
             func_dict = func(self.source_token, self.source_resource_id)
+            # If the resource is being transferred, has only one file, and that file is PresQT
+            # metadata then raise an error.
+            if self.action == 'resource_transfer_in' \
+                    and len(func_dict['resources']) == 1 \
+                    and func_dict['resources'][0]['title'] == 'PRESQT_FTS_METADATA.json':
+                raise PresQTResponseException(
+                    'PresQT Error: PresQT FTS metadata cannot not be transferred by itself.',
+                    status.HTTP_400_BAD_REQUEST)
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch.
             # Update the server process_info file appropriately.
@@ -263,6 +275,7 @@ class BaseResource(APIView):
             self.process_info_obj['expiration'] = str(timezone.now() + relativedelta(hours=1))
             write_file(self.process_info_path, self.process_info_obj, True)
             return False
+
 
         # The directory all files should be saved in.
         self.resource_main_dir = os.path.join(self.ticket_path, self.base_directory_name)
@@ -322,7 +335,8 @@ class BaseResource(APIView):
             # Make a BagIt 'bag' of the resources.
             bagit.make_bag(self.resource_main_dir, checksums=['md5', 'sha1', 'sha256', 'sha512'])
             self.process_info_obj['download_status'] = get_action_message('Download',
-                                                                          self.download_fixity, True)
+                                                                          self.download_fixity, True,
+                                                                          self.action_metadata)
             return True
         # If we are only downloading the resource then create metadata, bag, zip,
         # and update the server process file.
@@ -337,7 +351,7 @@ class BaseResource(APIView):
             metadata_validation = schema_validator('presqt/json_schemas/metadata_schema.json',
                                                    final_fts_metadata_data)
             self.process_info_obj['message'] = get_action_message('Download', self.download_fixity,
-                                                                  metadata_validation)
+                                                                  metadata_validation, self.action_metadata)
 
             # Add the fixity file to the disk directory
             write_file(os.path.join(self.resource_main_dir, 'fixity_info.json'), fixity_info, True)
@@ -485,7 +499,8 @@ class BaseResource(APIView):
         # Validate the final metadata
         upload_message = get_action_message('Upload',
                                             self.upload_fixity,
-                                            self.metadata_validation)
+                                            self.metadata_validation,
+                                            self.action_metadata)
         self.process_info_obj['message'] = upload_message
 
         if self.action == 'resource_upload':
@@ -599,7 +614,7 @@ class BaseResource(APIView):
 
         transfer_fixity = False if not self.download_fixity or not self.upload_fixity else True
         self.process_info_obj['message'] = get_action_message(
-            'Transfer', transfer_fixity, self.metadata_validation)
+            'Transfer', transfer_fixity, self.metadata_validation, self.action_metadata)
 
         write_file(self.process_info_path, self.process_info_obj, True)
 

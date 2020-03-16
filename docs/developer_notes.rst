@@ -36,7 +36,7 @@ that cover core code reside in ``presqt/api_v1/tests/`` while target tests that 
 reside in ``presqt/targets/{target_name}/tests/`` .
 
 .. attention::
-    curateND and Github tests require their tokens to be stored as environment variables since
+    All tests require their corresponding target tokens to be stored as environment variables since
     these tokens can not be stored publicly. Contact an administrator for access to these.
 
 Docker Commands

@@ -185,7 +185,7 @@ class TestUploadJobGET(SimpleTestCase):
         # Verify the status code and content
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['error'],
-                         "'presqt-destination-token' missing in the request headers.")
+                         "PresQT Error: 'presqt-destination-token' missing in the request headers.")
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
@@ -206,7 +206,7 @@ class TestUploadJobGET(SimpleTestCase):
         # Verify the status code and content
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.data['error'],
-                         "Header 'presqt-destination-token' does not match the 'presqt-destination-token' for this server process.")
+                         "PresQT Error: Header 'presqt-destination-token' does not match the 'presqt-destination-token' for this server process.")
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
@@ -224,7 +224,7 @@ class TestUploadJobGET(SimpleTestCase):
 
         # Verify the status code and content
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data['error'], "Invalid ticket number, 'bad_ticket'.")
+        self.assertEqual(response.data['error'], "PresQT Error: Invalid ticket number, 'bad_ticket'.")
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/uploads/{}'.format(self.ticket_number))
@@ -502,7 +502,7 @@ class TestUploadJobGET(SimpleTestCase):
         response = self.client.get(url, **self.headers)
         self.assertEqual(response.status_code, 500)
         self.assertEqual(response.data,
-                         {'message': "Repository is not formatted correctly. Multiple directories exist at the top level.",
+                         {'message': "PresQT Error: Repository is not formatted correctly. Multiple directories exist at the top level.",
                           'status_code': 400})
 
         # Delete corresponding folders
@@ -522,7 +522,7 @@ class TestUploadJobGET(SimpleTestCase):
         response = self.client.get(url, **self.headers)
         self.assertEqual(response.status_code, 500)
         self.assertEqual(response.data,
-                         {'message': "Repository is not formatted correctly. Files exist at the top level.",
+                         {'message': "PresQT Error: Repository is not formatted correctly. Files exist at the top level.",
                           'status_code': 400})
 
         # Delete corresponding folders
@@ -659,7 +659,7 @@ class TestUploadJobPATCH(SimpleTestCase):
         # Verify the status code and content
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['error'],
-                         "'presqt-destination-token' missing in the request headers.")
+                         "PresQT Error: 'presqt-destination-token' missing in the request headers.")
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/uploads/{}'.format(ticket_number))

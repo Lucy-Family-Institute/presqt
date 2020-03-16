@@ -1,6 +1,3 @@
-import re
-
-from rest_framework import status
 from rest_framework.response import Response
 
 from presqt.api_v1.serializers.resource import ResourcesSerializer
@@ -66,15 +63,15 @@ class ResourceCollection(BaseResource):
 
         400: Bad Request
         {
-            "error": "'new_target' does not support the action 'resource_collection'."
+            "error": "PresQT Error: 'new_target' does not support the action 'resource_collection'."
         }
         or
         {
-            "error": "'presqt-source-token' missing in the request headers."
+            "error": "PresQT Error: 'presqt-source-token' missing in the request headers."
         }
         or
         {
-            "error": "The search query is not formatted correctly."
+            "error": "PresQT Error: The search query is not formatted correctly."
         }
 
         401: Unauthorized
@@ -84,7 +81,7 @@ class ResourceCollection(BaseResource):
 
         404: Not Found
         {
-            "error": "'bad_target' is not a valid Target name."
+            "error": "PresQT Error: 'bad_target' is not a valid Target name."
         }
         """
         action = 'resource_collection'

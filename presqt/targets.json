@@ -62,7 +62,7 @@
       "resource_download": true,
       "resource_upload": true,
       "resource_transfer_in": true,
-      "resource_transfer_out": false
+      "resource_transfer_out": true
     },
     "supported_transfer_partners": {
       "transfer_in": ["osf", "github", "curate_nd"],

@@ -103,19 +103,19 @@ class TestResourceCollection(SimpleTestCase):
         # TOO MANY KEYS
         response = self.client.get(url + '?title=hat&spaghetti=egg', **self.header)
 
-        self.assertEqual(response.data['error'], 'The search query is not formatted correctly.')
+        self.assertEqual(response.data['error'], 'PresQT Error: The search query is not formatted correctly.')
         self.assertEqual(response.status_code, 400)
 
         # BAD KEY
         response = self.client.get(url + '?spaghetti=egg', **self.header)
 
-        self.assertEqual(response.data['error'], 'The search query is not formatted correctly.')
+        self.assertEqual(response.data['error'], 'PresQT Error: The search query is not formatted correctly.')
         self.assertEqual(response.status_code, 400)
 
         # SPECIAL CHARACTERS IN THE REQUEST
         response = self.client.get(url + '?title=egg:boi', **self.header)
 
-        self.assertEqual(response.data['error'], 'The search query is not formatted correctly.')
+        self.assertEqual(response.data['error'], 'PresQT Error: The search query is not formatted correctly.')
         self.assertEqual(response.status_code, 400)
 
         # EMPTY SEARCH -- NOT AN ERROR

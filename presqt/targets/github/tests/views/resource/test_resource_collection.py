@@ -70,7 +70,7 @@ class TestResourceCollection(SimpleTestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data,
-                         {'error': "'presqt-source-token' missing in the request headers."})
+                         {'error': "PresQT Error: 'presqt-source-token' missing in the request headers."})
 
     def test_error_401_invalid_token_github(self):
         """
@@ -92,19 +92,19 @@ class TestResourceCollection(SimpleTestCase):
         # TOO MANY KEYS
         response = self.client.get(url + '?title=hat&spaghetti=egg', **self.header)
 
-        self.assertEqual(response.data['error'], 'The search query is not formatted correctly.')
+        self.assertEqual(response.data['error'], 'PresQT Error: The search query is not formatted correctly.')
         self.assertEqual(response.status_code, 400)
 
         # BAD KEY
         response = self.client.get(url + '?spaghetti=egg', **self.header)
 
-        self.assertEqual(response.data['error'], 'The search query is not formatted correctly.')
+        self.assertEqual(response.data['error'], 'PresQT Error: The search query is not formatted correctly.')
         self.assertEqual(response.status_code, 400)
 
         # SPECIAL CHARACTERS IN REQUEST
         response = self.client.get(url + '?title=egg:boi', **self.header)
 
-        self.assertEqual(response.data['error'], 'The search query is not formatted correctly.')
+        self.assertEqual(response.data['error'], 'PresQT Error: The search query is not formatted correctly.')
         self.assertEqual(response.status_code, 400)
 
 
@@ -462,7 +462,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         # Ensure the response is what we expect
         self.assertEqual(upload_job_response.data['status_code'], 400)
         self.assertEqual(upload_job_response.data['message'],
-                         'Repository is not formatted correctly. Multiple directories exist at the top level.')
+                         'PresQT Error: Repository is not formatted correctly. Multiple directories exist at the top level.')
 
         # Delete the upload folder
         shutil.rmtree(ticket_path)
@@ -490,7 +490,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         # Ensure the response is what we expect
         self.assertEqual(upload_job_response.data['status_code'], 400)
         self.assertEqual(upload_job_response.data['message'],
-                         'Repository is not formatted correctly. Files exist at the top level.')
+                         'PresQT Error: Repository is not formatted correctly. Files exist at the top level.')
 
         # Delete the upload folder
         shutil.rmtree(ticket_path)

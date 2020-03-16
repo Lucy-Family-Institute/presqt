@@ -95,15 +95,15 @@ class Resource(BaseResource):
 
         400: Bad Request
         {
-            "error": "'new_target' does not support the action 'resource_detail'."
+            "error": "PresQT Error: 'new_target' does not support the action 'resource_detail'."
         }
         or
         {
-            "error": "'presqt-source-token' missing in the request headers."
+            "error": "PresQT Error: 'presqt-source-token' missing in the request headers."
         }
         or
         {
-            "error": "csv is not a valid format for this endpoint."
+            "error": "PresQT Error: csv is not a valid format for this endpoint."
         }
 
         401: Unauthorized
@@ -118,7 +118,7 @@ class Resource(BaseResource):
 
         404: Not Found
         {
-            "error": "'bad_target' is not a valid Target name."
+            "error": "PresQT Error: 'bad_target' is not a valid Target name."
         }
         or
         {
@@ -145,7 +145,7 @@ class Resource(BaseResource):
         else:
             return Response(
                 data={
-                    'error': '{} is not a valid format for this endpoint.'.format(resource_format)},
+                    'error': 'PresQT Error: {} is not a valid format for this endpoint.'.format(resource_format)},
                 status=status.HTTP_400_BAD_REQUEST)
 
     def get_json_format(self):
@@ -216,11 +216,18 @@ class Resource(BaseResource):
         # Spawn the upload_resource method separate from the request server by using multiprocess.
         spawn_action_process(self, self._download_resource)
 
-        # Get the download url
-        reversed_url = reverse('download_job', kwargs={'ticket_number': ticket_number})
-        download_hyperlink = self.request.build_absolute_uri(reversed_url)
+        # Get the download url for zip format
+        reversed_url = reverse('download_job', kwargs={'ticket_number': ticket_number,
+                                                       'response_format': 'zip'})
+        download_zip_hyperlink = self.request.build_absolute_uri(reversed_url)
+
+        # Get the download url for json format
+        reversed_url = reverse('download_job', kwargs={'ticket_number': ticket_number,
+                                                           'response_format': 'json'})
+        download_json_hyperlink = self.request.build_absolute_uri(reversed_url)
 
         return Response(status=status.HTTP_202_ACCEPTED,
                         data={'ticket_number': ticket_number,
                               'message': 'The server is processing the request.',
-                              'download_job': download_hyperlink})
+                              'download_job_zip': download_zip_hyperlink,
+                              'download_job_json': download_json_hyperlink})

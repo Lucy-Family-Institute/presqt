@@ -34,7 +34,7 @@ class CurateND(CurateNDBase):
         response = requests.get('https://curate.nd.edu/api/items?editor=self',
                                 headers={'X-Api-Token': '{}'.format(token)})
         try:
-            response.json()['code']
+            response.json()['error']
         except KeyError:
             pass
         else:
@@ -130,12 +130,11 @@ class CurateND(CurateNDBase):
                 'title': item.title})
             # Files
             for file in item.extra['containedFiles']:
-                container_id = file['isPartOf'][len(self.session.base_url)+1:]
                 resources.append({
                     'kind': 'item',
                     'kind_name': 'file',
                     'id': file['id'],
-                    'container': container_id,
+                    'container': item.id,
                     'title': file['label']})
 
         return resources

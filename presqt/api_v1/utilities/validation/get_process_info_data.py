@@ -22,5 +22,5 @@ def get_process_info_data(action, ticket_number):
     try:
         return read_file('mediafiles/{}/{}/process_info.json'.format(action, ticket_number), True)
     except FileNotFoundError:
-        raise PresQTValidationError("Invalid ticket number, '{}'.".format(ticket_number),
+        raise PresQTValidationError("PresQT Error: Invalid ticket number, '{}'.".format(ticket_number),
                                     status.HTTP_404_NOT_FOUND)

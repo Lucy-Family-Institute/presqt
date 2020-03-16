@@ -24,6 +24,8 @@ api_v1_endpoints = [
          Resource.as_view(), name="resource"),
 
     # Downloads
+    path('downloads/<str:ticket_number>.<str:response_format>/',
+         DownloadJob.as_view(), name='download_job'),
     path('downloads/<str:ticket_number>/', DownloadJob.as_view(), name='download_job'),
 
     # Uploads

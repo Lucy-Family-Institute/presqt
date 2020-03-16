@@ -29,7 +29,7 @@ class TestResourceCollection(SimpleTestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data,
-                         {'error': "'presqt-source-token' missing in the request headers."})
+                         {'error': "PresQT Error: 'presqt-source-token' missing in the request headers."})
 
     def test_get_error_400_target_not_supported_test_target(self):
         """
@@ -46,7 +46,7 @@ class TestResourceCollection(SimpleTestCase):
                 self.assertEqual(response.status_code, 400)
                 self.assertEqual(
                     response.data,
-                    {'error': "'test' does not support the action 'resource_collection'."})
+                    {'error': "PresQT Error: 'test' does not support the action 'resource_collection'."})
 
     def test_get_error_404_bad_target_name(self):
         """
@@ -58,14 +58,15 @@ class TestResourceCollection(SimpleTestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
-            response.data, {'error': "'bad_name' is not a valid Target name."})
+            response.data, {'error': "PresQT Error: 'bad_name' is not a valid Target name."})
 
     def test_action_message_with_fixity_and_metadata_errors(self):
         """
         If get_action_message is called and fixity and metadata has failed, we need to make the user
         aware.
         """
-        error_message = get_action_message('Download', False, False)
+        error_message = get_action_message('Download', False, False, {
+            "sourceTargetName": "egg", "destinationTargetName": "egg2"})
 
         self.assertEqual(error_message, 'Download successful but with fixity and metadata errors.')
 
