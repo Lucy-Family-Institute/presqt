@@ -1,6 +1,3 @@
-from presqt.utilities import read_file
-
-
 def get_action_message(action, fixity_status, metadata_validation, action_metadata):
     """
     Get the final action message depending on the status of fixity and metadata.
@@ -20,17 +17,22 @@ def get_action_message(action, fixity_status, metadata_validation, action_metada
     -------
     Returns a string message.
     """
-    targets_data = read_file('presqt/targets.json', True)
+    from presqt.api_v1.utilities.utils.get_target_data import get_target_data
 
-    for data in targets_data:
-        if data['name'] == action_metadata['sourceTargetName']:
-            if data['supported_hash_algorithms'] == []:
-                return "{} successful. Fixity failed because {} does not provide file checksums.".format(
-                    action, data['readable_name'])
-        elif data['name'] == action_metadata['destinationTargetName']:
-            if data['supported_hash_algorithms'] == []:
-                return "{} successful. Fixity failed because {} does not provide file checksums.".format(
-                    action, data['readable_name'])
+    new_file_list = (action_metadata['files']['created'] + action_metadata['files']['updated'] +
+                     action_metadata['files']['ignored'])
+    source_target_data = get_target_data(action_metadata['sourceTargetName'])
+    destination_target_data = get_target_data(action_metadata['destinationTargetName'])
+
+    for entry in new_file_list:
+        if source_target_data and entry['sourceHashes'] == {} or set(
+                entry['sourceHashes'].values()) == {None}:
+            return "{} successful. Fixity failed because {} may not have provided a file checksum. See PRESQT_FTS_METADATA.json for more details.".format(
+                action, source_target_data['readable_name'])
+        if destination_target_data and entry['destinationHashes'] == {} or set(
+                entry['destinationHashes'].values()) == {None}:
+            return "{} successful. Fixity failed because {} may not have provided a file checksum. See PRESQT_FTS_METADATA.json for more details.".format(
+                action, destination_target_data['readable_name'])
 
     # Fixity failed and metadata succeeded
     if not fixity_status and metadata_validation is True:
