@@ -15,7 +15,7 @@ from presqt.utilities import read_file, write_file
 class TestDeleteMediaFiles(SimpleTestCase):
     def setUp(self):
         self.env = patch.dict('os.environ', {'ENVIRONMENT': 'production'})
-        self.directory = '/usr/src/app/mediafiles/downloads/test_command/'
+        self.directory = 'mediafiles/downloads/test_command/'
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
         self.data = ({"presqt-source-token": "blahblah", "status": "in_progress",
@@ -31,23 +31,23 @@ class TestDeleteMediaFiles(SimpleTestCase):
         current date, the data that has been downloaded in this folder will be retained.
         """
         with self.env:
-            data_pre_command = glob.glob('/usr/src/app/mediafiles/downloads/test_command/process_info.json')
+            data_pre_command = glob.glob('mediafiles/downloads/test_command/process_info.json')
             self.assertEqual(len(data_pre_command), 1)
 
             call_command('delete_outdated_mediafiles')
 
             # Ensure that the folder and files have been retained
-            data_post_command = glob.glob('/usr/src/app/mediafiles/downloads/test_command/')
+            data_post_command = glob.glob('mediafiles/downloads/test_command/')
             self.assertEqual(len(data_post_command), 1)
         
         # Test in development mode.....all mediafiles should be deleted.
-        data_pre_command = glob.glob('/usr/src/app/mediafiles/downloads/test_command/process_info.json')
+        data_pre_command = glob.glob('mediafiles/downloads/test_command/process_info.json')
         self.assertEqual(len(data_pre_command), 1)
 
         call_command('delete_outdated_mediafiles')
 
         # Ensure that the folder and files have been deleted
-        data_post_command = glob.glob('/usr/src/app/mediafiles/downloads/test_command/')
+        data_post_command = glob.glob('mediafiles/downloads/test_command/')
         self.assertEqual(len(data_post_command), 0)
 
     def test_files_to_delete(self):
@@ -65,23 +65,23 @@ class TestDeleteMediaFiles(SimpleTestCase):
             # Write the data JSON back to the process_info file
             write_file('{}process_info.json'.format(self.directory), data, True)
 
-            data_pre_command = glob.glob('/usr/src/app/mediafiles/downloads/test_command/process_info.json')
+            data_pre_command = glob.glob('mediafiles/downloads/test_command/process_info.json')
             self.assertEqual(len(data_pre_command), 1)
 
             call_command('delete_outdated_mediafiles')
 
             # Check that the folder has been deleted
-            data_post_command = glob.glob('/usr/src/app/mediafiles/downloads/test_command/')
+            data_post_command = glob.glob('mediafiles/downloads/test_command/')
             self.assertEqual(len(data_post_command), 0)
 
             # Test that a directory without a process_info.json file gets deleted
             os.makedirs(self.directory)
 
-            data_pre_command = glob.glob('/usr/src/app/mediafiles/downloads/test_command/')
+            data_pre_command = glob.glob('mediafiles/downloads/test_command/')
             self.assertEqual(len(data_pre_command), 1)
 
             call_command('delete_outdated_mediafiles')
 
             # Check that the folder has been deleted
-            data_post_command = glob.glob('/usr/src/app/mediafiles/downloads/test_command/')
+            data_post_command = glob.glob('mediafiles/downloads/test_command/')
             self.assertEqual(len(data_post_command), 0)
