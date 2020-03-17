@@ -1,1 +1,1 @@
-*/15 * * * * python /usr/src/app/manage.py delete_outdated_mediafiles
+0 */2 * * * python /usr/src/app/manage.py delete_outdated_mediafiles
