@@ -40,13 +40,13 @@ class TestDeleteMediaFiles(SimpleTestCase):
             data_post_command = glob.glob('/usr/src/app/mediafiles/downloads/test_command/')
             self.assertEqual(len(data_post_command), 1)
         
-        # Test in deveelopment mode.....all mediafiles should be deleted.
+        # Test in development mode.....all mediafiles should be deleted.
         data_pre_command = glob.glob('/usr/src/app/mediafiles/downloads/test_command/process_info.json')
         self.assertEqual(len(data_pre_command), 1)
 
         call_command('delete_outdated_mediafiles')
 
-        # Ensure that the folder and files have been retained
+        # Ensure that the folder and files have been deleted
         data_post_command = glob.glob('/usr/src/app/mediafiles/downloads/test_command/')
         self.assertEqual(len(data_post_command), 0)
 
