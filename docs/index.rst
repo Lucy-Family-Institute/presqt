@@ -35,6 +35,7 @@ Zenodo      ✅             ❌         ✅         ✅           ✅          �
    architecture_infrastructure
    development_environment_setup
    authentication_authorization
+   user_notes
    developer_notes
    target_integration
    api_endpoints
