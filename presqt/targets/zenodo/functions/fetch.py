@@ -39,7 +39,8 @@ def zenodo_fetch_resources(token, search_parameter):
     # Let's build them resources
     if search_parameter:
         search_parameters = search_parameter['title'].replace(' ', '+')
-        base_url = 'https://zenodo.org/api/records?q=title:"{}"'.format(search_parameters)
+        base_url = 'https://zenodo.org/api/records?q=title:"{}"&sort=most_recent'.format(
+            search_parameters)
         zenodo_projects = requests.get(base_url, params=auth_parameter).json()['hits']['hits']
         is_record = True
     else:
