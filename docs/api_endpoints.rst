@@ -547,8 +547,8 @@ Download Job
 .. http:patch::  /api_v1/download/(str: ticket_number)/
 
     Cancel the ``Download Process`` for the given ``ticket_number``.
-    If the download has finished before it can be cancelled it will return the finished info from process_info.json
-    If the download was successfully cancelled then it will return the cancelled info from process_info.json
+    If the download has finished before it can be cancelled it will return the finished info from process_info.json.
+    If the download was successfully cancelled then it will return the cancelled info from process_info.json.
 
     **Example request**:
 
@@ -751,8 +751,8 @@ Upload Job
 .. http:patch::  /api_v1/upload/(str: ticket_number)/
 
     Cancel the ``Upload Process`` for the given ``ticket_number``.
-    If the upload has finished before it can be cancelled it will return the finished info from process_info.json
-    If the upload was successfully cancelled then it will return the cancelled info from process_info.json
+    If the upload has finished before it can be cancelled it will return the finished info from process_info.json.
+    If the upload was successfully cancelled then it will return the cancelled info from process_info.json.
 
     **Example request**:
 
@@ -871,7 +871,7 @@ Transfer To Existing Resource
 
 .. http:post::  /api_v1/targets/(str: target_name)/resources/(str: resource_id)/
 
-    Transfer a resource from a source target to a destination target. Transfer to an exiting resource.
+    Transfer a resource from a source target to a destination target. Transfer to an existing resource.
     This endpoint begins the ``Transfer``
     process. It returns a ``ticket_number`` which can be passed to the ``Transfer Job`` endpoint to
     check in on the process.
@@ -997,8 +997,8 @@ Transfer Job
 .. http:patch::  /api_v1/transfer/(str: ticket_number)/
 
     Cancel the ``Transfer Process`` for the given ``ticket_number``.
-    If the transfer has finished before it can be cancelled it will return the finished info from process_info.json
-    If the transfer was successfully cancelled then it will return the cancelled info from process_info.json
+    If the transfer has finished before it can be cancelled it will return the finished info from process_info.json.
+    If the transfer was successfully cancelled then it will return the cancelled info from process_info.json.
 
     **Example request**:
 

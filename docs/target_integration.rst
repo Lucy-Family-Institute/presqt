@@ -16,22 +16,23 @@ Target Collection/Details
 
     **Target JSON Details:**
 
-        ============================ ===== ========================================================================
-        name                         str   Name of the Target. This will be used as path parameters in the URL
-        readable_name                str   Human readable name of the Target for the front end
-        supported_actions            array Actions the target supports. Only make actions true when action is working
-        resource_collection          bool  Get all resources for the user in this target
-        resource_detail              bool  Get an individual resource's details
-        resource_download            bool  Download a resource
-        resource_upload              bool  Upload a resource
-        resource_transfer_in         bool  Transfer a resource in to the target
-        resource_transfer_out        bool  Transfer a resource out of the target
-        supported_transfer_partners  dict  Targets this target can transfer in and out of
-        transfer_in                  array Targets this target can accept transfers from
-        transfer_out                 array Targets this target can transfer to
-        supported_hash_algorithms    array The hash algorithms supported by the target
-        infinite_depth               bool  Does the target support an infinite depth hierarchy?
-        ============================ ===== ========================================================================
+        ============================ ======== ========================================================================
+        **Key**                      **Type** **Description**
+        name                         str      Name of the Target. This will be used as path parameters in the URL
+        readable_name                str      Human readable name of the Target for the front end
+        supported_actions            array    Actions the target supports. Only make actions true when action is working
+        resource_collection          bool     Get all resources for the user in this target
+        resource_detail              bool     Get an individual resource's details
+        resource_download            bool     Download a resource
+        resource_upload              bool     Upload a resource
+        resource_transfer_in         bool     Transfer a resource in to the target
+        resource_transfer_out        bool     Transfer a resource out of the target
+        supported_transfer_partners  dict     Targets this target can transfer in and out of
+        transfer_in                  array    Targets this target can accept transfers from
+        transfer_out                 array    Targets this target can transfer to
+        supported_hash_algorithms    array    The hash algorithms supported by the target
+        infinite_depth               bool     Does the target support an infinite depth hierarchy?
+        ============================ ======== ========================================================================
 
     **Target JSON Example:**
 
@@ -56,13 +57,13 @@ Target Collection/Details
                 "infinite_depth": true
             }
 
-    There is a management command that will validate ``targets.json`` that can be ran after you add your target.
+    There is a management command that will validate ``targets.json`` that can be run after you add your target.
     It can be run manually with:
 
         .. parsed-literal::
             $ python manage.py validate_target_json
 
-    Otherwise the same management command is run when ``docker-compose up`` is ran.
+    Otherwise the same management command is run when ``docker-compose up`` runs.
     If the validation fails then it does not allow the docker containers to be spun up.
 
 2. Add your target directory inside ``presqt/targets/``
@@ -240,7 +241,7 @@ Resource Download Endpoint
 1. Update your target in ``presqt/targets.json`` by setting
 ``supported_actions.resource_download`` to ``true``.
 
-2. Add a function to perform the resoucrce download inside of your target directory.
+2. Add a function to perform the resource download inside of your target directory.
 
     * If you would like to keep your file/function names consistent with what already exists add this function at ``presqt/targets/<target_name>/functions/download/<target_name>_download_resource()``
 
