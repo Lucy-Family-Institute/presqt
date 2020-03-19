@@ -152,7 +152,7 @@ class UploadJob(APIView):
         if data['status'] == 'in_progress':
             for process in multiprocessing.active_children():
                 if process.pid == data['function_process_id']:
-                    process.terminate()
+                    process.kill()
                     process.join()
                     data['status'] = 'failed'
                     data['message'] = 'Upload was cancelled by the user'
@@ -161,7 +161,6 @@ class UploadJob(APIView):
                     process_info_path = 'mediafiles/uploads/{}/process_info.json'.format(
                         ticket_number)
                     write_file(process_info_path, data, True)
-
                     return Response(
                         data={'status_code': data['status_code'], 'message': data['message']},
                         status=status.HTTP_200_OK)

@@ -199,7 +199,7 @@ class DownloadJob(APIView):
         if data['status'] == 'in_progress':
             for process in multiprocessing.active_children():
                 if process.pid == data['function_process_id']:
-                    process.terminate()
+                    process.kill()
                     process.join()
                     data['status'] = 'failed'
                     data['message'] = 'Download was cancelled by the user'
