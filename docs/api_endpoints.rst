@@ -271,6 +271,8 @@ Resource Collection
 
     **Example response w/ search parameter**:
 
+    *Note: Results are ordered by date modified unless the partner does not support it.*
+
     .. sourcecode:: http
 
         HTTP/1.1 200 OK
