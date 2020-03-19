@@ -39,7 +39,7 @@ def github_fetch_resources(token, search_parameter):
 
     if search_parameter:
         search_parameters = search_parameter['title'].replace(' ', '+')
-        search_url = "https://api.github.com/search/repositories?q={}+in:name".format(
+        search_url = "https://api.github.com/search/repositories?q={}+in:name+sort:updated".format(
             search_parameters)
         data = requests.get(search_url, headers=header).json()['items']
 
