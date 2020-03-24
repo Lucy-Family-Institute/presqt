@@ -88,7 +88,7 @@ class TargetCollection(APIView):
             },...
         ]
         """
-        with open('presqt/targets.json') as json_file:
+        with open('presqt/specs/targets.json') as json_file:
             serializer = TargetsSerializer(instance=json.load(json_file),
                                            many=True,
                                            context={'request': request})
@@ -165,7 +165,7 @@ class Target(APIView):
         }
 
         """
-        json_data = read_file('presqt/targets.json', True)
+        json_data = read_file('presqt/specs/targets.json', True)
 
         # Find the JSON dictionary for the target_name provided
         for data in json_data:

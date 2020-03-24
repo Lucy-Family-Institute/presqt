@@ -38,7 +38,7 @@ class ServiceCollection(APIView):
             }
         ]
         """
-        with open('presqt/services.json') as json_file:
+        with open('presqt/specs/services.json') as json_file:
             serializer = ServicesSerializer(instance=json.load(json_file),
                                            many=True,
                                            context={'request': request})
@@ -85,7 +85,7 @@ class Service(APIView):
         }
 
         """
-        json_data = read_file('presqt/services.json', True)
+        json_data = read_file('presqt/specs/services.json', True)
 
         # Find the JSON dictionary for the service_name provided
         for data in json_data:
