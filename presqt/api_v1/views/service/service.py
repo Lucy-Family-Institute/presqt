@@ -81,7 +81,7 @@ class Service(APIView):
 
         404: Not Found
         {
-            "error": "PresQT Error: Invalid Service Name 'bad_target'"
+            "error": "PresQT Error: Invalid Service Name 'bad_service'"
         }
 
         """
