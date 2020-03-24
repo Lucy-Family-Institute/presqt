@@ -30,7 +30,7 @@ class TestTargetCollection(SimpleTestCase):
             self.assertListEqual(list(dict_item['supported_actions'].keys()),
                                  expected_supported_keys)
 
-        json_data = read_file('presqt/targets.json', True)
+        json_data = read_file('presqt/specs/targets.json', True)
         # Verify that the same amount of Target dictionaries exist in the payload and the original
         # json array
         self.assertEqual(len(json_data), len(response.data))
@@ -48,7 +48,7 @@ class TestTarget(SimpleTestCase):
         """
         Return a 200 if the GET method is successful
         """
-        json_data = read_file('presqt/targets.json', True)
+        json_data = read_file('presqt/specs/targets.json', True)
 
         for target in json_data:
             # Looping through targets and running tests on each one.

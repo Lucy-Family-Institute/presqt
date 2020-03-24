@@ -8,7 +8,7 @@ from presqt.utilities import write_file, read_file, get_dictionary_from_list
 
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
-        targets_json = read_file('presqt/targets.json', True)
+        targets_json = read_file('presqt/specs/targets.json', True)
         list_of_partners_in = []
         list_of_partners_out = []
         for target in targets_json:
@@ -228,7 +228,7 @@ class Command(BaseCommand):
             "supported_hash_algorithms": hash_algorithms
         }
 
-        data = read_file('presqt/targets.json', True)
+        data = read_file('presqt/specs/targets.json', True)
         data.append(target_dict)
-        write_file('presqt/targets.json', data, True)
-        print('File updated: presqt/targets.json')
+        write_file('presqt/specs/targets.json', data, True)
+        print('File updated: presqt/specs/targets.json')

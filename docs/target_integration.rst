@@ -7,12 +7,12 @@ Target Endpoints
 ----------------
 'Targets' are providers the PresQT API will connect to such as OSF, CurateND, HubZero, etc. Since
 PresQT doesn't have a database, the Targets' information will be held in a JSON file located in
-``/presqt/targets.json``.  You must add data to this file to integrate with PresQT.
+``/presqt/specs/targets.json``.  You must add data to this file to integrate with PresQT.
 
 Target Collection/Details
 +++++++++++++++++++++++++
 
-1. Add your target dictionary to the file ``presqt/targets.json``
+1. Add your target dictionary to the file ``presqt/specs/targets.json``
 
     **Target JSON Details:**
 
@@ -79,7 +79,7 @@ Targets that integrate with the Resources Collection API Endpoint must have a fu
 a specifically structured dataset. This structure allows us to recreate the hierarchy of the file
 structure on the front end.
 
-1. Update your target in ``presqt/targets.json`` by setting
+1. Update your target in ``presqt/specs/targets.json`` by setting
 ``supported_actions.resource_collection`` to ``true``.
 
 2. Add a function to return the resource collection inside of your target directory.
@@ -154,7 +154,7 @@ Resource Detail
 Targets that integrate with the Resources Detail API Endpoint must have a function that returns
 a specifically structured dataset that represents the resource.
 
-1. Update your target in ``presqt/targets.json`` by setting
+1. Update your target in ``presqt/specs/targets.json`` by setting
 ``supported_actions.resource_detail`` to ``true``.
 
 2. Add a function to return the resource details inside of your target directory.
@@ -238,7 +238,7 @@ a specifically structured dataset that represents the resource.
 
 Resource Download Endpoint
 --------------------------
-1. Update your target in ``presqt/targets.json`` by setting
+1. Update your target in ``presqt/specs/targets.json`` by setting
 ``supported_actions.resource_download`` to ``true``.
 
 2. Add a function to perform the resource download inside of your target directory.
@@ -330,7 +330,7 @@ Resource Download Endpoint
 
 Resource Upload Endpoint
 ------------------------
-1. Update your target in ``presqt/targets.json`` by setting
+1. Update your target in ``presqt/specs/targets.json`` by setting
 ``supported_actions.resource_upload`` to ``true``.
 
 2. Add a function to perform the resource upload inside of your target directory.
@@ -444,7 +444,7 @@ Resource Upload Endpoint
 
 Resource Transfer Endpoint
 --------------------------
-1. Update your target in ``presqt/targets.json`` by setting
+1. Update your target in ``presqt/specs/targets.json`` by setting
 ``supported_actions.resource_transfer_in``, ``supported_actions.resource_transfer_out``,
 ``supported_actions.supported_transfer_partners.transfer_in``, and
 ``supported_actions.supported_transfer_partners.transfer_out`` appropriately.

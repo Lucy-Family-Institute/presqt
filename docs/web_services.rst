@@ -19,7 +19,7 @@ by Python's HashLib library:
 * sha256
 * md5
 
-Each individual target's supported hash algorithms can be found in presqt/targets.json
+Each individual target's supported hash algorithms can be found in presqt/specs/targets.json
 
 Resource Download Fixity
 ++++++++++++++++++++++++

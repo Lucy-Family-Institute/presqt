@@ -12,7 +12,7 @@ class TestSchemaValidator(SimpleTestCase):
     Test the function `schema_validator()`
     """
     def setUp(self):
-        self.target_json_path = 'presqt/targets.json'
+        self.target_json_path = 'presqt/specs/targets.json'
         self.schema_path = 'presqt/json_schemas/target_schema.json'
 
     def test_valid_json(self):
