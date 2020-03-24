@@ -23,7 +23,7 @@ class ServiceCollection(APIView):
         Returns
         -------
         200 : OK
-        A list-like JSON representation of all Targets.
+        A list-like JSON representation of all Services.
         [
             {
                 "name": "eaasi",
@@ -85,7 +85,6 @@ class Service(APIView):
         }
 
         """
-        print(service_name)
         json_data = read_file('presqt/services.json', True)
 
         # Find the JSON dictionary for the service_name provided
@@ -93,8 +92,8 @@ class Service(APIView):
             if data['name'] == service_name:
                 serializer = ServiceSerializer(instance=data, context={'request': request})
                 return Response(serializer.data)
-        # If the service_name provided is not found in the Target JSON
+        # If the service_name provided is not found in the Service JSON
         else:
             return Response(
-                data={'error': "PresQT Error: Invalid Target Name '{}'".format(service_name)},
+                data={'error': "PresQT Error: Invalid Service Name '{}'".format(service_name)},
                 status=status.HTTP_404_NOT_FOUND)
