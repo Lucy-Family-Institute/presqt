@@ -31,16 +31,18 @@ class Proposal(APIView):
         data['eaasi_token'] = eaasi_token
         write_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number), data, True)
 
-        download_job_url = reverse('download_job', kwargs={"ticket_number": ticket_number})
-        final_download_job_url = '{}?eaasi_token={}'.format(download_job_url, eaasi_token)
+        eaasi_download_url = reverse('eaasi_download', kwargs={"ticket_number": ticket_number})
+        final_eaasi_download_url = '{}?eaasi_token={}'.format(eaasi_download_url, eaasi_token)
 
-        # data = {
-        #     "data_url": "https://presqt.readthedocs.io/en/latest/_downloads/cca126b15be422e27bfe28e0b7f994db/NewProjectWithFolderBagIt.zip",
-        #     "data_type": "bagit+zip"}
+        data = {
+            "data_url": final_eaasi_download_url,
+            "data_type": "bagit+zip"}
 
-        # response = requests.post(
-        #     'https://eaasi-portal.emulation.cloud/environment-proposer/api/v1/proposals',
-        #     data=json.dumps(data),
-        #     headers={"Content-Type": "application/json"})
+        response = requests.post(
+            'https://eaasi-portal.emulation.cloud/environment-proposer/api/v1/proposals',
+            data=json.dumps(data),
+            headers={"Content-Type": "application/json"})
 
-        return Response(data={}, status=status.HTTP_202_ACCEPTED)
+        print(response.json())
+
+        return
