@@ -45,4 +45,4 @@ class Proposal(APIView):
 
         print(response.json())
 
-        return
+        return Response(data=response.json(), status=status.HTTP_200_OK)
