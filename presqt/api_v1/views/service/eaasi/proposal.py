@@ -35,7 +35,6 @@ class Proposal(APIView):
         eaasi_download_url = request.build_absolute_uri(eaasi_download_reverse)
         final_eaasi_download_url = '{}?eaasi_token={}'.format(eaasi_download_url, eaasi_token)
 
-        print(final_eaasi_download_url)
         data = {
             "data_url": final_eaasi_download_url,
             "data_type": "bagit+zip"}
@@ -44,7 +43,5 @@ class Proposal(APIView):
             'https://eaasi-portal.emulation.cloud/environment-proposer/api/v1/proposals',
             data=json.dumps(data),
             headers={"Content-Type": "application/json"})
-
-        print(response.json())
 
         return Response(data=response.json(), status=status.HTTP_200_OK)
