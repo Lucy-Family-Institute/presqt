@@ -14,19 +14,29 @@ from presqt.utilities import write_file
 
 class Proposals(APIView):
     """
-    Handles shared POST requests to EaaSI api.
+    **Supported HTTP Methods**
+
+    * POST:
+        - Send an EaaSI download URL to the EaaSI API to start a proposal task.
     """
 
     def post(self, request):
         """
-        Upload resources to an EaaSI node.
+        Upload a proposal task to EaaSI
 
-        Parameters
-        ----------
-        request : HTTP Request Object
+        Returns
+        -------
+        200: OK
+        {
+            "id": "19",
+            "message": "Proposal task was submitted."
+            "proposal_link": "https://localhost/api_v1/services/eaasi/1/"
+        }
 
-        200
-        400
+        400: Bad Request
+        {
+        "error": "ticket_number is missing from the request body."
+        }
         """
         try:
             ticket_number = request.data['ticket_number']
@@ -54,17 +64,40 @@ class Proposals(APIView):
             'https://eaasi-portal.emulation.cloud/environment-proposer/api/v1/proposals',
             data=json.dumps(data),
             headers={"Content-Type": "application/json"})
+        response_json = response.json()
+
+        # Add Proposal link to payload
+        reverse_proposal_url = reverse('proposal', kwargs={"proposal_id": response_json['id']})
+        response_json['proposal_link'] = request.build_absolute_uri(reverse_proposal_url)
 
         return Response(data=response.json(), status=status.HTTP_200_OK)
 
 class Proposal(APIView):
     """
+    **Supported HTTP Methods**
 
+    * GET:
+        - Poll a proposal task
     """
     def get(self, request, proposal_id):
         """
-        202
+        200: OK
+        {
+            "image_url": "https://eaasi-portal.emulation.cloud:443/blobstore/api/v1/blobs/imagebuilder-outputs/2ca330d6-23f7-4f0a-943a-e3984b29642c?access_token=default",
+            "image_type": "cdrom",
+            "environments": [],
+            "suggested": {}
+        }
+
+        202 : Accepted
+        {
+            "message": "Proposal task is still in progress."
+        }
+
         404
+        {
+            "message": "Passed ID is invalid: 17"
+        }
         """
         wait_queue_url = 'https://eaasi-portal.emulation.cloud/environment-proposer/api/v1/waitqueue/{}'.format(proposal_id)
         response = requests.get(wait_queue_url)
