@@ -1,18 +1,13 @@
-import json
-import multiprocessing
 import os
 
 from django.http import HttpResponse
-from dateutil.relativedelta import relativedelta
 from django.utils.datastructures import MultiValueDictKeyError
-from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from presqt.api_v1.utilities import (get_source_token, get_process_info_data,
-                                     process_token_validation, hash_tokens)
-from presqt.utilities import PresQTValidationError, write_file
+from presqt.api_v1.utilities import (get_process_info_data, process_token_validation)
+from presqt.utilities import PresQTValidationError
 
 
 class EaasiDownload(APIView):
