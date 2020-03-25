@@ -31,8 +31,10 @@ class Proposal(APIView):
         data['eaasi_token'] = eaasi_token
         write_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number), data, True)
 
-        eaasi_download_url = reverse('eaasi_download', kwargs={"ticket_number": ticket_number})
+        eaasi_download_reverse = reverse('eaasi_download', kwargs={"ticket_number": ticket_number})
+        eaasi_download_url = request.build_absolute_uri(eaasi_download_reverse)
         final_eaasi_download_url = '{}?eaasi_token={}'.format(eaasi_download_url, eaasi_token)
+
         print(final_eaasi_download_url)
         data = {
             "data_url": final_eaasi_download_url,
