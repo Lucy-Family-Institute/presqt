@@ -12,21 +12,47 @@ from presqt.utilities import PresQTValidationError
 
 class EaasiDownload(APIView):
     """
+    **Supported HTTP Methods**
+
+    * GET:
+        - Check if a resource download is finished on the server matching the ticket number.
+          If the download is pending, failed, then return a JSON representation of the state. 
+          Otherwise return the file contents.
     """
 
     def get(self, request, ticket_number):
         """
+        Get the resource's download contents.
 
-        200
-        400
-        404
-        404
-        401
+        Parameters
+        ----------
+        ticket_number: str
+            The ticket number of the download being prepared.
+        
+        Returns
+        -------
+        200: OK
+        Returns the zip of resources to be downloaded.
+        
+        400: Bad Request
+        {
+            "error": "'eaasi_token' not found as query parameter."
+        }
+
+        401: Unauthorized
+        {
+            "PresQT Error: Header 'eaasi_token' does not match the 'eaasi_token' for this server process."
+        }
+        
+        404: Not Found
+        {
+            "message": "File unavailable."
+        }
         """
         try:
             token = request.query_params['eaasi_token']
         except MultiValueDictKeyError:
-            return Response(data={'error': "'eaasi_token' or 'format' not found as query parameter."},
+            return Response(data={'error': "'eaasi_token' not found as query parameter."},
                             status=status.HTTP_400_BAD_REQUEST)
 
         # Perform token validation. Read data from the process_info file.
