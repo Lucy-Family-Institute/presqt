@@ -62,10 +62,8 @@ class EaasiDownload(APIView):
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
-        download_status = data['status']
-
         # Return the file to download if it has finished.
-        if download_status == 'finished':
+        if data['status'] == 'finished':
             # Path to the file to be downloaded
             zip_name = data['zip_name']
             zip_file_path = os.path.join('mediafiles', 'downloads', ticket_number, zip_name)

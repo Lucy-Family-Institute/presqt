@@ -70,7 +70,8 @@ class Proposals(APIView):
         reverse_proposal_url = reverse('proposal', kwargs={"proposal_id": response_json['id']})
         response_json['proposal_link'] = request.build_absolute_uri(reverse_proposal_url)
 
-        return Response(data=response.json(), status=status.HTTP_200_OK)
+        return Response(data=response_json, status=status.HTTP_200_OK)
+
 
 class Proposal(APIView):
     """
