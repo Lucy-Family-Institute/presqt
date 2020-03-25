@@ -33,7 +33,7 @@ class Proposal(APIView):
 
         eaasi_download_url = reverse('eaasi_download', kwargs={"ticket_number": ticket_number})
         final_eaasi_download_url = '{}?eaasi_token={}'.format(eaasi_download_url, eaasi_token)
-
+        print(final_eaasi_download_url)
         data = {
             "data_url": final_eaasi_download_url,
             "data_type": "bagit+zip"}
