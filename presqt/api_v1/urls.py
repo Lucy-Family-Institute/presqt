@@ -4,9 +4,9 @@ from presqt.api_v1 import api_root
 from presqt.api_v1.views.download.download_job import DownloadJob
 from presqt.api_v1.views.resource.resource import Resource
 from presqt.api_v1.views.resource.resource_collection import ResourceCollection
+from presqt.api_v1.views.service.eaasi.proposal import Proposals, Proposal
 from presqt.api_v1.views.target.target import TargetCollection, Target
 from presqt.api_v1.views.service.service import ServiceCollection, Service
-from presqt.api_v1.views.service.eaasi.proposal import Proposal
 from presqt.api_v1.views.service.eaasi.download import EaasiDownload
 from presqt.api_v1.views.transfer.transfer_job import TransferJob
 from presqt.api_v1.views.upload.upload_job import UploadJob
@@ -42,6 +42,7 @@ api_v1_endpoints = [
     path('services/<str:service_name>/', Service.as_view(), name='service'),
 
     # EaaSI specific
-    path('services/eaasi/proposals/', Proposal.as_view(), name='proposal'),
-    path('services/eaasi/eaasi_download/<str:ticket_number>', EaasiDownload.as_view(), name='eaasi_download')
+    path('services/eaasi/proposals/', Proposals.as_view(), name='proposals'),
+    path('services/eaasi/proposals/<str:proposal_id>/', Proposal.as_view(), name='proposal'),
+    path('services/eaasi/download/<str:ticket_number>/', EaasiDownload.as_view(), name='eaasi_download')
 ]

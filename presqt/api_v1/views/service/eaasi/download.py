@@ -21,6 +21,12 @@ class EaasiDownload(APIView):
 
     def get(self, request, ticket_number):
         """
+
+        200
+        400
+        404
+        404
+        401
         """
         try:
             token = request.query_params['eaasi_token']
