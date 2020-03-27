@@ -64,6 +64,13 @@ class Proposals(APIView):
             'https://eaasi-portal.emulation.cloud/environment-proposer/api/v1/proposals',
             data=json.dumps(data),
             headers={"Content-Type": "application/json"})
+
+        if response.status_code != 202:
+            return Response(
+                data={'message': 'Proposal submission returned a status code of {}.'.format(
+                    response.status_code)},
+                status=response.status_code)
+
         response_json = response.json()
 
         # Add Proposal link to payload
