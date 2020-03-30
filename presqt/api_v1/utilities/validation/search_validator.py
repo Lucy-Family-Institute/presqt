@@ -23,11 +23,16 @@ def search_validator(search_parameter):
     try:
         search_parameter['title']
     except KeyError:
-        raise PresQTResponseException('PresQT Error: The search query is not formatted correctly.',
-                                      status.HTTP_400_BAD_REQUEST)
+        try:
+            search_parameter['id']
+        except KeyError:
+            raise PresQTResponseException('PresQT Error: The search query is not formatted correctly.',
+                                          status.HTTP_400_BAD_REQUEST)
 
     # Ensure that there are no special characters in the search.
     regex = re.compile('[@_!#$%^&*()<>?/\|}{~:]')
-    if (regex.search(search_parameter['title']) is not None):
-        raise PresQTResponseException('PresQT Error: The search query is not formatted correctly.',
-                                      status.HTTP_400_BAD_REQUEST)
+    
+    if 'title' in search_parameter:
+        if (regex.search(search_parameter['title']) is not None):
+            raise PresQTResponseException('PresQT Error: The search query is not formatted correctly.',
+                                          status.HTTP_400_BAD_REQUEST)
