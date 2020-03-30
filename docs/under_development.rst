@@ -28,9 +28,15 @@ SuAVE has been extended to be able to use the authentication token.
 SuAVE will be extended by a button that allows to select a PresQT partner and the data can
 seamlessly transferred so that users can directly work with the survey data in SuAVE.
 
-EaaSI Integration
------------------
+Enhanced Search Functionality
+-----------------------------
+Currently, the search functionality for Resource Collection only supports title searching. We
+want to enhance this for each individual target by adding new search keys such as 'author' and 'id'.
 
 
-Whole Tale Integration
----------------------
+Docker Hub Integration
+----------------------
+
+Use Case 1
+++++++++++
+Send a resource from any target to Docker Hub. Verify the sent resource is a valid Docker container.

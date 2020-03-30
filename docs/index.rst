@@ -22,11 +22,18 @@ More information can be found here https://presqt.crc.nd.edu/
 
 =========== ============== ========== ========== ============ ========== ============================= =========================== ===================
 **Target**  **Collection** **Search** **Detail** **Download** **Upload** **Transfer In [Targets]**     **Transfer Out [Targets]**  **Hash Algorithms**
-OSF         ✅             ✅         ✅         ✅           ✅          ✅[Github, curateND, Zenodo]  ✅[Github, Zenodo]          [sha256, md5]
-curateND    ✅             ✅         ✅         ✅           ❌          ❌                            ✅[OSF, Github, Zenodo]     [md5]
-Github      ✅             ✅         ✅         ✅           ✅          ✅[OSF, curateND, Zenodo]     ✅[OSF, Zenodo]             [ ]
-Zenodo      ✅             ❌         ✅         ✅           ✅          ✅[OSF, Github, curateND]     ✅[OSF, Github]             [md5]
+OSF         ✅             ✅         ✅         ✅           ✅          ✅[Github, curateND, Zenodo]  ✅ [Github, Zenodo]         [sha256, md5]
+curateND    ✅             ✅         ✅         ✅           ❌          ❌                            ✅ [OSF, Github, Zenodo]    [md5]
+Github      ✅             ✅         ✅         ✅           ✅          ✅[OSF, curateND, Zenodo]     ✅ [OSF, Zenodo]            [ ]
+Zenodo      ✅             ✅         ✅         ✅           ✅          ✅[OSF, Github, curateND]     ✅ [OSF, Github]            [md5]
 =========== ============== ========== ========== ============ ========== ============================= =========================== ===================
+
+**Current Service Integrations**:
+
+=========== ==============================================================================
+**Service** **Functionality**
+EaaSI       Send resources from a PresQT server to EaaSI to generate an emulation proposal
+=========== ==============================================================================
 
 .. toctree::
    :caption: Contents
@@ -39,6 +46,8 @@ Zenodo      ✅             ❌         ✅         ✅           ✅          �
    developer_notes
    target_integration
    api_endpoints
+   services
+   service_endpoints
    web_services
    resources
    under_development
