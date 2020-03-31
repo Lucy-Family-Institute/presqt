@@ -43,14 +43,13 @@ def github_fetch_resources(token, search_parameter):
             search_url = "https://api.github.com/search/repositories?q={}+in:name+sort:updated".format(
                 search_parameters)
             data = requests.get(search_url, headers=header).json()['items']
-        
+
         elif 'id' in search_parameter:
             search_parameters = search_parameter['id']
             search_url = "https://api.github.com/repositories/{}".format(search_parameters)
             data = requests.get(search_url, headers=header)
             if data.status_code != 200:
-                raise PresQTResponseException("Repository with ID '{}' could not be found.".format(search_parameters),
-                                              status.HTTP_404_NOT_FOUND)
+                return []
             data_json = data.json()
             return [{
                 "kind": "container",
