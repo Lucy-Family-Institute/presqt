@@ -67,6 +67,17 @@ class TestResourceCollection(SimpleTestCase):
                 projects += 1
         self.assertEqual(projects, 10)
 
+        ### Search by ID ###
+        response = self.client.get(url+'?id=zxbhs', **self.header)
+        # Verify the Status Code
+        self.assertEqual(response.status_code, 200)
+        # Verify the dict keys match what we expect
+        keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
+        for data in response.data:
+            self.assertListEqual(keys, list(data.keys()))
+        # Verify the count of resource objects is what we expect.
+        self.assertEqual(3, len(response.data))
+
     def test_success_large_project(self):
         """
         Return a 200 if the GET method is successful when grabbing OSF resources.
