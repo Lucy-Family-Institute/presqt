@@ -58,6 +58,12 @@ def github_fetch_resources(token, search_parameter):
                 "id": data_json['id'],
                 "title": data_json['name']}]
 
+        elif 'author' in search_parameter:
+            search_url = "https://api.github.com/users/{}/repos".format(search_parameter['author'])
+            initial_data = requests.get(search_url, headers=header)
+            if initial_data.status_code != 200:
+                return []
+            data = initial_data.json()
     else:
         data = github_paginated_data(token)
 
