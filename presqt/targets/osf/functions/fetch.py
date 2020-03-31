@@ -36,9 +36,12 @@ def osf_fetch_resources(token, search_parameter):
                                       status.HTTP_401_UNAUTHORIZED)
 
     if search_parameter:
-        # Format the search that is coming in to be passed to the OSF API
-        search_parameters = search_parameter['title'].replace(' ', '+')
-        url = 'https://api.osf.io/v2/nodes/?filter[title]={}'.format(search_parameters)
+        if 'title' in search_parameter:
+            # Format the search that is coming in to be passed to the OSF API
+            search_parameters = search_parameter['title'].replace(' ', '+')
+            url = 'https://api.osf.io/v2/nodes/?filter[title]={}'.format(search_parameters)
+        elif 'id' in search_parameter:
+            url = 'https://api.osf.io/v2/nodes/?filter[id]={}'.format(search_parameter['id'])
     else:
         url = None
     try:
