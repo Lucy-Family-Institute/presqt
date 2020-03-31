@@ -21,9 +21,7 @@ def search_validator(search_parameter):
 
     list_of_search_params = ['id', 'title']
     # Check that the query parameter is in list of accepted searches
-    if list(search_parameter.keys())[0] in list_of_search_params:
-        pass
-    else:
+    if list(search_parameter.keys())[0] not in list_of_search_params:
         raise PresQTResponseException('PresQT Error: The search query is not formatted correctly.',
                                       status.HTTP_400_BAD_REQUEST)
 
