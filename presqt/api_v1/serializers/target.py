@@ -35,6 +35,7 @@ class TargetsSerializer(serializers.Serializer):
     supported_transfer_partners = SupportedTransferPartners()
     supported_hash_algorithms = serializers.StringRelatedField(many=True)
     infinite_depth = serializers.BooleanField()
+    search_parameters = serializers.ListField()
     links = serializers.SerializerMethodField()
 
     def get_links(self, instance):
