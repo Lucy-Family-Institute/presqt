@@ -97,7 +97,7 @@ class ResourceCollection(BaseResource):
         # Validate the search query if there is one.
         if query_params != {}:
             try:
-                search_validator(query_params)
+                search_validator(query_params, target_name)
                 query_params_value = list(query_params.values())[0]
                 if query_params_value.isspace() or query_params_value == '':
                     # If title is empty, we want to only return user resources.
