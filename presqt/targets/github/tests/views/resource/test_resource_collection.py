@@ -129,7 +129,7 @@ class TestResourceCollection(SimpleTestCase):
         # BAD KEY
         response = self.client.get(url + '?spaghetti=egg', **self.header)
 
-        self.assertEqual(response.data['error'], 'PresQT Error: The search query is not formatted correctly.')
+        self.assertEqual(response.data['error'], 'PresQT Error: GitHub does not support spaghetti as a search parameter.')
         self.assertEqual(response.status_code, 400)
 
         # SPECIAL CHARACTERS IN REQUEST

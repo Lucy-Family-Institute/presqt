@@ -26,7 +26,7 @@ def search_validator(search_parameter, target_name):
     list_of_search_params = target_data['search_parameters']
     # Check that the query parameter is in list of accepted searches
     if list(search_parameter.keys())[0] not in list_of_search_params:
-        raise PresQTResponseException('PresQT Error: {} does not support {} as a search parameter'.format(
+        raise PresQTResponseException('PresQT Error: {} does not support {} as a search parameter.'.format(
                                       target_data['readable_name'], list(search_parameter.keys())[0]),
                                       status.HTTP_400_BAD_REQUEST)
 
