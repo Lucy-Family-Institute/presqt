@@ -36,6 +36,7 @@ class CurateNDBase(object):
         -------
         Data dictionary of the data points gathered up until now.
         """
+        print(url)
         if url is None:
             url = 'https://curate.nd.edu/api/items?editor=self'
         # Get initial data
@@ -44,7 +45,7 @@ class CurateNDBase(object):
         pagination = response_json['pagination']
 
         # Calculate pagination pages
-        if "?q=" in url:
+        if "?q" in url or "?depositor" in url:
             page_total = 2
         else:
             page_total = get_page_total(pagination['totalResults'], pagination['itemsPerPage'])
