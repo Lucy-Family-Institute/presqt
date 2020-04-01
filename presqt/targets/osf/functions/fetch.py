@@ -1,3 +1,5 @@
+import requests
+
 from rest_framework import status
 
 from presqt.targets.osf.utilities import get_osf_resource
@@ -40,8 +42,19 @@ def osf_fetch_resources(token, search_parameter):
             # Format the search that is coming in to be passed to the OSF API
             search_parameters = search_parameter['title'].replace(' ', '+')
             url = 'https://api.osf.io/v2/nodes/?filter[title]={}'.format(search_parameters)
+
         elif 'id' in search_parameter:
             url = 'https://api.osf.io/v2/nodes/?filter[id]={}'.format(search_parameter['id'])
+
+        elif 'author' in search_parameter:
+            search_parameters = search_parameter['author'].replace(' ', '+')
+            user_url = 'https://api.osf.io/v2/users/?filter[full_name]={}'.format(search_parameters)
+            user_data = requests.get(user_url, headers={'Authorization': 'Bearer {}'.format(token)})
+            if user_data.status_code != 200:
+                return []
+            else:
+                url = user_data.json()['data'][0]['relationships']['nodes']['links']['related']['href']
+
     else:
         url = None
     try:

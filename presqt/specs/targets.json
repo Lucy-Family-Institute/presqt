@@ -16,7 +16,7 @@
     },
     "supported_hash_algorithms": ["sha256", "md5"],
     "infinite_depth": true,
-    "search_parameters": ["title", "id", "general"]
+    "search_parameters": ["title", "id", "author"]
   },
   {
     "name": "curate_nd",
