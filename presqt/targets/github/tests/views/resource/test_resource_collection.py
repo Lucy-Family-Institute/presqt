@@ -80,6 +80,7 @@ class TestResourceCollection(SimpleTestCase):
             self.assertListEqual(keys, list(data.keys()))
 
         # Verify the count of resource objects is what we expect.
+        # This may change as people create new repos
         self.assertEqual(len(response.data), 24)
 
     def test_error_400_missing_token_github(self):
