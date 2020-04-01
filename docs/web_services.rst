@@ -19,7 +19,7 @@ by Python's HashLib library:
 * sha256
 * md5
 
-Each individual target's supported hash algorithms can be found in presqt/targets.json
+Each individual target's supported hash algorithms can be found in presqt/specs/targets.json
 
 Resource Download Fixity
 ++++++++++++++++++++++++
@@ -360,11 +360,13 @@ If a valid ``PresQT FTS Metadata`` file is found at the top level of the resourc
 the action then we will add a new action to this existing metadata file.
 
 If an invalid ``PresQT FTS Metadata`` file is found at the top level of the resource being affected
-by the action then we will rename the invalid metadata file to ``invalid_presqt_fts_metadata.json`` and
+by the action then we will rename the invalid metadata file to ``INVALID_PRESQT_FTS_METADATA.json`` and
 then we will create a new valid metadata file with the current actions metadata.
 
 Preservation Quality
 --------------------
+IN PROGRESS
 
 Keyword Assignment
 ------------------
+IN PROGRESS

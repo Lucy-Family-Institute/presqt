@@ -14,7 +14,7 @@ def get_target_data(target_name):
     -------
     JSON object of the target data.
     """
-    target_data = read_file('presqt/targets.json', True)
+    target_data = read_file('presqt/specs/targets.json', True)
     for data in target_data:
         if data['name'] == target_name:
             return data

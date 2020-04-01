@@ -27,11 +27,11 @@ def get_action_message(action, fixity_status, metadata_validation, action_metada
     for entry in new_file_list:
         if source_target_data and entry['sourceHashes'] == {} or set(
                 entry['sourceHashes'].values()) == {None}:
-            return "{} successful. Fixity failed because {} may not have provided a file checksum. See PRESQT_FTS_METADATA.json for more details.".format(
+            return "{} successful. Fixity can't be determined because {} may not have provided a file checksum. See PRESQT_FTS_METADATA.json for more details.".format(
                 action, source_target_data['readable_name'])
         if destination_target_data and entry['destinationHashes'] == {} or set(
                 entry['destinationHashes'].values()) == {None}:
-            return "{} successful. Fixity failed because {} may not have provided a file checksum. See PRESQT_FTS_METADATA.json for more details.".format(
+            return "{} successful. Fixity can't be determined because {} may not have provided a file checksum. See PRESQT_FTS_METADATA.json for more details.".format(
                 action, destination_target_data['readable_name'])
 
     # Fixity failed and metadata succeeded

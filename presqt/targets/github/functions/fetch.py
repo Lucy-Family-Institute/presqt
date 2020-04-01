@@ -38,10 +38,25 @@ def github_fetch_resources(token, search_parameter):
                                       status.HTTP_401_UNAUTHORIZED)
 
     if search_parameter:
-        search_parameters = search_parameter['title'].replace(' ', '+')
-        search_url = "https://api.github.com/search/repositories?q={}+in:name".format(
-            search_parameters)
-        data = requests.get(search_url, headers=header).json()['items']
+        if 'title' in search_parameter:
+            search_parameters = search_parameter['title'].replace(' ', '+')
+            search_url = "https://api.github.com/search/repositories?q={}+in:name+sort:updated".format(
+                search_parameters)
+            data = requests.get(search_url, headers=header).json()['items']
+
+        elif 'id' in search_parameter:
+            search_parameters = search_parameter['id']
+            search_url = "https://api.github.com/repositories/{}".format(search_parameters)
+            data = requests.get(search_url, headers=header)
+            if data.status_code != 200:
+                return []
+            data_json = data.json()
+            return [{
+                "kind": "container",
+                "kind_name": "repo",
+                "container": None,
+                "id": data_json['id'],
+                "title": data_json['name']}]
 
     else:
         data = github_paginated_data(token)

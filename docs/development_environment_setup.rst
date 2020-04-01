@@ -32,7 +32,7 @@ Local Development Environment Setup
     * **OSF_TEST_USER_TOKEN**: The test token for OSF's API.
     * **OSF_PRIVATE_USER_TOKEN**: The private test token for OSF's API.
     * **OSF_UPLOAD_TEST_USER_TOKEN**: The upload test token for OSF's API.
-    * **OSF_PRESQT_FORK_TOKEN**: The PresQT fork user ttest token for OSF's API.
+    * **OSF_PRESQT_FORK_TOKEN**: The PresQT fork user test token for OSF's API.
     * **ZENODO_TEST_USER_TOKEN**: The test token for Zenodo's API.
 
     .. Note::

@@ -133,7 +133,7 @@ class TransferJob(APIView):
         if process_data['status'] == 'in_progress':
             for process in multiprocessing.active_children():
                 if process.pid == process_data['function_process_id']:
-                    process.terminate()
+                    process.kill()
                     process.join()
                     process_data['status'] = 'failed'
                     process_data['message'] = 'Transfer was cancelled by the user'

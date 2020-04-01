@@ -14,7 +14,7 @@ class Command(BaseCommand):
 
         validation = schema_validator(
             'presqt/json_schemas/target_schema.json',
-            'presqt/targets.json')
+            'presqt/specs/targets.json')
 
         failure_string = "Target JSON Schema Validation Failed!\n" \
                          "You've modified the targets.json in such a way that it is incorrectly " \
@@ -27,7 +27,7 @@ class Command(BaseCommand):
             exit(0)
         else:
             # Further validation
-            json_data = read_file('presqt/targets.json', True)
+            json_data = read_file('presqt/specs/targets.json', True)
 
             name_list = []
             for data in json_data:

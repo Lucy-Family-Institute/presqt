@@ -28,8 +28,15 @@ SuAVE has been extended to be able to use the authentication token.
 SuAVE will be extended by a button that allows to select a PresQT partner and the data can
 seamlessly transferred so that users can directly work with the survey data in SuAVE.
 
-Demo UI
--------
-The CRC team is in the process of writing a demo UI to show off PresQT services.
-The components in this pipeline are Transfer, SuAVE integration, and getting the UI running on the
-QA servers.
+Enhanced Search Functionality
+-----------------------------
+Currently, the search functionality for Resource Collection only supports title searching. We
+want to enhance this for each individual target by adding new search keys such as 'author' and 'id'.
+
+
+Docker Hub Integration
+----------------------
+
+Use Case 1
+++++++++++
+Send a resource from any target to Docker Hub. Verify the sent resource is a valid Docker container.
