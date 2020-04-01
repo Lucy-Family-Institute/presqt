@@ -57,9 +57,6 @@ class TestResourceCollection(SimpleTestCase):
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
 
-        # Verify the count of resource objects is what we expect. As of the writing of this test
-        # there is only one repo that meets the search criteria, this may change.
-        self.assertEqual(len(response.data), 1)
 
         ###### Search by ID #######
         response = self.client.get(url + '?id=248593331', **self.header)
@@ -78,10 +75,6 @@ class TestResourceCollection(SimpleTestCase):
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
-
-        # Verify the count of resource objects is what we expect.
-        # This may change as people create new repos
-        self.assertEqual(len(response.data), 24)
 
         ### Search by General ###
         response = self.client.get(url + '?general=egg', **self.header)
