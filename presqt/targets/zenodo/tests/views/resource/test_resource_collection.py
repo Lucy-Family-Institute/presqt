@@ -71,6 +71,17 @@ class TestResourceCollection(SimpleTestCase):
         for data in response.data:
             self.assertEqual(len(data['links']), 1)
 
+        # Search by General
+        response = self.client.get(url + "?general=eggs", **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 200)
+        # Verify the dict keys match what we expect
+        keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
+        for data in response.data:
+            self.assertListEqual(keys, list(data.keys()))
+        # Verify the count of resource objects is what we expect.
+        self.assertEqual(len(response.data), 20)
+
     def test_error_400_missing_token_zenodo(self):
         """
         Return a 400 if the GET method fails because the presqt-source-token was not provided.
