@@ -45,7 +45,7 @@ class CurateNDBase(object):
         pagination = response_json['pagination']
 
         # Calculate pagination pages
-        if "?q" in url or "?depositor" in url:
+        if "?q" in url:
             page_total = 2
         else:
             page_total = get_page_total(pagination['totalResults'], pagination['itemsPerPage'])
