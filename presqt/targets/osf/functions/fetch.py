@@ -54,7 +54,6 @@ def osf_fetch_resources(token, search_parameter):
                 return []
             else:
                 url = user_data.json()['data'][0]['relationships']['nodes']['links']['related']['href']
-
     else:
         url = None
     try:

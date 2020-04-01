@@ -78,6 +78,17 @@ class TestResourceCollection(SimpleTestCase):
         # Verify the count of resource objects is what we expect.
         self.assertEqual(3, len(response.data))
 
+        # Search By Author
+        response = self.client.get(url+'?author=Prometheus', **self.header)
+        # Verify the Status Code
+        self.assertEqual(response.status_code, 200)
+        # Verify the dict keys match what we expect
+        keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
+        for data in response.data:
+            self.assertListEqual(keys, list(data.keys()))
+        # Verify the count of resource objects is what we expect.
+        self.assertEqual(119, len(response.data))
+
     def test_success_large_project(self):
         """
         Return a 200 if the GET method is successful when grabbing OSF resources.
@@ -120,7 +131,7 @@ class TestResourceCollection(SimpleTestCase):
         # BAD KEY
         response = self.client.get(url + '?spaghetti=egg', **self.header)
 
-        self.assertEqual(response.data['error'], 'PresQT Error: The search query is not formatted correctly.')
+        self.assertEqual(response.data['error'], 'PresQT Error: OSF does not support spaghetti as a search parameter.')
         self.assertEqual(response.status_code, 400)
 
         # SPECIAL CHARACTERS IN THE REQUEST
