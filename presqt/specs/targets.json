@@ -35,7 +35,7 @@
     },
     "supported_hash_algorithms": ["md5"],
     "infinite_depth": false,
-    "search_parameters": ["title", "id", "general"]
+    "search_parameters": ["general", "title", "id"]
   },
   {
     "name": "github",
@@ -54,7 +54,7 @@
     },
     "supported_hash_algorithms": [],
     "infinite_depth": true,
-    "search_parameters": ["title", "id", "general", "author"]
+    "search_parameters": ["general", "title", "id", "author"]
   },
   {
     "name": "zenodo",
@@ -73,6 +73,6 @@
     },
     "supported_hash_algorithms": ["md5"],
     "infinite_depth": false,
-    "search_parameters": ["title", "id", "general"]
+    "search_parameters": ["general", "title", "id"]
   }
 ]
