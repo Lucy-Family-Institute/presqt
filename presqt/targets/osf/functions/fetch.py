@@ -50,7 +50,7 @@ def osf_fetch_resources(token, search_parameter):
             search_parameters = search_parameter['author'].replace(' ', '+')
             user_url = 'https://api.osf.io/v2/users/?filter[full_name]={}'.format(search_parameters)
             user_data = requests.get(user_url, headers={'Authorization': 'Bearer {}'.format(token)})
-            if user_data.status_code != 200:
+            if user_data.status_code != 200 or len(user_data.json()['data']) == 0:
                 return []
             else:
                 url = user_data.json()['data'][0]['relationships']['nodes']['links']['related']['href']
