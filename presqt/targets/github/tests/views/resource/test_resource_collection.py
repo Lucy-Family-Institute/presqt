@@ -57,9 +57,6 @@ class TestResourceCollection(SimpleTestCase):
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
 
-        # Verify the count of resource objects is what we expect. As of the writing of this test
-        # there is only one repo that meets the search criteria, this may change.
-        self.assertEqual(len(response.data), 1)
 
         ###### Search by ID #######
         response = self.client.get(url + '?id=248593331', **self.header)
@@ -70,8 +67,23 @@ class TestResourceCollection(SimpleTestCase):
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
 
-        # Verify the count of resource objects is what we expect.
-        self.assertEqual(len(response.data), 1)
+        #### Search by Author ####
+        response = self.client.get(url + '?author=eikonomega', **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 200)
+        # Verify the dict keys match what we expect
+        keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
+        for data in response.data:
+            self.assertListEqual(keys, list(data.keys()))
+
+        ### Search by General ###
+        response = self.client.get(url + '?general=egg', **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 200)
+        # Verify the dict keys match what we expect
+        keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
+        for data in response.data:
+            self.assertListEqual(keys, list(data.keys()))
 
     def test_error_400_missing_token_github(self):
         """
@@ -110,7 +122,7 @@ class TestResourceCollection(SimpleTestCase):
         # BAD KEY
         response = self.client.get(url + '?spaghetti=egg', **self.header)
 
-        self.assertEqual(response.data['error'], 'PresQT Error: The search query is not formatted correctly.')
+        self.assertEqual(response.data['error'], 'PresQT Error: GitHub does not support spaghetti as a search parameter.')
         self.assertEqual(response.status_code, 400)
 
         # SPECIAL CHARACTERS IN REQUEST

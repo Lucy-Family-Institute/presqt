@@ -46,11 +46,6 @@ class TestResourceCollection(SimpleTestCase):
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
-        # Verify the count of resource objects is what we expect.
-        # Note, this count is accurate as of the writing of this test but it is possible more results
-        # will be returned in the future.
-        self.assertEqual(3, len(response.data))
-        # Count includes top level project, osfstorage, and a single file.
 
         # Ensure we are only get back the first page of results
         response = self.client.get(url + '?title=egg', **self.header)
@@ -60,12 +55,6 @@ class TestResourceCollection(SimpleTestCase):
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
-        # Ensure that there are only 10 projects
-        projects = 0
-        for resource in response.data:
-            if resource['container'] is None:
-                projects += 1
-        self.assertEqual(projects, 10)
 
         ### Search by ID ###
         response = self.client.get(url+'?id=zxbhs', **self.header)
@@ -75,8 +64,15 @@ class TestResourceCollection(SimpleTestCase):
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
-        # Verify the count of resource objects is what we expect.
-        self.assertEqual(3, len(response.data))
+
+        # Search By Author
+        response = self.client.get(url+'?author=Prometheus', **self.header)
+        # Verify the Status Code
+        self.assertEqual(response.status_code, 200)
+        # Verify the dict keys match what we expect
+        keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
+        for data in response.data:
+            self.assertListEqual(keys, list(data.keys()))
 
     def test_success_large_project(self):
         """
@@ -120,7 +116,7 @@ class TestResourceCollection(SimpleTestCase):
         # BAD KEY
         response = self.client.get(url + '?spaghetti=egg', **self.header)
 
-        self.assertEqual(response.data['error'], 'PresQT Error: The search query is not formatted correctly.')
+        self.assertEqual(response.data['error'], 'PresQT Error: OSF does not support spaghetti as a search parameter.')
         self.assertEqual(response.status_code, 400)
 
         # SPECIAL CHARACTERS IN THE REQUEST
