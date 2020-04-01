@@ -42,17 +42,19 @@ def curate_nd_fetch_resources(token, search_parameter):
         if 'title' in search_parameter:
             # Format the search that is coming in to be passed to the Curate API
             search_parameters = search_parameter['title'].replace(' ', '+')
-            search_url = 'https://curate.nd.edu/api/items?q={}'.format(search_parameters)
+            search_url = 'https://curate.nd.edu/api/items?q={}&search_fields=title'.format(search_parameters)
             try:
                 resources = curate_instance.get_resources(search_url)
             except PresQTValidationError as e:
                 raise e
-        elif 'author' in search_parameter:
-            search_url = 'https://curate.nd.edu/api/items?depositor={}'.format(search_parameter['author'])
+
+        elif 'general' in search_parameter:
+            search_url = 'https://curate.nd.edu/api/items?q={}'.format(search_parameter['general'])
             try:
                 resources = curate_instance.get_resources(search_url)
             except PresQTValidationError as e:
                 raise e
+
         elif 'id' in search_parameter:
             resources = get_curate_nd_resources_by_id(token, search_parameter['id'])
     else:
