@@ -6,6 +6,8 @@ from presqt.targets.github.functions.upload_metadata import github_upload_metada
 from presqt.targets.curate_nd.functions.fetch import (
     curate_nd_fetch_resources, curate_nd_fetch_resource)
 from presqt.targets.curate_nd.functions.download import curate_nd_download_resource
+from presqt.targets.curate_nd.functions.upload import curate_nd_upload_resource
+from presqt.targets.curate_nd.functions.upload_metadata import curate_nd_upload_metadata
 
 from presqt.targets.osf.functions.fetch import osf_fetch_resources, osf_fetch_resource
 from presqt.targets.osf.functions.download import osf_download_resource
@@ -58,6 +60,8 @@ class FunctionRouter(object):
     curate_nd_resource_collection = curate_nd_fetch_resources
     curate_nd_resource_detail = curate_nd_fetch_resource
     curate_nd_resource_download = curate_nd_download_resource
+    curate_nd_resource_upload = curate_nd_upload_resource
+    curate_nd_metadata_upload = curate_nd_upload_metadata
 
     github_resource_collection = github_fetch_resources
     github_resource_detail = github_fetch_resource
