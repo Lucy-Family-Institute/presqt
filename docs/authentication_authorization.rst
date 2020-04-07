@@ -24,6 +24,9 @@ Zenodo
 """"""
 After logging in, you can create a personal access token here https://zenodo.org/account/settings/applications/tokens/new/
 
+GitLab
+""""""
+After logging in, you can create a personal access token here https://gitlab.com/profile/personal_access_tokens
 
 .. toctree::
    :maxdepth: 3
