@@ -1,26 +1,26 @@
 import requests
-
 from rest_framework import status
 
-from presqt.targets.github.utilities import validation_check, github_paginated_data
+from presqt.targets.gitlab.utilities.gitlab_paginated_data import gitlab_paginated_data
+from presqt.targets.gitlab.utilities.validation_check import validation_check
 from presqt.utilities import PresQTResponseException
 
 
-def github_fetch_resources(token, search_parameter):
+def gitlab_fetch_resources(token, search_parameter):
     """
-    Fetch all users repos from GitHub.
+    Fetch all users projects from GitLab.
 
     Parameters
     ----------
     token : str
-        User's GitHub token
+        User's GitLab token
     search_parameter : dict
         The search parameter passed to the API View
         Gets passed formatted as {'title': 'search_info'}
 
     Returns
     -------
-    List of dictionary objects that represent GitHub resources.
+    List of dictionary objects that represent GitLab resources.
     Dictionary must be in the following format:
         {
             "kind": "container",
@@ -30,78 +30,77 @@ def github_fetch_resources(token, search_parameter):
             "title": "Folder Name",
         }
     """
+    base_url = "https://gitlab.com/api/v4/"
     try:
-        header, username = validation_check(token)
+        headers, user_id = validation_check(token)
     except PresQTResponseException:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
     if search_parameter:
         if 'author' in search_parameter:
-            search_url = "https://api.github.com/users/{}/repos".format(search_parameter['author'])
-            initial_data = requests.get(search_url, headers=header)
-            if initial_data.status_code != 200:
+            author_url = "{}users?username={}".format(base_url, search_parameter['author'])
+            author_response_json = requests.get(author_url, headers=headers).json()
+            if not author_response_json:
                 return []
-            data = initial_data.json()
+            data = requests.get("https://gitlab.com/api/v4/users/{}/projects".format(author_response_json[0]['id']), headers=headers).json()
 
         elif 'general' in search_parameter:
-            search_url = "https://api.github.com/search/repositories?q={}".format(search_parameter['general'])
-            data = requests.get(search_url, headers=header).json()['items']
+            search_url = "{}search?scope=projects&search={}".format(base_url, search_parameter['general'])
+            data = requests.get(search_url, headers=headers).json()
 
         elif 'id' in search_parameter:
-            search_parameters = search_parameter['id']
-            search_url = "https://api.github.com/repositories/{}".format(search_parameters)
-            data = requests.get(search_url, headers=header)
-            if data.status_code != 200:
+            project_url = "{}projects/{}".format(base_url, search_parameter['id'])
+            project_response = requests.get(project_url, headers=headers)
+
+            if project_response.status_code == 404:
                 return []
-            data_json = data.json()
+            data_json = project_response.json()
             return [{
                 "kind": "container",
-                "kind_name": "repo",
+                "kind_name": "project",
                 "container": None,
                 "id": data_json['id'],
                 "title": data_json['name']}]
 
         elif 'title' in search_parameter:
-            search_parameters = search_parameter['title'].replace(' ', '+')
-            search_url = "https://api.github.com/search/repositories?q={}+in:name+sort:updated".format(
-                search_parameters)
-            data = requests.get(search_url, headers=header).json()['items']
+            title_url = "{}/projects?search={}".format(base_url, search_parameter['title'])
+            data = requests.get(title_url, headers=headers).json()
 
     else:
-        data = github_paginated_data(token)
+        data = gitlab_paginated_data(headers, user_id)
 
     resources = []
-    for repo in data:
+    for project in data:
         resource = {
             "kind": "container",
-            "kind_name": "repo",
+            "kind_name": "project",
             "container": None,
-            "id": repo["id"],
-            "title": repo["name"]}
+            "id": project["id"],
+            "title": project["name"]}
         resources.append(resource)
     return resources
 
 
-def github_fetch_resource(token, resource_id):
+def gitlab_fetch_resource(token, resource_id):
     """
-    Fetch the GitHub resource matching the resource_id given.
+    Fetch the GitLab resource matching the resource_id given.
 
     Parameters
     ----------
     token : str
-        User's GitHub token
+        User's GitLab token
 
     resource_id : str
         ID of the resource requested
 
     Returns
     -------
-    A dictionary object that represents the GitHub resource.
+    A dictionary object that represents the GitLab resource.
     Dictionary must be in the following format:
     {
         "kind": "container",
-        "kind_name": "repo",
+        "kind_name": "project",
         "id": "12345",
         "title": "23296359282_934200ec59_o.jpg",
         "date_created": "2019-05-13T14:54:17.129170Z",
@@ -115,15 +114,15 @@ def github_fetch_resource(token, resource_id):
         }
     }
     """
+    project_url = "https://gitlab.com/api/v4/projects/{}".format(resource_id)
+
     try:
-        header, username = validation_check(token)
+        headers, user_id = validation_check(token)
     except PresQTResponseException:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
-    project_url = 'https://api.github.com/repositories/{}'.format(resource_id)
-
-    response = requests.get(project_url, headers=header)
+    response = requests.get(project_url, headers=headers)
 
     if response.status_code != 200:
         raise PresQTResponseException("The resource could not be found by the requesting user.",
@@ -133,11 +132,11 @@ def github_fetch_resource(token, resource_id):
 
     resource = {
         "kind": "container",
-        "kind_name": "repo",
+        "kind_name": "project",
         "id": data['id'],
         "title": data['name'],
         "date_created": data['created_at'],
-        "date_modified": data['updated_at'],
+        "date_modified": data['last_activity_at'],
         "hashes": {},
         "extra": {}
     }

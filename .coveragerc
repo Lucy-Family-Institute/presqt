@@ -13,6 +13,7 @@ omit =
         presqt/targets/utilities/tests/*
         presqt/targets/github/tests/*
         presqt/targets/zenodo/tests/*
+        presqt/targets/gitlab/tests/*
 
 # A list of packages or directories, the source to measure during execution.
 source = presqt
