@@ -24,6 +24,9 @@ def get_action_message(action, fixity_status, metadata_validation, action_metada
     source_target_data = get_target_data(action_metadata['sourceTargetName'])
     destination_target_data = get_target_data(action_metadata['destinationTargetName'])
 
+    if action_metadata['destinationTargetName'] == 'curate_nd' and action != 'download':
+        return "Resources submitted to CurateND for ingestion. Fixity can not be determined at this point."
+
     for entry in new_file_list:
         if source_target_data and entry['sourceHashes'] == {} or set(
                 entry['sourceHashes'].values()) == {None}:
