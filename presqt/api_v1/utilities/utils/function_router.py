@@ -9,6 +9,8 @@ from presqt.targets.curate_nd.functions.download import curate_nd_download_resou
 from presqt.targets.curate_nd.functions.upload import curate_nd_upload_resource
 from presqt.targets.curate_nd.functions.upload_metadata import curate_nd_upload_metadata
 
+from presqt.targets.gitlab.functions.fetch import gitlab_fetch_resources, gitlab_fetch_resource
+
 from presqt.targets.osf.functions.fetch import osf_fetch_resources, osf_fetch_resource
 from presqt.targets.osf.functions.download import osf_download_resource
 from presqt.targets.osf.functions.upload import osf_upload_resource
@@ -74,3 +76,6 @@ class FunctionRouter(object):
     zenodo_resource_download = zenodo_download_resource
     zenodo_resource_upload = zenodo_upload_resource
     zenodo_metadata_upload = zenodo_upload_metadata
+
+    gitlab_resource_collection = gitlab_fetch_resources
+    gitlab_resource_detail = gitlab_fetch_resource
