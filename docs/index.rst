@@ -26,7 +26,7 @@ OSF         ✅             ✅         ✅          ✅          ✅          �
 curateND    ✅             ✅         ✅          ✅          ❌          ❌                            ✅ [OSF, Github, Zenodo]    [md5]
 Github      ✅             ✅         ✅          ✅          ✅          ✅[OSF, curateND, Zenodo]     ✅ [OSF, Zenodo]            [ ]
 Zenodo      ✅             ✅         ✅          ✅          ✅          ✅[OSF, Github, curateND]     ✅ [OSF, Github]            [md5]
-GitLab      ✅             ✅         ✅          ❌           ❌         ❌                             ❌                         []
+GitLab      ✅             ✅         ✅          ✅           ❌         ❌                            ✅ [OSF, GitHub, Zenodo]    [sha256]
 =========== ============== ========== ========== ============ ========== ============================= =========================== ===================
 
 **Current Service Integrations**:
