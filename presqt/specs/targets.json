@@ -82,7 +82,7 @@
       "resource_collection": true,
       "resource_detail": true,
       "resource_download": false,
-      "resource_upload": false,
+      "resource_upload": true,
       "resource_transfer_in": false,
       "resource_transfer_out": false
     },
