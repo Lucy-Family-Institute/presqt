@@ -81,16 +81,16 @@
     "supported_actions": {
       "resource_collection": true,
       "resource_detail": true,
-      "resource_download": false,
+      "resource_download": true,
       "resource_upload": true,
       "resource_transfer_in": false,
       "resource_transfer_out": false
     },
     "supported_transfer_partners": {
       "transfer_in": [],
-      "transfer_out": []
+      "transfer_out": ["osf", "github", "zenodo"]
     },
-    "supported_hash_algorithms": [],
+    "supported_hash_algorithms": ["sha256"],
     "infinite_depth": true,
     "search_parameters": ["general", "title", "id", "author"]
   }
