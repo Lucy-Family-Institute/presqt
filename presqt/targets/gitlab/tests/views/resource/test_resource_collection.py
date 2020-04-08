@@ -1,8 +1,12 @@
+import shutil
+
 from django.test import SimpleTestCase
 from rest_framework.test import APIClient
 from rest_framework.reverse import reverse
 
-from config.settings.base import GITLAB_TEST_USER_TOKEN
+from config.settings.base import GITLAB_TEST_USER_TOKEN, GITLAB_UPLOAD_TEST_USER_TOKEN
+from presqt.targets.utilities.tests.shared_upload_test_functions import \
+    shared_upload_function_gitlab
 
 
 class TestResourceCollection(SimpleTestCase):
@@ -142,3 +146,50 @@ class TestResourceCollection(SimpleTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data, [])
+
+class TestResourceCollectionPOST(SimpleTestCase):
+    """
+    Test the endpoint's POST method for resource uploads:
+         `api_v1/targets/{target_name}/resources/{resource_id}/`
+         `api_v1/targets/{target_name}/resources/`
+
+    Testing GitLab integration.
+    """
+    def setUp(self):
+        self.client = APIClient()
+        self.token = GITLAB_UPLOAD_TEST_USER_TOKEN
+        self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token,
+                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+        self.repo_title = 'NewProject'
+
+        self.resource_id = None
+        self.duplicate_action = 'ignore'
+        self.url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
+        self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
+        self.resources_ignored = []
+        self.resources_updated = []
+        self.hash_algorithm = 'md5'
+
+    # def tearDown(self):
+    #     """
+    #     This should run at the end of this test class
+    #     """
+    #     delete_gitlab_project('presqt-test-user', self.repo_title,
+    #     {'Private-Token': 'token {}'.format(GITLAB_UPLOAD_TEST_USER_TOKEN)})
+
+    def test_success_202_upload(self):
+        """
+        Return a 202 when a file is uploading.
+        """
+        # 202 when uploading a new top level repo
+        shared_upload_function_gitlab(self)
+
+        # Verify the new repo exists on the PresQT Resource Collection endpoint.
+        url = reverse('resource_collection', kwargs={'target_name': 'githlab'})
+        response_json = self.client.get(
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()
+
+        project_name_list = [project['title'] for project in response_json]
+        self.assertIn(self.repo_title, project_name_list)
+        # Delete upload folder
+        shutil.rmtree(self.ticket_path)
