@@ -59,7 +59,7 @@ async def async_main(url_list, header):
 
 def gitlab_download_resource(token, resource_id):
     """
-    Fetch the requested resource from GitHub along with its hash information.
+    Fetch the requested resource from GitLab along with its hash information.
 
     Parameters
     ----------
