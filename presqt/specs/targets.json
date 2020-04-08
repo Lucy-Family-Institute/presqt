@@ -11,8 +11,8 @@
       "resource_transfer_out": true
     },
     "supported_transfer_partners": {
-      "transfer_in": ["github", "curate_nd", "zenodo"],
-      "transfer_out": ["github", "zenodo"]
+      "transfer_in": ["github", "curate_nd", "zenodo", "gitlab"],
+      "transfer_out": ["github", "zenodo", "gitlab"]
     },
     "supported_hash_algorithms": ["sha256", "md5"],
     "infinite_depth": true,
@@ -31,7 +31,7 @@
     },
     "supported_transfer_partners": {
       "transfer_in": [],
-      "transfer_out": ["osf", "github", "zenodo"]
+      "transfer_out": ["osf", "github", "zenodo", "gitlab"]
     },
     "supported_hash_algorithms": ["md5"],
     "infinite_depth": false,
@@ -49,8 +49,8 @@
       "resource_transfer_out": true
     },
     "supported_transfer_partners": {
-      "transfer_in": ["osf", "curate_nd"],
-      "transfer_out": ["osf", "zenodo"]
+      "transfer_in": ["osf", "curate_nd", "gitlab"],
+      "transfer_out": ["osf", "zenodo", "gitlab"]
     },
     "supported_hash_algorithms": [],
     "infinite_depth": true,
@@ -68,8 +68,8 @@
       "resource_transfer_out": true
     },
     "supported_transfer_partners": {
-      "transfer_in": ["osf", "github", "curate_nd"],
-      "transfer_out": ["osf", "github"]
+      "transfer_in": ["osf", "github", "curate_nd", "gitlab"],
+      "transfer_out": ["osf", "github", "gitlab"]
     },
     "supported_hash_algorithms": ["md5"],
     "infinite_depth": false,
@@ -83,11 +83,11 @@
       "resource_detail": true,
       "resource_download": true,
       "resource_upload": true,
-      "resource_transfer_in": false,
-      "resource_transfer_out": false
+      "resource_transfer_in": true,
+      "resource_transfer_out": true
     },
     "supported_transfer_partners": {
-      "transfer_in": [],
+      "transfer_in": ["osf", "github", "zenodo", "curate_nd"],
       "transfer_out": ["osf", "github", "zenodo"]
     },
     "supported_hash_algorithms": ["sha256"],

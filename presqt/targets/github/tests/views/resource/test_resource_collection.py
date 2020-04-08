@@ -331,7 +331,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
 
     def test_bad_metadata_request(self):
         """
-        Ensure that the proper error is raised when we get a non-201 resoponse from GitHub.
+        Ensure that the proper error is raised when we get a non-201 response from GitHub.
         """
         # Calling this function manually to confirm explicit error is raised.
         self.assertRaises(PresQTError, github_upload_metadata, self.token, "BAD", {"fake": "data"},)

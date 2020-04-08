@@ -109,7 +109,7 @@ def shared_upload_function_gitlab(test_case_instance):
         process_info['message'],
         "Upload successful.")
     test_case_instance.assertEqual(process_info['status_code'], '200')
-    test_case_instance.assertNotEqual(process_info['failed_fixity'], [])
+    test_case_instance.assertEqual(process_info['failed_fixity'], [])
     test_case_instance.assertEqual(
         process_info['resources_ignored'], test_case_instance.resources_ignored)
     test_case_instance.assertEqual(

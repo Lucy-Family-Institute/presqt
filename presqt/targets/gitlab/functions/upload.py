@@ -105,7 +105,7 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
             encoded_file = base64.b64encode(file_bytes)
 
             # A relative path to the file is what is added to the GitLab POST address
-            encoded_file_path = relative_file_path.replace('/', '%2F').replace('.', '%2E').replace(' ', '_')
+            encoded_file_path = relative_file_path.replace('/', '%2F').replace('.', '%2E')
 
             request_data = {"branch": "master",
                             "commit_message": "PresQT Upload",
@@ -121,7 +121,7 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
 
             file_metadata_list.append({
                 "actionRootPath": os.path.join(path, name),
-                "destinationPath": relative_file_path,
+                "destinationPath": os.path.join(path.partition('/data/')[2], name),
                 "title": name,
                 "destinationHash": file_json.json()['content_sha256']
             })
