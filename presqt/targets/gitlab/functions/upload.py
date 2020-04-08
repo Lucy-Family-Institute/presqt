@@ -1,11 +1,12 @@
 import base64
-import json
 import os
 
 import requests
 from rest_framework import status
 
+from presqt.targets.gitlab.utilities import gitlab_paginated_data
 from presqt.targets.gitlab.utilities.validation_check import validation_check
+from presqt.targets.utilities import get_duplicate_title
 from presqt.utilities import PresQTResponseException
 
 
@@ -65,11 +66,17 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
+    #*** CREATE PROJECT ***#
+    # Create a new project with the name being the top level directory's name.
     os_path = next(os.walk(resource_main_dir))
 
-    # Create a new project with the name being the top level directory's name.
+    # Check if a project with this name exists for this user
     project_title = os_path[1][0]
-    response = requests.post('{}projects?name={}'.format(base_url, project_title), headers=headers)
+
+    titles = [data['name'] for data in gitlab_paginated_data(headers, user_id)]
+    title = get_duplicate_title(project_title, titles, '-PresQT*-')
+
+    response = requests.post('{}projects?name={}&visibility=public'.format(base_url, title), headers=headers)
 
     if response.status_code == 201:
         project_id = response.json()['id']
@@ -78,11 +85,11 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
             "Response has status code {} while creating project {}".format(
                 response.status_code, project_title), status.HTTP_400_BAD_REQUEST)
 
-    # HANDLE DUPLICATE PROJECT NAMES
-
+    #*** UPLOAD FILES ***#
     # Upload files to project's repository
+    username = requests.get("https://gitlab.com/api/v4/user", headers=headers).json()['username']
+    action_metadata = {"destinationUsername": username}
     resources_ignored = []
-    action_metadata = {"destinationUsername": user_id}
     file_metadata_list = []
     base_repo_path = "{}projects/{}/repository/files/".format(base_url, project_id)
     for path, subdirs, files in os.walk(resource_main_dir):
@@ -90,30 +97,34 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
             resources_ignored.append(path)
         for name in files:
             # Strip server directories from file path
-            relative_file_path = os.path.join(path.partition('/data/')[2], name)
+            relative_file_path = os.path.join(path.partition('/data/{}/'.format(project_title))[2],
+                                              name)
 
-            # Extract and encode the file bytes in the way expected by GitHub.
+            # Extract and encode the file bytes in the way expected by GitLab.
             file_bytes = open(os.path.join(path, name), 'rb').read()
             encoded_file = base64.b64encode(file_bytes)
 
             # A relative path to the file is what is added to the GitLab POST address
             encoded_file_path = relative_file_path.replace('/', '%2F').replace('.', '%2E').replace(' ', '_')
+
             request_data = {"branch": "master",
                             "commit_message": "PresQT Upload",
                             "encoding": "base64",
                             "content": encoded_file}
 
+            requests.post("{}{}".format(
+                base_repo_path, encoded_file_path), headers=headers, data=request_data)
+
+            # Get the file hash
+            file_json = requests.get("{}{}?ref=master".format(base_repo_path, encoded_file_path),
+                                     headers=headers)
+
             file_metadata_list.append({
                 "actionRootPath": os.path.join(path, name),
                 "destinationPath": relative_file_path,
                 "title": name,
-                "destinationHash": None})
-            print(encoded_file_path)
-            request = requests.post(
-                "{}{}".format(base_repo_path, encoded_file_path),
-                headers=headers, data=request_data)
-            print(request.status_code)
-
+                "destinationHash": file_json.json()['content_sha256']
+            })
 
     return {
         'resources_ignored': resources_ignored,
