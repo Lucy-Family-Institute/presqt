@@ -154,6 +154,7 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data, [])
 
+
 class TestResourceCollectionPOST(SimpleTestCase):
     """
     Test the endpoint's POST method for resource uploads:
