@@ -1,9 +1,6 @@
-import fnmatch
 import json
-import re
 import requests
 
-from natsort import natsorted
 from rest_framework import status
 
 from presqt.targets.utilities import get_duplicate_title
@@ -23,7 +20,7 @@ def create_repository(title, token):
     """
     header = {"Authorization": "token {}".format(token)}
     repository_payload = {"name": title}
-    response = requests.post('https://api.github.com/user/repos'.format(token),
+    response = requests.post('https://api.github.com/user/repos',
                              headers=header,
                              data=json.dumps(repository_payload))
 

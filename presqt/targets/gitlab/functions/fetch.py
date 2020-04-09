@@ -43,10 +43,12 @@ def gitlab_fetch_resources(token, search_parameter):
             author_response_json = requests.get(author_url, headers=headers).json()
             if not author_response_json:
                 return []
-            data = requests.get("https://gitlab.com/api/v4/users/{}/projects".format(author_response_json[0]['id']), headers=headers).json()
+            data = requests.get(
+                "https://gitlab.com/api/v4/users/{}/projects".format(author_response_json[0]['id']), headers=headers).json()
 
         elif 'general' in search_parameter:
-            search_url = "{}search?scope=projects&search={}".format(base_url, search_parameter['general'])
+            search_url = "{}search?scope=projects&search={}".format(
+                base_url, search_parameter['general'])
             data = requests.get(search_url, headers=headers).json()
 
         elif 'id' in search_parameter:
@@ -72,13 +74,18 @@ def gitlab_fetch_resources(token, search_parameter):
 
     resources = []
     for project in data:
-        resource = {
-            "kind": "container",
-            "kind_name": "project",
-            "container": None,
-            "id": project["id"],
-            "title": project["name"]}
-        resources.append(resource)
+        # We are not going to display projects that the user has deleted. Gitlab does not have
+        # immediate deletion, instead they hold onto projects for a week before removal.
+        # Also of note, Private Projects do not have this same key, which is why we need the `or`
+        if ('marked_for_deletion_at' in project.keys() and not project['marked_for_deletion_at']) or (
+                'marked_for_deletion_at' not in project.keys()):
+            resource = {
+                "kind": "container",
+                "kind_name": "project",
+                "container": None,
+                "id": project["id"],
+                "title": project["name"]}
+            resources.append(resource)
     return resources
 
 

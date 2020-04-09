@@ -20,14 +20,14 @@ More information can be found here https://presqt.crc.nd.edu/
 
 **Current Target Integrations**:
 
-=========== ============== ========== ========== ============ ========== ============================= =========================== ===================
-**Target**  **Collection** **Search** **Detail** **Download** **Upload** **Transfer In [Targets]**     **Transfer Out [Targets]**  **Hash Algorithms**
-OSF         ✅             ✅         ✅          ✅          ✅          ✅[Github, curateND, Zenodo]  ✅ [Github, Zenodo]         [sha256, md5]
-curateND    ✅             ✅         ✅          ✅          ❌          ❌                            ✅ [OSF, Github, Zenodo]    [md5]
-Github      ✅             ✅         ✅          ✅          ✅          ✅[OSF, curateND, Zenodo]     ✅ [OSF, Zenodo]            [ ]
-Zenodo      ✅             ✅         ✅          ✅          ✅          ✅[OSF, Github, curateND]     ✅ [OSF, Github]            [md5]
-GitLab      ✅             ✅         ✅          ❌           ❌         ❌                             ❌                         []
-=========== ============== ========== ========== ============ ========== ============================= =========================== ===================
+=========== ============== ========== ========== ============ ========== ===================================== ================================= ===================
+**Target**  **Collection** **Search** **Detail** **Download** **Upload** **Transfer In [Targets]**             **Transfer Out [Targets]**        **Hash Algorithms**
+OSF         ✅             ✅         ✅          ✅           ✅         ✅[Github, CurateND, Zenodo, GitLab]  ✅ [Github, Zenodo, GitLab]       [sha256, md5]
+curateND    ✅             ✅         ✅          ✅           ❌         ❌                                    ✅ [OSF, Github, Zenodo, GitLab]  [md5]
+Github      ✅             ✅         ✅          ✅           ✅         ✅[OSF, CurateND, Zenodo, GitLab]     ✅ [OSF, Zenodo, GitLab]          [ ]
+Zenodo      ✅             ✅         ✅          ✅           ✅         ✅[OSF, Github, CurateND, GitLab]     ✅ [OSF, Github, GitLab]          [md5]
+GitLab      ✅             ✅         ✅          ✅           ✅         ✅[OSF, Github, CurateND, Zenodo]     ✅ [OSF, GitHub, Zenodo]          [sha256]
+=========== ============== ========== ========== ============ ========== ===================================== ================================= ===================
 
 **Current Service Integrations**:
 

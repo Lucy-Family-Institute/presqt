@@ -1,7 +1,4 @@
 import os
-from uuid import uuid4
-
-from django.utils import timezone
 
 from presqt.json_schemas.schema_handlers import schema_validator
 from presqt.utilities import get_dictionary_from_list, PresQTError, read_file

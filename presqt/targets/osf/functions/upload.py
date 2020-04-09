@@ -114,11 +114,6 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
             data_to_upload_path, file_duplicate_action, hashes,
             resources_ignored, resources_updated, file_metadata_list)
 
-    # Only send forward the hashes we need based on the hash_algorithm provided
-    final_file_hashes = {}
-    for key, value in hashes.items():
-        final_file_hashes[key] = value[hash_algorithm]
-
     for file_metadata in file_metadata_list:
         # Only send forward the hash we need based on the hash_algorithm provided
         file_metadata['destinationHash'] = file_metadata['destinationHash'][hash_algorithm]
