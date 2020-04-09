@@ -36,7 +36,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('ProjectNine', response.data['title'])
         # Download Link
-        self.assertEqual(len(response.data['links']), 0)
+        self.assertEqual(len(response.data['links']), 1)
 
     def test_error_404_not_authorized(self):
         """
