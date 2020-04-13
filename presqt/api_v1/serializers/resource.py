@@ -15,7 +15,7 @@ class ResourcesSerializer(serializers.Serializer):
     id = serializers.CharField(max_length=256)
     container = serializers.CharField(max_length=256)
     title = serializers.CharField(max_length=256)
-    # links = serializers.SerializerMethodField()
+    links = serializers.SerializerMethodField()
 
     def get_links(self, instance):
         """

@@ -3,7 +3,7 @@ import requests
 from rest_framework import status
 
 from presqt.targets.github.utilities import validation_check, github_paginated_data
-from presqt.targets.github.utilities.helpers.github_file_data import get_github_file_data
+from presqt.targets.github.utilities.helpers.github_file_data import get_github_repository_data
 from presqt.utilities import PresQTResponseException
 
 
@@ -67,7 +67,7 @@ def github_fetch_resources(token, search_parameter):
     else:
         data = github_paginated_data(token)
 
-    return get_github_file_data(data, header, [])
+    return get_github_repository_data(data, header, [])
 
 
 def github_fetch_resource(token, resource_id):
@@ -135,9 +135,3 @@ def github_fetch_resource(token, resource_id):
             resource['extra'][key] = value
 
     return resource
-
-
-'223489234:path/to/file'
-
-# partition(:)
-# make get request on project id
