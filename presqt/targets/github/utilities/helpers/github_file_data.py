@@ -1,3 +1,4 @@
+import urllib.parse
 import requests
 
 
@@ -29,11 +30,11 @@ def get_github_repository_data(initial_data, header, resources=[]):
         resources.append(resource)
 
         if isinstance(get_contents, list):
-            get_github_file_data(repo['id'], get_contents, header, resources)
+            get_github_file_data(repo['id'], repo['id'], get_contents, header, resources)
     return resources
 
 
-def get_github_file_data(parent_id, contents, header, resources):
+def get_github_file_data(parent_id, repo_id, contents, header, resources):
     """
     Get's the repository's file data.
 
@@ -46,7 +47,7 @@ def get_github_file_data(parent_id, contents, header, resources):
     header: dict
         The gitHub authorization header
     resources: list
-        The user's rersources.
+        The user's resources.
 
     Returns
     -------
@@ -58,19 +59,19 @@ def get_github_file_data(parent_id, contents, header, resources):
                 "kind": "item",
                 "kind_name": "file",
                 "container": parent_id,
-                "id": "{}:{}".format(parent_id, item['path']),
+                "id": "{}:{}".format(repo_id, urllib.parse.quote_plus(item['path']).replace(".", "%2E")),
                 "title": item["name"]}
             resources.append(resource)
 
         elif item['type'] == 'dir':
+            dir_id = "{}:{}".format(repo_id, urllib.parse.quote_plus(item['path']).replace(".", "%2E"))
             resource = {
                 "kind": "container",
                 "kind_name": "dir",
                 "container": parent_id,
-                "id": "{}:{}".format(parent_id, item['path']),
+                "id": dir_id,
                 "title": item["name"]}
             resources.append(resource)
             contents = requests.get(item['url'], headers=header).json()
-            get_github_file_data("{}:{}".format(parent_id, item['path']), contents,
-                                 header, resources)
+            get_github_file_data(dir_id, repo_id, contents, header, resources)
     return resources

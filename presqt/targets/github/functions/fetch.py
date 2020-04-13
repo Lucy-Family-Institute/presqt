@@ -102,6 +102,7 @@ def github_fetch_resource(token, resource_id):
         }
     }
     """
+    print(resource_id)
     try:
         header, username = validation_check(token)
     except PresQTResponseException:
