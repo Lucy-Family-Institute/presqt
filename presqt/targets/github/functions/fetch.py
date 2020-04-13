@@ -3,6 +3,7 @@ import requests
 from rest_framework import status
 
 from presqt.targets.github.utilities import validation_check, github_paginated_data
+from presqt.targets.github.utilities.helpers.github_file_data import get_github_file_data
 from presqt.utilities import PresQTResponseException
 
 
@@ -45,7 +46,8 @@ def github_fetch_resources(token, search_parameter):
             data = initial_data.json()
 
         elif 'general' in search_parameter:
-            search_url = "https://api.github.com/search/repositories?q={}".format(search_parameter['general'])
+            search_url = "https://api.github.com/search/repositories?q={}".format(
+                search_parameter['general'])
             data = requests.get(search_url, headers=header).json()['items']
 
         elif 'id' in search_parameter:
@@ -54,13 +56,7 @@ def github_fetch_resources(token, search_parameter):
             data = requests.get(search_url, headers=header)
             if data.status_code != 200:
                 return []
-            data_json = data.json()
-            return [{
-                "kind": "container",
-                "kind_name": "repo",
-                "container": None,
-                "id": data_json['id'],
-                "title": data_json['name']}]
+            data = [data.json()]
 
         elif 'title' in search_parameter:
             search_parameters = search_parameter['title'].replace(' ', '+')
@@ -71,16 +67,7 @@ def github_fetch_resources(token, search_parameter):
     else:
         data = github_paginated_data(token)
 
-    resources = []
-    for repo in data:
-        resource = {
-            "kind": "container",
-            "kind_name": "repo",
-            "container": None,
-            "id": repo["id"],
-            "title": repo["name"]}
-        resources.append(resource)
-    return resources
+    return get_github_file_data(data, header, [])
 
 
 def github_fetch_resource(token, resource_id):
@@ -148,3 +135,9 @@ def github_fetch_resource(token, resource_id):
             resource['extra'][key] = value
 
     return resource
+
+
+'223489234:path/to/file'
+
+# partition(:)
+# make get request on project id
