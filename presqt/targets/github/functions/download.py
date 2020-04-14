@@ -20,8 +20,8 @@ async def async_get(url, session, header):
         URL to call
     session: ClientSession object
         aiohttp ClientSession Object
-    token: str
-        User's GitHub token
+    header: str
+        Header for request
 
     Returns
     -------
@@ -42,8 +42,8 @@ async def async_main(url_list, header):
     ----------
     url_list: list
         List of urls to call
-    token: str
-        User's GitHub token
+    header: str
+        Header for request
 
     Returns
     -------

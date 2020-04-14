@@ -13,7 +13,7 @@ def get_github_repository_data(initial_data, header, resources=[]):
     header: dict
         The gitHub authorization header
     resources: list
-        The user's rersources.
+        The user's resources.
 
     Returns
     -------
@@ -42,8 +42,10 @@ def get_github_file_data(parent_id, repo_id, contents, header, resources):
     ----------
     parent_id: str
         The id of the parent item
-    initial_data: list
-        The initial data
+    repo_id:
+        ID of the parent rep
+    contents: list
+        contents
     header: dict
         The gitHub authorization header
     resources: list
