@@ -102,20 +102,68 @@ def github_fetch_resource(token, resource_id):
         }
     }
     """
-    print(resource_id)
     try:
         header, username = validation_check(token)
     except PresQTResponseException:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
-    project_url = 'https://api.github.com/repositories/{}'.format(resource_id)
+    if ':' not in resource_id:
+        # Without a colon, we know this is a top level repo
+        project_url = 'https://api.github.com/repositories/{}'.format(resource_id)
+        response = requests.get(project_url, headers=header)
 
-    response = requests.get(project_url, headers=header)
+        if response.status_code != 200:
+            raise PresQTResponseException("The resource could not be found by the requesting user.",
+                                          status.HTTP_404_NOT_FOUND)
 
-    if response.status_code != 200:
-        raise PresQTResponseException("The resource could not be found by the requesting user.",
-                                      status.HTTP_404_NOT_FOUND)
+    elif ':' in resource_id:
+        # If there is a colon in the resource id, the resource could be a directory or a file
+        partitioned_id = resource_id.partition(':')
+        repo_id = partitioned_id[0]
+        path_to_file = partitioned_id[2].replace('%2F', '/').replace('%2E', '.')
+
+        # This initial request will get the repository, which we need to get the proper contens url
+        # The contents url contains a username and project name which we don't have readily available
+        # to us.
+        initial_repo_get = requests.get('https://api.github.com/repositories/{}'.format(repo_id),
+                                        headers=header)
+        if initial_repo_get.status_code != 200:
+            raise PresQTResponseException("The resource could not be found by the requesting user.",
+                                          status.HTTP_404_NOT_FOUND)
+
+        file_get = requests.get('{}{}'.format(initial_repo_get.json()['contents_url'].partition('{')[0],
+                                              path_to_file), headers=header)
+        if file_get.status_code != 200:
+            raise PresQTResponseException("The resource could not be found by the requesting user.",
+                                          status.HTTP_404_NOT_FOUND)
+        file_json = file_get.json()
+
+        if isinstance(file_json, list):
+            return {
+                "kind": "container",
+                "kind_name": "dir",
+                "id": resource_id,
+                "title": path_to_file,
+                "date_created": None,
+                "date_modified": None,
+                "hashes": {},
+                "extra": {}
+            }
+
+        else:
+            return {
+                "kind": "item",
+                "kind_name": "file",
+                "id": resource_id,
+                "title": file_json['name'],
+                "date_created": None,
+                "date_modified": None,
+                "hashes": {},
+                "extra": {'size': file_json['size'],
+                          'commit_hash': file_json['sha'],
+                          'path': file_json['path']}
+            }
 
     data = response.json()
 
