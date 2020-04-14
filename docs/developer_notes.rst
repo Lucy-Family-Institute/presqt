@@ -64,3 +64,36 @@ When documentation is added you should just need to run while in the ``/docs`` d
 
 Otherwise reference Sphinx documentation for more information on adding documentation,
 https://www.sphinx-doc.org/en/master/usage/quickstart.html.
+
+
+GitHub Differences
+------------------
+There is a slight difference in how we have implemented GitHub as opposed to other partners. Due to
+the way GitHub's API handles files, there is no way for us to hit an endpoint with a given id. The
+only way to navigate to a files endpoint is to know the associated GitHub username and repository
+title. We have decided to make our own unique id's for these items by combining the repo_id and the
+path to the file/dir. 
+
+Example of an id:
+
+.. parsed-literal::
+    21387123:path2%Fto%2Ffile%2Ejpg 
+    
+We then translate this into two get requests. The first one will be to the repo id. 
+
+Example: 
+
+.. parsed-literal::
+    https://api.github.com/repositories/21387123
+
+From this, we can get a contents url that we can translate into a request. 
+
+Example: 
+
+.. parsed-literal::
+    https://api.github.com/repos/PresQT-QA-TEST/Good_Egg-PresQT2-/contents/path/to/file.jpg
+
+Using this custom generated id, we can hit this endpoint on PresQT to get file details.
+
+.. parsed-literal::
+    https://presqt-qa.crc.nd.edu/api_v1/targets/github/resources/21387123:path2%Fto%2Ffile%2Ejpg
