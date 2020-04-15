@@ -3,6 +3,7 @@ from rest_framework import status
 
 from presqt.targets.gitlab.utilities.gitlab_paginated_data import gitlab_paginated_data
 from presqt.targets.gitlab.utilities.validation_check import validation_check
+from presqt.targets.gitlab.utilities.get_gitlab_project_data import get_gitlab_project_data
 from presqt.utilities import PresQTResponseException
 
 
@@ -44,7 +45,8 @@ def gitlab_fetch_resources(token, search_parameter):
             if not author_response_json:
                 return []
             data = requests.get(
-                "https://gitlab.com/api/v4/users/{}/projects".format(author_response_json[0]['id']), headers=headers).json()
+                "https://gitlab.com/api/v4/users/{}/projects".format(author_response_json[0]['id']),
+                headers=headers).json()
 
         elif 'general' in search_parameter:
             search_url = "{}search?scope=projects&search={}".format(
@@ -57,13 +59,7 @@ def gitlab_fetch_resources(token, search_parameter):
 
             if project_response.status_code == 404:
                 return []
-            data_json = project_response.json()
-            return [{
-                "kind": "container",
-                "kind_name": "project",
-                "container": None,
-                "id": data_json['id'],
-                "title": data_json['name']}]
+            data = [project_response.json()]
 
         elif 'title' in search_parameter:
             title_url = "{}/projects?search={}".format(base_url, search_parameter['title'])
@@ -72,21 +68,7 @@ def gitlab_fetch_resources(token, search_parameter):
     else:
         data = gitlab_paginated_data(headers, user_id)
 
-    resources = []
-    for project in data:
-        # We are not going to display projects that the user has deleted. Gitlab does not have
-        # immediate deletion, instead they hold onto projects for a week before removal.
-        # Also of note, Private Projects do not have this same key, which is why we need the `or`
-        if ('marked_for_deletion_at' in project.keys() and not project['marked_for_deletion_at']) or (
-                'marked_for_deletion_at' not in project.keys()):
-            resource = {
-                "kind": "container",
-                "kind_name": "project",
-                "container": None,
-                "id": project["id"],
-                "title": project["name"]}
-            resources.append(resource)
-    return resources
+    return get_gitlab_project_data(data, headers)
 
 
 def gitlab_fetch_resource(token, resource_id):
