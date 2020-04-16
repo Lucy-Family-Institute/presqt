@@ -122,8 +122,7 @@ def github_fetch_resource(token, resource_id):
         partitioned_id = resource_id.partition(':')
         repo_id = partitioned_id[0]
         path_to_file = partitioned_id[2].replace('%2F', '/').replace('%2E', '.')
-
-        # This initial request will get the repository, which we need to get the proper contens url
+        # This initial request will get the repository, which we need to get the proper contents url
         # The contents url contains a username and project name which we don't have readily available
         # to us.
         initial_repo_get = requests.get('https://api.github.com/repositories/{}'.format(repo_id),
@@ -132,8 +131,10 @@ def github_fetch_resource(token, resource_id):
             raise PresQTResponseException("The resource could not be found by the requesting user.",
                                           status.HTTP_404_NOT_FOUND)
 
-        file_get = requests.get('{}{}'.format(initial_repo_get.json()['contents_url'].partition('{')[0],
-                                              path_to_file), headers=header)
+        get_url = '{}{}'.format(initial_repo_get.json()['contents_url'].partition('{')[0], path_to_file)
+        file_get = requests.get(get_url, headers=header)
+
+
         if file_get.status_code != 200:
             raise PresQTResponseException("The resource could not be found by the requesting user.",
                                           status.HTTP_404_NOT_FOUND)

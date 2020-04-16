@@ -38,7 +38,7 @@ class TestResourceCollection(SimpleTestCase):
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
         # Verify the count of resource objects is what we expect.
-        self.assertEqual(len(response.data), 31)
+        self.assertEqual(len(response.data), 149)
 
         for data in response.data:
             self.assertEqual(len(data['links']), 1)

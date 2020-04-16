@@ -49,6 +49,30 @@ class TestResourceGETJSON(SimpleTestCase):
         # Download Link
         self.assertEqual(len(response.data['links']), 1)
 
+    def test_success_file(self):
+        """
+        Returns a 200 if the GET method is successful when getting a GitHub `file`.
+        """
+        resource_id = '209373787:README%2Emd'
+        url = reverse('resource', kwargs={'target_name': 'github',
+                                          'resource_id': resource_id,
+                                          'resource_format': 'json'})
+        response = self.client.get(url, **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 200)
+
+    def test_success_folder(self):
+        """
+        Returns a 200 if the GET method is successful when getting a GitHub `folder`.
+        """
+        resource_id = '209373160:album_uploader'
+        url = reverse('resource', kwargs={'target_name': 'github',
+                                          'resource_id': resource_id,
+                                          'resource_format': 'json'})
+        response = self.client.get(url, **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 200)
+
     def test_error_404_not_authorized(self):
         """
         Return a 404 if the GET method fails because the user doesn't have access to this resource

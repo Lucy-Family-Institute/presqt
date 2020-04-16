@@ -20,60 +20,41 @@ def get_github_repository_data(initial_data, header, resources=[]):
     The user's resources.
     """
     for repo in initial_data:
-        get_contents = requests.get(repo['contents_url'].partition('{')[0], headers=header).json()
-        resource = {
+        resources.append({
             "kind": "container",
             "kind_name": "repo",
             "container": None,
             "id": repo["id"],
-            "title": repo["name"]}
-        resources.append(resource)
+            "title": repo["name"]})
 
-        if isinstance(get_contents, list):
-            get_github_file_data(repo['id'], repo['id'], get_contents, header, resources)
-    return resources
+        # Strip {/sha} off the end
+        trees_url = '{}/master?recursive=1'.format(repo['trees_url'][:-6])
+        contents = requests.get(trees_url, headers=header).json()
 
+        if 'message' not in contents.keys():
+            for resource in contents['tree']:
+                formatted_id = '{}:{}'.format(repo["id"], urllib.parse.quote_plus(resource['path']).replace(".", "%2E"))
+                title = resource['path'].rpartition('/')[2]
 
-def get_github_file_data(parent_id, repo_id, contents, header, resources):
-    """
-    Get's the repository's file data.
+                if title == resource['path']:
+                    container = repo["id"]
+                else:
+                    container = '{}:{}'.format(repo["id"], urllib.parse.quote_plus(resource['path'].rpartition('/')[0]))
 
-    Parameters
-    ----------
-    parent_id: str
-        The id of the parent item
-    repo_id:
-        ID of the parent rep
-    contents: list
-        contents
-    header: dict
-        The gitHub authorization header
-    resources: list
-        The user's resources.
-
-    Returns
-    -------
-    The user's resources.
-    """
-    for item in contents:
-        if item['type'] == 'file':
-            resource = {
-                "kind": "item",
-                "kind_name": "file",
-                "container": parent_id,
-                "id": "{}:{}".format(repo_id, urllib.parse.quote_plus(item['path']).replace(".", "%2E")),
-                "title": item["name"]}
-            resources.append(resource)
-
-        elif item['type'] == 'dir':
-            dir_id = "{}:{}".format(repo_id, urllib.parse.quote_plus(item['path']).replace(".", "%2E"))
-            resource = {
-                "kind": "container",
-                "kind_name": "dir",
-                "container": parent_id,
-                "id": dir_id,
-                "title": item["name"]}
-            resources.append(resource)
-            contents = requests.get(item['url'], headers=header).json()
-            get_github_file_data(dir_id, repo_id, contents, header, resources)
+                if resource['type'] == 'blob':
+                    resources.append({
+                        "kind": "item",
+                        "kind_name": "file",
+                        "container": container,
+                        "id": formatted_id,
+                        "title": title
+                    })
+                elif resource['type'] == 'tree':
+                    resources.append({
+                        "kind": "container",
+                        "kind_name": "folder",
+                        "container": container,
+                        "id": formatted_id,
+                        "title": title
+                    })
     return resources
