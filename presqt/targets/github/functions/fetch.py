@@ -137,10 +137,10 @@ def github_fetch_resource(token, resource_id):
 
         return resource
     # If there is a colon in the resource id, the resource could be a directory or a file
-    elif ':' in resource_id:
+    else:
         partitioned_id = resource_id.partition(':')
         repo_id = partitioned_id[0]
-        path_to_file = partitioned_id[2].replace('%2F', '/').replace('%2E', '.')
+        path_to_resource = partitioned_id[2].replace('%2F', '/').replace('%2E', '.')
         # This initial request will get the repository, which we need to get the proper contents url
         # The contents url contains a username and project name which we don't have readily available
         # to us.
@@ -150,7 +150,7 @@ def github_fetch_resource(token, resource_id):
             raise PresQTResponseException("The resource could not be found by the requesting user.",
                                           status.HTTP_404_NOT_FOUND)
 
-        get_url = '{}{}'.format(initial_repo_get.json()['contents_url'].partition('{')[0], path_to_file)
+        get_url = '{}{}'.format(initial_repo_get.json()['contents_url'].partition('{')[0], path_to_resource)
         file_get = requests.get(get_url, headers=header)
 
 
@@ -164,7 +164,7 @@ def github_fetch_resource(token, resource_id):
                 "kind": "container",
                 "kind_name": "dir",
                 "id": resource_id,
-                "title": path_to_file,
+                "title": path_to_resource.rpartition('/')[2],
                 "date_created": None,
                 "date_modified": None,
                 "hashes": {},
