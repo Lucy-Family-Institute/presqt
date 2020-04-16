@@ -52,10 +52,10 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                                 }
         'project_id': ID of the parent project for this upload. Needed for metadata upload.
     """
-    # Uploading to an existing Github repository is not allowed
-    if resource_id:
-        raise PresQTResponseException("Can't upload to an existing Github repository.",
-                                      status.HTTP_400_BAD_REQUEST)
+    # # Uploading to an existing Github repository is not allowed
+    # if resource_id:
+    #     raise PresQTResponseException("Can't upload to an existing Github repository.",
+    #                                   status.HTTP_400_BAD_REQUEST)
 
     try:
         header, username = validation_check(token)
@@ -65,48 +65,103 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
 
     os_path = next(os.walk(resource_main_dir))
 
-    # Create a new repository with the name being the top level directory's name.
-    # Note: GitHub doesn't allow spaces in repo_names
-    repo_title = os_path[1][0].replace(' ', '_')
-    title = create_repository(repo_title, token)
+    # Upload a new repository
+    if not resource_id:
+        # Create a new repository with the name being the top level directory's name.
+        # Note: GitHub doesn't allow spaces in repo_names
+        repo_title = os_path[1][0].replace(' ', '_')
+        repo_name = create_repository(repo_title, token)
 
-    resources_ignored = []
-    action_metadata = {"destinationUsername": username}
-    file_metadata_list = []
-    for path, subdirs, files in os.walk(resource_main_dir):
-        if not subdirs and not files:
-            resources_ignored.append(path)
-        for name in files:
-            # Extract and encode the file bytes in the way expected by GitHub.
-            file_bytes = open(os.path.join(path, name), 'rb').read()
-            encoded_file = base64.b64encode(file_bytes).decode('utf-8')
-            # A relative path to the file is what is added to the GitHub PUT address
-            path_to_add = os.path.join(path.partition('/data/')[2], name)
-            path_to_add_to_url = path_to_add.partition('/')[2].replace(' ', '_')
-            finished_path = '/' + title + '/' + path_to_add_to_url
-            file_metadata_list.append({
-                "actionRootPath": os.path.join(path, name),
-                "destinationPath": finished_path,
-                "title": name,
-                "destinationHash": None})
+        resources_ignored = []
+        action_metadata = {"destinationUsername": username}
+        file_metadata_list = []
+        for path, subdirs, files in os.walk(resource_main_dir):
+            if not subdirs and not files:
+                resources_ignored.append(path)
+            for name in files:
+                # Extract and encode the file bytes in the way expected by GitHub.
+                file_bytes = open(os.path.join(path, name), 'rb').read()
+                encoded_file = base64.b64encode(file_bytes).decode('utf-8')
+                # A relative path to the file is what is added to the GitHub PUT address
+                path_to_add = os.path.join(path.partition('/data/')[2], name)
+                path_to_add_to_url = path_to_add.partition('/')[2].replace(' ', '_')
+                finished_path = '/' + repo_name + '/' + path_to_add_to_url
+                file_metadata_list.append({
+                    "actionRootPath": os.path.join(path, name),
+                    "destinationPath": finished_path,
+                    "title": name,
+                    "destinationHash": None})
 
-            put_url = "https://api.github.com/repos/{}/{}/contents/{}".format(
-                username, title, path_to_add_to_url)
-            data = {
-                "message": "PresQT Upload",
-                "committer": {
-                    "name": "PresQT",
-                    "email": "N/A"},
-                "content": encoded_file}
+                put_url = "https://api.github.com/repos/{}/{}/contents/{}".format(
+                    username, repo_name, path_to_add_to_url)
+                data = {
+                    "message": "PresQT Upload",
+                    "committer": {
+                        "name": "PresQT",
+                        "email": "N/A"},
+                    "content": encoded_file}
 
-            requests.put(put_url, headers=header, data=json.dumps(data))
+                requests.put(put_url, headers=header, data=json.dumps(data))
+    else:
+        # Upload to an existing repository
+        if ':' not in resource_id:
+            repo_id = resource_id
+            path_to_resource = ''
+        # Upload to an existing directory
+        else:
+            partitioned_id = resource_id.partition(':')
+            repo_id = partitioned_id[0]
+            path_to_resource = '/' + partitioned_id[2].replace('%2F', '/').replace('%2E', '.')
+
+        # Get initial repo data for the resource requested
+        repo_url = 'https://api.github.com/repositories/{}'.format(repo_id)
+        response = requests.get(repo_url, headers=header)
+
+        if response.status_code != 200:
+            raise PresQTResponseException(
+                'The resource with id, {}, does not exist for this user.'.format(resource_id),
+                status.HTTP_404_NOT_FOUND)
+        repo_data = response.json()
+        repo_name = repo_data['name']
+        resources_ignored = []
+        action_metadata = {"destinationUsername": username}
+        file_metadata_list = []
+        for path, subdirs, files in os.walk(resource_main_dir):
+            if not subdirs and not files:
+                resources_ignored.append(path)
+            for name in files:
+                # Extract and encode the file bytes in the way expected by GitHub.
+                file_bytes = open(os.path.join(path, name), 'rb').read()
+                encoded_file = base64.b64encode(file_bytes).decode('utf-8')
+                # A relative path to the file is what is added to the GitHub PUT address
+                path_to_add_to_url = os.path.join(path.partition('/data/')[2], name).replace(' ', '_')
+                destination_path = os.path.join(repo_name,
+                                                path_to_resource,
+                                                path.partition('/data')[2])
+                file_metadata_list.append({
+                    "actionRootPath": os.path.join(path, name),
+                    "destinationPath": destination_path,
+                    "title": name,
+                    "destinationHash": None})
+
+                put_url = 'https://api.github.com/repos/{}/contents/{}{}'.format(
+                    repo_data['full_name'], path_to_resource, path_to_add_to_url)
+                data = {
+                    "message": "PresQT Upload",
+                    "committer": {
+                        "name": "PresQT",
+                        "email": "N/A"},
+                    "content": encoded_file}
+
+                requests.put(put_url, headers=header, data=json.dumps(data))
 
     resources_updated = []
-
     return {
         'resources_ignored': resources_ignored,
         'resources_updated': resources_updated,
         'action_metadata': action_metadata,
         'file_metadata_list': file_metadata_list,
-        'project_id': title
+        'project_id': repo_name
     }
+
+

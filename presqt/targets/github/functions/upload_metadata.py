@@ -37,7 +37,7 @@ def github_upload_metadata(token, project_id, metadata_dict):
         "content": base64_metadata}
 
     response = requests.put(put_url, headers=header, data=json.dumps(data))
-
+    print(response)
     if response.status_code != 201:
         raise PresQTError(
             "The request to create a metadata file has resulted in a {} error code from GitHub.".format(
