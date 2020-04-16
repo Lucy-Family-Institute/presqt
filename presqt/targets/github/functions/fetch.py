@@ -9,7 +9,7 @@ from presqt.utilities import PresQTResponseException
 
 def github_fetch_resources(token, search_parameter):
     """
-    Fetch all users repos from GitHub.
+    Fetch all users resources from GitHub.
 
     Parameters
     ----------
@@ -108,8 +108,8 @@ def github_fetch_resource(token, resource_id):
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
+    # Without a colon, we know this is a top level repo
     if ':' not in resource_id:
-        # Without a colon, we know this is a top level repo
         project_url = 'https://api.github.com/repositories/{}'.format(resource_id)
         response = requests.get(project_url, headers=header)
 
@@ -117,8 +117,27 @@ def github_fetch_resource(token, resource_id):
             raise PresQTResponseException("The resource could not be found by the requesting user.",
                                           status.HTTP_404_NOT_FOUND)
 
+        data = response.json()
+
+        resource = {
+            "kind": "container",
+            "kind_name": "repo",
+            "id": data['id'],
+            "title": data['name'],
+            "date_created": data['created_at'],
+            "date_modified": data['updated_at'],
+            "hashes": {},
+            "extra": {}
+        }
+        for key, value in data.items():
+            if '_url' in key:
+                pass
+            else:
+                resource['extra'][key] = value
+
+        return resource
+    # If there is a colon in the resource id, the resource could be a directory or a file
     elif ':' in resource_id:
-        # If there is a colon in the resource id, the resource could be a directory or a file
         partitioned_id = resource_id.partition(':')
         repo_id = partitioned_id[0]
         path_to_file = partitioned_id[2].replace('%2F', '/').replace('%2E', '.')
@@ -165,23 +184,3 @@ def github_fetch_resource(token, resource_id):
                           'commit_hash': file_json['sha'],
                           'path': file_json['path']}
             }
-
-    data = response.json()
-
-    resource = {
-        "kind": "container",
-        "kind_name": "repo",
-        "id": data['id'],
-        "title": data['name'],
-        "date_created": data['created_at'],
-        "date_modified": data['updated_at'],
-        "hashes": {},
-        "extra": {}
-    }
-    for key, value in data.items():
-        if '_url' in key:
-            pass
-        else:
-            resource['extra'][key] = value
-
-    return resource
