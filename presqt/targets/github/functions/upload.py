@@ -112,7 +112,6 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
             partitioned_id = resource_id.partition(':')
             repo_id = partitioned_id[0]
             path_to_resource = '/' + partitioned_id[2].replace('%2F', '/').replace('%2E', '.')
-
         # Get initial repo data for the resource requested
         repo_url = 'https://api.github.com/repositories/{}'.format(repo_id)
         response = requests.get(repo_url, headers=header)
@@ -123,6 +122,7 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                 status.HTTP_404_NOT_FOUND)
         repo_data = response.json()
         repo_name = repo_data['name']
+
         resources_ignored = []
         action_metadata = {"destinationUsername": username}
         file_metadata_list = []
@@ -135,16 +135,13 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                 encoded_file = base64.b64encode(file_bytes).decode('utf-8')
                 # A relative path to the file is what is added to the GitHub PUT address
                 path_to_add_to_url = os.path.join(path.partition('/data/')[2], name).replace(' ', '_')
-                destination_path = os.path.join(repo_name,
-                                                path_to_resource,
-                                                path.partition('/data')[2])
                 file_metadata_list.append({
                     "actionRootPath": os.path.join(path, name),
-                    "destinationPath": destination_path,
+                    "destinationPath": os.path.join(repo_name, path_to_resource, path_to_add_to_url),
                     "title": name,
                     "destinationHash": None})
 
-                put_url = 'https://api.github.com/repos/{}/contents/{}{}'.format(
+                put_url = 'https://api.github.com/repos/{}/contents{}/{}'.format(
                     repo_data['full_name'], path_to_resource, path_to_add_to_url)
                 data = {
                     "message": "PresQT Upload",
