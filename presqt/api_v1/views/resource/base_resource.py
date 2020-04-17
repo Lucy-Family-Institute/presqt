@@ -489,7 +489,7 @@ class BaseResource(APIView):
         resources_updated = [file[len(self.data_directory):]
                              for file in func_dict['resources_updated']]
         self.process_info_obj['resources_updated'] = resources_updated
-        print(self.source_fts_metadata_actions)
+
         self.metadata_validation = create_upload_metadata(self,
                                                           func_dict['file_metadata_list'],
                                                           func_dict['action_metadata'],
