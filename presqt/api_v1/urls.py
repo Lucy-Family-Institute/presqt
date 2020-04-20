@@ -21,6 +21,7 @@ api_v1_endpoints = [
 
     # Targets
     path('status/', StatusCollection.as_view(), name="status_collection"),
+    # TODO: do we want an endpoint for individual targets? I don't really see a need to
     # path('status/<str:target_name>/', Status.as_view(), name="status"),
 
     # Resources
