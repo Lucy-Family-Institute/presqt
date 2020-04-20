@@ -6,7 +6,7 @@ from presqt.utilities import read_file
 
 class TestTargetCollection(SimpleTestCase):
     """
-    Test the `api_v1/targets/` endpoint's GET method.
+    Test the `api_v1/statuses/` endpoint's GET method.
     """
     targets = read_file('presqt/specs/targets.json', True)
 

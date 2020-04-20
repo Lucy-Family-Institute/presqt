@@ -16,7 +16,7 @@ class StatusCollection(APIView):
 
     def get(self, request):
         """
-        Retrieve all Targets.
+        Retrieve all Target statuses.
 
         Returns
         -------

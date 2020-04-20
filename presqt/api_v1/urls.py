@@ -19,7 +19,7 @@ api_v1_endpoints = [
     path('targets/', TargetCollection.as_view(), name="target_collection"),
     path('targets/<str:target_name>/', Target.as_view(), name="target"),
 
-    # Targets
+    # Statuses
     path('statuses/', StatusCollection.as_view(), name="status_collection"),
 
     # Resources
