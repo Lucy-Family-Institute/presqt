@@ -137,8 +137,6 @@ def curate_nd_download_resource(token, resource_id):
 
                 title_helper[download_url] = contained_file.title
                 hash_helper[download_url] = contained_file.md5
-                file_urls.append(download_url)
-
                 title_helper[file['downloadUrl']] = file['label']
                 file_urls.append(file['downloadUrl'])
 
