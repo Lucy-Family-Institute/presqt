@@ -1,9 +1,7 @@
-import json
-
 from django.test import SimpleTestCase
 from rest_framework.reverse import reverse
 
-from utilities import read_file
+from presqt.utilities import read_file
 
 
 class TestTargetCollection(SimpleTestCase):
