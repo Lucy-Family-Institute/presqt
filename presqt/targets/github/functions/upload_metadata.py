@@ -98,7 +98,7 @@ def github_upload_metadata(token, project_id, metadata_dict):
                                           headers=header,
                                           data=json.dumps(payload))
 
-    if response.status_code != 201 or response.status_code != 200:
+    if response.status_code != 201 and response.status_code != 200:
         raise PresQTError(
             "The request to create a metadata file has resulted in a {} error code from GitHub.".format(
                 response.status_code))

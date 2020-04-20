@@ -38,7 +38,7 @@ class TestResourceCollection(SimpleTestCase):
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
         # Verify the count of resource objects is what we expect.
-        self.assertEqual(len(response.data), 149)
+        self.assertEqual(len(response.data), 146)
 
         for data in response.data:
             self.assertEqual(len(data['links']), 1)
@@ -396,37 +396,6 @@ class TestResourceCollectionPOST(SimpleTestCase):
         self.assertEqual(len(valid_metadata_file['actions']), 2)
 
         delete_github_repo('presqt-test-user', 'Good_Egg', header)
-        # Delete upload folder
-        shutil.rmtree(ticket_path)
-
-    def test_400_error_bad_request(self):
-        """
-        If the user attempts to post to an existing repo, return a 400.
-        """
-        # Attempt to post to an existing repo.
-        self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
-        response = self.client.post(self.url + ('209372336/'),
-                                    {'presqt-file': open(self.file, 'rb')}, **self.headers)
-
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
-
-        # Wait until the spawned off process finishes in the background
-        # to do validation on the resulting files
-        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
-            try:
-                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-            except json.decoder.JSONDecodeError:
-                # Pass while the process_info file is being written to
-                pass
-
-        upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
-        # Ensure the response is what we expect
-        self.assertEqual(upload_job_response.data['status_code'], 400)
-        self.assertEqual(upload_job_response.data['message'],
-                         "Can't upload to an existing Github repository.")
-
         # Delete upload folder
         shutil.rmtree(ticket_path)
 

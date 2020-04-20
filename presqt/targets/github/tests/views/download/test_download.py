@@ -238,7 +238,7 @@ class TestDownload(SimpleTestCase):
                                               'response_format': 'zip'})
         response = self.client.get(url, **self.header)
         # Verify the status code
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 500)
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))

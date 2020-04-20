@@ -32,11 +32,13 @@ def osf_upload_metadata(token, project_id, metadata_dict):
 
     for data in project_data:
         if data['attributes']['name'] == file_name:
+            print('Found it!!')
             old_metadata_file = requests.get(data['links']['move'], headers=header).content
             # Update the existing metadata
             updated_metadata = json.loads(old_metadata_file)
 
             if schema_validator('presqt/json_schemas/metadata_schema.json', updated_metadata) is not True:
+                print('failed!!')
                 # We need to change the file name, this metadata is improperly formatted and
                 # therefore invalid.
                 rename_payload = {"action": "rename",
