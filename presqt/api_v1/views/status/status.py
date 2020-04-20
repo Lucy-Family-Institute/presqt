@@ -28,7 +28,7 @@ class StatusCollection(APIView):
             {
                 "service": "osf",
                 "status": "offline"
-                "detail"
+                "detail": "
             },
         ]
         """
@@ -50,48 +50,31 @@ class StatusCollection(APIView):
                 response: requests.Response = requests.get(url, timeout=60)
                 response.raise_for_status()
             except requests.ConnectTimeout as e:
-                data.append(
-                    {
-                        "service": service,
-                        "status": "timeout",
-                        "detail": "The request timed out while trying to connect to the remote server.",
-                    }
-                )
+                status = "timeout"
+                detail = "The request timed out while trying to connect to the remote server."
             except requests.ReadTimeout as e:
-                data.append(
-                    {
-                        "service": service,
-                        "status": "timeout",
-                        "detail": "The server did not send any data in the allotted amount of time.",
-                    }
-                )
+                status = "timeout"
+                detail = "The server did not send any data in the allotted amount of time."
             except requests.exceptions.SSLError as e:
-                data.append(
-                    {
-                        "service": service,
-                        "status": "error",
-                        "detail": "An SSL error occurred.",
-                    }
-                )
+                status = "ssl_error"
+                detail = "An SSL error occurred."
             except requests.HTTPError as e:
-                data.append(
-                    {
-                        "service": service,
-                        "status": "http_error",
-                        "detail": f"An HTTP {e.response.status_code} error occured",
-                    }
-                )
+                status = "http_error"
+                detail = f"An HTTP {e.response.status_code} error occured"
             except requests.RequestException as e:
-                data.append(
-                    {
-                        "service": service,
-                        "status": "error",
-                        "detail": f"Some other request exception occured: {e}",
-                    }
-                )
+                # TooManyRedirects, InvalidURL etc.
+                status = "error"
+                detail = f"Some other request exception occured: {e}"
             else:
-                data.append(
-                    {"service": service, "status": "ok",}
-                )
+                status = "ok"
+                detail = None
+
+            data_entry = {
+                "service": service,
+                "status": status,
+            }
+            if detail:
+                data_entry["detail"] = detail
+            data.append(data_entry)
 
         return Response(data)
