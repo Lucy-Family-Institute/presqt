@@ -33,7 +33,6 @@ class StatusCollection(APIView):
         ]
         """
 
-        # TODO: where should this go?
         config = {
             "osf": "https://api.osf.io/v2/nodes/",
             "curate_nd": "https://curate.nd.edu/api/items",
@@ -68,10 +67,8 @@ class StatusCollection(APIView):
                 status = "ok"
                 detail = "Connected to server successfully"
 
-            data_entry = {
-                "service": service,
-                "status": status,
-                "detail": detail,
-            }
+            data.append(
+                {"service": service, "status": status, "detail": detail,}
+            )
 
         return Response(data)
