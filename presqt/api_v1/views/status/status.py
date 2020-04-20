@@ -28,11 +28,12 @@ class StatusCollection(APIView):
             {
                 "service": "osf",
                 "status": "offline"
-                "error_detail"
+                "detail"
             },
         ]
         """
 
+        # TODO: where should this go?
         config = {
             "osf": "https://api.osf.io/v2/nodes/",
             "curate_nd": "https://curate.nd.edu/api/items",
@@ -45,6 +46,7 @@ class StatusCollection(APIView):
 
         for service, url in config.items():
             try:
+                # TODO: isn't a minute kind of a lot?
                 response: requests.Response = requests.get(url, timeout=60)
                 response.raise_for_status()
             except requests.ConnectTimeout as e:
@@ -71,16 +73,20 @@ class StatusCollection(APIView):
                         "detail": "An SSL error occurred.",
                     }
                 )
-            except requests.ConnectionError as e:
-                data.append(
-                    {"service": service, "status": "offline",}
-                )
             except requests.HTTPError as e:
                 data.append(
                     {
                         "service": service,
                         "status": "http_error",
                         "detail": f"An HTTP {e.response.status_code} error occured",
+                    }
+                )
+            except requests.RequestException as e:
+                data.append(
+                    {
+                        "service": service,
+                        "status": "error",
+                        "detail": f"Some other request exception occured: {e}",
                     }
                 )
             else:
