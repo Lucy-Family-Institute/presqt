@@ -96,21 +96,43 @@ def gitlab_download_resource(token, resource_id):
     # Get the user's GitLab username for action metadata
     username = requests.get("https://gitlab.com/api/v4/user", headers=header).json()['username']
 
-    project_url = 'https://gitlab.com/api/v4/projects/{}'.format(resource_id)
+    print(resource_id)
+    if ':' in resource_id:
+        project_id = resource_id.partition(':')[0]
+    else:
+        project_id = resource_id
+
+    project_url = 'https://gitlab.com/api/v4/projects/{}'.format(project_id)
 
     response = requests.get(project_url, headers=header)
-
     if response.status_code != 200:
         raise PresQTResponseException(
             'The resource with id, {}, does not exist for this user.'.format(resource_id),
             status.HTTP_404_NOT_FOUND)
 
     project_name = response.json()['name']
-
-    all_files_url = "https://gitlab.com/api/v4/projects/{}/repository/tree?recursive=1".format(
-        resource_id)
-    # We need to get all the files for this project
-    data = gitlab_paginated_data(header, user_id, all_files_url)
+    if ':' not in resource_id:
+        all_files_url = "https://gitlab.com/api/v4/projects/{}/repository/tree?recursive=1".format(
+            resource_id)
+        data = gitlab_paginated_data(header, user_id, all_files_url)
+    elif ':' in resource_id and '%2E' not in resource_id:
+        all_files_url = "https://gitlab.com/api/v4/projects/{}/repository/tree?path={}&recursive=1".format(
+                resource_id, resource_id.partition(':')[2])
+        data = gitlab_paginated_data(header, user_id, all_files_url)
+    else:
+        data = requests.get('https://gitlab.com/api/v4/projects/{}/repository/files/{}?ref=master'.format(
+            project_id, resource_id.partition(':')[2]), headers=header).json()
+        print(base64.b64decode(data['content']))
+        return {
+            'resources': [{
+                'file': base64.b64decode(data['content']),
+                'hashes': {'sha256': data['content_sha256']},
+                'title': data['file_name'],
+                'path': '/{}'.format(data['file_name']),
+                'source_path': data['file_path'],
+                'extra_metadata': {}}],
+            'empty_containers': [],
+            'action_metadata': {'sourceUsername': username}}
 
     files, empty_containers, action_metadata = download_content(
         username, project_name, resource_id, data, [])
