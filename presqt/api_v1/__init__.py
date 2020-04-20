@@ -10,4 +10,6 @@ def api_root(request, format=None):
     """
     return Response({
         'targets': reverse('target_collection', request=request, format=format),
+        'statuses': reverse('status_collection', request=request, format=format),
+        'services': reverse('service_collection', request=request, format=format),
     })
