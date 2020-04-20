@@ -2,6 +2,8 @@ import requests
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from presqt.utilities import read_file
+
 
 class StatusCollection(APIView):
     """
@@ -33,17 +35,14 @@ class StatusCollection(APIView):
         ]
         """
 
-        config = {
-            "osf": "https://api.osf.io/v2/nodes/",
-            "curate_nd": "https://curate.nd.edu/api/items",
-            "github": "https://api.github.com/repositories",
-            "zenodo": "https://zenodo.org/api/records/",
-            "gitlab": "https://gitlab.com/api/v4/projects",
-        }
+        response_data = []
 
-        data = []
+        json_data = read_file('presqt/specs/targets.json', True)
 
-        for service, url in config.items():
+        # Find the JSON dictionary for the target_name provided
+        for json_datum in json_data:
+            service = json_datum["name"]
+            url = json_datum["status_url"]
             try:
                 response: requests.Response = requests.get(url, timeout=10)
                 response.raise_for_status()
@@ -67,8 +66,8 @@ class StatusCollection(APIView):
                 status = "ok"
                 detail = "Connected to server successfully"
 
-            data.append(
+            response_data.append(
                 {"service": service, "status": status, "detail": detail,}
             )
 
-        return Response(data)
+        return Response(response_data)
