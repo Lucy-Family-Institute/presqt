@@ -1,5 +1,6 @@
 from django.urls import path
 
+from presqt.api_v1.views.status.status import StatusCollection
 from presqt.api_v1 import api_root
 from presqt.api_v1.views.download.download_job import DownloadJob
 from presqt.api_v1.views.resource.resource import Resource
@@ -17,6 +18,10 @@ api_v1_endpoints = [
     # Targets
     path('targets/', TargetCollection.as_view(), name="target_collection"),
     path('targets/<str:target_name>/', Target.as_view(), name="target"),
+
+    # Targets
+    path('status/', StatusCollection.as_view(), name="status_collection"),
+    # path('status/<str:target_name>/', Status.as_view(), name="status"),
 
     # Resources
     path('targets/<str:target_name>/resources/',
