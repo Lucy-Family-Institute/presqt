@@ -3,11 +3,14 @@ import json
 from django.test import SimpleTestCase
 from rest_framework.reverse import reverse
 
+from utilities import read_file
+
 
 class TestTargetCollection(SimpleTestCase):
     """
     Test the `api_v1/targets/` endpoint's GET method.
     """
+    targets = read_file('presqt/specs/targets.json', True)
 
     def test_get_success(self):
         """
@@ -17,13 +20,11 @@ class TestTargetCollection(SimpleTestCase):
 
         # Verify the Status Code
         self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(len(response.data), len(self.targets))
+
         item: dict
         for item in response.data:
             self.assertIn("service", item.keys())
             self.assertIn("status", item.keys())
-            if item["status"] == "ok":
-                self.assertNotIn("detail", item.keys())
-            else:
-                self.assertIn("detail", item.keys())
-
-    # TODO: What other tests are needed?
+            self.assertIn("detail", item.keys())
