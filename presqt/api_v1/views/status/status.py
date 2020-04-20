@@ -46,8 +46,7 @@ class StatusCollection(APIView):
 
         for service, url in config.items():
             try:
-                # TODO: isn't a minute kind of a lot?
-                response: requests.Response = requests.get(url, timeout=60)
+                response: requests.Response = requests.get(url, timeout=10)
                 response.raise_for_status()
             except requests.ConnectTimeout as e:
                 status = "timeout"
@@ -67,14 +66,12 @@ class StatusCollection(APIView):
                 detail = f"Some other request exception occured: {e}"
             else:
                 status = "ok"
-                detail = None
+                detail = "Connected to server successfully"
 
             data_entry = {
                 "service": service,
                 "status": status,
+                "detail": detail,
             }
-            if detail:
-                data_entry["detail"] = detail
-            data.append(data_entry)
 
         return Response(data)
