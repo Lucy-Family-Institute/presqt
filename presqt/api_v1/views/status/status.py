@@ -25,13 +25,14 @@ class StatusCollection(APIView):
         [
             {
                 "service": "osf",
-                "status": "200"
+                "status": "ok",
+                "detail": "Connected to server successfully"
             },
             {
-                "service": "osf",
-                "status": "offline"
-                "detail": "
-            },
+                "service": "curate_nd",
+                "status": "timeout"
+                "detail": "The request timed out while trying to connect to the remote server."
+            }, ...
         ]
         """
 
