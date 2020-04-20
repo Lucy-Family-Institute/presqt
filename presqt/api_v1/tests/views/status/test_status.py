@@ -16,8 +16,17 @@ class TestTargetCollection(SimpleTestCase):
         """
         Return a 200 if the GET method is successful
         """
-        response = self.client.get(reverse('status_collection'))
+        response = self.client.get(reverse("status_collection"))
 
         # Verify the Status Code
         self.assertEqual(response.status_code, 200)
-        print(json.dumps(response.data, indent=2))
+        item: dict
+        for item in response.data:
+            self.assertIn("service", item.keys())
+            self.assertIn("status", item.keys())
+            if item["status"] == "ok":
+                self.assertNotIn("detail", item.keys())
+            else:
+                self.assertIn("detail", item.keys())
+
+    # TODO: What other tests are needed?
