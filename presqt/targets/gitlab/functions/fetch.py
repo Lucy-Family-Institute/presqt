@@ -68,7 +68,7 @@ def gitlab_fetch_resources(token, search_parameter):
     else:
         data = gitlab_paginated_data(headers, user_id)
 
-    return get_gitlab_project_data(data, headers)
+    return get_gitlab_project_data(data, headers, [])
 
 
 def gitlab_fetch_resource(token, resource_id):
@@ -103,36 +103,88 @@ def gitlab_fetch_resource(token, resource_id):
         }
     }
     """
-    project_url = "https://gitlab.com/api/v4/projects/{}".format(resource_id)
-
     try:
         headers, user_id = validation_check(token)
     except PresQTResponseException:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
+    partitioned_id = resource_id.partition(':')
 
-    response = requests.get(project_url, headers=headers)
+    if ':' in resource_id:
+        project_id = partitioned_id[0]
+        project_url = "https://gitlab.com/api/v4/projects/{}".format(project_id)
 
-    if response.status_code != 200:
-        raise PresQTResponseException("The resource could not be found by the requesting user.",
-                                      status.HTTP_404_NOT_FOUND)
+        response = requests.get(project_url, headers=headers)
+        if response.status_code != 200:
+            raise PresQTResponseException("The resource could not be found by the requesting user.",
+                                          status.HTTP_404_NOT_FOUND)
 
-    data = response.json()
+        path_to_resource = partitioned_id[2]
+        formatted_path_to_resource = path_to_resource.replace('%2F', '/').replace('%2E', '.')
 
-    resource = {
-        "kind": "container",
-        "kind_name": "project",
-        "id": data['id'],
-        "title": data['name'],
-        "date_created": data['created_at'],
-        "date_modified": data['last_activity_at'],
-        "hashes": {},
-        "extra": {}
-    }
-    for key, value in data.items():
-        if '_url' in key:
-            pass
+        # If there's a dot, we know we're looking at a file.
+        if '.' in formatted_path_to_resource:
+            response = requests.get(
+                'https://gitlab.com/api/v4/projects/{}/repository/files/{}?ref=master'.format(
+                    project_id, path_to_resource), headers=headers)
+            if response.status_code != 200:
+                raise PresQTResponseException("The resource could not be found by the requesting user.",
+                                              status.HTTP_404_NOT_FOUND)
+            data = response.json()
+            resource = {
+                "kind": "item",
+                "kind_name": "file",
+                "id": resource_id,
+                "title": data['file_name'],
+                "date_created": None,
+                "date_modified": None,
+                "hashes": {'sha256': data['content_sha256']},
+                "extra": {'ref': data['ref'], 'commit_id': data['commit_id'], 'size': data['size']}}
+
+        # This is for directories
         else:
-            resource['extra'][key] = value
+            response = requests.get(
+                'https://gitlab.com/api/v4/projects/{}/repository/tree?path={}'.format(
+                    project_id, path_to_resource), headers=headers)
+            # If the directory doesn't exist, they return an empty list
+            if response.json() == []:
+                raise PresQTResponseException("The resource could not be found by the requesting user.",
+                                              status.HTTP_404_NOT_FOUND)
+            resource = {
+                "kind": "container",
+                "kind_name": "dir",
+                "id": resource_id,
+                "title": path_to_resource.rpartition('/')[2],
+                "date_created": None,
+                "date_modified": None,
+                "hashes": {},
+                "extra": {}}
+
+    # This is the top level project
+    else:
+        project_url = "https://gitlab.com/api/v4/projects/{}".format(resource_id)
+
+        response = requests.get(project_url, headers=headers)
+        if response.status_code != 200:
+            raise PresQTResponseException("The resource could not be found by the requesting user.",
+                                          status.HTTP_404_NOT_FOUND)
+
+        data = response.json()
+
+        resource = {
+            "kind": "container",
+            "kind_name": "project",
+            "id": data['id'],
+            "title": data['name'],
+            "date_created": data['created_at'],
+            "date_modified": data['last_activity_at'],
+            "hashes": {},
+            "extra": {}
+        }
+        for key, value in data.items():
+            if '_url' in key:
+                pass
+            else:
+                resource['extra'][key] = value
 
     return resource

@@ -1,7 +1,7 @@
 import urllib.parse
 
 
-def get_gitlab_project_data(initial_data, headers, resources=[]):
+def get_gitlab_project_data(initial_data, headers, resources):
     """
     """
     from presqt.targets.gitlab.utilities.gitlab_paginated_data import gitlab_paginated_data
@@ -9,9 +9,10 @@ def get_gitlab_project_data(initial_data, headers, resources=[]):
     for project in initial_data:
         if ('marked_for_deletion_at' in project.keys() and not project['marked_for_deletion_at']) or (
                 'marked_for_deletion_at' not in project.keys()):
-            tree_url = '{}/{}'.format(project['_links']['self'], 'repository/tree?recursive=1')
+            tree_url = 'https://gitlab.com/api/v4/projects/{}/repository/tree?recursive=1'.format(
+                    project['id'])
+            
             file_data = gitlab_paginated_data(headers, None, tree_url)
-            print(file_data)
 
             resources.append({
                 "kind": "container",
@@ -19,7 +20,7 @@ def get_gitlab_project_data(initial_data, headers, resources=[]):
                 "container": None,
                 "id": project['id'],
                 "title": project['name']})
-
+            
             for entry in file_data:
                 if '/' in entry['path']:
                     container_id = "{}:{}".format(project['id'], urllib.parse.quote_plus(entry[
@@ -45,4 +46,5 @@ def get_gitlab_project_data(initial_data, headers, resources=[]):
                         "id": type_id,
                         "title": entry['name']}
                     resources.append(resource)
+
     return resources

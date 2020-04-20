@@ -67,7 +67,7 @@ class ResourceSerializer(serializers.Serializer):
         """
         list_of_actions = action_checker(self.context.get('target_name'))
         # Build a list of endpoint_actions and compare with list_of_actions
-        if self.context.get('target_name') in ['github', 'gitlab']:
+        if self.context.get('target_name') in ['github']:
             endpoint_actions = ['resource_download']
         else:
             endpoint_actions = ['resource_download', 'resource_upload', 'resource_transfer_in']

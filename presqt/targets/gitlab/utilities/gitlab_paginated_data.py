@@ -23,6 +23,8 @@ def gitlab_paginated_data(headers, user_id, url=None):
 
     data = []
     response = requests.get(url, headers=headers)
+    if response.status_code != 200:
+        return data
     next_page_number = response.headers['X-Next-Page']
     data.extend(response.json())
 
