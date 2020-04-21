@@ -1,7 +1,7 @@
 import requests
 
 
-def download_content(username, project_name, resource_id, data, files):
+def download_content(username, project_name, resource_id, data, files, is_project):
     """
     Recursive function to extract all files from a given project.
 
@@ -17,6 +17,8 @@ def download_content(username, project_name, resource_id, data, files):
         The initial project data
     files : list
         A list of dictionaries with file information
+    is_project: boolean
+        Whether what is to be downloaded is a project or not
 
     Returns
     -------
@@ -30,12 +32,17 @@ def download_content(username, project_name, resource_id, data, files):
             entry_path = entry['path'].replace('/', '%2F')
             file_url = "https://gitlab.com/api/v4/projects/{}/repository/files/{}?ref=master".format(
                 resource_id, entry_path)
+            # Format the path given a project or a directory
+            if is_project:
+                file_path = "/{}/{}".format(project_name, entry['path'])
+            else:
+                file_path = "/{}".format(entry['path'])
 
             files.append({
                 'file': file_url,
                 'hashes': {},
                 'title': entry['name'],
-                'path': "/{}/{}".format(project_name, entry['path']),
+                'path': file_path,
                 'source_path': "/{}/{}".format(project_name, entry['path']),
                 'extra_metadata': {}})
 

@@ -96,9 +96,9 @@ def gitlab_download_resource(token, resource_id):
     # Get the user's GitLab username for action metadata
     username = requests.get("https://gitlab.com/api/v4/user", headers=header).json()['username']
 
-    print(resource_id)
+    partitioned_id = resource_id.partition(':')
     if ':' in resource_id:
-        project_id = resource_id.partition(':')[0]
+        project_id = partitioned_id[0]
     else:
         project_id = resource_id
 
@@ -112,17 +112,32 @@ def gitlab_download_resource(token, resource_id):
 
     project_name = response.json()['name']
     if ':' not in resource_id:
+        # This is for a project
         all_files_url = "https://gitlab.com/api/v4/projects/{}/repository/tree?recursive=1".format(
             resource_id)
         data = gitlab_paginated_data(header, user_id, all_files_url)
+        is_project = True
+
     elif ':' in resource_id and '%2E' not in resource_id:
+        # This is for a directory
         all_files_url = "https://gitlab.com/api/v4/projects/{}/repository/tree?path={}&recursive=1".format(
-                resource_id, resource_id.partition(':')[2])
+            partitioned_id[0], partitioned_id[2])
         data = gitlab_paginated_data(header, user_id, all_files_url)
+        if data == []:
+            raise PresQTResponseException(
+                'The resource with id, {}, does not exist for this user.'.format(resource_id),
+                status.HTTP_404_NOT_FOUND)
+        is_project = False
+
     else:
+        # This is a single file
         data = requests.get('https://gitlab.com/api/v4/projects/{}/repository/files/{}?ref=master'.format(
-            project_id, resource_id.partition(':')[2]), headers=header).json()
-        print(base64.b64decode(data['content']))
+            project_id, partitioned_id[2]), headers=header).json()
+        if 'message' in data.keys():
+            raise PresQTResponseException(
+                'The resource with id, {}, does not exist for this user.'.format(resource_id),
+                status.HTTP_404_NOT_FOUND)
+
         return {
             'resources': [{
                 'file': base64.b64decode(data['content']),
@@ -135,7 +150,7 @@ def gitlab_download_resource(token, resource_id):
             'action_metadata': {'sourceUsername': username}}
 
     files, empty_containers, action_metadata = download_content(
-        username, project_name, resource_id, data, [])
+        username, project_name, project_id, data, [], is_project)
     file_urls = [file['file'] for file in files]
 
     loop = asyncio.new_event_loop()
