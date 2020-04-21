@@ -133,6 +133,7 @@ class TestResourcePOST(SimpleTestCase):
         self.url = reverse('resource_collection', kwargs={'target_name': 'github'})
         self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
         self.resources_ignored = []
+        self.failed_fixity = ['/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
         self.resources_updated = []
         self.hash_algorithm = 'md5'
 
@@ -167,13 +168,38 @@ class TestResourcePOST(SimpleTestCase):
         # Delete upload folder
         shutil.rmtree(self.ticket_path)
 
+        # Upload to the newly created project
         self.url = reverse('resource', kwargs={'target_name': 'github', 'resource_id': repo_id})
         shared_upload_function_github(self)
 
         # Delete upload folder
         shutil.rmtree(self.ticket_path)
 
-        self.url = reverse('resource', kwargs={'target_name': 'github', 'resource_id': '{}:funnyfunnyimages'.format(repo_id)})
+        # Try the same upload again so we get a resource ignored
+        self.url = reverse('resource', kwargs={'target_name': 'github', 'resource_id': repo_id})
+        self.resources_ignored = ['/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
+        self.failed_fixity = []
+        shared_upload_function_github(self)
+
+        # Delete upload folder
+        shutil.rmtree(self.ticket_path)
+
+        # Try the same upload again but with duplicate resources set to update
+        self.duplicate_action = 'update'
+        self.url = reverse('resource', kwargs={'target_name': 'github', 'resource_id': repo_id})
+        self.resources_updated = ['/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
+        self.failed_fixity = ['/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
+        self.resources_ignored = []
+        shared_upload_function_github(self)
+
+        # Delete upload folder
+        shutil.rmtree(self.ticket_path)
+
+        # Upload to an existing folder
+        self.url = reverse('resource', kwargs={'target_name': 'github', 'resource_id': '{}:NewProject%2Efunnyfunnyimages'.format(repo_id)})
+        self.resources_ignored = []
+        self.resources_updated = []
+        self.failed_fixity = ['/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
         shared_upload_function_github(self)
 
         # Delete upload folder
@@ -247,6 +273,7 @@ class TestResourcePOST(SimpleTestCase):
         # Delete upload folder
         shutil.rmtree(self.ticket_path)
         self.file = 'presqt/api_v1/tests/resources/upload/Empty_Directory_Bag.zip'
+        self.failed_fixity = ['/Egg/egg.json']
         self.resources_ignored = ['/Egg/Empty_Folder']
         self.url = reverse('resource', kwargs={'target_name': 'github', 'resource_id': repo_id})
         shared_upload_function_github(self)
@@ -260,7 +287,7 @@ class TestResourcePOST(SimpleTestCase):
         """
         self.assertRaises(PresQTError, github_upload_metadata, self.token, 'eggtest',
                       {"bad": "metadata"})
-    #
+
     def test_error_updating_metadata_file(self):
         """
         Test that an error is raised if there's an issue creating an invalid metadata file.
@@ -300,7 +327,6 @@ class TestResourcePOST(SimpleTestCase):
 
         # Delete corresponding folder
         shutil.rmtree(self.ticket_path)
-
 
     def test_error_updating_invalid_metadata_file(self):
         """

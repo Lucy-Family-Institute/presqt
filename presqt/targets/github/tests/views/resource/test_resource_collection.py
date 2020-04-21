@@ -153,6 +153,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         self.url = reverse('resource_collection', kwargs={'target_name': 'github'})
         self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
         self.resources_ignored = []
+        self.failed_fixity = ['/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
         self.resources_updated = []
         self.hash_algorithm = 'md5'
 

@@ -74,7 +74,7 @@ def shared_upload_function_github(test_case_instance):
         process_info['message'],
         "Upload successful. Fixity can't be determined because GitHub may not have provided a file checksum. See PRESQT_FTS_METADATA.json for more details.")
     test_case_instance.assertEqual(process_info['status_code'], '200')
-    test_case_instance.assertNotEqual(process_info['failed_fixity'], [])
+    test_case_instance.assertEqual(process_info['failed_fixity'], test_case_instance.failed_fixity)
     test_case_instance.assertEqual(
         process_info['resources_ignored'], test_case_instance.resources_ignored)
     test_case_instance.assertEqual(

@@ -73,6 +73,7 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         repo_name = create_repository(repo_title, token)
 
         resources_ignored = []
+        resources_updated = []
         action_metadata = {"destinationUsername": username}
         file_metadata_list = []
         for path, subdirs, files in os.walk(resource_main_dir):
@@ -112,6 +113,7 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
             partitioned_id = resource_id.partition(':')
             repo_id = partitioned_id[0]
             path_to_resource = '/' + partitioned_id[2].replace('%2F', '/').replace('%2E', '.')
+
         # Get initial repo data for the resource requested
         repo_url = 'https://api.github.com/repositories/{}'.format(repo_id)
         response = requests.get(repo_url, headers=header)
@@ -123,18 +125,32 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         repo_data = response.json()
         repo_name = repo_data['name']
 
+        # Get all repo resources so we can check if any files already exist
+        repo_resources = requests.get('{}/master?recursive=1'.format(repo_data['trees_url'][:-6]), headers=header).json()
+        current_file_paths = ['/' + resource['path'] for resource in repo_resources['tree'] if resource['type'] == 'blob']
+
         resources_ignored = []
+        resources_updated = []
         action_metadata = {"destinationUsername": username}
         file_metadata_list = []
         for path, subdirs, files in os.walk(resource_main_dir):
             if not subdirs and not files:
                 resources_ignored.append(path)
             for name in files:
+                path_to_add_to_url = os.path.join(path.partition('/data/')[2], name).replace(' ', '_')
+                # Check if the file already exists in this repository
+                full_file_path = '{}/{}'.format(path_to_resource, path_to_add_to_url)
+                if full_file_path in current_file_paths:
+                    if file_duplicate_action == 'ignore':
+                        resources_ignored.append(os.path.join(path, name))
+                        continue
+                    else:
+                        resources_updated.append(os.path.join(path, name))
+
                 # Extract and encode the file bytes in the way expected by GitHub.
                 file_bytes = open(os.path.join(path, name), 'rb').read()
                 encoded_file = base64.b64encode(file_bytes).decode('utf-8')
                 # A relative path to the file is what is added to the GitHub PUT address
-                path_to_add_to_url = os.path.join(path.partition('/data/')[2], name).replace(' ', '_')
                 file_metadata_list.append({
                     "actionRootPath": os.path.join(path, name),
                     "destinationPath": os.path.join(repo_name, path_to_resource, path_to_add_to_url),
@@ -151,8 +167,6 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                     "content": encoded_file}
 
                 requests.put(put_url, headers=header, data=json.dumps(data))
-
-    resources_updated = []
     return {
         'resources_ignored': resources_ignored,
         'resources_updated': resources_updated,
