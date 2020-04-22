@@ -71,6 +71,31 @@ class TestResourceGETJSON(SimpleTestCase):
         # Verify the status code
         self.assertEqual(response.status_code, 200)
 
+    def test_bad_repo_id_file(self):
+        """
+        Returns a 404 if the GET method fails because the repo id is bad.
+        """
+        resource_id = '2093737873242342342342342344234234234234234234234:README%2Emd'
+        url = reverse('resource', kwargs={'target_name': 'github',
+                                          'resource_id': resource_id,
+                                          'resource_format': 'json'})
+        response = self.client.get(url, **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 404)
+
+    def test_bad_file_id_file(self):
+        """
+        Returns a 404 if the GET method fails because the file is bad.
+        """
+        resource_id = '209373787:IDONTEXISTHEHE%2Ebad'
+        url = reverse('resource', kwargs={'target_name': 'github',
+                                          'resource_id': resource_id,
+                                          'resource_format': 'json'})
+        response = self.client.get(url, **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 404)
+
+
     def test_success_folder(self):
         """
         Returns a 200 if the GET method is successful when getting a GitHub `folder`.
@@ -196,7 +221,7 @@ class TestResourcePOST(SimpleTestCase):
         shutil.rmtree(self.ticket_path)
 
         # Upload to an existing folder
-        self.url = reverse('resource', kwargs={'target_name': 'github', 'resource_id': '{}:NewProject%2Efunnyfunnyimages'.format(repo_id)})
+        self.url = reverse('resource', kwargs={'target_name': 'github', 'resource_id': '{}:funnyfunnyimages'.format(repo_id)})
         self.resources_ignored = []
         self.resources_updated = []
         self.failed_fixity = ['/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
@@ -383,4 +408,116 @@ class TestResourcePOST(SimpleTestCase):
                               {"context": {}, "actions": []})
 
         # Delete corresponding folder
+        shutil.rmtree(self.ticket_path)
+
+    def test_error_updating_to_file(self):
+        # 202 when uploading a new top level repo
+        shared_upload_function_github(self)
+
+        repo_exists = False
+        repo_id = None
+
+        # Verify the new repo exists on the PresQT Resource Collection endpoint.
+        response_json = self.client.get(
+            self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
+
+        for repo in response_json:
+            if repo['title'] == self.repo_title:
+                repo_exists = True
+                repo_id = repo['id']
+
+        self.assertEquals(True, repo_exists)
+
+        # Delete upload folder
+        shutil.rmtree(self.ticket_path)
+
+        # Upload to the newly created project
+        resource_id = '{}:funnyfunnyimages%2FScreen_Shot_2019-07-15_at_3%2E26%2E49_PM%2Epng'.format(repo_id)
+        self.url = reverse('resource', kwargs={'target_name': 'github', 'resource_id': resource_id})
+
+        response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+
+        ticket_number = response.data['ticket_number']
+        self.ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+
+        # Verify status code and message
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(
+            response.data['message'], 'The server is processing the request.')
+
+        # Verify process_info file status is 'in_progress' initially
+        process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
+        self.assertEqual(process_info['status'], 'in_progress')
+
+        # Wait until the spawned off process finishes in the background to do further validation
+        process_wait(process_info, self.ticket_path)
+
+        # Verify process_info.json file data
+        process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
+        self.assertEqual(process_info['status'], 'failed')
+        self.assertEqual(process_info['message'], "The Resource provided, {}, is not a container".format(resource_id))
+        self.assertEqual(process_info['status_code'], 400)
+
+    def test_failed_upload(self):
+        # Mock a server error for when a put request is made.
+        class MockResponse:
+            def __init__(self, json_data, status_code):
+                self.json_data = json_data
+                self.status_code = status_code
+        mock_req = MockResponse({'error': 'The server is down.'}, 500)
+
+        # 202 when uploading a new top level repo
+        shared_upload_function_github(self)
+
+        # Verify the new repo exists on the PresQT Resource Collection endpoint.
+        response_json = self.client.get(
+            self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
+
+        repo_exists = False
+        repo_id = None
+
+        for repo in response_json:
+            if repo['title'] == self.repo_title:
+                repo_exists = True
+                repo_id = repo['id']
+
+        self.assertEquals(True, repo_exists)
+
+        # Delete upload folder
+        shutil.rmtree(self.ticket_path)
+
+        # Now I'll make an explicit call to our metadata function with a mocked server error and ensure
+        # it is raising an exception.
+        with patch('requests.put') as mock_request:
+            mock_request.return_value = mock_req
+
+            # Upload to the newly created project
+            self.url = reverse('resource', kwargs={'target_name': 'github', 'resource_id': repo_id})
+            self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
+            response = self.client.post(self.url, {'presqt-file': open(
+                self.file, 'rb')}, **self.headers)
+
+            ticket_number = response.data['ticket_number']
+            self.ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+
+            # Verify status code and message
+            self.assertEqual(response.status_code, 202)
+            self.assertEqual(
+                response.data['message'], 'The server is processing the request.')
+
+            # Verify process_info file status is 'in_progress' initially
+            process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
+            self.assertEqual(process_info['status'], 'in_progress')
+
+            # Wait until the spawned off process finishes in the background to do further validation
+            process_wait(process_info, self.ticket_path)
+
+            # Verify process_info.json file data
+            process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
+
+            self.assertEqual(process_info['status'], 'failed')
+            self.assertEqual(process_info['message'], "Upload failed with a status code of 500")
+            self.assertEqual(process_info['status_code'], 400)
+
+        # Delete upload folder
         shutil.rmtree(self.ticket_path)

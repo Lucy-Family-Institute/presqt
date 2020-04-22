@@ -69,6 +69,7 @@ def shared_upload_function_github(test_case_instance):
 
     # Verify process_info.json file data
     process_info = read_file('{}/process_info.json'.format(test_case_instance.ticket_path), True)
+
     test_case_instance.assertEqual(process_info['status'], 'finished')
     test_case_instance.assertEqual(
         process_info['message'],

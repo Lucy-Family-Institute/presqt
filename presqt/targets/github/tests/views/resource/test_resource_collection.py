@@ -37,8 +37,6 @@ class TestResourceCollection(SimpleTestCase):
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
-        # Verify the count of resource objects is what we expect.
-        self.assertEqual(len(response.data), 146)
 
         for data in response.data:
             self.assertEqual(len(data['links']), 1)
@@ -59,7 +57,7 @@ class TestResourceCollection(SimpleTestCase):
 
 
         ###### Search by ID #######
-        response = self.client.get(url + '?id=248593331', **self.header)
+        response = self.client.get(url + '?id=1296269', **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
@@ -130,6 +128,18 @@ class TestResourceCollection(SimpleTestCase):
 
         self.assertEqual(response.data['error'], 'PresQT Error: The search query is not formatted correctly.')
         self.assertEqual(response.status_code, 400)
+
+    def test_successful_search_with_no_results(self):
+        url = reverse('resource_collection', kwargs={'target_name': 'github'})
+        # NO AUTHOR FOUND
+        response = self.client.get(url + '?author=378rFDsahfojIO2QDJOgibberishauthor', **self.header)
+        self.assertEqual(response.data, [])
+
+        # NO ID FOUND
+        response = self.client.get(url + '?id=248593331', **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data, [])
 
 
 class TestResourceCollectionPOST(SimpleTestCase):

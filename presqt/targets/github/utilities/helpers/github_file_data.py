@@ -34,7 +34,7 @@ def get_github_repository_data(initial_data, header, resources=[]):
         if 'message' not in contents.keys():
             for resource in contents['tree']:
                 formatted_id = '{}:{}'.format(
-                    repo["id"], urllib.parse.quote_plus(resource['path']).replace(".", "%2E"))
+                    repo["id"], urllib.parse.quote_plus(resource['path']).replace(".", "%252E"))
                 title = resource['path'].rpartition('/')[2]
 
                 if title == resource['path']:

@@ -138,9 +138,10 @@ def github_fetch_resource(token, resource_id):
         return resource
     # If there is a colon in the resource id, the resource could be a directory or a file
     else:
+        resource_id = resource_id.replace('%2F', '%252F').replace('%2E', '%252E')
         partitioned_id = resource_id.partition(':')
         repo_id = partitioned_id[0]
-        path_to_resource = partitioned_id[2].replace('%2F', '/').replace('%2E', '.')
+        path_to_resource = partitioned_id[2].replace('%252F', '/').replace('%252E', '.')
         # This initial request will get the repository, which we need to get the proper contents url
         # The contents url contains a username and project name which we don't have readily available
         # to us.
