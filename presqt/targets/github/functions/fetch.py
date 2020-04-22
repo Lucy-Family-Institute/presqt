@@ -141,7 +141,7 @@ def github_fetch_resource(token, resource_id):
         resource_id = resource_id.replace('%2F', '%252F').replace('%2E', '%252E')
         partitioned_id = resource_id.partition(':')
         repo_id = partitioned_id[0]
-        path_to_resource = partitioned_id[2].replace('%252F', '/').replace('%252E', '.')
+        path_to_resource = partitioned_id[2].replace('%252F', '/').replace('%252E', '.').replace('%28', '(').replace('%29', ')')
         # This initial request will get the repository, which we need to get the proper contents url
         # The contents url contains a username and project name which we don't have readily available
         # to us.
