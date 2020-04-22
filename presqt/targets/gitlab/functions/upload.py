@@ -70,7 +70,6 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
     action_metadata = {"destinationUsername": username}
 
     os_path = next(os.walk(resource_main_dir))
-    project_title = os_path[1][0]
     resources_ignored = []
     file_metadata_list = []
 
@@ -78,6 +77,8 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
     # Create a new project with the name being the top level directory's name.
     # Check if a project with this name exists for this user
     if not resource_id:
+        project_title = os_path[1][0]
+
         titles = [data['name'] for data in gitlab_paginated_data(headers, user_id)]
         title = get_duplicate_title(project_title, titles, '-PresQT*-')
 
@@ -146,8 +147,7 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                 resources_ignored.append(path)
             for name in files:
                 # Strip server directories from file path
-                relative_file_path = os.path.join(path.partition('/data/{}/'.format(
-                    project_title))[2], name)
+                relative_file_path = os.path.join(path.partition('/data/')[2], name)
 
                 # Extract and encode the file bytes in the way expected by GitLab.
                 file_bytes = open(os.path.join(path, name), 'rb').read()

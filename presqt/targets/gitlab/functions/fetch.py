@@ -119,14 +119,19 @@ def gitlab_fetch_resource(token, resource_id):
             raise PresQTResponseException("The resource could not be found by the requesting user.",
                                           status.HTTP_404_NOT_FOUND)
 
-        path_to_resource = partitioned_id[2]
-        formatted_path_to_resource = path_to_resource.replace('%2F', '/').replace('%2E', '.')
+        path_to_resource = partitioned_id[2].replace('%252F', '%2F').replace('%252E', '%2E')
+        print(partitioned_id)
+        formatted_path_to_resource = path_to_resource.replace('%2F', '/').replace('%2E', '.').replace(
+            '%252F', '/').replace('%252E', '.')
+        print(formatted_path_to_resource)
+        print('https://gitlab.com/api/v4/projects/{}/repository/files/{}?ref=master'.format(
+            project_id, path_to_resource))
 
         # If there's a dot, we know we're looking at a file.
         if '.' in formatted_path_to_resource:
             response = requests.get(
                 'https://gitlab.com/api/v4/projects/{}/repository/files/{}?ref=master'.format(
-                    project_id, path_to_resource), headers=headers)
+                    project_id, formatted_path_to_resource), headers=headers)
             if response.status_code != 200:
                 raise PresQTResponseException("The resource could not be found by the requesting user.",
                                               status.HTTP_404_NOT_FOUND)
@@ -154,7 +159,7 @@ def gitlab_fetch_resource(token, resource_id):
                 "kind": "container",
                 "kind_name": "dir",
                 "id": resource_id,
-                "title": path_to_resource.rpartition('/')[2],
+                "title": path_to_resource.rpartition('%2F')[2],
                 "date_created": None,
                 "date_modified": None,
                 "hashes": {},

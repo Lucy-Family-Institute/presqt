@@ -39,11 +39,12 @@ def get_gitlab_project_data(initial_data, headers, resources):
             for entry in file_data:
                 if '/' in entry['path']:
                     container_id = "{}:{}".format(project['id'], urllib.parse.quote_plus(entry[
-                        'path'].rpartition('/')[0].replace(".", "%2E")))
+                        'path'].rpartition('/')[0].replace(".", "%252E")))
                 else:
                     container_id = project['id']
+
                 type_id = "{}:{}".format(project['id'], urllib.parse.quote_plus(entry[
-                    'path']).replace(".", "%2E"))
+                    'path']).replace(".", "%252E"))
                 if entry['type'] == 'blob':
                     resource = {
                         "kind": "item",
