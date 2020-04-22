@@ -66,6 +66,7 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         # Note: GitHub doesn't allow spaces in repo_names
         repo_title = os_path[1][0].replace(' ', '_')
         repo_name = create_repository(repo_title, token)
+        repo_name = repo_name.replace('(', '-').replace(')', '-')
 
         resources_ignored = []
         resources_updated = []
