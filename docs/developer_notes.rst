@@ -96,4 +96,4 @@ Example:
 Using this custom generated id, we can hit this endpoint on PresQT to get file details.
 
 .. parsed-literal::
-    https://presqt-qa.crc.nd.edu/api_v1/targets/github/resources/21387123:path2%Fto%2Ffile%2Ejpg
+    https://presqt-qa.crc.nd.edu/api_v1/targets/github/resources/21387123:path%252Fto%252Ffile%252Ejpg
