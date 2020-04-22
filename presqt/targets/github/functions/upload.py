@@ -83,7 +83,6 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                 path_to_add = os.path.join(path.partition('/data/')[2], name)
                 path_to_add_to_url = path_to_add.partition('/')[2].replace(' ', '_')
                 finished_path = '/' + repo_name + '/' + path_to_add_to_url
-                print('finished_path', finished_path)
                 file_metadata_list.append({
                     "actionRootPath": os.path.join(path, name),
                     "destinationPath": finished_path,
@@ -92,7 +91,6 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
 
                 put_url = "https://api.github.com/repos/{}/{}/contents/{}".format(
                     username, repo_name, path_to_add_to_url)
-                print(put_url)
                 data = {
                     "message": "PresQT Upload",
                     "committer": {
