@@ -124,7 +124,7 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
 
                 file_metadata_list.append({
                     "actionRootPath": os.path.join(path, name),
-                    "destinationPath": os.path.join(path.partition('/data/')[2], name),
+                    "destinationPath": os.path.join(path.partition('/data/')[2], name), # TO DO: ADD LATEST REPO NAME!
                     "title": name,
                     "destinationHash": file_json.json()['content_sha256']
                 })

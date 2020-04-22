@@ -121,7 +121,7 @@ def gitlab_download_resource(token, resource_id):
     elif ':' in resource_id and '%2E' not in resource_id:
         # This is for a directory
         all_files_url = "https://gitlab.com/api/v4/projects/{}/repository/tree?path={}&recursive=1".format(
-            partitioned_id[0], partitioned_id[2])
+            partitioned_id[0], partitioned_id[2].replace('+', ' '))
         data = gitlab_paginated_data(header, user_id, all_files_url)
         if data == []:
             raise PresQTResponseException(
@@ -132,7 +132,7 @@ def gitlab_download_resource(token, resource_id):
     else:
         # This is a single file
         data = requests.get('https://gitlab.com/api/v4/projects/{}/repository/files/{}?ref=master'.format(
-            project_id, partitioned_id[2]), headers=header).json()
+            project_id, partitioned_id[2].replace('+', ' ')), headers=header).json()
         if 'message' in data.keys():
             raise PresQTResponseException(
                 'The resource with id, {}, does not exist for this user.'.format(resource_id),
