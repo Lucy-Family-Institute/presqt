@@ -1,7 +1,9 @@
 import hashlib
 import os
 
+from django.core.exceptions import ValidationError
 from django.core.management import BaseCommand
+from django.core.validators import URLValidator
 
 from presqt.utilities import write_file, read_file, get_dictionary_from_list
 
@@ -25,6 +27,16 @@ class Command(BaseCommand):
             else:
                 break
         human_readable_target_name = input('Enter human readable target name (format however): ')
+
+        url_validator = URLValidator()
+        while True:
+            status_url = input('Enter target status url (include http:// or https://): ')
+            try:
+                url_validator(status_url)
+            except ValidationError:
+                print("Target status url must be a valid url")
+            else:
+                break
 
         while True:
             resource_collection = input('Does your target support the Resource Collection endpoint? (Y or N): ')
@@ -213,6 +225,7 @@ class Command(BaseCommand):
         target_dict = {
             "name": target_name,
             "readable_name": human_readable_target_name,
+            "status_url": status_url,
             "supported_actions": {
                 "resource_collection": resource_collection,
                 "resource_detail": resource_detail,

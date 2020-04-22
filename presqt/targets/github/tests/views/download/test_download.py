@@ -173,6 +173,92 @@ class TestDownload(SimpleTestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
 
+    def test_success_directory(self):
+        """
+        Return a 200 along with a zip file of the directory requested.
+        """
+        resource_id = '209373160:music%2F__pycache__'
+        shared_call_get_resource_zip(self, resource_id)
+
+        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number,
+                                              'response_format': 'zip'})
+        response = self.client.get(url, **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 200)
+
+        zip_file = zipfile.ZipFile(io.BytesIO(response.content))
+
+        # Verify the name of the zip file
+        self.assertEquals(
+            response._headers['content-disposition'][1],
+            'attachment; filename={}_download_{}.zip'.format(self.target_name, resource_id))
+        # Verify content type
+        self.assertEqual(response._headers['content-type'][1], 'application/zip')
+        # Verify the number of resources in the zip is correct
+        self.assertEqual(len(zip_file.namelist()), 26)
+
+        # Delete corresponding folder
+        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
+
+    def test_success_file(self):
+        """
+        Return a 200 along with a zip file of the file requested.
+        """
+        resource_id = '209373160:album_uploader%2F__pycache__%2F__init__%2Ecpython-36%2Epyc'
+        shared_call_get_resource_zip(self, resource_id)
+
+        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number,
+                                              'response_format': 'zip'})
+        response = self.client.get(url, **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 200)
+
+        zip_file = zipfile.ZipFile(io.BytesIO(response.content))
+
+        # Verify the name of the zip file
+        self.assertEquals(
+            response._headers['content-disposition'][1],
+            'attachment; filename={}_download_{}.zip'.format(self.target_name, resource_id))
+        # Verify content type
+        self.assertEqual(response._headers['content-type'][1], 'application/zip')
+        # Verify the number of resources in the zip is correct
+        self.assertEqual(len(zip_file.namelist()), 13)
+
+        # Delete corresponding folder
+        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
+
+    def test_success_file_bad_project(self):
+        """
+        Return a 200 along with a zip file of the file requested.
+        """
+        resource_id = '9328472398472398472398423798432984723984723984:album_uploader%2F__pycache__%2F__init__%2Ecpython-36%2Epyc'
+        shared_call_get_resource_zip(self, resource_id)
+
+        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number,
+                                              'response_format': 'zip'})
+        response = self.client.get(url, **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 500)
+
+        # Delete corresponding folder
+        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
+
+    def test_success_file_bad_file_path(self):
+        """
+        Return a 200 along with a zip file of the file requested.
+        """
+        resource_id = '209373160:bad%2Ffile%2Fpath%2E.py'
+        shared_call_get_resource_zip(self, resource_id)
+
+        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number,
+                                              'response_format': 'zip'})
+        response = self.client.get(url, **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 500)
+
+        # Delete corresponding folder
+        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
+
     def test_error_500_401(self):
         """
         Return a 500 if an invalid token is provided.

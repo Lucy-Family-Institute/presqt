@@ -3,12 +3,13 @@ import requests
 from rest_framework import status
 
 from presqt.targets.github.utilities import validation_check, github_paginated_data
+from presqt.targets.github.utilities.helpers.github_file_data import get_github_repository_data
 from presqt.utilities import PresQTResponseException
 
 
 def github_fetch_resources(token, search_parameter):
     """
-    Fetch all users repos from GitHub.
+    Fetch all users resources from GitHub.
 
     Parameters
     ----------
@@ -45,7 +46,8 @@ def github_fetch_resources(token, search_parameter):
             data = initial_data.json()
 
         elif 'general' in search_parameter:
-            search_url = "https://api.github.com/search/repositories?q={}".format(search_parameter['general'])
+            search_url = "https://api.github.com/search/repositories?q={}".format(
+                search_parameter['general'])
             data = requests.get(search_url, headers=header).json()['items']
 
         elif 'id' in search_parameter:
@@ -54,13 +56,7 @@ def github_fetch_resources(token, search_parameter):
             data = requests.get(search_url, headers=header)
             if data.status_code != 200:
                 return []
-            data_json = data.json()
-            return [{
-                "kind": "container",
-                "kind_name": "repo",
-                "container": None,
-                "id": data_json['id'],
-                "title": data_json['name']}]
+            data = [data.json()]
 
         elif 'title' in search_parameter:
             search_parameters = search_parameter['title'].replace(' ', '+')
@@ -71,16 +67,7 @@ def github_fetch_resources(token, search_parameter):
     else:
         data = github_paginated_data(token)
 
-    resources = []
-    for repo in data:
-        resource = {
-            "kind": "container",
-            "kind_name": "repo",
-            "container": None,
-            "id": repo["id"],
-            "title": repo["name"]}
-        resources.append(resource)
-    return resources
+    return get_github_repository_data(data, header, [])
 
 
 def github_fetch_resource(token, resource_id):
@@ -121,30 +108,80 @@ def github_fetch_resource(token, resource_id):
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
-    project_url = 'https://api.github.com/repositories/{}'.format(resource_id)
+    # Without a colon, we know this is a top level repo
+    if ':' not in resource_id:
+        project_url = 'https://api.github.com/repositories/{}'.format(resource_id)
+        response = requests.get(project_url, headers=header)
 
-    response = requests.get(project_url, headers=header)
+        if response.status_code != 200:
+            raise PresQTResponseException("The resource could not be found by the requesting user.",
+                                          status.HTTP_404_NOT_FOUND)
 
-    if response.status_code != 200:
-        raise PresQTResponseException("The resource could not be found by the requesting user.",
-                                      status.HTTP_404_NOT_FOUND)
+        data = response.json()
 
-    data = response.json()
+        resource = {
+            "kind": "container",
+            "kind_name": "repo",
+            "id": data['id'],
+            "title": data['name'],
+            "date_created": data['created_at'],
+            "date_modified": data['updated_at'],
+            "hashes": {},
+            "extra": {}
+        }
+        for key, value in data.items():
+            if '_url' in key:
+                pass
+            else:
+                resource['extra'][key] = value
 
-    resource = {
-        "kind": "container",
-        "kind_name": "repo",
-        "id": data['id'],
-        "title": data['name'],
-        "date_created": data['created_at'],
-        "date_modified": data['updated_at'],
-        "hashes": {},
-        "extra": {}
-    }
-    for key, value in data.items():
-        if '_url' in key:
-            pass
+        return resource
+    # If there is a colon in the resource id, the resource could be a directory or a file
+    else:
+        resource_id = resource_id.replace('%2F', '%252F').replace('%2E', '%252E')
+        partitioned_id = resource_id.partition(':')
+        repo_id = partitioned_id[0]
+        path_to_resource = partitioned_id[2].replace('%252F', '/').replace('%252E', '.')
+        # This initial request will get the repository, which we need to get the proper contents url
+        # The contents url contains a username and project name which we don't have readily available
+        # to us.
+        initial_repo_get = requests.get('https://api.github.com/repositories/{}'.format(repo_id),
+                                        headers=header)
+        if initial_repo_get.status_code != 200:
+            raise PresQTResponseException("The resource could not be found by the requesting user.",
+                                          status.HTTP_404_NOT_FOUND)
+
+        get_url = '{}{}'.format(initial_repo_get.json()['contents_url'].partition('{')[0], path_to_resource)
+        file_get = requests.get(get_url, headers=header)
+
+
+        if file_get.status_code != 200:
+            raise PresQTResponseException("The resource could not be found by the requesting user.",
+                                          status.HTTP_404_NOT_FOUND)
+        file_json = file_get.json()
+
+        if isinstance(file_json, list):
+            return {
+                "kind": "container",
+                "kind_name": "dir",
+                "id": resource_id,
+                "title": path_to_resource.rpartition('/')[2],
+                "date_created": None,
+                "date_modified": None,
+                "hashes": {},
+                "extra": {}
+            }
+
         else:
-            resource['extra'][key] = value
-
-    return resource
+            return {
+                "kind": "item",
+                "kind_name": "file",
+                "id": resource_id,
+                "title": file_json['name'],
+                "date_created": None,
+                "date_modified": None,
+                "hashes": {},
+                "extra": {'size': file_json['size'],
+                          'commit_hash': file_json['sha'],
+                          'path': file_json['path']}
+            }
