@@ -55,76 +55,126 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
     """
     base_url = "https://gitlab.com/api/v4/"
 
-# Uploading to an existing GitLab repository is not allowed
+    # Uploading to file is not possible...
     if resource_id:
-        raise PresQTResponseException("Can't upload to an existing GitLab repository.",
-                                      status.HTTP_400_BAD_REQUEST)
+        if '%2E' in resource_id:
+            raise PresQTResponseException("Can't upload to a file.",
+                                          status.HTTP_400_BAD_REQUEST)
 
     try:
         headers, user_id = validation_check(token)
     except PresQTResponseException:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
-
-    #*** CREATE PROJECT ***#
-    # Create a new project with the name being the top level directory's name.
-    os_path = next(os.walk(resource_main_dir))
-
-    # Check if a project with this name exists for this user
-    project_title = os_path[1][0]
-
-    titles = [data['name'] for data in gitlab_paginated_data(headers, user_id)]
-    title = get_duplicate_title(project_title, titles, '-PresQT*-')
-
-    response = requests.post('{}projects?name={}&visibility=public'.format(base_url, title), headers=headers)
-
-    if response.status_code == 201:
-        project_id = response.json()['id']
-    else:
-        raise PresQTResponseException(
-            "Response has status code {} while creating project {}".format(
-                response.status_code, project_title), status.HTTP_400_BAD_REQUEST)
-
-    #*** UPLOAD FILES ***#
-    # Upload files to project's repository
     username = requests.get("https://gitlab.com/api/v4/user", headers=headers).json()['username']
     action_metadata = {"destinationUsername": username}
+
+    os_path = next(os.walk(resource_main_dir))
     resources_ignored = []
     file_metadata_list = []
-    base_repo_path = "{}projects/{}/repository/files/".format(base_url, project_id)
-    for path, subdirs, files in os.walk(resource_main_dir):
-        if not subdirs and not files:
-            resources_ignored.append(path)
-        for name in files:
-            # Strip server directories from file path
-            relative_file_path = os.path.join(path.partition('/data/{}/'.format(project_title))[2],
-                                              name)
 
-            # Extract and encode the file bytes in the way expected by GitLab.
-            file_bytes = open(os.path.join(path, name), 'rb').read()
-            encoded_file = base64.b64encode(file_bytes)
+    #*** CREATE NEW PROJECT ***#
+    # Create a new project with the name being the top level directory's name.
+    # Check if a project with this name exists for this user
+    if not resource_id:
+        project_title = os_path[1][0]
 
-            # A relative path to the file is what is added to the GitLab POST address
-            encoded_file_path = relative_file_path.replace('/', '%2F').replace('.', '%2E')
+        titles = [data['name'] for data in gitlab_paginated_data(headers, user_id)]
+        title = get_duplicate_title(project_title, titles, '-PresQT*-')
 
-            request_data = {"branch": "master",
-                            "commit_message": "PresQT Upload",
-                            "encoding": "base64",
-                            "content": encoded_file}
+        response = requests.post('{}projects?name={}&visibility=public'.format(
+            base_url, title), headers=headers)
 
-            requests.post("{}{}".format(
-                base_repo_path, encoded_file_path), headers=headers, data=request_data)
+        if response.status_code == 201:
+            project_id = response.json()['id']
+        else:
+            raise PresQTResponseException(
+                "Response has status code {} while creating project {}".format(
+                    response.status_code, project_title), status.HTTP_400_BAD_REQUEST)
 
-            # Get the file hash
-            file_json = requests.get("{}{}?ref=master".format(base_repo_path, encoded_file_path),
-                                     headers=headers)
+        #*** UPLOAD FILES ***#
+        # Upload files to project's repository
+        base_repo_path = "{}projects/{}/repository/files/".format(base_url, project_id)
+        for path, subdirs, files in os.walk(resource_main_dir):
+            if not subdirs and not files:
+                resources_ignored.append(path)
+            for name in files:
+                # Strip server directories from file path
+                relative_file_path = os.path.join(path.partition('/data/{}/'.format(
+                    project_title))[2], name)
 
-            file_metadata_list.append({
-                "actionRootPath": os.path.join(path, name),
-                "destinationPath": os.path.join(path.partition('/data/')[2], name),
-                "title": name,
-                "destinationHash": file_json.json()['content_sha256']
-            })
+                # Extract and encode the file bytes in the way expected by GitLab.
+                file_bytes = open(os.path.join(path, name), 'rb').read()
+                encoded_file = base64.b64encode(file_bytes)
+
+                # A relative path to the file is what is added to the GitLab POST address
+                encoded_file_path = relative_file_path.replace('/', '%2F').replace('.', '%2E')
+
+                request_data = {"branch": "master",
+                                "commit_message": "PresQT Upload",
+                                "encoding": "base64",
+                                "content": encoded_file}
+
+                requests.post("{}{}".format(
+                    base_repo_path, encoded_file_path), headers=headers, data=request_data)
+
+                # Get the file hash
+                file_json = requests.get("{}{}?ref=master".format(base_repo_path, encoded_file_path),
+                                         headers=headers)
+
+                file_metadata_list.append({
+                    "actionRootPath": os.path.join(path, name),
+                    "destinationPath": os.path.join(path.partition('/data/')[2], name),
+                    "title": name,
+                    "destinationHash": file_json.json()['content_sha256']
+                })
+    else:
+        if ':' not in resource_id:
+            project_id = resource_id
+            base_repo_path = "{}projects/{}/repository/files/".format(base_url, project_id)
+        else:
+            partitioned_id = resource_id.partition(':')
+            project_id = partitioned_id[0]
+            base_repo_path = "{}projects/{}/repository/files/{}".format(
+                base_url, project_id, partitioned_id[2])
+
+        project = requests.get('{}projects/{}'.format(base_url, project_id), headers=headers)
+        if project.status_code != 200:
+            raise PresQTResponseException("Project with id, {}, could not be found.".format(project_id),
+                                          status.HTTP_404_NOT_FOUND)
+        for path, subdirs, files in os.walk(resource_main_dir):
+            if not subdirs and not files:
+                resources_ignored.append(path)
+            for name in files:
+                # Strip server directories from file path
+                relative_file_path = os.path.join(path.partition('/data/')[2], name)
+
+                # Extract and encode the file bytes in the way expected by GitLab.
+                file_bytes = open(os.path.join(path, name), 'rb').read()
+                encoded_file = base64.b64encode(file_bytes)
+
+                # A relative path to the file is what is added to the GitLab POST address
+                encoded_file_path = '%2F{}'.format(relative_file_path.replace('/', '%2F').replace(
+                    '.', '%2E'))
+
+                request_data = {"branch": "master",
+                                "commit_message": "PresQT Upload",
+                                "encoding": "base64",
+                                "content": encoded_file}
+
+                requests.post("{}{}".format(
+                    base_repo_path, encoded_file_path), headers=headers, data=request_data)
+
+                # Get the file hash
+                file_json = requests.get("{}{}?ref=master".format(base_repo_path, encoded_file_path),
+                                         headers=headers)
+
+                file_metadata_list.append({
+                    "actionRootPath": os.path.join(path, name),
+                    "destinationPath": os.path.join(path.partition('/data/')[2], name),
+                    "title": name,
+                    "destinationHash": file_json.json()['content_sha256']
+                })
 
     return {
         'resources_ignored': resources_ignored,
