@@ -221,8 +221,6 @@ class TestResourceCollectionPOST(SimpleTestCase):
                          'Screen Shot 2019-07-15 at 3.26.49 PM.png')
         self.assertEqual(metadata_file['actions'][0]['files']['created'][0]['sourcePath'],
                          '/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png')
-        self.assertEqual(metadata_file['actions'][0]['files']['created'][0]['destinationPath'],
-                         'NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png')
         self.assertEqual(metadata_file['actions'][0]['files']['created'][0]['destinationHashes'],
                          {'sha256': '6d33275234b28d77348e4e1049f58b95a485a7a441684a9eb9175d01c7f141ea'})
 
@@ -308,37 +306,6 @@ class TestResourceCollectionPOST(SimpleTestCase):
         self.assertEqual(len(valid_metadata_file['actions']), 2)
 
         delete_gitlab_project(response_json[0]['id'], GITLAB_UPLOAD_TEST_USER_TOKEN)
-        # Delete upload folder
-        shutil.rmtree(ticket_path)
-
-    def test_400_error_bad_request(self):
-        """
-        If the user attempts to post to an existing project, return a 400.
-        """
-        # Attempt to post to an existing repo.
-        self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
-        response = self.client.post(self.url + ('209372336/'),
-                                    {'presqt-file': open(self.file, 'rb')}, **self.headers)
-
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
-
-        # Wait until the spawned off process finishes in the background
-        # to do validation on the resulting files
-        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
-            try:
-                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-            except json.decoder.JSONDecodeError:
-                # Pass while the process_info file is being written to
-                pass
-
-        upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
-        # Ensure the response is what we expect
-        self.assertEqual(upload_job_response.data['status_code'], 400)
-        self.assertEqual(upload_job_response.data['message'],
-                         "Can't upload to an existing GitLab repository.")
-
         # Delete upload folder
         shutil.rmtree(ticket_path)
 
