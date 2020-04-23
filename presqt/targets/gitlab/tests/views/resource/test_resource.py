@@ -137,7 +137,7 @@ class TestResourceGETJSON(SimpleTestCase):
         """
         Returns a 404 if the GET method is unsuccessful when getting a GitLab `file`.
         """
-        resource_id = '17433066:android%2Fdangles%2Ejson'
+        resource_id = '17433066:dangles%2Ejson'
         url = reverse('resource', kwargs={'target_name': 'gitlab',
                                           'resource_id': resource_id,
                                           'resource_format': 'json'})

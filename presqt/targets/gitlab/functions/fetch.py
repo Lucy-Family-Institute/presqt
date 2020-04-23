@@ -118,11 +118,13 @@ def gitlab_fetch_resource(token, resource_id):
         if response.status_code != 200:
             raise PresQTResponseException("The resource could not be found by the requesting user.",
                                           status.HTTP_404_NOT_FOUND)
-        path_to_resource = partitioned_id[2].replace('%252F', '%2F').replace('%252E', '%2E').replace('+', ' ')
+        path_to_resource = partitioned_id[2].replace(
+            '%252F', '%2F').replace('%252E', '%2E').replace('+', ' ')
         string_path_to_resource = path_to_resource.replace('%2F', '/').replace('%2E', '.')
 
         # Figure out the resource type (file, folder)
-        tree_url = 'https://gitlab.com/api/v4/projects/{}/repository/tree?recursive=1'.format(project_id)
+        tree_url = 'https://gitlab.com/api/v4/projects/{}/repository/tree?recursive=1'.format(
+            project_id)
         file_data = gitlab_paginated_data(headers, None, tree_url)
         resource_type = 'folder'
         for data in file_data:
@@ -133,10 +135,8 @@ def gitlab_fetch_resource(token, resource_id):
         # Resource is a file
         if resource_type == 'file':
             response = requests.get(
-                'https://gitlab.com/api/v4/projects/{}/repository/files/{}?ref=master'.format(project_id, path_to_resource), headers=headers)
-            if response.status_code != 200:
-                raise PresQTResponseException("The resource could not be found by the requesting user.",
-                                              status.HTTP_404_NOT_FOUND)
+                'https://gitlab.com/api/v4/projects/{}/repository/files/{}?ref=master'.format(
+                    project_id, path_to_resource), headers=headers)
 
             data = response.json()
             resource = {
