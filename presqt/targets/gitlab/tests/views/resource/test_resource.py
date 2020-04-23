@@ -1,8 +1,15 @@
+import json
+import shutil
+
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 from django.test import SimpleTestCase
 
 from config.settings.base import GITLAB_TEST_USER_TOKEN, GITLAB_UPLOAD_TEST_USER_TOKEN
+from presqt.targets.gitlab.utilities import delete_gitlab_project
+from presqt.targets.utilities.tests.shared_upload_test_functions import \
+    (shared_upload_function_gitlab, process_wait)
+from presqt.utilities import read_file
 
 
 class TestResourceGETJSON(SimpleTestCase):
@@ -175,12 +182,195 @@ class TestResourcePOST(SimpleTestCase):
         self.token = GITLAB_UPLOAD_TEST_USER_TOKEN
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
-        self.good_zip_file = 'presqt/api_v1/tests/resources/upload/GoodBagIt.zip'
         self.resource_id = None
         self.duplicate_action = 'ignore'
         self.url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
         self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
         self.resources_ignored = []
-        self.failed_fixity = ['/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
         self.resources_updated = []
         self.hash_algorithm = 'sha256'
+        self.success_message = 'Upload successful.'
+
+    def test_success_upload_to_existing_containers(self):
+        """
+        Test that we can successfully upload to existing containers in Gitlab.
+        """
+        shared_upload_function_gitlab(self)
+
+        # Verify the new repo exists on the PresQT Resource Collection endpoint.
+        url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
+        project_id = self.client.get(
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()[0]['id']
+        shutil.rmtree(self.ticket_path)
+
+        # Upload to existing repo
+        self.resource_id = project_id
+        self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': project_id})
+        shared_upload_function_gitlab(self)
+        shutil.rmtree(self.ticket_path)
+
+        # Attempt to upload a duplicate resource
+        self.resource_id = project_id
+        self.resources_ignored = ['/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
+        self.success_message = "Upload successful. Fixity can't be determined because GitLab may not have provided a file checksum. See PRESQT_FTS_METADATA.json for more details."
+        self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': project_id})
+        shared_upload_function_gitlab(self)
+        shutil.rmtree(self.ticket_path)
+
+        # Upload to existing folder
+        self.resource_id = '{}:funnyfunnyimages'.format(project_id)
+        self.success_message = "Upload successful."
+        self.resources_ignored = []
+        self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': self.resource_id})
+        shared_upload_function_gitlab(self)
+        shutil.rmtree(self.ticket_path)
+
+        # Delete upload folder and project
+        delete_gitlab_project(project_id, GITLAB_UPLOAD_TEST_USER_TOKEN)
+
+    def test_error_upload_to_file(self):
+        """
+        Test that we will get an error when attempting to upload to a file.
+        """
+        shared_upload_function_gitlab(self)
+
+        # Verify the new repo exists on the PresQT Resource Collection endpoint.
+        url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
+        project_id = self.client.get(
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()[0]['id']
+        shutil.rmtree(self.ticket_path)
+
+        # Upload to existing repo
+        self.resource_id = '{}:funnyfunnyimages%2FScreen Shot 2019-07-15 at 3%2E26%2E49 PM%2Epng'.format(project_id)
+        self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': self.resource_id})
+        self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
+        response = self.client.post(self.url, {'presqt-file': open(
+            self.file, 'rb')}, **self.headers)
+
+        ticket_number = response.data['ticket_number']
+        self.ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+
+        # Verify status code and message
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(
+            response.data['message'], 'The server is processing the request.')
+
+        # Verify process_info file status is 'in_progress' initially
+        process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
+        self.assertEqual(process_info['status'], 'in_progress')
+
+        # Wait until the spawned off process finishes in the background to do further validation
+        process_wait(process_info, self.ticket_path)
+
+        # Verify process_info.json file data
+        process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
+        self.assertEqual(process_info['status'], 'failed')
+        self.assertEqual(process_info['message'], 'Resource with id, {}, belongs to a file.'.format(self.resource_id))
+        self.assertEqual(process_info['status_code'], 400)
+
+        shutil.rmtree(self.ticket_path)
+
+        # Delete upload folder and project
+        delete_gitlab_project(project_id, GITLAB_UPLOAD_TEST_USER_TOKEN)
+
+    def test_duplicate_update(self):
+        self.file = 'presqt/api_v1/tests/resources/upload/ProjectSingleFileToUpload.zip'
+        shared_upload_function_gitlab(self)
+
+        # Verify the new repo exists on the PresQT Resource Collection endpoint.
+        url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
+        project_id = self.client.get(
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()[0]['id']
+        shutil.rmtree(self.ticket_path)
+
+        self.file = 'presqt/api_v1/tests/resources/upload/ProjectSingleDuplicateFileToUpload.zip'
+        self.resource_id = project_id
+        self.duplicate_action = 'update'
+        self.resources_updated = ['/Screen Shot 2019-07-15 at 3.51.13 PM.png']
+        self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': self.resource_id})
+        shared_upload_function_gitlab(self)
+        shutil.rmtree(self.ticket_path)
+
+        # Delete upload folder and project
+        delete_gitlab_project(project_id, GITLAB_UPLOAD_TEST_USER_TOKEN)
+
+    def test_error_bad_project_id(self):
+        self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': 'badbadbadidnowaythisisreal'})
+
+        response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+
+        ticket_number = response.data['ticket_number']
+        self.ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+
+        # Verify status code and message
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(
+            response.data['message'], 'The server is processing the request.')
+
+        # Verify process_info file status is 'in_progress' initially
+        process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
+        self.assertEqual(process_info['status'], 'in_progress')
+
+        # Wait until the spawned off process finishes in the background to do further validation
+        process_wait(process_info, self.ticket_path)
+        process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
+        self.assertEquals(process_info['message'], "Project with id, badbadbadidnowaythisisreal, could not be found.")
+        self.assertEquals(process_info['status_code'], 404)
+
+        shutil.rmtree(self.ticket_path)
+
+    # def test_try_upload_same_duplicate(self):
+    #     shared_upload_function_gitlab(self)
+    #
+    #     # Verify the new repo exists on the PresQT Resource Collection endpoint.
+    #     url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
+    #     project_id = self.client.get(
+    #         url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()[0]['id']
+    #     self.resource_id = project_id
+    #     shutil.rmtree(self.ticket_path)
+    #
+    #     self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': self.resource_id})
+    #     shared_upload_function_gitlab(self)
+    #
+    #     shutil.rmtree(self.ticket_path)
+    #
+    #     self.duplicate_action = 'update'
+    #     self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': self.resource_id})
+    #     self.resources_ignored = ["/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png"]
+    #     shared_upload_function_gitlab(self)
+    #     shutil.rmtree(self.ticket_path)
+    #
+    #     # Delete upload folder and project
+    #     delete_gitlab_project(project_id, GITLAB_UPLOAD_TEST_USER_TOKEN)
+
+# def test_success_202_empty_folder(self):
+    #     """
+    #     If an empty directory is included in the uploaded project, we want to ensure the user is
+    #     made aware.
+    #     """
+    #     # 202 when uploading a new top level repo
+    #     shared_upload_function_gitlab(self)
+    #
+    #     # Verify the new repo exists on the PresQT Resource Collection endpoint.
+    #     response_json = self.client.get(
+    #         self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()
+    #
+    #     # Verify the new repo exists on the PresQT Resource Collection endpoint.
+    #     url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
+    #     project_id = self.client.get(
+    #         url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()[0]['id']
+    #     shutil.rmtree(self.ticket_path)
+    #
+    #     # Delete upload folder
+    #     shutil.rmtree(self.ticket_path)
+    #     self.file = 'presqt/api_v1/tests/resources/upload/Empty_Directory_Bag.zip'
+    #     self.resources_ignored = ['/Egg/Empty_Folder']
+    #     self.resource_id = project_id
+    #     self.url = reverse('resource', kwargs={'target_name': 'github', 'resource_id': self.resource_id})
+    #     shared_upload_function_gitlab(self)
+    #
+    #     # Delete upload folder
+    #     shutil.rmtree(self.ticket_path)
+    #
+    #     # Delete upload folder and project
+    #     delete_gitlab_project(project_id, GITLAB_UPLOAD_TEST_USER_TOKEN)

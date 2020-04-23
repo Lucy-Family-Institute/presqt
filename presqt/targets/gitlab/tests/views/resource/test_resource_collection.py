@@ -175,6 +175,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         self.resources_ignored = []
         self.resources_updated = []
         self.hash_algorithm = 'sha256'
+        self.success_message = 'Upload successful.'
 
 
     def test_success_202_upload(self):

@@ -154,11 +154,13 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         for path, subdirs, files in os.walk(resource_main_dir):
             if not subdirs and not files:
                 resources_ignored.append(path)
+                # TODO: Upload the empty directory. Update Test.
             for name in files:
                 # Strip server directories from file path
                 relative_file_path = os.path.join(path.partition('/data/')[2], name)
 
                 ignore_file = False
+                upload_request = requests.post
                 # Check if this file exists already
                 for file in file_data:
                     if "{}/{}".format(string_path_to_resource, relative_file_path) == '/{}'.format(file['path']):
@@ -167,6 +169,7 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                             ignore_file = True
                             break
                         else:
+                            upload_request = requests.put
                             resources_updated.append(os.path.join(path, name))
                             # Break out of this for loop and attempt to upload this duplicate
                             break
@@ -190,11 +193,13 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                                 "encoding": "base64",
                                 "content": encoded_file}
 
-                response = requests.post("{}{}".format(
+                response = upload_request("{}{}".format(
                     base_repo_url, encoded_file_path), headers=headers, data=request_data)
 
+                # TODO: We are getting a 200 instead of a 400 when updating a duplicate file that doesn't change. Update test.
                 # If we get a 400 then it's probably a file that already exists and does not
                 # differ from the file provided to upload.
+                print(response.status_code)
                 if response.status_code == 400:
                     # Since we aren't updating the duplicate file, move it to the ignore list
                     if os.path.join(path, name) in resources_updated:
@@ -204,20 +209,20 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                         raise PresQTResponseException(
                             'Upload failed with a status code of {}'.format(response.status_code),
                             status.HTTP_400_BAD_REQUEST)
-                elif response.status_code is not 201:
+                elif response.status_code not in [201, 200]:
                     raise PresQTResponseException(
                         'Upload failed with a status code of {}'.format(response.status_code),
                         status.HTTP_400_BAD_REQUEST)
 
                 # Get the file hash
                 file_json = requests.get("{}{}?ref=master".format(base_repo_url, encoded_file_path),
-                                         headers=headers)
+                                         headers=headers).json()
 
                 file_metadata_list.append({
                     "actionRootPath": os.path.join(path, name),
                     "destinationPath": os.path.join(project_name, path.partition('/data/')[2], name),
                     "title": name,
-                    "destinationHash": file_json.json()['content_sha256']
+                    "destinationHash": file_json['content_sha256']
                 })
 
     return {
