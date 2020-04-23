@@ -410,3 +410,4 @@ class TestResourceCollectionPOST(SimpleTestCase):
 
         # Delete upload folder
         shutil.rmtree(ticket_path)
+

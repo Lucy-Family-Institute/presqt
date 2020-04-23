@@ -2,7 +2,7 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 from django.test import SimpleTestCase
 
-from config.settings.base import GITLAB_TEST_USER_TOKEN
+from config.settings.base import GITLAB_TEST_USER_TOKEN, GITLAB_UPLOAD_TEST_USER_TOKEN
 
 
 class TestResourceGETJSON(SimpleTestCase):
@@ -160,3 +160,27 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.data['error'],
                          'The resource could not be found by the requesting user.')
+
+
+class TestResourcePOST(SimpleTestCase):
+    """
+    Test the endpoint's POST method for resource uploads:
+         `api_v1/targets/{target_name}/resources/{resource_id}/`
+         `api_v1/targets/{target_name}/resources/`
+
+    Testing Gitlab integration.
+    """
+    def setUp(self):
+        self.client = APIClient()
+        self.token = GITLAB_UPLOAD_TEST_USER_TOKEN
+        self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token,
+                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+        self.good_zip_file = 'presqt/api_v1/tests/resources/upload/GoodBagIt.zip'
+        self.resource_id = None
+        self.duplicate_action = 'ignore'
+        self.url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
+        self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
+        self.resources_ignored = []
+        self.failed_fixity = ['/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
+        self.resources_updated = []
+        self.hash_algorithm = 'sha256'
