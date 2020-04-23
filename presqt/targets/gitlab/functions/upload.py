@@ -158,19 +158,21 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                 # Strip server directories from file path
                 relative_file_path = os.path.join(path.partition('/data/')[2], name)
 
+                ignore_file = False
                 # Check if this file exists already
                 for file in file_data:
                     if "{}/{}".format(string_path_to_resource, relative_file_path) == '/{}'.format(file['path']):
                         if file_duplicate_action == 'ignore':
                             resources_ignored.append(os.path.join(path, name))
+                            ignore_file = True
+                            break
                         else:
                             resources_updated.append(os.path.join(path, name))
                             # Break out of this for loop and attempt to upload this duplicate
                             break
-                else:
-                    # If we find a file to ignore then move onto the next file in the os.walk
+                # If we find a file to ignore then move onto the next file in the os.walk
+                if ignore_file:
                     continue
-                    # TODO: FIND A BETTER WAY TO EXIT THE LOOP WHEN AN IGNORE IS FOUND. THIS IS MAKING EVERY NEW FILE GET IGNORED.
 
 
                 # Extract and encode the file bytes in the way expected by GitLab.
