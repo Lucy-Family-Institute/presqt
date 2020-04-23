@@ -41,9 +41,7 @@ def link_builder(self, instance, list_of_actions):
     links = []
     instance_id = str(instance['id'])
     if self.context.get('target_name') in ['github', 'gitlab']:
-        print("WE HERE")
         instance_id = instance_id.replace('%252E', '%2E').replace('%252F', '%2F')
-        print(instance_id)
 
     for action in list_of_actions:
         if action == 'resource_collection':
@@ -60,8 +58,6 @@ def link_builder(self, instance, list_of_actions):
                         'resource_id': instance_id})
             links.append({"name": "Detail", "link": self.context['request'].build_absolute_uri(
                 reversed_detail), "method": "GET"})
-            print(self.context['request'].build_absolute_uri(
-                reversed_detail))
 
         elif action == 'resource_download':
             reversed_download = reverse(
