@@ -182,7 +182,7 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
 
                 upload_response = requests.put(put_url, headers=header, data=json.dumps(data))
 
-                if upload_response.status_code != 201 and upload_response.status_code != 200:
+                if upload_response.status_code not in [200, 201]:
                     raise PresQTResponseException(
                         'Upload failed with a status code of {}'.format(upload_response.status_code),
                         status.HTTP_400_BAD_REQUEST)
