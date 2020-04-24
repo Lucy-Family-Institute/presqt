@@ -461,6 +461,7 @@ class TestResourcePOST(SimpleTestCase):
         self.duplicate_action = 'update'
         self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': self.resource_id})
         self.resources_ignored = ["/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png"]
+        self.success_message = "Upload successful. Fixity can't be determined because GitLab may not have provided a file checksum. See PRESQT_FTS_METADATA.json for more details."
         shared_upload_function_gitlab(self)
         shutil.rmtree(self.ticket_path)
 
