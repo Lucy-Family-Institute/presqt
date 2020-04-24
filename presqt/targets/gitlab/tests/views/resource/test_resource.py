@@ -468,37 +468,31 @@ class TestResourcePOST(SimpleTestCase):
         # Delete upload folder and project
         delete_gitlab_project(project_id, GITLAB_UPLOAD_TEST_USER_TOKEN)
 
-# def test_success_202_empty_folder(self):
-#     """
-#     If an empty directory is included in the uploaded project, we want to ensure the user is
-#     made aware.
-#     """
-#     # 202 when uploading a new top level repo
-#     shared_upload_function_gitlab(self)
-#
-#     # Verify the new repo exists on the PresQT Resource Collection endpoint.
-#     response_json = self.client.get(
-#         self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()
-#
-#     # Verify the new repo exists on the PresQT Resource Collection endpoint.
-#     url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
-#     project_id = self.client.get(
-#         url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()[0]['id']
-#     shutil.rmtree(self.ticket_path)
-#
-#     # Delete upload folder
-#     shutil.rmtree(self.ticket_path)
-#     self.file = 'presqt/api_v1/tests/resources/upload/Empty_Directory_Bag.zip'
-#     self.resources_ignored = ['/Egg/Empty_Folder']
-#     self.resource_id = project_id
-#     self.url = reverse('resource', kwargs={'target_name': 'github', 'resource_id': self.resource_id})
-#     shared_upload_function_gitlab(self)
-#
-#     # Delete upload folder
-#     shutil.rmtree(self.ticket_path)
-#
-#     # Delete upload folder and project
-#     delete_gitlab_project(project_id, GITLAB_UPLOAD_TEST_USER_TOKEN)
+    def test_success_202_empty_folder(self):
+        """
+        If an empty directory is included in the uploaded project, we want to ensure the user is
+        made aware.
+        """
+        # 202 when uploading a new top level repo
+        shared_upload_function_gitlab(self)
+
+        # Verify the new repo exists on the PresQT Resource Collection endpoint.
+        url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
+        project_id = self.client.get(
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()[0]['id']
+        shutil.rmtree(self.ticket_path)
+
+        self.file = 'presqt/api_v1/tests/resources/upload/Empty_Directory_Bag.zip'
+        self.resources_ignored = ['/Egg/Empty_Folder']
+        self.resource_id = project_id
+        self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': self.resource_id})
+        shared_upload_function_gitlab(self)
+
+        # Delete upload folder
+        shutil.rmtree(self.ticket_path)
+
+        # Delete upload folder and project
+        delete_gitlab_project(project_id, GITLAB_UPLOAD_TEST_USER_TOKEN)
 
     def test_failed_upload_to_existing_project(self):
         # Mock a server error for when a put request is made.

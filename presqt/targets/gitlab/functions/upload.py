@@ -155,7 +155,6 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         for path, subdirs, files in os.walk(resource_main_dir):
             if not subdirs and not files:
                 resources_ignored.append(path)
-                # TODO: Upload the empty directory. Update Test.
             for name in files:
                 # Strip server directories from file path
                 relative_file_path = os.path.join(path.partition('/data/')[2], name)
