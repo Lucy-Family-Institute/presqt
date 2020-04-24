@@ -19,8 +19,7 @@ def get_action_message(action, fixity_status, metadata_validation, action_metada
     """
     from presqt.api_v1.utilities.utils.get_target_data import get_target_data
 
-    new_file_list = (action_metadata['files']['created'] + action_metadata['files']['updated'] +
-                     action_metadata['files']['ignored'])
+    new_file_list = (action_metadata['files']['created'] + action_metadata['files']['updated'])
     source_target_data = get_target_data(action_metadata['sourceTargetName'])
     destination_target_data = get_target_data(action_metadata['destinationTargetName'])
 
