@@ -24,7 +24,7 @@ def github_upload_metadata(token, project_id, metadata_dict):
     header, username = validation_check(token)
 
     base_put_url = "https://api.github.com/repos/{}/{}/contents/".format(username, project_id)
-    metadata_file_data = requests.get('{}{}'.format(base_put_url, 'PRESQT_FTS_METADATA.json'),
+    metadata_file_data = requests.get('{}PRESQT_FTS_METADATA.json'.format(base_put_url),
                                       headers=header).json()
 
     try:

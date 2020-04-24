@@ -40,7 +40,7 @@ def link_builder(self, instance, list_of_actions):
     """
     links = []
     instance_id = str(instance['id'])
-    if self.context.get('target_name') == 'github':
+    if self.context.get('target_name') in ['github', 'gitlab']:
         instance_id = instance_id.replace('%252E', '%2E').replace('%252F', '%2F')
 
     for action in list_of_actions:
