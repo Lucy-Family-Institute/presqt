@@ -199,7 +199,6 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                 # TODO: We are getting a 200 instead of a 400 when updating a duplicate file that doesn't change. Update test.
                 # If we get a 400 then it's probably a file that already exists and does not
                 # differ from the file provided to upload.
-                print(response.status_code)
                 if response.status_code == 400:
                     # Since we aren't updating the duplicate file, move it to the ignore list
                     if os.path.join(path, name) in resources_updated:
