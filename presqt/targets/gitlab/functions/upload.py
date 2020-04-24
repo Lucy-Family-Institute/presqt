@@ -4,6 +4,7 @@ import os
 import requests
 from rest_framework import status
 
+from presqt.api_v1.utilities import hash_generator
 from presqt.targets.gitlab.utilities import gitlab_paginated_data
 from presqt.targets.gitlab.utilities.validation_check import validation_check
 from presqt.targets.utilities import get_duplicate_title
@@ -159,63 +160,59 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                 # Strip server directories from file path
                 relative_file_path = os.path.join(path.partition('/data/')[2], name)
 
+                # A relative path to the file is what is added to the GitLab POST address
+                if base_repo_url == "{}projects/{}/repository/files/".format(base_url, project_id):
+                    encoded_file_path =  relative_file_path.replace('/', '%2F').replace('.', '%2E')
+                else:
+                    encoded_file_path = '%2F{}'.format(relative_file_path.replace('/', '%2F').replace('.', '%2E'))
+                full_encoded_url = '{}{}'.format(base_repo_url, encoded_file_path)
+
                 ignore_file = False
                 upload_request = requests.post
+                file_bytes = None
                 # Check if this file exists already
                 for file in file_data:
-                    if "{}/{}".format(string_path_to_resource, relative_file_path) == '/{}'.format(file['path']):
+                    if os.path.join(string_path_to_resource, relative_file_path) == file['path']:
                         if file_duplicate_action == 'ignore':
                             resources_ignored.append(os.path.join(path, name))
                             ignore_file = True
                             break
                         else:
-                            upload_request = requests.put
-                            resources_updated.append(os.path.join(path, name))
+                            file_url = '{}?ref=master'.format(full_encoded_url)
+                            file_response = requests.get(file_url, headers=headers)
+                            file_bytes = open(os.path.join(path, name), 'rb').read()
+                            if hash_generator(file_bytes, 'sha256') == file_response.json()['content_sha256']:
+                                resources_ignored.append(os.path.join(path, name))
+                                ignore_file = True
+                            else:
+                                resources_updated.append(os.path.join(path, name))
+                                upload_request = requests.put
+
                             # Break out of this for loop and attempt to upload this duplicate
                             break
                 # If we find a file to ignore then move onto the next file in the os.walk
                 if ignore_file:
                     continue
 
-
                 # Extract and encode the file bytes in the way expected by GitLab.
-                file_bytes = open(os.path.join(path, name), 'rb').read()
+                if not file_bytes:
+                    file_bytes = open(os.path.join(path, name), 'rb').read()
                 encoded_file = base64.b64encode(file_bytes)
-
-                # A relative path to the file is what is added to the GitLab POST address
-                if base_repo_url == "{}projects/{}/repository/files/".format(base_url, project_id):
-                    encoded_file_path = relative_file_path.replace('/', '%2F').replace('.', '%2E')
-                else:
-                    encoded_file_path = '%2F{}'.format(relative_file_path.replace('/', '%2F').replace('.', '%2E'))
 
                 request_data = {"branch": "master",
                                 "commit_message": "PresQT Upload",
                                 "encoding": "base64",
                                 "content": encoded_file}
 
-                response = upload_request("{}{}".format(
-                    base_repo_url, encoded_file_path), headers=headers, data=request_data)
+                response = upload_request("{}".format(full_encoded_url), headers=headers, data=request_data)
 
-                # TODO: We are getting a 200 instead of a 400 when updating a duplicate file that doesn't change. Update test.
-                # If we get a 400 then it's probably a file that already exists and does not
-                # differ from the file provided to upload.
-                print(response.status_code)
-                if response.status_code == 400:
-                    # Since we aren't updating the duplicate file, move it to the ignore list
-                    if os.path.join(path, name) in resources_updated:
-                        resources_updated.remove(os.path.join(path, name))
-                        resources_ignored.append(os.path.join(path, name))
-                    else:
-                        raise PresQTResponseException(
-                            'Upload failed with a status code of {}'.format(response.status_code),
-                            status.HTTP_400_BAD_REQUEST)
-                elif response.status_code not in [201, 200]:
+                if response.status_code not in [201, 200]:
                     raise PresQTResponseException(
                         'Upload failed with a status code of {}'.format(response.status_code),
                         status.HTTP_400_BAD_REQUEST)
 
                 # Get the file hash
-                file_json = requests.get("{}{}?ref=master".format(base_repo_url, encoded_file_path),
+                file_json = requests.get("{}?ref=master".format(full_encoded_url),
                                          headers=headers).json()
 
                 file_metadata_list.append({
