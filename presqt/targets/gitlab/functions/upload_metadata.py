@@ -25,7 +25,8 @@ def gitlab_upload_metadata(token, project_id, metadata_dict):
     headers, user_id = validation_check(token)
 
     # Check if metadata exists
-    base_post_url = "https://gitlab.com/api/v4/projects/{}/repository/files/PRESQT_FTS_METADATA.json?ref=master".format(project_id)
+    base_post_url = "https://gitlab.com/api/v4/projects/{}/repository/files/PRESQT_FTS_METADATA.json?ref=master".format(
+        project_id)
 
     metadata_file_response = requests.get(base_post_url, headers=headers)
     metadata_file_data = metadata_file_response.json()
@@ -44,10 +45,10 @@ def gitlab_upload_metadata(token, project_id, metadata_dict):
                     "content": invalid_base64_metadata}
 
             invalid_metadata_response = requests.post(
-                'https://gitlab.com/api/v4/projects/{}/repository/files/INVALID_PRESQT_FTS_METADATA%2Ejson'.format(project_id),
+                'https://gitlab.com/api/v4/projects/{}/repository/files/INVALID_PRESQT_FTS_METADATA%2Ejson'.format(
+                    project_id),
                 headers=headers,
                 data=data)
-
             if invalid_metadata_response.status_code != 201:
                 raise PresQTError(
                     "The request to rename the invalid metadata file has returned a {} error code from Gitlab.".format(
@@ -67,9 +68,11 @@ def gitlab_upload_metadata(token, project_id, metadata_dict):
                     "encoding": "base64",
                     "content": updated_base64_metadata}
 
-            metadata_response = requests.put("https://gitlab.com/api/v4/projects/{}/repository/files/PRESQT_FTS_METADATA%2Ejson".format(project_id),
-                         headers=headers,
-                         data=data)
+            metadata_response = requests.put(
+                "https://gitlab.com/api/v4/projects/{}/repository/files/PRESQT_FTS_METADATA%2Ejson".format(
+                    project_id),
+                headers=headers,
+                data=data)
 
             if metadata_response.status_code != 200:
                 raise PresQTError(
@@ -77,11 +80,11 @@ def gitlab_upload_metadata(token, project_id, metadata_dict):
                         metadata_response.status_code))
             return
 
-
     metadata_bytes = json.dumps(metadata_dict, indent=4).encode('utf-8')
     base64_metadata = base64.b64encode(metadata_bytes)
 
-    post_url = "https://gitlab.com/api/v4/projects/{}/repository/files/PRESQT_FTS_METADATA%2Ejson".format(project_id)
+    post_url = "https://gitlab.com/api/v4/projects/{}/repository/files/PRESQT_FTS_METADATA%2Ejson".format(
+        project_id)
 
     data = {"branch": "master",
             "commit_message": "PresQT Metadata Upload",
