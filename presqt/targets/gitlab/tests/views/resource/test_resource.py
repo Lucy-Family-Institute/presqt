@@ -499,3 +499,60 @@ class TestResourcePOST(SimpleTestCase):
 #
 #     # Delete upload folder and project
 #     delete_gitlab_project(project_id, GITLAB_UPLOAD_TEST_USER_TOKEN)
+
+    def test_failed_upload_to_existing_project(self):
+        # Mock a server error for when a put request is made.
+        class MockResponse:
+            def __init__(self, json_data, status_code):
+                self.json_data = json_data
+                self.status_code = status_code
+        mock_req = MockResponse({'error': 'The server is down.'}, 500)
+
+        # 202 when uploading a new top level repo
+        shared_upload_function_gitlab(self)
+
+        # Verify the new repo exists on the PresQT Resource Collection endpoint.
+        url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
+        project_id = self.client.get(
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()[0]['id']
+        self.resource_id = project_id
+        shutil.rmtree(self.ticket_path)
+
+        # Now I'll make an explicit call to our metadata function with a mocked server error and ensure
+        # it is raising an exception.
+        with patch('requests.post') as mock_request:
+            mock_request.return_value = mock_req
+
+            # Upload to the newly created project
+            self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': project_id})
+            self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
+            response = self.client.post(self.url, {'presqt-file': open(
+                self.file, 'rb')}, **self.headers)
+
+            ticket_number = response.data['ticket_number']
+            self.ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+
+            # Verify status code and message
+            self.assertEqual(response.status_code, 202)
+            self.assertEqual(
+                response.data['message'], 'The server is processing the request.')
+
+            # Verify process_info file status is 'in_progress' initially
+            process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
+            self.assertEqual(process_info['status'], 'in_progress')
+
+            # Wait until the spawned off process finishes in the background to do further validation
+            process_wait(process_info, self.ticket_path)
+
+            # Verify process_info.json file data
+            process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
+
+            self.assertEqual(process_info['status'], 'failed')
+            self.assertEqual(process_info['message'], "Upload failed with a status code of 500")
+            self.assertEqual(process_info['status_code'], 400)
+
+            # Delete upload folder
+            shutil.rmtree(self.ticket_path)
+
+            # Delete GitLab Project
+            delete_gitlab_project(project_id, GITLAB_UPLOAD_TEST_USER_TOKEN)
