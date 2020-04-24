@@ -2,6 +2,7 @@
   {
     "name": "osf",
     "readable_name": "OSF",
+    "status_url": "https://api.osf.io/v2/nodes/",
     "supported_actions": {
       "resource_collection": true,
       "resource_detail": true,
@@ -11,15 +12,17 @@
       "resource_transfer_out": true
     },
     "supported_transfer_partners": {
-      "transfer_in": ["github", "curate_nd", "zenodo"],
-      "transfer_out": ["github", "zenodo"]
+      "transfer_in": ["github", "curate_nd", "zenodo", "gitlab"],
+      "transfer_out": ["github", "zenodo", "gitlab"]
     },
     "supported_hash_algorithms": ["sha256", "md5"],
-    "infinite_depth": true
+    "infinite_depth": true,
+    "search_parameters": ["title", "id", "author"]
   },
   {
     "name": "curate_nd",
     "readable_name": "CurateND",
+    "status_url": "https://curate.nd.edu/api/items",
     "supported_actions": {
       "resource_collection": true,
       "resource_detail": true,
@@ -30,14 +33,16 @@
     },
     "supported_transfer_partners": {
       "transfer_in": [],
-      "transfer_out": ["osf", "github", "zenodo"]
+      "transfer_out": ["osf", "github", "zenodo", "gitlab"]
     },
     "supported_hash_algorithms": ["md5"],
-    "infinite_depth": false
+    "infinite_depth": false,
+    "search_parameters": ["general", "title", "id"]
   },
   {
     "name": "github",
     "readable_name": "GitHub",
+    "status_url": "https://api.github.com/repositories",
     "supported_actions": {
       "resource_collection": true,
       "resource_detail": true,
@@ -47,15 +52,17 @@
       "resource_transfer_out": true
     },
     "supported_transfer_partners": {
-      "transfer_in": ["osf", "curate_nd"],
-      "transfer_out": ["osf", "zenodo"]
+      "transfer_in": ["osf", "curate_nd", "gitlab"],
+      "transfer_out": ["osf", "zenodo", "gitlab"]
     },
     "supported_hash_algorithms": [],
-    "infinite_depth": true
+    "infinite_depth": true,
+    "search_parameters": ["general", "title", "id", "author"]
   },
   {
     "name": "zenodo",
     "readable_name": "Zenodo",
+    "status_url": "https://zenodo.org/api/records/",
     "supported_actions": {
       "resource_collection": true,
       "resource_detail": true,
@@ -65,10 +72,31 @@
       "resource_transfer_out": true
     },
     "supported_transfer_partners": {
-      "transfer_in": ["osf", "github", "curate_nd"],
-      "transfer_out": ["osf", "github"]
+      "transfer_in": ["osf", "github", "curate_nd", "gitlab"],
+      "transfer_out": ["osf", "github", "gitlab"]
     },
     "supported_hash_algorithms": ["md5"],
-    "infinite_depth": false
+    "infinite_depth": false,
+    "search_parameters": ["general", "title", "id"]
+  },
+  {
+    "name": "gitlab",
+    "readable_name": "GitLab",
+    "status_url": "https://gitlab.com/api/v4/projects",
+    "supported_actions": {
+      "resource_collection": true,
+      "resource_detail": true,
+      "resource_download": true,
+      "resource_upload": true,
+      "resource_transfer_in": true,
+      "resource_transfer_out": true
+    },
+    "supported_transfer_partners": {
+      "transfer_in": ["osf", "github", "zenodo", "curate_nd"],
+      "transfer_out": ["osf", "github", "zenodo"]
+    },
+    "supported_hash_algorithms": ["sha256"],
+    "infinite_depth": true,
+    "search_parameters": ["general", "title", "id", "author"]
   }
 ]

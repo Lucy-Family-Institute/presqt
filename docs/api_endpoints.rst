@@ -15,6 +15,23 @@ resource what to do when a file being uploaded already exists in the source targ
 
 ``Update`` will only update the duplicate file if the contents of the files don't match.
 
+Searching Resource Collections
+------------------------------
+Search results are ordered by date modified unless the target does not support it.
+
+Only a single filter can be used at a time.
+
+Search Filters
+++++++++++++++
+
+General search across all available target search parameters: ``resources/?general=search_value``
+
+Search by project 'title': ``resources/?title=Project+Title``
+
+Search by project 'id': ``resources/?id=123456``
+
+Search by project 'author': ``resources/?author=bfox6``
+
 Target Endpoints
 ----------------
 
@@ -44,6 +61,7 @@ Target Collection
             {
                 "name": "osf",
                 "readable_name": "OSF",
+                "status_url": "https://api.osf.io/v2/nodes/",
                 "supported_actions": {
                     "resource_collection": true,
                     "resource_detail": true,
@@ -77,6 +95,7 @@ Target Collection
             {
                 "name": "curate_nd",
                 "readable_name": "CurateND",
+                "status_url": "https://curate.nd.edu/api/items",
                 "supported_actions": {
                     "resource_collection": true,
                     "resource_detail": true,
@@ -133,6 +152,7 @@ Target Details
         {
             "name": "osf",
             "readable_name": "OSF",
+            "status_url": "https://api.osf.io/v2/nodes/",
             "supported_actions": {
                 "resource_collection": true,
                 "resource_detail": true,
@@ -269,46 +289,7 @@ Resource Collection
         Host: presqt-prod.crc.nd.edu
         Accept: application/json
 
-    **Example response w/ search parameter**:
-
-    *Note: Results are ordered by date modified unless the partner does not support it.*
-
-    .. sourcecode:: http
-
-        HTTP/1.1 200 OK
-        Content-Type: application/json
-
-        [
-            {
-                "kind": "container",
-                "kind_name": "project",
-                "id": "cmn5z",
-                "container": null,
-                "title": "The Egg Paradox",
-                "links": [
-                    {
-                        "name": "Detail",
-                        "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/cmn5z/",
-                        "method": "GET"
-                    }
-                ]
-            },
-            {
-                "kind": "item",
-                "kind_name": "file",
-                "id": "71249827434129",
-                "container": "cmn5z",
-                "title": "alloftheeggs.jpg",
-                "links": [
-                    {
-                        "name": "Detail",
-                        "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/71249827434129/",
-                        "method": "GET"
-                    }
-                ]
-            }
-        ]
-
+    Search filtering rules can be found here.
 
     :reqheader presqt-source-token: User's token for the source target
     :statuscode 200: ``Resources`` successfully retrieved

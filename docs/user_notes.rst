@@ -17,4 +17,7 @@ Github     Does not provide checksums for files          Writes PRESQT_FTS_METAD
 Zenodo     Provides checksums for all files              Writes PRESQT_FTS_METADATA.json file
 
                                                          Resources will be written in BagIt format as a ZIP file
+GitLab     Provides checksums for all files              Writes PRESQT_FTS_METADATA.json file
+
+           Can only transfer full repositories           Transferring to an existing repository is prohibited by PresQT
 ========== ============================================= ==============================================================

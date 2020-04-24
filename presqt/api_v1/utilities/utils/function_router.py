@@ -17,6 +17,10 @@ from presqt.targets.zenodo.functions.download import zenodo_download_resource
 from presqt.targets.zenodo.functions.upload import zenodo_upload_resource
 from presqt.targets.zenodo.functions.upload_metadata import zenodo_upload_metadata
 
+from presqt.targets.gitlab.functions.fetch import gitlab_fetch_resources, gitlab_fetch_resource
+from presqt.targets.gitlab.functions.download import gitlab_download_resource
+from presqt.targets.gitlab.functions.upload import gitlab_upload_resource
+from presqt.targets.gitlab.functions.upload_metadata import gitlab_upload_metadata
 
 class FunctionRouter(object):
     """
@@ -70,3 +74,9 @@ class FunctionRouter(object):
     zenodo_resource_download = zenodo_download_resource
     zenodo_resource_upload = zenodo_upload_resource
     zenodo_metadata_upload = zenodo_upload_metadata
+
+    gitlab_resource_collection = gitlab_fetch_resources
+    gitlab_resource_detail = gitlab_fetch_resource
+    gitlab_resource_download = gitlab_download_resource
+    gitlab_resource_upload = gitlab_upload_resource
+    gitlab_metadata_upload = gitlab_upload_metadata

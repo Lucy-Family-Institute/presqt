@@ -2,6 +2,7 @@
   {
     "name": "test",
     "readable_name": "Test",
+    "status_url": "https://www.nd.edu/",
     "supported_actions": {
           "resource_collection": false,
           "resource_detail": false,

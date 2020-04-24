@@ -37,8 +37,6 @@ class TestResourceCollection(SimpleTestCase):
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
-        # Verify the count of resource objects is what we expect.
-        self.assertEqual(len(response.data), 31)
 
         for data in response.data:
             self.assertEqual(len(data['links']), 1)
@@ -57,12 +55,9 @@ class TestResourceCollection(SimpleTestCase):
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
 
-        # Verify the count of resource objects is what we expect. As of the writing of this test
-        # there is only one repo that meets the search criteria, this may change.
-        self.assertEqual(len(response.data), 1)
 
         ###### Search by ID #######
-        response = self.client.get(url + '?id=248593331', **self.header)
+        response = self.client.get(url + '?id=1296269', **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
@@ -70,8 +65,23 @@ class TestResourceCollection(SimpleTestCase):
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
 
-        # Verify the count of resource objects is what we expect.
-        self.assertEqual(len(response.data), 1)
+        #### Search by Author ####
+        response = self.client.get(url + '?author=eikonomega', **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 200)
+        # Verify the dict keys match what we expect
+        keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
+        for data in response.data:
+            self.assertListEqual(keys, list(data.keys()))
+
+        ### Search by General ###
+        response = self.client.get(url + '?general=egg', **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 200)
+        # Verify the dict keys match what we expect
+        keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
+        for data in response.data:
+            self.assertListEqual(keys, list(data.keys()))
 
     def test_error_400_missing_token_github(self):
         """
@@ -110,7 +120,7 @@ class TestResourceCollection(SimpleTestCase):
         # BAD KEY
         response = self.client.get(url + '?spaghetti=egg', **self.header)
 
-        self.assertEqual(response.data['error'], 'PresQT Error: The search query is not formatted correctly.')
+        self.assertEqual(response.data['error'], 'PresQT Error: GitHub does not support spaghetti as a search parameter.')
         self.assertEqual(response.status_code, 400)
 
         # SPECIAL CHARACTERS IN REQUEST
@@ -118,6 +128,18 @@ class TestResourceCollection(SimpleTestCase):
 
         self.assertEqual(response.data['error'], 'PresQT Error: The search query is not formatted correctly.')
         self.assertEqual(response.status_code, 400)
+
+    def test_successful_search_with_no_results(self):
+        url = reverse('resource_collection', kwargs={'target_name': 'github'})
+        # NO AUTHOR FOUND
+        response = self.client.get(url + '?author=378rFDsahfojIO2QDJOgibberishauthor', **self.header)
+        self.assertEqual(response.data, [])
+
+        # NO ID FOUND
+        response = self.client.get(url + '?id=248593331', **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data, [])
 
 
 class TestResourceCollectionPOST(SimpleTestCase):
@@ -141,6 +163,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         self.url = reverse('resource_collection', kwargs={'target_name': 'github'})
         self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
         self.resources_ignored = []
+        self.failed_fixity = ['/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
         self.resources_updated = []
         self.hash_algorithm = 'md5'
 
@@ -319,7 +342,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
 
     def test_bad_metadata_request(self):
         """
-        Ensure that the proper error is raised when we get a non-201 resoponse from GitHub.
+        Ensure that the proper error is raised when we get a non-201 response from GitHub.
         """
         # Calling this function manually to confirm explicit error is raised.
         self.assertRaises(PresQTError, github_upload_metadata, self.token, "BAD", {"fake": "data"},)
@@ -384,37 +407,6 @@ class TestResourceCollectionPOST(SimpleTestCase):
         self.assertEqual(len(valid_metadata_file['actions']), 2)
 
         delete_github_repo('presqt-test-user', 'Good_Egg', header)
-        # Delete upload folder
-        shutil.rmtree(ticket_path)
-
-    def test_400_error_bad_request(self):
-        """
-        If the user attempts to post to an existing repo, return a 400.
-        """
-        # Attempt to post to an existing repo.
-        self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
-        response = self.client.post(self.url + ('209372336/'),
-                                    {'presqt-file': open(self.file, 'rb')}, **self.headers)
-
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
-
-        # Wait until the spawned off process finishes in the background
-        # to do validation on the resulting files
-        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
-            try:
-                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-            except json.decoder.JSONDecodeError:
-                # Pass while the process_info file is being written to
-                pass
-
-        upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
-        # Ensure the response is what we expect
-        self.assertEqual(upload_job_response.data['status_code'], 400)
-        self.assertEqual(upload_job_response.data['message'],
-                         "Can't upload to an existing Github repository.")
-
         # Delete upload folder
         shutil.rmtree(ticket_path)
 

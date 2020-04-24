@@ -66,7 +66,7 @@ class TestResourceCollection(SimpleTestCase):
         aware.
         """
         error_message = get_action_message('Download', False, False, {
-            "sourceTargetName": "egg", "destinationTargetName": "egg2"})
+            "sourceTargetName": "egg", "destinationTargetName": "egg2", "files": {"created": [], "updated": [], "ignored": []}})
 
         self.assertEqual(error_message, 'Download successful but with fixity and metadata errors.')
 

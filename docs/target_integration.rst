@@ -16,10 +16,11 @@ Target Collection/Details
 
     **Target JSON Details:**
 
-        ============================ ======== ========================================================================
+        ============================ ======== ======================================================================================
         **Key**                      **Type** **Description**
         name                         str      Name of the Target. This will be used as path parameters in the URL
         readable_name                str      Human readable name of the Target for the front end
+        status_url                   str      Url which is 200 OK if the API works.
         supported_actions            array    Actions the target supports. Only make actions true when action is working
         resource_collection          bool     Get all resources for the user in this target
         resource_detail              bool     Get an individual resource's details
@@ -32,7 +33,8 @@ Target Collection/Details
         transfer_out                 array    Targets this target can transfer to
         supported_hash_algorithms    array    The hash algorithms supported by the target
         infinite_depth               bool     Does the target support an infinite depth hierarchy?
-        ============================ ======== ========================================================================
+        search_parameters            array    Which search parameters does the target support? options: [general, title, id, author]
+        ============================ ======== ======================================================================================
 
     **Target JSON Example:**
 
@@ -41,6 +43,7 @@ Target Collection/Details
             {
                 "name": "osf",
                 "readable_name": "OSF",
+                "status_url": "https://api.osf.io/v2/nodes/",
                 "supported_actions": {
                     "resource_collection": true,
                     "resource_detail": true,
@@ -54,7 +57,8 @@ Target Collection/Details
                     "transfer_out": ["github"]
                 },
                 "supported_hash_algorithms": ["sha256", "md5"],
-                "infinite_depth": true
+                "infinite_depth": true,
+                "search_parameters": ["title", "id", "general", "author"]
             }
 
     There is a management command that will validate ``targets.json`` that can be run after you add your target.
