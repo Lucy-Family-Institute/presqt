@@ -20,6 +20,7 @@ Target Collection/Details
         **Key**                      **Type** **Description**
         name                         str      Name of the Target. This will be used as path parameters in the URL
         readable_name                str      Human readable name of the Target for the front end
+        status_url                   str      Url which is 200 OK if the API works.
         supported_actions            array    Actions the target supports. Only make actions true when action is working
         resource_collection          bool     Get all resources for the user in this target
         resource_detail              bool     Get an individual resource's details
@@ -42,6 +43,7 @@ Target Collection/Details
             {
                 "name": "osf",
                 "readable_name": "OSF",
+                "status_url": "https://api.osf.io/v2/nodes/",
                 "supported_actions": {
                     "resource_collection": true,
                     "resource_detail": true,

@@ -2,6 +2,7 @@
   {
     "name": "osf",
     "readable_name": "OSF",
+    "status_url": "https://api.osf.io/v2/nodes/",
     "supported_actions": {
       "resource_collection": true,
       "resource_detail": true,
@@ -21,6 +22,7 @@
   {
     "name": "curate_nd",
     "readable_name": "CurateND",
+    "status_url": "https://curate.nd.edu/api/items",
     "supported_actions": {
       "resource_collection": true,
       "resource_detail": true,
@@ -40,6 +42,7 @@
   {
     "name": "github",
     "readable_name": "GitHub",
+    "status_url": "https://api.github.com/repositories",
     "supported_actions": {
       "resource_collection": true,
       "resource_detail": true,
@@ -59,6 +62,7 @@
   {
     "name": "zenodo",
     "readable_name": "Zenodo",
+    "status_url": "https://zenodo.org/api/records/",
     "supported_actions": {
       "resource_collection": true,
       "resource_detail": true,
@@ -78,6 +82,7 @@
   {
     "name": "gitlab",
     "readable_name": "GitLab",
+    "status_url": "https://gitlab.com/api/v4/projects",
     "supported_actions": {
       "resource_collection": true,
       "resource_detail": true,

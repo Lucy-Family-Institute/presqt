@@ -61,6 +61,7 @@ Target Collection
             {
                 "name": "osf",
                 "readable_name": "OSF",
+                "status_url": "https://api.osf.io/v2/nodes/",
                 "supported_actions": {
                     "resource_collection": true,
                     "resource_detail": true,
@@ -94,6 +95,7 @@ Target Collection
             {
                 "name": "curate_nd",
                 "readable_name": "CurateND",
+                "status_url": "https://curate.nd.edu/api/items",
                 "supported_actions": {
                     "resource_collection": true,
                     "resource_detail": true,
@@ -150,6 +152,7 @@ Target Details
         {
             "name": "osf",
             "readable_name": "OSF",
+            "status_url": "https://api.osf.io/v2/nodes/",
             "supported_actions": {
                 "resource_collection": true,
                 "resource_detail": true,
