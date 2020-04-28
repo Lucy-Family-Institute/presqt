@@ -40,3 +40,10 @@ Docker Hub Integration
 Use Case 1
 ++++++++++
 Send a resource from any target to Docker Hub. Verify the sent resource is a valid Docker container.
+
+
+Whole Tale Integration
+----------------------
+
+The :ref:`whole-tale` is described in a separate page.
+
