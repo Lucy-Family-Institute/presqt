@@ -1,11 +1,13 @@
 import asyncio
+import base64
+
 import aiohttp
 import requests
 
 from rest_framework import status
 
 from presqt.targets.github.utilities import (
-    validation_check, github_paginated_data, download_content)
+    validation_check, github_paginated_data, download_content, download_directory, download_file)
 from presqt.utilities import PresQTResponseException, get_dictionary_from_list
 
 
@@ -20,8 +22,8 @@ async def async_get(url, session, header):
         URL to call
     session: ClientSession object
         aiohttp ClientSession Object
-    token: str
-        User's GitHub token
+    header: str
+        Header for request
 
     Returns
     -------
@@ -42,8 +44,8 @@ async def async_main(url_list, header):
     ----------
     url_list: list
         List of urls to call
-    token: str
-        User's GitHub token
+    header: str
+        Header for request
 
     Returns
     -------
@@ -89,34 +91,71 @@ def github_download_resource(token, resource_id):
     except PresQTResponseException:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
+    # Without a colon, we know this is a top level repo
+    if ':' not in resource_id:
+        project_url = 'https://api.github.com/repositories/{}'.format(resource_id)
+        response = requests.get(project_url, headers=header)
 
-    project_url = 'https://api.github.com/repositories/{}'.format(resource_id)
+        if response.status_code != 200:
+            raise PresQTResponseException(
+                'The resource with id, {}, does not exist for this user.'.format(resource_id),
+                status.HTTP_404_NOT_FOUND)
+        data = response.json()
 
-    response = requests.get(project_url, headers=header)
+        repo_name = data['name']
+        # Strip off the unnecessary {+path} that's included in the url
+        # Example: https://api.github.com/repos/eggyboi/djangoblog/contents/{+path} becomes
+        # https://api.github.com/repos/eggyboi/djangoblog/contents
+        contents_url = data['contents_url'].partition('/{+path}')[0]
 
-    if response.status_code != 200:
-        raise PresQTResponseException(
-            'The resource with id, {}, does not exist for this user.'.format(resource_id),
-            status.HTTP_404_NOT_FOUND)
-    data = response.json()
+        files, empty_containers, action_metadata = download_content(
+            username, contents_url, header, repo_name, [])
+        file_urls = [file['file'] for file in files]
 
-    repo_name = data['name']
-    # Strip off the unnecessary {+path} that's included in the url
-    # Example: https://api.github.com/repos/eggyboi/djangoblog/contents/{+path} becomes
-    # https://api.github.com/repos/eggyboi/djangoblog/contents
-    contents_url = data['contents_url'].partition('/{+path}')[0]
+        loop = asyncio.new_event_loop()
+        download_data = loop.run_until_complete(async_main(file_urls, header))
 
-    files, empty_containers, action_metadata = download_content(
-        username, contents_url, header, repo_name, [])
-    file_urls = [file['file'] for file in files]
+        # Go through the file dictionaries and replace the file path with the binary_content
+        for file in files:
+            file['file'] = get_dictionary_from_list(
+                download_data, 'url', file['file'])['binary_content']
 
-    loop = asyncio.new_event_loop()
-    download_data = loop.run_until_complete(async_main(file_urls, header))
-    # Go through the file dictionaries and replace the file path with the binary_content
-    for file in files:
-        file['file'] = get_dictionary_from_list(
-            download_data, 'url', file['file'])['binary_content']
+    # If there is a colon in the resource id, the resource could be a directory or a file
+    else:
+        partitioned_id = resource_id.partition(':')
+        repo_id = partitioned_id[0]
+        path_to_file = partitioned_id[2].replace('%2F', '/').replace('%2E', '.')
 
+        # Get initial repo data for the resource requested
+        repo_url = 'https://api.github.com/repositories/{}'.format(repo_id)
+        response = requests.get(repo_url, headers=header)
+
+        if response.status_code != 200:
+            raise PresQTResponseException(
+                'The resource with id, {}, does not exist for this user.'.format(resource_id),
+                status.HTTP_404_NOT_FOUND)
+        repo_data = response.json()
+
+        # Get the contents of the requested resource
+        repo_full_name = repo_data['full_name']
+        resource_url = 'https://api.github.com/repos/{}/contents/{}'.format(repo_full_name,
+                                                                            path_to_file)
+        resource_response = requests.get(resource_url, headers=header)
+        if resource_response.status_code != 200:
+            raise PresQTResponseException(
+                'The resource with id, {}, does not exist for this user.'.format(resource_id),
+                status.HTTP_404_NOT_FOUND)
+        resource_data = resource_response.json()
+
+        # If the resource to get is a folder
+        if isinstance(resource_data, list):
+            files = download_directory(header, path_to_file, repo_data)
+        # If the resource to get is a file
+        elif resource_data['type'] == 'file':
+            files = download_file(repo_data, resource_data)
+
+        empty_containers = []
+        action_metadata = {"sourceUsername": username}
     return {
         'resources': files,
         'empty_containers': empty_containers,

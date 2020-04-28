@@ -3,10 +3,9 @@ import os
 from uuid import uuid4
 
 from django.utils import timezone
-from rest_framework import status
 
 from presqt.api_v1.utilities import create_fts_metadata, get_target_data, hash_generator
-from presqt.utilities import zip_directory, PresQTResponseException, write_file, read_file
+from presqt.utilities import zip_directory, write_file, read_file
 
 
 def finite_depth_upload_helper(instance):

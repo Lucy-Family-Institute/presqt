@@ -119,6 +119,7 @@ class Target(APIView):
         {
             "name": "osf",
             "readable_name": "OSF",
+            "status_url": "https://api.osf.io/v2/nodes/",
             "supported_actions": {
                 "resource_collection": true,
                 "resource_detail": true,

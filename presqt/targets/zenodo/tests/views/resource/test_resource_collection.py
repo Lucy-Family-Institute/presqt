@@ -54,8 +54,6 @@ class TestResourceCollection(SimpleTestCase):
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
-        # Verify the count of resource objects is what we expect.
-        self.assertEqual(len(response.data), 2)
 
         # Search by ID
         response = self.client.get(url + "?id=3723281", **self.header)
@@ -65,11 +63,16 @@ class TestResourceCollection(SimpleTestCase):
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
-        # Verify the count of resource objects is what we expect.
-        self.assertEqual(len(response.data), 3)
 
+
+        # Search by General
+        response = self.client.get(url + "?general=eggs", **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 200)
+        # Verify the dict keys match what we expect
+        keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
         for data in response.data:
-            self.assertEqual(len(data['links']), 1)
+            self.assertListEqual(keys, list(data.keys()))
 
     def test_error_400_missing_token_zenodo(self):
         """

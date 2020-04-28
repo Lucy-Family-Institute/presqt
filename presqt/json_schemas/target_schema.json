@@ -4,6 +4,7 @@
     "type": "object",
     "properties": {
       "name": { "type": "string" },
+      "status_url": { "type": "string" },
       "readable_name": { "type": "string" },
       "supported_actions": {
         "type": "object",
@@ -39,14 +40,20 @@
           "type": "string"
         }
       },
-      "infinite_depth": { "type": "boolean" }
+      "infinite_depth": { "type": "boolean" },
+      "search_parameters": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }}
     },
     "required": [
       "name",
       "readable_name",
       "supported_actions",
       "supported_hash_algorithms",
-      "infinite_depth"
+      "infinite_depth",
+      "search_parameters"
     ]
   }
 }

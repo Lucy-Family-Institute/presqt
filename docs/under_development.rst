@@ -47,3 +47,6 @@ Whole Tale Integration
 
 The :ref:`whole-tale` is described in a separate page.
 
+GitLab Integration
+------------------
+Git repository manager (https://gitlab.com/) is being fully integrated to PresQT at all endpoints.
