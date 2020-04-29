@@ -83,6 +83,7 @@ def osf_upload_keywords(token, resource_id, keywords):
     headers = {'Authorization': 'Bearer {}'.format(token), 'Content-Type': 'application/json'}
 
     resource = get_osf_resource(resource_id, osf_instance)
+
     if resource.kind_name == 'storage':
         raise PresQTResponseException("OSF Storages do not have keywords.",
                                       status.HTTP_400_BAD_REQUEST)
@@ -101,6 +102,7 @@ def osf_upload_keywords(token, resource_id, keywords):
         data = {"data": {"type": "files", "id": resource_id, "attributes": {"tags": keywords}}}
 
         response = requests.patch(patch_url, headers=headers, data=json.dumps(data))
+
         if response.status_code != 200:
             raise PresQTResponseException("OSF returned a {} error trying to update keywords.".format(
                 response.status_code), status.HTTP_400_BAD_REQUEST)

@@ -43,4 +43,6 @@ def curate_nd_fetch_keywords(token, resource_id):
     if 'subject' in resource.extra.keys():
         return {'subject': resource.extra['subject'], 'keywords': resource.extra['subject']}
 
-    return {'subject': [], 'keywords': []}
+    else:
+        raise PresQTResponseException(
+            "The given resouce id does not support keywords.", status.HTTP_400_BAD_REQUEST)

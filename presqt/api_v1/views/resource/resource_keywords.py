@@ -10,10 +10,51 @@ from presqt.utilities import PresQTValidationError, PresQTResponseException
 
 class ResourceKeywords(BaseResource):
     """
+    **Supported HTTP Methods**
+
+    * GET:
+        - Retrieve a summary of all keywords of a given resource.
+    * POST
+        -  Upload new keywords to a given resource.
     """
 
     def get(self, request, target_name, resource_id):
         """
+        Retrieve all keywords of a given resource.
+
+        Parameters
+        ----------
+        target_name : str
+            The string name of the Target resource to retrieve.
+        resource_id : str
+             The id of the Resource to retrieve.
+
+        Returns
+        -------
+        200 : OK
+        A dictionary containing the keywords of the resource.
+        {
+            "topics": [
+                "eggs",
+                "animal",
+                "water"
+            ],
+            "keywords": [
+                "eggs",
+                "animal",
+                "water"
+            ]
+        }
+
+        400: Bad Request
+        {
+            "error": "{Target} {Resource Type} do not have keywords."
+        }
+
+        401: Unauthorized
+        {
+            "error": "Token is invalid. Response returned a 401 status code.""
+        }
         """
         self.request = request
         self.source_target_name = target_name
@@ -39,6 +80,51 @@ class ResourceKeywords(BaseResource):
 
     def post(self, request, target_name, resource_id):
         """
+        Upload suggested keywords to a given resource.
+
+        Parameters
+        ----------
+        target_name : str
+            The string name of the Target resource to retrieve.
+        resource_id : str
+             The id of the Resource to retrieve.
+
+        Returns
+        -------
+        200 : OK
+        A dictionary containing the keywords of the resource.
+        {
+            "updated_keywords": [
+                "animal",
+                "Animals",
+                "aqua",
+                "dihydrogen oxide",
+                "DISORDERED SOLVENT",
+                "EGG",
+                "eggs",
+                "Electrostatic Gravity Gradiometer",
+                "oxidane",
+                "OXYGEN ATOM",
+                "Wasser",
+                "water",
+                "Water"
+            ]
+        }
+
+        400: Bad Request
+        {
+            "error": "{Target} {Resource Type} do not have keywords."
+        }
+
+        401: Unauthorized
+        {
+            "error": "Token is invalid. Response returned a 401 status code.""
+        }
+
+        Target Error
+        {
+            "error": "{Target} returned a {status_code} error trying to update keywords.
+        }
         """
         self.request = request
         self.source_target_name = target_name
@@ -60,6 +146,7 @@ class ResourceKeywords(BaseResource):
             return Response(data={'error': e.data}, status=e.status_code)
 
         new_list_of_keywords = []
+        # Get the new keyword suggestions from Sci-Graph
         for keyword in keywords['keywords']:
             new_list_of_keywords.append(keyword)
             response = requests.get(

@@ -40,7 +40,7 @@ def gitlab_fetch_keywords(token, resource_id):
 
     if resource['kind_name'] in ['dir', 'file']:
         raise PresQTResponseException("GitLab directories and files do not have keywords.",
-                                      status.HTTP_404_NOT_FOUND)
+                                      status.HTTP_400_BAD_REQUEST)
 
     if 'tag_list' in resource['extra'].keys():
         return {
