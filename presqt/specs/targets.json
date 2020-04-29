@@ -9,7 +9,9 @@
       "resource_download": true,
       "resource_upload": true,
       "resource_transfer_in": true,
-      "resource_transfer_out": true
+      "resource_transfer_out": true,
+      "keywords": true,
+      "keywords_upload": true
     },
     "supported_transfer_partners": {
       "transfer_in": ["github", "curate_nd", "zenodo", "gitlab"],
@@ -29,7 +31,9 @@
       "resource_download": true,
       "resource_upload": false,
       "resource_transfer_in": false,
-      "resource_transfer_out": true
+      "resource_transfer_out": true,
+      "keywords": true,
+      "keywords_upload": false
     },
     "supported_transfer_partners": {
       "transfer_in": [],
@@ -49,7 +53,9 @@
       "resource_download": true,
       "resource_upload": true,
       "resource_transfer_in": true,
-      "resource_transfer_out": true
+      "resource_transfer_out": true,
+      "keywords": true,
+      "keywords_upload": true
     },
     "supported_transfer_partners": {
       "transfer_in": ["osf", "curate_nd", "gitlab"],
@@ -69,7 +75,9 @@
       "resource_download": true,
       "resource_upload": true,
       "resource_transfer_in": true,
-      "resource_transfer_out": true
+      "resource_transfer_out": true,
+      "keywords": true,
+      "keywords_upload": true
     },
     "supported_transfer_partners": {
       "transfer_in": ["osf", "github", "curate_nd", "gitlab"],
@@ -89,7 +97,9 @@
       "resource_download": true,
       "resource_upload": true,
       "resource_transfer_in": true,
-      "resource_transfer_out": true
+      "resource_transfer_out": true,
+      "keywords": true,
+      "keywords_upload": true
     },
     "supported_transfer_partners": {
       "transfer_in": ["osf", "github", "zenodo", "curate_nd"],
