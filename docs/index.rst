@@ -51,6 +51,7 @@ EaaSI       Send resources from a PresQT server to EaaSI to generate an emulatio
    service_endpoints
    web_services
    resources
+   qa_instructions
    under_development
 
 Indices
