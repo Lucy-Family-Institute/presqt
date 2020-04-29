@@ -2,25 +2,31 @@ from presqt.targets.github.functions.fetch import github_fetch_resources, github
 from presqt.targets.github.functions.download import github_download_resource
 from presqt.targets.github.functions.upload import github_upload_resource
 from presqt.targets.github.functions.upload_metadata import github_upload_metadata
+from presqt.targets.github.functions.keywords import github_fetch_keywords
 
 from presqt.targets.curate_nd.functions.fetch import (
     curate_nd_fetch_resources, curate_nd_fetch_resource)
 from presqt.targets.curate_nd.functions.download import curate_nd_download_resource
+from presqt.targets.curate_nd.functions.keywords import curate_nd_fetch_keywords
 
 from presqt.targets.osf.functions.fetch import osf_fetch_resources, osf_fetch_resource
 from presqt.targets.osf.functions.download import osf_download_resource
 from presqt.targets.osf.functions.upload import osf_upload_resource
 from presqt.targets.osf.functions.upload_metadata import osf_upload_metadata
+from presqt.targets.osf.functions.keywords import osf_fetch_keywords, osf_upload_keywords
 
 from presqt.targets.zenodo.functions.fetch import zenodo_fetch_resources, zenodo_fetch_resource
 from presqt.targets.zenodo.functions.download import zenodo_download_resource
 from presqt.targets.zenodo.functions.upload import zenodo_upload_resource
 from presqt.targets.zenodo.functions.upload_metadata import zenodo_upload_metadata
+from presqt.targets.zenodo.functions.keywords import zenodo_fetch_keywords
 
 from presqt.targets.gitlab.functions.fetch import gitlab_fetch_resources, gitlab_fetch_resource
 from presqt.targets.gitlab.functions.download import gitlab_download_resource
 from presqt.targets.gitlab.functions.upload import gitlab_upload_resource
 from presqt.targets.gitlab.functions.upload_metadata import gitlab_upload_metadata
+from presqt.targets.gitlab.functions.keywords import gitlab_fetch_keywords
+
 
 class FunctionRouter(object):
     """
@@ -58,25 +64,31 @@ class FunctionRouter(object):
     osf_resource_download = osf_download_resource
     osf_resource_upload = osf_upload_resource
     osf_metadata_upload = osf_upload_metadata
+    osf_keywords = osf_fetch_keywords
+    osf_keywords_upload = osf_upload_keywords
 
     curate_nd_resource_collection = curate_nd_fetch_resources
     curate_nd_resource_detail = curate_nd_fetch_resource
     curate_nd_resource_download = curate_nd_download_resource
+    curate_nd_keywords = curate_nd_fetch_keywords
 
     github_resource_collection = github_fetch_resources
     github_resource_detail = github_fetch_resource
     github_resource_download = github_download_resource
     github_resource_upload = github_upload_resource
     github_metadata_upload = github_upload_metadata
+    github_keywords = github_fetch_keywords
 
     zenodo_resource_collection = zenodo_fetch_resources
     zenodo_resource_detail = zenodo_fetch_resource
     zenodo_resource_download = zenodo_download_resource
     zenodo_resource_upload = zenodo_upload_resource
     zenodo_metadata_upload = zenodo_upload_metadata
+    zenodo_keywords = zenodo_fetch_keywords
 
     gitlab_resource_collection = gitlab_fetch_resources
     gitlab_resource_detail = gitlab_fetch_resource
     gitlab_resource_download = gitlab_download_resource
     gitlab_resource_upload = gitlab_upload_resource
     gitlab_metadata_upload = gitlab_upload_metadata
+    gitlab_keywords = gitlab_fetch_keywords
