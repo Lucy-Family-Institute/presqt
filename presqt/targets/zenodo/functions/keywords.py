@@ -1,3 +1,9 @@
+import json
+import requests
+
+from rest_framework import status
+
+from presqt.utilities import PresQTResponseException
 
 
 def zenodo_fetch_keywords(token, resource_id):
@@ -38,3 +44,57 @@ def zenodo_fetch_keywords(token, resource_id):
             'keywords': resource['extra']['keywords']
         }
     return {'zenodo_keywords': [], 'keywords': []}
+
+
+def zenodo_upload_keywords(token, resource_id, keywords):
+    """
+    Upload the keywords to a given resource id.
+
+    Parameters
+    ----------
+    token: str
+        User's Zenodo token
+    resource_id: str
+        ID of the resource requested
+    keywords: list
+        List of new keywords to upload.
+
+    Returns
+    -------
+    A dictionary object that represents the updated Zenodo resource keywords.
+    Dictionary must be in the following format:
+        {
+            "updated_keywords": [
+                'eggs',
+                'EGG',
+                'Breakfast'
+            ]
+        }
+    """
+    from presqt.targets.zenodo.functions.fetch import zenodo_fetch_resource
+
+    resource = zenodo_fetch_resource(token, resource_id)
+
+    if resource['kind_name'] in ['file']:
+        raise PresQTResponseException("Zenodo files do not have keywords.",
+                                      status.HTTP_404_NOT_FOUND)
+    headers = {"access_token": token}
+    put_url = 'https://zenodo.org/api/deposit/depositions/{}'.format(resource_id)
+
+    data = {'metadata': {
+        "title": resource['title'],
+        "upload_type": resource['extra']['upload_type'],
+        "description": resource['extra']['description'],
+        "creators": resource['extra']['creators'],
+        "keywords": list(set(keywords))
+        }}
+
+    response = requests.put(put_url, params=headers, data=json.dumps(data),
+                            headers={'Content-Type': 'application/json'})
+
+    if response.status_code != 200:
+        print(response.json())
+        raise PresQTResponseException("Zenodo returned a {} error trying to update keywords.".format(
+            response.status_code), status.HTTP_400_BAD_REQUEST)
+
+    return {'updated_keywords': response.json()['metadata']['keywords']}
