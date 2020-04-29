@@ -70,13 +70,13 @@ class ResourceKeywords(BaseResource):
             for label in response.json()[0]['labels']:
                 new_list_of_keywords.append(label)
 
-        # # Fetch the proper function to call
-        # func = FunctionRouter.get_function(self.source_target_name, 'upload_keywords')
+        # Fetch the proper function to call
+        func = FunctionRouter.get_function(self.source_target_name, 'keywords_upload')
 
-        # try:
-        #     keywords = func(token, self.source_resource_id)
-        # except PresQTResponseException as e:
-        #     # Catch any errors that happen within the target fetch
-        #     return Response(data={'error': e.data}, status=e.status_code)
+        try:
+            updated_keywords = func(token, self.source_resource_id, new_list_of_keywords)
+        except PresQTResponseException as e:
+            # Catch any errors that happen within the target fetch
+            return Response(data={'error': e.data}, status=e.status_code)
 
-        return Response({'keywords': new_list_of_keywords})
+        return Response(updated_keywords)
