@@ -42,7 +42,7 @@
   {
     "name": "github",
     "readable_name": "GitHub",
-    "status_url": "https://api.github.com/repositories",
+    "status_url": "https://api.github.com/rate_limit",
     "supported_actions": {
       "resource_collection": true,
       "resource_detail": true,
