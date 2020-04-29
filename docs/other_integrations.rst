@@ -1,7 +1,8 @@
-.. _whole-tale:
+Other Integrations
+==================
 
 Whole Tale Integration 
-======================
+++++++++++++++++++++++
 
 Whole Tale (http://www.wholetale.org) is a platform for the creation, publication, and 
 re-execution of reproducible computational artifacts.  Researchers can create new *tales* 
@@ -76,7 +77,7 @@ the user to import and re-execute the tale in the WT system.  WT also supports
 related identifiers, license, and keywork metadata. The tale is published as a
 zipped bag.
 
-.. figure::  images/zenodo_wt.png
+.. figure::  images/whole_tale/zenodo_wt.png
    :align:   center
 
    Tale published to Zenodo via WT
@@ -86,7 +87,7 @@ The second image illustrates a tale published to Zenodo using the PresQT
 integration. The user is directed to the draft dataset creation form where they
 are required to manually enter relevant metadata. 
 
-.. figure::  images/zenodo_presqt.png
+.. figure::  images/whole_tale/zenodo_presqt.png
    :align:   center
 
    Tale published to Zenodo via PresQT
