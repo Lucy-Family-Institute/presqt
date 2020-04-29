@@ -65,7 +65,7 @@ def gitlab_upload_keywords(token, resource_id, keywords):
 
     Returns
     -------
-    A dictionary object that represents the updated GitHub resource keywords.
+    A dictionary object that represents the updated GitLab resource keywords.
     Dictionary must be in the following format:
         {
             "updated_keywords": [
