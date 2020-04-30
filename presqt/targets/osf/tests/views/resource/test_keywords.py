@@ -19,7 +19,7 @@ class TestResourceKeywords(SimpleTestCase):
     def setUp(self):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN}
-        self.keys = ['tags', 'keywords']
+        self.keys = ['keywords', 'enhanced_keywords']
 
     def test_success_project_keywords(self):
         """
@@ -34,9 +34,9 @@ class TestResourceKeywords(SimpleTestCase):
         # Verify the dict keys match what we expect
         self.assertListEqual(self.keys, list(response.data.keys()))
         # Spot check some individual keywords
-        self.assertIn('eggs', response.data['tags'])
-        self.assertIn('water', response.data['tags'])
-        self.assertIn('animals', response.data['tags'])
+        self.assertIn('eggs', response.data['keywords'])
+        self.assertIn('water', response.data['keywords'])
+        self.assertIn('animals', response.data['keywords'])
 
     def test_success_file_keywords(self):
         """
@@ -51,12 +51,12 @@ class TestResourceKeywords(SimpleTestCase):
         # Verify the dict keys match what we expect
         self.assertListEqual(self.keys, list(response.data.keys()))
         # Spot check some individual keywords
-        self.assertIn('eggs', response.data['tags'])
-        self.assertIn('water', response.data['tags'])
-        self.assertIn('animals', response.data['tags'])
-        self.assertIn('PresQT', response.data['tags'])
+        self.assertIn('eggs', response.data['keywords'])
+        self.assertIn('water', response.data['keywords'])
+        self.assertIn('animals', response.data['keywords'])
+        self.assertIn('PresQT', response.data['keywords'])
     
-    def test_success_folder_keywords(self):
+    def test_error_folder_keywords(self):
         """
         Returns a 200 if the GET method is successful when getting an OSF `file`.
         """
@@ -65,11 +65,9 @@ class TestResourceKeywords(SimpleTestCase):
                                           'resource_id': resource_id})
         response = self.client.get(url, **self.header)
         # Verify the status code
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 400)
         # Verify the dict keys match what we expect
-        self.assertListEqual(self.keys, list(response.data.keys()))
-        
-        self.assertEqual([], response.data['tags'])
+        self.assertEqual(response.data['error'], 'There are no keywords to enhance for this resource.')
 
     def test_error_storage_keywords(self):
         """
@@ -134,10 +132,10 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         resource_id = 'cmn5z'
         url = reverse('keywords', kwargs={'target_name': 'osf',
                                           'resource_id': resource_id})
-        # First check the initial tags.
+        # First check the initial keywords.
         get_response = self.client.get(url, **self.header)
         # Get the count of the initial keywords
-        initial_keywords = len(get_response.data['tags'])
+        initial_keywords = len(get_response.data['keywords'])
 
         response = self.client.post(url, **self.header)
         # Verify the status code
@@ -168,7 +166,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         # First check the initial tags.
         get_response = self.client.get(url, **self.header)
         # Get the ount of the initial keywords
-        initial_keywords = len(get_response.data['tags'])
+        initial_keywords = len(get_response.data['keywords'])
 
         response = self.client.post(url, **self.header)
         # Verify the status code

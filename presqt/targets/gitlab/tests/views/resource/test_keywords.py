@@ -18,7 +18,7 @@ class TestResourceKeywords(SimpleTestCase):
     def setUp(self):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_TEST_USER_TOKEN}
-        self.keys = ['tag_list', 'keywords']
+        self.keys = ['keywords', 'enhanced_keywords']
 
     def test_success_project_keywords(self):
         """
@@ -33,9 +33,9 @@ class TestResourceKeywords(SimpleTestCase):
         # Verify the dict keys match what we expect
         self.assertListEqual(self.keys, list(response.data.keys()))
         # Spot check some individual keywords
-        self.assertIn('eggs', response.data['tag_list'])
-        self.assertIn('water', response.data['tag_list'])
-        self.assertIn('animals', response.data['tag_list'])
+        self.assertIn('eggs', response.data['keywords'])
+        self.assertIn('water', response.data['keywords'])
+        self.assertIn('animals', response.data['keywords'])
 
     def test_error_project_keywords(self):
         """
@@ -74,7 +74,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         # First check the initial tags.
         get_response = self.client.get(url, **self.header)
         # Get the ount of the initial keywords
-        initial_keywords = len(get_response.data['tag_list'])
+        initial_keywords = len(get_response.data['keywords'])
 
         response = self.client.post(url, **self.header)
         # Verify the status code
