@@ -119,8 +119,6 @@ class TestResourceKeywordsPOST(SimpleTestCase):
                 self.json_data = json_data
                 self.status_code = status_code
         mock_req = MockResponse({'error': 'The server is down.'}, 500)
-        # Now I'll make an explicit call to our metadata function with a mocked server error and ensure
-        # it is raising an exception.
         with patch('requests.put') as mock_request:
             mock_request.return_value = mock_req
             # Upload new keywords
