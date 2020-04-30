@@ -23,7 +23,7 @@ class TestResourceKeywords(SimpleTestCase):
 
     def test_success_project_keywords(self):
         """
-        Returns a 200 if the GET method is successful when getting a GitLab `project`.
+        Returns a 200 if the GET method is successful when getting a Zenodo `project`.
         """
         resource_id = '3525310'
         url = reverse('keywords', kwargs={'target_name': 'zenodo',
@@ -40,7 +40,7 @@ class TestResourceKeywords(SimpleTestCase):
 
     def test_error_project_keywords(self):
         """
-        Returns a 400 if the GET method is unsuccessful when getting a GitLab `file` keywords.
+        Returns a 400 if the GET method is unsuccessful when getting a Zenodo `file` keywords.
         """
         resource_id = "1644bae0-346b-49af-aaab-2409a688f85e"
         url = reverse('keywords', kwargs={'target_name': 'zenodo',
@@ -101,7 +101,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
     
     def test_error_project_keywords(self):
         """
-        Returns a 400 if the POST method is unsuccessful when getting a GitLab `file` keywords.
+        Returns a 400 if the POST method is unsuccessful when getting a Zenodo `file` keywords.
         """
         resource_id = "1644bae0-346b-49af-aaab-2409a688f85e"
         url = reverse('keywords', kwargs={'target_name': 'zenodo',
