@@ -28,25 +28,33 @@ SuAVE has been extended to be able to use the authentication token.
 SuAVE will be extended by a button that allows to select a PresQT partner and the data can
 seamlessly transferred so that users can directly work with the survey data in SuAVE.
 
-Enhanced Search Functionality
------------------------------
-Currently, the search functionality for Resource Collection only supports title searching. We
-want to enhance this for each individual target by adding new search keys such as 'author' and 'id'.
-
-
-Docker Hub Integration
+Whole Tale Integration
 ----------------------
+See Other Integrations for more information.
+
+Keyword Enhancement Via SciGraph
+--------------------------------
+Keyword endpoints are being added to the PresQT core code along with keyword functions for each
+target. The endpoints and functions will handle 2 use cases.
 
 Use Case 1
 ++++++++++
-Send a resource from any target to Docker Hub. Verify the sent resource is a valid Docker container.
+As a user I want the ability to select a resource from any target and based on that resource’s keywords and certain text fields such as ‘Description’ I want to either:
 
+ 1. get back a suggested list of keywords
 
-Whole Tale Integration
-----------------------
+ 2. have PresQT add those keywords to the resource provided
 
-The :ref:`whole-tale` is described in a separate page.
+    a. If the target supports updating keywords then do so.
 
-GitLab Integration
-------------------
-Git repository manager (https://gitlab.com/) is being fully integrated to PresQT at all endpoints.
+    b. If the target doesn’t support updating keywords then write the new keywords to a PRESQT_ENHANCED_KEYWORDS.json file to the top level of the resource’s parent.
+
+Use Case 2
+++++++++++
+As a user I want the ability to have my keywords enhanced during the transfer process. Before transferring I want to select between:
+
+ 1. PresQT enhancing metadata for me
+
+    a. PresQT should take the source target’s keywords and any keywords in PRESQT_ENHANCED_KEYWORDS.json and then add the new keywords to BOTH the source and destination targets.
+
+ 2. PresQT presenting me with suggested keywords
