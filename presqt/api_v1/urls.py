@@ -51,6 +51,5 @@ api_v1_endpoints = [
     # EaaSI specific
     path('services/eaasi/proposals/', Proposals.as_view(), name='proposals'),
     path('services/eaasi/proposals/<str:proposal_id>/', Proposal.as_view(), name='proposal'),
-    path('services/eaasi/download/<str:ticket_number>/',
-         EaasiDownload.as_view(), name='eaasi_download')
+    path('services/eaasi/download/<str:ticket_number>/', EaasiDownload.as_view(), name='eaasi_download')
 ]
