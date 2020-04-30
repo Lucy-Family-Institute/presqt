@@ -78,7 +78,7 @@ process went.
     :align: center
 
 4. All downloads come in ``BagIt format``. After the download is complete, unzip the file,
-and you will see BagIt specification files. The data you requested to downloaded will reside in
+and you will see BagIt specification files. The data you requested to download will reside in
 the ``data`` folder.
 
 .. figure:: images/qa/resource_download/download_step_4.png
