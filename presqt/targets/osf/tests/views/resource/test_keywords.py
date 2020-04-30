@@ -55,6 +55,21 @@ class TestResourceKeywords(SimpleTestCase):
         self.assertIn('water', response.data['tags'])
         self.assertIn('animals', response.data['tags'])
         self.assertIn('PresQT', response.data['tags'])
+    
+    def test_success_folder_keywords(self):
+        """
+        Returns a 200 if the GET method is successful when getting an OSF `file`.
+        """
+        resource_id = '5cd98b0af244ec0021e5f8dd'
+        url = reverse('keywords', kwargs={'target_name': 'osf',
+                                          'resource_id': resource_id})
+        response = self.client.get(url, **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 200)
+        # Verify the dict keys match what we expect
+        self.assertListEqual(self.keys, list(response.data.keys()))
+        
+        self.assertEqual([], response.data['tags'])
 
     def test_error_storage_keywords(self):
         """
@@ -95,7 +110,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
     def setUp(self):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN}
-        self.keys = ['updated_keywords']
+        self.keys = ['keywords_added', 'final_keywords']
 
     def test_invalid_token(self):
         """
@@ -121,7 +136,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
                                           'resource_id': resource_id})
         # First check the initial tags.
         get_response = self.client.get(url, **self.header)
-        # Get the ount of the initial keywords
+        # Get the count of the initial keywords
         initial_keywords = len(get_response.data['tags'])
 
         response = self.client.post(url, **self.header)
@@ -130,7 +145,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         # Verify the dict keys match what we expect
         self.assertListEqual(self.keys, list(response.data.keys()))
         # Ensure the new list is larger than the initial one.
-        self.assertGreater(len(response.data['updated_keywords']), initial_keywords)
+        self.assertGreater(len(response.data['final_keywords']), initial_keywords)
 
         # Set the project keywords back to what they were.
         headers = {'Authorization': 'Bearer {}'.format(OSF_TEST_USER_TOKEN),
@@ -161,7 +176,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         # Verify the dict keys match what we expect
         self.assertListEqual(self.keys, list(response.data.keys()))
         # Ensure the new list is larger than the initial one.
-        self.assertGreater(len(response.data['updated_keywords']), initial_keywords)
+        self.assertGreater(len(response.data['final_keywords']), initial_keywords)
 
         # Set the project keywords back to what they were.
         headers = {'Authorization': 'Bearer {}'.format(OSF_TEST_USER_TOKEN),
@@ -186,6 +201,19 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         self.assertEqual(response.status_code, 400)
         # Verify the error message
         self.assertEqual(response.data['error'], "OSF Storages do not have keywords.")
+
+    def test_error_no_keywords(self):
+        """
+        Returns a 400 if the POST method is unsuccessful when getting a GitLab `file` keywords.
+        """
+        resource_id = '5cd98b0af244ec0021e5f8dd'
+        url = reverse('keywords', kwargs={'target_name': 'osf',
+                                          'resource_id': resource_id})
+        response = self.client.post(url, **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 400)
+        # Verify the error message
+        self.assertEqual(response.data['error'], 'There are no keywords to enhance for this resource.')
 
     def test_failed_update_keywords_project(self):
         # Mock a server error for when a put request is made.

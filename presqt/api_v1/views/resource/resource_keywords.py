@@ -52,7 +52,7 @@ class ResourceKeywords(BaseResource):
         }
         or
         {
-            "error": "PresQT Error: 'new_target' does not support the action 'resource_detail'."
+            "error": "PresQT Error: 'new_target' does not support the action 'keywords'."
         }
 
         401: Unauthorized
@@ -74,14 +74,15 @@ class ResourceKeywords(BaseResource):
         # Fetch the proper function to call
         func = FunctionRouter.get_function(self.source_target_name, self.action)
 
-        # Fetch the resource
+        # Fetch the resource keywords
         try:
-            resource = func(token, self.source_resource_id)
+            # Will return a dictionary with resource's keywords
+            keywords = func(token, self.source_resource_id)
         except PresQTResponseException as e:
-            # Catch any errors that happen within the target fetch
+            # Catch any errors that happen
             return Response(data={'error': e.data}, status=e.status_code)
 
-        return Response(data=resource, status=status.HTTP_200_OK)
+        return Response(data=keywords, status=status.HTTP_200_OK)
 
     def post(self, request, target_name, resource_id):
         """
@@ -99,7 +100,19 @@ class ResourceKeywords(BaseResource):
         202 : ACCEPTED
         A dictionary containing the keywords of the resource.
         {
-            "updated_keywords": [
+            "added_keywords": [
+                "Animals",
+                "aqua",
+                "dihydrogen oxide",
+                "DISORDERED SOLVENT",
+                "EGG",
+                "Electrostatic Gravity Gradiometer",
+                "oxidane",
+                "OXYGEN ATOM",
+                "Wasser",
+                "Water"
+            ],
+            "final_keywords": [
                 "animal",
                 "Animals",
                 "aqua",
@@ -119,6 +132,14 @@ class ResourceKeywords(BaseResource):
         400: Bad Request
         {
             "error": "{Target} {Resource Type} do not have keywords."
+        }
+        or
+        {
+            "error": "PresQT Error: 'new_target' does not support the action 'keywords'."
+        }
+        or
+        {
+            "error": "PresQT Error: 'new_target' does not support the action 'keywords_upload'."
         }
 
         401: Unauthorized
@@ -150,18 +171,28 @@ class ResourceKeywords(BaseResource):
         try:
             keywords = func(token, self.source_resource_id)
         except PresQTResponseException as e:
-            # Catch any errors that happen within the target fetch
+            # Catch any errors that happen
             return Response(data={'error': e.data}, status=e.status_code)
 
-        new_list_of_keywords = keyword_enhancer(keywords)
+        # Call function which calls SciGraph for keyword suggestions.
+        try:
+            # Return a new keyword list and a final list.
+            new_list_of_keywords, final_list_of_keywords = keyword_enhancer(keywords)
+        except PresQTResponseException as e:
+            # Catch any errors that happen within the target fetch
+            return Response(data={'error': e.data}, status=e.status_code)
 
         # Fetch the proper function to call
         func = FunctionRouter.get_function(self.source_target_name, self.action)
 
         try:
-            updated_keywords = func(token, self.source_resource_id, new_list_of_keywords)
+            # Will return a dictionary with the updated_keywords
+            updated_keywords = func(token, self.source_resource_id, final_list_of_keywords)
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch
             return Response(data={'error': e.data}, status=e.status_code)
 
-        return Response(data=updated_keywords, status=status.HTTP_202_ACCEPTED)
+        return Response(data={
+            'keywords_added': new_list_of_keywords,
+            'final_keywords': updated_keywords['updated_keywords']},
+            status=status.HTTP_202_ACCEPTED)

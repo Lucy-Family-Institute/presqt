@@ -62,7 +62,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
     def setUp(self):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': ZENODO_TEST_USER_TOKEN}
-        self.keys = ['updated_keywords']
+        self.keys = ['keywords_added', 'final_keywords']
 
     def test_success_project_keywords(self):
         """
@@ -82,7 +82,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         # Verify the dict keys match what we expect
         self.assertListEqual(self.keys, list(response.data.keys()))
         # Ensure the new list is larger than the initial one.
-        self.assertGreater(len(response.data['updated_keywords']), initial_keywords)
+        self.assertGreater(len(response.data['final_keywords']), initial_keywords)
 
         # Set the project keywords back to what they were.
         headers = {"access_token": ZENODO_TEST_USER_TOKEN}

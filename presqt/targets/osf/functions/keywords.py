@@ -61,7 +61,7 @@ def osf_upload_keywords(token, resource_id, keywords):
     resource_id: str
         ID of the resource requested
     keywords: list
-        List of new keywords to upload.
+        List of new keywords to upload
 
     Returns
     -------
@@ -88,19 +88,18 @@ def osf_upload_keywords(token, resource_id, keywords):
         patch_url = 'https://api.osf.io/v2/nodes/{}/'.format(resource_id)
         data = {"data": {"type": "nodes", "id": resource_id, "attributes": {"tags": keywords}}}
 
-        response = requests.patch(patch_url, headers=headers, data=json.dumps(data))
-        if response.status_code != 200:
-            raise PresQTResponseException("OSF returned a {} error trying to update keywords.".format(
-                response.status_code), status.HTTP_400_BAD_REQUEST)
-
-    if resource.kind_name == 'file':
+    elif resource.kind_name == 'file':
         patch_url = 'https://api.osf.io/v2/files/{}/'.format(resource_id)
         data = {"data": {"type": "files", "id": resource_id, "attributes": {"tags": keywords}}}
 
-        response = requests.patch(patch_url, headers=headers, data=json.dumps(data))
+    elif resource.kind_name == 'folder':
+        raise PresQTResponseException("Can not update OSF folder keywords.",
+                                      status.HTTP_400_BAD_REQUEST)
 
-        if response.status_code != 200:
-            raise PresQTResponseException("OSF returned a {} error trying to update keywords.".format(
-                response.status_code), status.HTTP_400_BAD_REQUEST)
+    response = requests.patch(patch_url, headers=headers, data=json.dumps(data))
+
+    if response.status_code != 200:
+        raise PresQTResponseException("OSF returned a {} error trying to update keywords.".format(
+            response.status_code), status.HTTP_400_BAD_REQUEST)
 
     return {"updated_keywords": response.json()['data']['attributes']['tags']}
