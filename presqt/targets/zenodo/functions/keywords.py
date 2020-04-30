@@ -43,7 +43,11 @@ def zenodo_fetch_keywords(token, resource_id):
             'zenodo_keywords': resource['extra']['keywords'],
             'keywords': resource['extra']['keywords']
         }
-    return {'zenodo_keywords': [], 'keywords': []}
+
+    else:
+        # Files don't have keywords
+        raise PresQTResponseException("Zenodo files do not have keywords.",
+                                      status.HTTP_400_BAD_REQUEST)
 
 
 def zenodo_upload_keywords(token, resource_id, keywords):
@@ -75,9 +79,6 @@ def zenodo_upload_keywords(token, resource_id, keywords):
 
     resource = zenodo_fetch_resource(token, resource_id)
 
-    if resource['kind_name'] in ['file']:
-        raise PresQTResponseException("Zenodo files do not have keywords.",
-                                      status.HTTP_404_NOT_FOUND)
     headers = {"access_token": token}
     put_url = 'https://zenodo.org/api/deposit/depositions/{}'.format(resource_id)
 
@@ -87,13 +88,12 @@ def zenodo_upload_keywords(token, resource_id, keywords):
         "description": resource['extra']['description'],
         "creators": resource['extra']['creators'],
         "keywords": list(set(keywords))
-        }}
+    }}
 
     response = requests.put(put_url, params=headers, data=json.dumps(data),
                             headers={'Content-Type': 'application/json'})
 
     if response.status_code != 200:
-        print(response.json())
         raise PresQTResponseException("Zenodo returned a {} error trying to update keywords.".format(
             response.status_code), status.HTTP_400_BAD_REQUEST)
 
