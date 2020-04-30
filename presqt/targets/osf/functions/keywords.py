@@ -84,10 +84,6 @@ def osf_upload_keywords(token, resource_id, keywords):
 
     resource = get_osf_resource(resource_id, osf_instance)
 
-    if resource.kind_name == 'storage':
-        raise PresQTResponseException("OSF Storages do not have keywords.",
-                                      status.HTTP_400_BAD_REQUEST)
-
     if resource.kind_name == 'project':
         patch_url = 'https://api.osf.io/v2/nodes/{}/'.format(resource_id)
         data = {"data": {"type": "nodes", "id": resource_id, "attributes": {"tags": keywords}}}
