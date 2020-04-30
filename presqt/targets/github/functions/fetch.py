@@ -108,6 +108,8 @@ def github_fetch_resource(token, resource_id):
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
+    header['Accept'] = 'application/vnd.github.mercy-preview+json'
+
     # Without a colon, we know this is a top level repo
     if ':' not in resource_id:
         project_url = 'https://api.github.com/repositories/{}'.format(resource_id)
