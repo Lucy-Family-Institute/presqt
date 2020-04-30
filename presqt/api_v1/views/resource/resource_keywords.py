@@ -34,14 +34,25 @@ class ResourceKeywords(BaseResource):
         200 : OK
         A dictionary containing the keywords of the resource.
         {
-            "topics": [
+            "keywords": [
                 "eggs",
                 "animal",
                 "water"
             ],
-            "keywords": [
+            "enhanced_keywords": [
+                "animals",
+                "Animals",
                 "eggs",
-                "animal",
+                "EGG",
+                "Electrostatic Gravity Gradiometer",
+                "water",
+                "Water",
+                "DISORDERED SOLVENT",
+                "aqua",
+                "Wasser",
+                "dihydrogen oxide",
+                "OXYGEN ATOM",
+                "oxidane",
                 "water"
             ]
         }
@@ -82,7 +93,18 @@ class ResourceKeywords(BaseResource):
             # Catch any errors that happen
             return Response(data={'error': e.data}, status=e.status_code)
 
-        return Response(data=keywords, status=status.HTTP_200_OK)
+        # Call function which calls SciGraph for keyword suggestions.
+        try:
+            # Return a new keyword list and a final list.
+            new_list_of_keywords, final_list_of_keywords = keyword_enhancer(keywords)
+        except PresQTResponseException as e:
+            # Catch any errors that happen within the target fetch
+            return Response(data={'error': e.data}, status=e.status_code)
+
+        return Response(data={
+            "keywords": keywords['keywords'],
+            "enhanced_keywords": final_list_of_keywords},
+            status=status.HTTP_200_OK)
 
     def post(self, request, target_name, resource_id):
         """
