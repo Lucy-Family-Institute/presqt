@@ -47,7 +47,6 @@ def gitlab_fetch_keywords(token, resource_id):
             'tag_list': resource['extra']['tag_list'],
             'keywords': resource['extra']['tag_list']
         }
-    return {'tag_list': [], 'keywords': []}
 
 
 def gitlab_upload_keywords(token, resource_id, keywords):
@@ -77,11 +76,8 @@ def gitlab_upload_keywords(token, resource_id, keywords):
     """
     from presqt.targets.gitlab.functions.fetch import gitlab_fetch_resource
 
-    resource = gitlab_fetch_resource(token, resource_id)
-
-    if resource['kind_name'] in ['dir', 'file']:
-        raise PresQTResponseException("GitHub directories and files do not have keywords.",
-                                      status.HTTP_404_NOT_FOUND)
+    # This will raise an error if not a project.
+    gitlab_fetch_resource(token, resource_id)
 
     headers = {"Private-Token": "{}".format(token)}
     put_url = 'https://gitlab.com/api/v4/projects/{}'.format(resource_id)
@@ -94,9 +90,6 @@ def gitlab_upload_keywords(token, resource_id, keywords):
 
     if response.status_code != 200:
         raise PresQTResponseException("GitLab returned a {} error trying to update keywords.".format(
-            response.status_code), status.HTTP_400_BAD_REQUEST)
-    if not response.json():
-        raise PresQTResponseException("GitLab returned a no data trying to update keywords.".format(
             response.status_code), status.HTTP_400_BAD_REQUEST)
 
     return {'updated_keywords': response.json()['tag_list']}

@@ -40,14 +40,13 @@ def github_fetch_keywords(token, resource_id):
 
     if resource['kind_name'] in ['dir', 'file']:
         raise PresQTResponseException("GitHub directories and files do not have keywords.",
-                                      status.HTTP_404_NOT_FOUND)
+                                      status.HTTP_400_BAD_REQUEST)
 
     if 'topics' in resource['extra'].keys():
         return {
             'topics': resource['extra']['topics'],
             'keywords': resource['extra']['topics']
         }
-    return {'topics': [], 'keywords': []}
 
 
 def github_upload_keywords(token, resource_id, keywords):
@@ -77,13 +76,11 @@ def github_upload_keywords(token, resource_id, keywords):
     """
     from presqt.targets.github.functions.fetch import github_fetch_resource
 
+    # This will raise an error if not a repo.
     resource = github_fetch_resource(token, resource_id)
 
-    if resource['kind_name'] in ['dir', 'file']:
-        raise PresQTResponseException("GitHub directories and files do not have keywords.",
-                                      status.HTTP_404_NOT_FOUND)
-    headers = {"Authorization": "token {}".format(
-        token),  "Accept": "application/vnd.github.mercy-preview+json"}
+    headers = {"Authorization": "token {}".format(token),
+               "Accept": "application/vnd.github.mercy-preview+json"}
     put_url = 'https://api.github.com/repos/{}/topics'.format(resource['extra']['full_name'])
 
     new_keywords = []
