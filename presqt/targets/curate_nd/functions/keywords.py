@@ -45,4 +45,4 @@ def curate_nd_fetch_keywords(token, resource_id):
 
     else:
         raise PresQTResponseException(
-            "The given resouce id does not support keywords.", status.HTTP_400_BAD_REQUEST)
+            "The given resource id does not support keywords.", status.HTTP_400_BAD_REQUEST)
