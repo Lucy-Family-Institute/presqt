@@ -38,7 +38,9 @@ class TestTargetCollection(SimpleTestCase):
             'resource_download',
             'resource_upload',
             'resource_transfer_in',
-            'resource_transfer_out'
+            'resource_transfer_out',
+            'keywords',
+            'keywords_upload'
         ]
 
         for dict_item in response.data:
