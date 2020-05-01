@@ -22,6 +22,7 @@ class Command(BaseCommand):
             '/usr/src/app/mediafiles/downloads/*/',
             '/usr/src/app/mediafiles/uploads/*/',
             '/usr/src/app/mediafiles/transfers/*/'
+            '/usr/src/app/mediafiles/bag_tool/*/'
         ]
         directories = []
         [directories.extend(glob(directory)) for directory in directories_list]
