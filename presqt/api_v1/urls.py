@@ -1,5 +1,6 @@
 from django.urls import path
 
+from presqt.api_v1.views.bag_and_zip.bag_and_zip import BagAndZip
 from presqt.api_v1.views.status.status import StatusCollection
 from presqt.api_v1 import api_root
 from presqt.api_v1.views.download.download_job import DownloadJob
@@ -51,5 +52,8 @@ api_v1_endpoints = [
     # EaaSI specific
     path('services/eaasi/proposals/', Proposals.as_view(), name='proposals'),
     path('services/eaasi/proposals/<str:proposal_id>/', Proposal.as_view(), name='proposal'),
-    path('services/eaasi/download/<str:ticket_number>/', EaasiDownload.as_view(), name='eaasi_download')
+    path('services/eaasi/download/<str:ticket_number>/', EaasiDownload.as_view(), name='eaasi_download'),
+
+    # BagIt and Zip Tool
+    path('bag_and_zip/', BagAndZip.as_view(), name='bag_and_zip')
 ]
