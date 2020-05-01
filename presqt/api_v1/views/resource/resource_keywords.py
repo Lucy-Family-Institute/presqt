@@ -122,7 +122,7 @@ class ResourceKeywords(BaseResource):
         202 : ACCEPTED
         A dictionary containing the keywords of the resource.
         {
-            "added_keywords": [
+            "keywords_added": [
                 "Animals",
                 "aqua",
                 "dihydrogen oxide",
@@ -163,6 +163,14 @@ class ResourceKeywords(BaseResource):
         {
             "error": "PresQT Error: 'new_target' does not support the action 'keywords_upload'."
         }
+        or
+        {
+            "error": "keywords is missing from the request body."
+        }
+        or
+        {
+            "error": "keywords must be in list format."
+        }
 
         401: Unauthorized
         {
@@ -180,41 +188,47 @@ class ResourceKeywords(BaseResource):
         self.action = "keywords_upload"
 
         try:
+            keywords = request.data['keywords']
+        except KeyError:
+            return Response(data={"error": "keywords is missing from the request body."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if type(keywords) is not list:
+            return Response(data={"error": "keywords must be in list format."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        try:
             token = get_source_token(self.request)
-            target_validation(self.source_target_name, 'keywords')
             target_validation(self.source_target_name, self.action)
+            target_validation(self.source_target_name, 'keywords')
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Fetch the initial keyword function
         func = FunctionRouter.get_function(self.source_target_name, 'keywords')
 
-        # Fetch the keywords
+        # Fetch the resource keywords
         try:
-            keywords = func(token, self.source_resource_id)
+            # Will return a dictionary with resource's keywords
+            initial_keywords = func(token, self.source_resource_id)
         except PresQTResponseException as e:
             # Catch any errors that happen
             return Response(data={'error': e.data}, status=e.status_code)
 
-        # Call function which calls SciGraph for keyword suggestions.
-        try:
-            # Return a new keyword list and a final list.
-            new_list_of_keywords, final_list_of_keywords = keyword_enhancer(keywords)
-        except PresQTResponseException as e:
-            # Catch any errors that happen within the target fetch
-            return Response(data={'error': e.data}, status=e.status_code)
-
-        # Fetch the proper function to call
+        # Fetch the update keywords functtion
         func = FunctionRouter.get_function(self.source_target_name, self.action)
 
+        # Add the keywords
+        all_keywords = initial_keywords['keywords'] + keywords
+
+        # Function will upload new keywords to the selected resource
         try:
             # Will return a dictionary with the updated_keywords
-            updated_keywords = func(token, self.source_resource_id, final_list_of_keywords)
+            updated_keywords = func(token, self.source_resource_id, all_keywords)
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch
             return Response(data={'error': e.data}, status=e.status_code)
 
         return Response(data={
-            'keywords_added': new_list_of_keywords,
+            'keywords_added': keywords,
             'final_keywords': updated_keywords['updated_keywords']},
             status=status.HTTP_202_ACCEPTED)

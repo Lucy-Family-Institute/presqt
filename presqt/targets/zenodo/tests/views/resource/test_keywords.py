@@ -76,7 +76,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         # Get the ount of the initial keywords
         initial_keywords = len(get_response.data['keywords'])
 
-        response = self.client.post(url, **self.header)
+        response = self.client.post(url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
         # Verify the status code
         self.assertEqual(response.status_code, 202)
         # Verify the dict keys match what we expect
@@ -106,7 +106,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         resource_id = "1644bae0-346b-49af-aaab-2409a688f85e"
         url = reverse('keywords', kwargs={'target_name': 'zenodo',
                                           'resource_id': resource_id})
-        response = self.client.post(url, **self.header)
+        response = self.client.post(url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
         # Verify the status code
         self.assertEqual(response.status_code, 400)
         # Verify the error message
@@ -125,7 +125,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
             resource_id = '3525310'
             url = reverse('keywords', kwargs={'target_name': 'zenodo',
                                               'resource_id': resource_id})
-            response = self.client.post(url, **self.header)
+            response = self.client.post(url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
 
             # Verify the status code
             self.assertEqual(response.status_code, 400)
