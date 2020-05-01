@@ -163,6 +163,14 @@ class ResourceKeywords(BaseResource):
         {
             "error": "PresQT Error: 'new_target' does not support the action 'keywords_upload'."
         }
+        or
+        {
+            "error": "keywords is missing from the request body."
+        }
+        or
+        {
+            "error": "keywords must be in list format."
+        }
 
         401: Unauthorized
         {
@@ -195,7 +203,7 @@ class ResourceKeywords(BaseResource):
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
-        # Fetch the proper function to call
+        # Fetch the initial keyword function
         func = FunctionRouter.get_function(self.source_target_name, 'keywords')
 
         # Fetch the resource keywords
@@ -206,12 +214,13 @@ class ResourceKeywords(BaseResource):
             # Catch any errors that happen
             return Response(data={'error': e.data}, status=e.status_code)
 
-        # Fetch the proper function to call
+        # Fetch the update keywords functtion
         func = FunctionRouter.get_function(self.source_target_name, self.action)
 
         # Add the keywords
         all_keywords = initial_keywords['keywords'] + keywords
 
+        # Function will upload new keywords to the selected resource
         try:
             # Will return a dictionary with the updated_keywords
             updated_keywords = func(token, self.source_resource_id, all_keywords)
