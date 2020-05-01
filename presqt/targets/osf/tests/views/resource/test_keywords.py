@@ -55,7 +55,7 @@ class TestResourceKeywords(SimpleTestCase):
         self.assertIn('water', response.data['keywords'])
         self.assertIn('animals', response.data['keywords'])
         self.assertIn('PresQT', response.data['keywords'])
-    
+
     def test_error_folder_keywords(self):
         """
         Returns a 200 if the GET method is successful when getting an OSF `file`.
@@ -67,7 +67,8 @@ class TestResourceKeywords(SimpleTestCase):
         # Verify the status code
         self.assertEqual(response.status_code, 400)
         # Verify the dict keys match what we expect
-        self.assertEqual(response.data['error'], 'There are no keywords to enhance for this resource.')
+        self.assertEqual(response.data['error'],
+                         'There are no keywords to enhance for this resource.')
 
     def test_error_storage_keywords(self):
         """
@@ -97,6 +98,18 @@ class TestResourceKeywords(SimpleTestCase):
         self.assertEqual(response.data['error'],
                          "Token is invalid. Response returned a 401 status code.")
 
+    def test_no_token(self):
+        resource_id = '5cd98b0af244ec0021e5f8dd'
+        self.header = {}
+        url = reverse('keywords', kwargs={'target_name': 'osf',
+                                          'resource_id': resource_id})
+        response = self.client.get(url, **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 400)
+        # Verify the error message
+        self.assertEqual(
+            response.data['error'], "PresQT Error: 'presqt-source-token' missing in the request headers.")
+
 
 class TestResourceKeywordsPOST(SimpleTestCase):
     """
@@ -118,7 +131,8 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         resource_id = "cmn5z"
         url = reverse('keywords', kwargs={'target_name': 'osf',
                                           'resource_id': resource_id})
-        response = self.client.post(url, **self.header)
+        response = self.client.post(
+            url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
         # Verify the status code
         self.assertEqual(response.status_code, 401)
         # Verify the error message
@@ -137,7 +151,8 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         # Get the count of the initial keywords
         initial_keywords = len(get_response.data['keywords'])
 
-        response = self.client.post(url, **self.header)
+        response = self.client.post(
+            url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
         # Verify the status code
         self.assertEqual(response.status_code, 202)
         # Verify the dict keys match what we expect
@@ -168,7 +183,8 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         # Get the ount of the initial keywords
         initial_keywords = len(get_response.data['keywords'])
 
-        response = self.client.post(url, **self.header)
+        response = self.client.post(
+            url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
         # Verify the status code
         self.assertEqual(response.status_code, 202)
         # Verify the dict keys match what we expect
@@ -189,12 +205,13 @@ class TestResourceKeywordsPOST(SimpleTestCase):
 
     def test_error_storage_keywords(self):
         """
-        Returns a 400 if the POST method is unsuccessful when getting a GitLab `file` keywords.
+        Returns a 400 if the POST method is unsuccessful when getting a OSF `storage` keywords.
         """
         resource_id = 'cmn5z:googledrive'
         url = reverse('keywords', kwargs={'target_name': 'osf',
                                           'resource_id': resource_id})
-        response = self.client.post(url, **self.header)
+        response = self.client.post(
+            url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
         # Verify the status code
         self.assertEqual(response.status_code, 400)
         # Verify the error message
@@ -202,16 +219,57 @@ class TestResourceKeywordsPOST(SimpleTestCase):
 
     def test_error_no_keywords(self):
         """
-        Returns a 400 if the POST method is unsuccessful when getting a GitLab `file` keywords.
+        Returns a 400 if the POST method is unsuccessful when getting a OSF `folder` keywords.
         """
         resource_id = '5cd98b0af244ec0021e5f8dd'
         url = reverse('keywords', kwargs={'target_name': 'osf',
                                           'resource_id': resource_id})
-        response = self.client.post(url, **self.header)
+        response = self.client.post(
+            url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
         # Verify the status code
         self.assertEqual(response.status_code, 400)
         # Verify the error message
-        self.assertEqual(response.data['error'], 'There are no keywords to enhance for this resource.')
+        self.assertEqual(response.data['error'], 'Can not update OSF folder keywords.')
+
+    def test_error_no_keywords_provided(self):
+        """
+        Returns a 400 if the POST method is unsuccessful when no keywords provided.
+        """
+        resource_id = '5cd98b0af244ec0021e5f8dd'
+        url = reverse('keywords', kwargs={'target_name': 'osf',
+                                          'resource_id': resource_id})
+        response = self.client.post(
+            url, {"eggs": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
+        # Verify the status code
+        self.assertEqual(response.status_code, 400)
+        # Verify the error message
+        self.assertEqual(response.data['error'], 'keywords is missing from the request body.')
+
+    def test_no_token(self):
+        resource_id = '5cd98b0af244ec0021e5f8dd'
+        self.header = {}
+        url = reverse('keywords', kwargs={'target_name': 'osf',
+                                          'resource_id': resource_id})
+        response = self.client.post(
+            url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
+        # Verify the status code
+        self.assertEqual(response.status_code, 400)
+        # Verify the error message
+        self.assertEqual(
+            response.data['error'], "PresQT Error: 'presqt-source-token' missing in the request headers.")
+
+    def test_error_keywords_not_list(self):
+        """
+        Returns a 400 if the POST method is unsuccessful when keywords is not in list format.
+        """
+        resource_id = '5cd98b0af244ec0021e5f8dd'
+        url = reverse('keywords', kwargs={'target_name': 'osf',
+                                          'resource_id': resource_id})
+        response = self.client.post(url, {"keywords": "h20"}, **self.header, format='json')
+        # Verify the status code
+        self.assertEqual(response.status_code, 400)
+        # Verify the error message
+        self.assertEqual(response.data['error'], 'keywords must be in list format.')
 
     def test_failed_update_keywords_project(self):
         # Mock a server error for when a put request is made.
@@ -226,7 +284,8 @@ class TestResourceKeywordsPOST(SimpleTestCase):
             resource_id = 'cmn5z'
             url = reverse('keywords', kwargs={'target_name': 'osf',
                                               'resource_id': resource_id})
-            response = self.client.post(url, **self.header)
+            response = self.client.post(
+                url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
 
             # Verify the status code
             self.assertEqual(response.status_code, 400)
@@ -248,7 +307,8 @@ class TestResourceKeywordsPOST(SimpleTestCase):
             resource_id = '5cd9831c054f5b001a5ca2af'
             url = reverse('keywords', kwargs={'target_name': 'osf',
                                               'resource_id': resource_id})
-            response = self.client.post(url, **self.header)
+            response = self.client.post(
+                url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
 
             # Verify the status code
             self.assertEqual(response.status_code, 400)

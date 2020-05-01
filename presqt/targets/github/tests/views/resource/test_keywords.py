@@ -5,6 +5,8 @@ from unittest.mock import patch
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 from django.test import SimpleTestCase
+from django.utils.datastructures import MultiValueDict
+from django.utils.http import urlencode
 
 from config.settings.base import GITHUB_TEST_USER_TOKEN
 
@@ -77,7 +79,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         # Get the ount of the initial keywords
         initial_keywords = len(get_response.data['keywords'])
 
-        response = self.client.post(url, **self.header)
+        response = self.client.post(url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
         # Verify the status code
         self.assertEqual(response.status_code, 202)
         # Verify the dict keys match what we expect
@@ -101,7 +103,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         resource_id = "209372336:README%252Emd"
         url = reverse('keywords', kwargs={'target_name': 'github',
                                           'resource_id': resource_id})
-        response = self.client.post(url, **self.header)
+        response = self.client.post(url, data={"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
         # Verify the status code
         self.assertEqual(response.status_code, 400)
         # Verify the error message
@@ -121,7 +123,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
             resource_id = '209372336'
             url = reverse('keywords', kwargs={'target_name': 'github',
                                               'resource_id': resource_id})
-            response = self.client.post(url, **self.header)
+            response = self.client.post(url, data={"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
 
             # Verify the status code
             self.assertEqual(response.status_code, 400)
