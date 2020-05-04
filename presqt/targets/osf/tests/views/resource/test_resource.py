@@ -1159,3 +1159,16 @@ class TestResourcePOST(SimpleTestCase):
 
         # Delete corresponding folder
         shutil.rmtree(self.ticket_path)
+
+    def test_success_400_bad_bag_only_single_file(self):
+        """
+        Test that we get a 400 error because a bad bag was uploaded.
+        """
+        self.resource_id = None
+        self.duplicate_action = 'ignore'
+        self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        self.file = 'presqt/api_v1/tests/resources/upload/bagless_zip.zip'
+        response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['error'], 'PresQT Error: Bag is not formatted properly.')
