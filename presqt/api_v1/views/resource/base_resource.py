@@ -182,7 +182,11 @@ class BaseResource(APIView):
             with zipfile.ZipFile(resource) as myzip:
                 myzip.extractall(self.ticket_path)
 
-            self.base_directory_name = next(os.walk(self.ticket_path))[1][0]
+            try:
+                self.base_directory_name = next(os.walk(self.ticket_path))[1][0]
+            except IndexError:
+                return Response(data={'error': 'PresQT Error: Bag is not formatted properly.'}, status=status.HTTP_400_BAD_REQUEST)
+
             self.resource_main_dir = os.path.join(self.ticket_path, self.base_directory_name)
 
             # Validate the 'bag' and check for checksum mismatches
