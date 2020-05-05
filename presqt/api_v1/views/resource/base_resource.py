@@ -20,7 +20,8 @@ from presqt.api_v1.utilities import (target_validation, transfer_target_validati
                                      create_upload_metadata, get_action_message,
                                      get_upload_source_metadata, hash_tokens,
                                      finite_depth_upload_helper, structure_validation,
-                                     keyword_action_validation)
+                                     keyword_action_validation,
+                                     create_keyword_enhancement, transfer_keyword_enhancer)
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
@@ -268,13 +269,16 @@ class BaseResource(APIView):
         #   }
         try:
             func_dict = func(self.source_token, self.source_resource_id)
-            # If the resource is being transferred, has only one file, and that file is PresQT
-            # metadata then raise an error.
-            if self.action == 'resource_transfer_in' \
-                    and len(func_dict['resources']) == 1 \
-                    and func_dict['resources'][0]['title'] == 'PRESQT_FTS_METADATA.json':
+            # If the resource is being transferred, has only one file, and that file is
+            # either PresQT metadata or keyword enhancements then raise an error.
+            first_resource = func_dict['resources'][0]['title']
+            resource_length = len(func_dict['resources'])
+            single_resources = ['PRESQT_FTS_METADATA.json', 'PRESQT_KEYWORD_ENHANCEMENTS.json']
+            if self.action == 'resource_transfer_in' and \
+                    resource_length == 1 \
+                    and first_resource in single_resources:
                 raise PresQTResponseException(
-                    'PresQT Error: PresQT FTS metadata cannot not be transferred by itself.',
+                    'PresQT Error: PresQT FTS metadata or keyword enhancement cannot not be transferred by itself.',
                     status.HTTP_400_BAD_REQUEST)
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch.
@@ -297,11 +301,12 @@ class BaseResource(APIView):
         # For each resource, perform fixity check, gather metadata, and save it to disk.
         fixity_info = []
         self.download_fixity = True
+        self.download_failed_fixity = []
         self.source_fts_metadata_actions = []
         self.new_fts_metadata_files = []
-        self.download_failed_fixity = []
         for resource in func_dict['resources']:
             # Perform the fixity check and add extra info to the returned fixity object.
+            # Note: This method of calling the function needs to stay this way for test Mock
             fixity_obj, self.download_fixity = download_fixity_checker.download_fixity_checker(
                 resource)
             fixity_info.append(fixity_obj)
@@ -313,6 +318,13 @@ class BaseResource(APIView):
             if create_download_metadata(self, resource, fixity_obj):
                 # Don't write valid FTS metadata file.
                 continue
+
+            # Create keyword enhancement for this resource. Return True if a valid
+            # keyword enhancement is found and 'presqt-keyword-action' is 'enhance'.
+            if self.action == 'resource_transfer_in' and self.keyword_action == 'enhance':
+                if create_keyword_enhancement(self, resource):
+                    # Don't write valid keyword enhancement file.
+                    continue
 
             # Save the file to the disk.
             write_file('{}{}'.format(self.resource_main_dir, resource['path']), resource['file'])
@@ -525,8 +537,9 @@ class BaseResource(APIView):
             self.process_info_obj['failed_fixity'] = self.upload_failed_fixity
             write_file(self.process_info_path, self.process_info_obj, True)
         else:
-            self.process_info_obj['upload_status'] = upload_message
 
+            self.process_info_obj['upload_status'] = upload_message
+            transfer_keyword_enhancer(self)
         return True
 
     def transfer_post(self):

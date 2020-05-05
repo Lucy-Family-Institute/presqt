@@ -27,3 +27,5 @@ from presqt.api_v1.utilities.validation.structure_validation import structure_va
 from presqt.api_v1.utilities.validation.search_validator import search_validator
 from presqt.api_v1.utilities.utils.keyword_enhancer import keyword_enhancer
 from presqt.api_v1.utilities.validation.keyword_action_validation import keyword_action_validation
+from presqt.api_v1.utilities.keyword_enhancement.create_keyword_enhancement import create_keyword_enhancement
+from presqt.api_v1.utilities.keyword_enhancement.transfer_keyword_enhancer import transfer_keyword_enhancer
