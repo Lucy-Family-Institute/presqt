@@ -537,7 +537,6 @@ class BaseResource(APIView):
             self.process_info_obj['failed_fixity'] = self.upload_failed_fixity
             write_file(self.process_info_path, self.process_info_obj, True)
         else:
-
             self.process_info_obj['upload_status'] = upload_message
             transfer_keyword_enhancer(self)
         return True
