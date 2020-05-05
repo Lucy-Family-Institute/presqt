@@ -18,20 +18,17 @@
           "sourceUsername": { "type": ["string", "integer", "null"] },
           "destinationUsername": { "type": ["string", "integer", "null"] },
           "keywordEnhancements": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "initialKeywords": {
-                  "type": "array",
-                  "items": { "type": "string" }
-                },
-                "enhancedKeywords": {
-                  "type": "array",
-                  "items": { "type": "string" }
-                },
-                "enhancer": { "type": "string" }
-              }
+            "type": "object",
+            "properties": {
+              "initialKeywords": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "enhancedKeywords": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "enhancer": { "type": "string" }
             }
           },
           "files": {
