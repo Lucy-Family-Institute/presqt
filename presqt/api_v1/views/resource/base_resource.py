@@ -13,12 +13,14 @@ from rest_framework.views import APIView
 
 from presqt.api_v1.utilities import (target_validation, transfer_target_validation,
                                      get_destination_token, file_duplicate_action_validation,
-                                     FunctionRouter, get_source_token, transfer_post_body_validation,
+                                     FunctionRouter, get_source_token,
+                                     transfer_post_body_validation,
                                      spawn_action_process, get_or_create_hashes_from_bag,
                                      create_fts_metadata, create_download_metadata,
                                      create_upload_metadata, get_action_message,
                                      get_upload_source_metadata, hash_tokens,
-                                     finite_depth_upload_helper, structure_validation)
+                                     finite_depth_upload_helper, structure_validation,
+                                     keyword_action_validation)
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
@@ -116,7 +118,15 @@ class BaseResource(APIView):
         }
         or
         {
-        "error": "PresQT Error: PresQT FTS metadata cannot not be transferred by itself.
+        "error": "PresQT Error: PresQT FTS metadata cannot not be transferred by itself."
+        }
+        or
+        {
+        "error": "PresQT Error: 'presqt-keyword-action' missing in the request headers."
+        }
+        or
+        {
+        "error": PresQT Error: 'bad_action' is not a valid keyword_action. The options are 'enhance' or 'suggest'."
         }
 
         401: Unauthorized
@@ -531,6 +541,7 @@ class BaseResource(APIView):
             self.destination_token = get_destination_token(self.request)
             self.source_token = get_source_token(self.request)
             self.file_duplicate_action = file_duplicate_action_validation(self.request)
+            self.keyword_action = keyword_action_validation(self.request)
             self.source_target_name, self.source_resource_id = transfer_post_body_validation(
                 self.request)
             target_valid, self.infinite_depth = target_validation(
