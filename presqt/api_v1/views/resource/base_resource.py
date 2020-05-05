@@ -271,14 +271,11 @@ class BaseResource(APIView):
             func_dict = func(self.source_token, self.source_resource_id)
             # If the resource is being transferred, has only one file, and that file is
             # either PresQT metadata or keyword enhancements then raise an error.
-            first_resource = func_dict['resources'][0]['title']
-            resource_length = len(func_dict['resources'])
-            single_resources = ['PRESQT_FTS_METADATA.json', 'PRESQT_KEYWORD_ENHANCEMENTS.json']
             if self.action == 'resource_transfer_in' and \
-                    resource_length == 1 \
-                    and first_resource in single_resources:
+                    len(func_dict['resources']) == 1 \
+                    and func_dict['resources'][0]['title'] == 'PRESQT_FTS_METADATA.json':
                 raise PresQTResponseException(
-                    'PresQT Error: PresQT FTS metadata or keyword enhancement cannot not be transferred by itself.',
+                    'PresQT Error: PresQT FTS metadata cannot not be transferred by itself.',
                     status.HTTP_400_BAD_REQUEST)
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch.
@@ -304,6 +301,7 @@ class BaseResource(APIView):
         self.download_failed_fixity = []
         self.source_fts_metadata_actions = []
         self.new_fts_metadata_files = []
+        self.source_keywords = []
         for resource in func_dict['resources']:
             # Perform the fixity check and add extra info to the returned fixity object.
             # Note: This method of calling the function needs to stay this way for test Mock
@@ -319,15 +317,20 @@ class BaseResource(APIView):
                 # Don't write valid FTS metadata file.
                 continue
 
-            # Create keyword enhancement for this resource. Return True if a valid
-            # keyword enhancement is found and 'presqt-keyword-action' is 'enhance'.
-            if self.action == 'resource_transfer_in' and self.keyword_action == 'enhance':
-                if create_keyword_enhancement(self, resource):
-                    # Don't write valid keyword enhancement file.
-                    continue
+            # # Create keyword enhancement for this resource. Return True if a valid
+            # # keyword enhancement is found and 'presqt-keyword-action' is 'enhance'.
+            # if self.action == 'resource_transfer_in' and self.keyword_action == 'enhance':
+            #     if create_keyword_enhancement(self, resource):
+            #         # Don't write valid keyword enhancement file.
+            #         continue
 
             # Save the file to the disk.
             write_file('{}{}'.format(self.resource_main_dir, resource['path']), resource['file'])
+
+        if self.action == 'resource_transfer_in' and self.keyword_action == 'enhance':
+            keyword_enhancements = None
+        else:
+            keyword_enhancements = None
 
         # Create PresQT action metadata
         self.action_metadata = {
@@ -338,6 +341,7 @@ class BaseResource(APIView):
             'sourceUsername': func_dict['action_metadata']['sourceUsername'],
             'destinationTargetName': 'Local Machine',
             'destinationUsername': None,
+            'keywordEnhancements': keyword_enhancements,
             'files': {
                 'created': self.new_fts_metadata_files,
                 'updated': [],
@@ -538,7 +542,6 @@ class BaseResource(APIView):
             write_file(self.process_info_path, self.process_info_obj, True)
         else:
             self.process_info_obj['upload_status'] = upload_message
-            transfer_keyword_enhancer(self)
         return True
 
     def transfer_post(self):

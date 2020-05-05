@@ -83,8 +83,7 @@ def create_upload_metadata(instance, file_metadata_list, action_metadata, projec
 
     # Create FTS metadata object
     from presqt.api_v1.utilities import create_fts_metadata
-
-    fts_metadata_data = create_fts_metadata(instance.action_metadata,
+    fts_metadata_data = create_fts_metadata(instance.source_keywords, instance.action_metadata,
                                             instance.source_fts_metadata_actions)
     # Write the metadata file to the destination target and validate the metadata file
     metadata_validation = write_and_validate_metadata(instance, project_id, fts_metadata_data)

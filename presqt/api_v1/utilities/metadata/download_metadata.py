@@ -31,6 +31,8 @@ def create_download_metadata(instance, resource, fixity_obj):
                             source_fts_metadata_content) is True:
             instance.source_fts_metadata_actions = instance.source_fts_metadata_actions + \
                                                    source_fts_metadata_content['actions']
+            instance.source_keywords = instance.source_keywords + \
+                                       source_fts_metadata_content['allEnhancedKeywords']
             return True
         # If the metadata is invalid rename and write it. We don't want invalid contents.
         else:
@@ -43,7 +45,7 @@ def create_download_metadata(instance, resource, fixity_obj):
         'title': resource['title'],
         'sourceHashes': resource['hashes'],
         'sourcePath': resource['source_path'],
-        'extra': resource['extra_metadata']
+        'extra': resource['extra_metadata'],
     }
     # Add fixity info to metadata
     if not fixity_obj['fixity']:
