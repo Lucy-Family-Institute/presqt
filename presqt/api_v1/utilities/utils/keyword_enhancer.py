@@ -34,7 +34,7 @@ def keyword_enhancer(keywords):
             continue
         for label in response.json()[0]['labels']:
             if label == keyword:
-                # Don't add he new label if it's the current keyword
+                # Don't add the new label if it's the current keyword
                 continue
             new_list_of_keywords.append(label)
             final_list_of_keywords.append(label)
