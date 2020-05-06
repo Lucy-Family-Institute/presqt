@@ -21,7 +21,7 @@ from presqt.api_v1.utilities import (target_validation, transfer_target_validati
                                      get_upload_source_metadata, hash_tokens,
                                      finite_depth_upload_helper, structure_validation,
                                      keyword_action_validation,
-                                     create_keyword_enhancement, transfer_keyword_enhancer,
+                                     transfer_keyword_enhancer,
                                      enhance_keywords, update_destination_keywords)
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
@@ -302,7 +302,6 @@ class BaseResource(APIView):
         self.download_failed_fixity = []
         self.source_fts_metadata_actions = []
         self.new_fts_metadata_files = []
-        self.source_keywords = []
         self.all_keywords = []
         for resource in func_dict['resources']:
             # Perform the fixity check and add extra info to the returned fixity object.
@@ -318,13 +317,6 @@ class BaseResource(APIView):
             if create_download_metadata(self, resource, fixity_obj):
                 # Don't write valid FTS metadata file.
                 continue
-
-            # # Create keyword enhancement for this resource. Return True if a valid
-            # # keyword enhancement is found and 'presqt-keyword-action' is 'enhance'.
-            # if self.action == 'resource_transfer_in' and self.keyword_action == 'enhance':
-            #     if create_keyword_enhancement(self, resource):
-            #         # Don't write valid keyword enhancement file.
-            #         continue
 
             # Save the file to the disk.
             write_file('{}{}'.format(self.resource_main_dir, resource['path']), resource['file'])
@@ -421,6 +413,7 @@ class BaseResource(APIView):
         # If we are uploading (not transferring) then create the initial metadata based on the
         # zipped bag provided.
         if self.action == 'resource_upload':
+            self.all_keywords = []
             self.new_fts_metadata_files = []
             for path, subdirs, files in os.walk(self.data_directory):
                 for name in files:

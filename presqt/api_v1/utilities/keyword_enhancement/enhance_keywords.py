@@ -11,13 +11,14 @@ def enhance_keywords(self):
         # If the keyword fails then return that error
         metadata_validation = e
 
-    self.source_keywords = source_keywords + self.source_keywords
+    self.all_keywords = source_keywords + self.all_keywords
+    initial_keywords = self.all_keywords
 
     # Enhance source keywords
-    self.enhanced_keywords, self.all_keywords = keyword_enhancer(self.source_keywords)
+    self.enhanced_keywords, self.all_keywords = keyword_enhancer(self.all_keywords)
 
     keyword_dict = {
-        'initialKeywords': self.source_keywords,
+        'initialKeywords': initial_keywords,
         'enhancedKeywords': self.enhanced_keywords,
         'enhancer': 'scigraph'
     }
