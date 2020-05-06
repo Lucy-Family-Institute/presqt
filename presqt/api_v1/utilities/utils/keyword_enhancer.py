@@ -36,4 +36,4 @@ def keyword_enhancer(keywords):
             new_list_of_keywords.append(label)
             final_list_of_keywords.append(label)
 
-    return new_list_of_keywords, final_list_of_keywords
+    return list(set(new_list_of_keywords)), list(set(final_list_of_keywords))
