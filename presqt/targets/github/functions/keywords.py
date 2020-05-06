@@ -86,8 +86,7 @@ def github_upload_keywords(token, resource_id, keywords):
     new_keywords = []
     for keyword in keywords:
         if len(keyword) < 35:
-            new_keywords.append(keyword.lower().replace(' ', '-').replace(',', '-').replace('(', '').replace(')', ''))
-
+            new_keywords.append(keyword.lower().replace(' ', '-').replace(',', '-').replace('(', '').replace(')', '').replace('.', 'a'))
     data = {'names': list(set(new_keywords))}
 
     response = requests.put(put_url, headers=headers, data=json.dumps(data))

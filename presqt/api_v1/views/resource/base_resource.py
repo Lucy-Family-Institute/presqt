@@ -21,7 +21,7 @@ from presqt.api_v1.utilities import (target_validation, transfer_target_validati
                                      get_upload_source_metadata, hash_tokens,
                                      finite_depth_upload_helper, structure_validation,
                                      keyword_action_validation,
-                                     enhance_keywords, update_destination_keywords)
+                                     enhance_keywords, update_targets_keywords)
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
@@ -327,12 +327,13 @@ class BaseResource(APIView):
             keyword_enhancements = {}
 
         # Create PresQT action metadata
+        self.source_username = func_dict['action_metadata']['sourceUsername']
         self.action_metadata = {
             'id': str(uuid4()),
             'actionDateTime': str(timezone.now()),
             'actionType': self.action,
             'sourceTargetName': self.source_target_name,
-            'sourceUsername': func_dict['action_metadata']['sourceUsername'],
+            'sourceUsername': self.source_username,
             'destinationTargetName': 'Local Machine',
             'destinationUsername': None,
             'keywordEnhancements': keyword_enhancements,
@@ -536,7 +537,7 @@ class BaseResource(APIView):
             self.process_info_obj['failed_fixity'] = self.upload_failed_fixity
             write_file(self.process_info_path, self.process_info_obj, True)
         else:
-            updated_keywords = update_destination_keywords(self, func_dict['project_id'])
+            updated_keywords = update_targets_keywords(self, func_dict['project_id'], )
             self.process_info_obj['upload_status'] = upload_message
         return True
 

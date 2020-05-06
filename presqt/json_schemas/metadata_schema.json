@@ -28,7 +28,7 @@
                 "type": "array",
                 "items": { "type": "string" }
               },
-              "presqtEnhancer": { "type": "string" }
+              "enhancer": { "type": "string" }
             }
           },
           "files": {

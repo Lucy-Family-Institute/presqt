@@ -12,13 +12,13 @@ def enhance_keywords(self):
         metadata_validation = e
 
     self.all_keywords = source_keywords + self.all_keywords
-    initial_keywords = self.all_keywords
+    self.initial_keywords = self.all_keywords
 
     # Enhance source keywords
     self.enhanced_keywords, self.all_keywords = keyword_enhancer(self.all_keywords)
 
     keyword_dict = {
-        'initialKeywords': initial_keywords,
+        'initialKeywords': self.initial_keywords,
         'enhancedKeywords': self.enhanced_keywords,
         'enhancer': 'scigraph'
     }
