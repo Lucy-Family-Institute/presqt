@@ -29,3 +29,5 @@ from presqt.api_v1.utilities.utils.keyword_enhancer import keyword_enhancer
 from presqt.api_v1.utilities.validation.keyword_action_validation import keyword_action_validation
 from presqt.api_v1.utilities.keyword_enhancement.create_keyword_enhancement import create_keyword_enhancement
 from presqt.api_v1.utilities.keyword_enhancement.transfer_keyword_enhancer import transfer_keyword_enhancer
+from presqt.api_v1.utilities.keyword_enhancement.enhance_keywords import enhance_keywords
+from presqt.api_v1.utilities.keyword_enhancement.update_destination_keywords import update_destination_keywords

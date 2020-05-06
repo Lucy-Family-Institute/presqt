@@ -21,7 +21,8 @@ from presqt.api_v1.utilities import (target_validation, transfer_target_validati
                                      get_upload_source_metadata, hash_tokens,
                                      finite_depth_upload_helper, structure_validation,
                                      keyword_action_validation,
-                                     create_keyword_enhancement, transfer_keyword_enhancer)
+                                     create_keyword_enhancement, transfer_keyword_enhancer,
+                                     enhance_keywords, update_destination_keywords)
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
@@ -302,6 +303,7 @@ class BaseResource(APIView):
         self.source_fts_metadata_actions = []
         self.new_fts_metadata_files = []
         self.source_keywords = []
+        self.all_keywords = []
         for resource in func_dict['resources']:
             # Perform the fixity check and add extra info to the returned fixity object.
             # Note: This method of calling the function needs to stay this way for test Mock
@@ -327,10 +329,11 @@ class BaseResource(APIView):
             # Save the file to the disk.
             write_file('{}{}'.format(self.resource_main_dir, resource['path']), resource['file'])
 
+        # Enhance the source keywords
         if self.action == 'resource_transfer_in' and self.keyword_action == 'enhance':
-            keyword_enhancements = None
+            keyword_enhancements = enhance_keywords(self)
         else:
-            keyword_enhancements = None
+            keyword_enhancements = {}
 
         # Create PresQT action metadata
         self.action_metadata = {
@@ -372,7 +375,7 @@ class BaseResource(APIView):
         # and update the server process file.
         else:
             # Create and write metadata file.
-            final_fts_metadata_data = create_fts_metadata(self.action_metadata,
+            final_fts_metadata_data = create_fts_metadata(self.all_keywords, self.action_metadata,
                                                           self.source_fts_metadata_actions)
             write_file(os.path.join(self.resource_main_dir, 'PRESQT_FTS_METADATA.json'),
                        final_fts_metadata_data, True)
@@ -541,6 +544,7 @@ class BaseResource(APIView):
             self.process_info_obj['failed_fixity'] = self.upload_failed_fixity
             write_file(self.process_info_path, self.process_info_obj, True)
         else:
+            updated_keywords = update_destination_keywords(self, func_dict['project_id'])
             self.process_info_obj['upload_status'] = upload_message
         return True
 

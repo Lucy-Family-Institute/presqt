@@ -96,7 +96,7 @@ class ResourceKeywords(BaseResource):
         # Call function which calls SciGraph for keyword suggestions.
         try:
             # Return a new keyword list and a final list.
-            new_list_of_keywords, final_list_of_keywords = keyword_enhancer(keywords)
+            new_list_of_keywords, final_list_of_keywords = keyword_enhancer(keywords['keywords'])
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch
             return Response(data={'error': e.data}, status=e.status_code)
