@@ -11,16 +11,15 @@ def update_targets_keywords(self, project_id):
     destination_keywords_upload_func = FunctionRouter.get_function(self.destination_target_name, 'keywords_upload')
     try:
         updated_destination_keywords = destination_keywords_upload_func(self.destination_token, project_id, self.all_keywords)
-    except PresQTResponseException as e:
-        print(e)
+    except PresQTResponseException:
+        return False
 
     # Upload enhanced source keywords to source
     source_keywords_upload_func = FunctionRouter.get_function(self.source_target_name, 'keywords_upload')
     try:
         updated_source_keywords = source_keywords_upload_func(self.source_token, self.source_resource_id, self.all_keywords)
-    except PresQTResponseException as e:
-        print(e)
-
+    except PresQTResponseException:
+        return False
 
     # Update/create source FTS metadata file with enhanced keywords
     enhance_dict = {
@@ -50,4 +49,6 @@ def update_targets_keywords(self, project_id):
     }
 
     source_upload_metadata_func = FunctionRouter.get_function(self.source_target_name, 'metadata_upload')
-    source_upload_metadata_func(self.source_token, 'funnyfunnyimages', enhance_dict)
+    source_upload_metadata_func(self.source_token, updated_source_keywords['project_id'], enhance_dict)
+
+    return True

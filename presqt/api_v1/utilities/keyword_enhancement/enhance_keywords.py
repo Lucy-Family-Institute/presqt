@@ -15,7 +15,11 @@ def enhance_keywords(self):
     self.initial_keywords = self.all_keywords
 
     # Enhance source keywords
-    self.enhanced_keywords, self.all_keywords = keyword_enhancer(self.all_keywords)
+    try:
+        self.enhanced_keywords, self.all_keywords = keyword_enhancer(self.all_keywords)
+    except PresQTResponseException:
+        self.initial_keywords = []
+        self.enhanced_keywords = []
 
     keyword_dict = {
         'initialKeywords': self.initial_keywords,

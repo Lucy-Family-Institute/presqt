@@ -321,6 +321,7 @@ class BaseResource(APIView):
             write_file('{}{}'.format(self.resource_main_dir, resource['path']), resource['file'])
 
         # Enhance the source keywords
+        self.keyword_enhancement_successful = True
         if self.action == 'resource_transfer_in' and self.keyword_action == 'enhance':
             keyword_enhancements = enhance_keywords(self)
         else:
@@ -359,7 +360,7 @@ class BaseResource(APIView):
 
             # Make a BagIt 'bag' of the resources.
             bagit.make_bag(self.resource_main_dir, checksums=['md5', 'sha1', 'sha256', 'sha512'])
-            self.process_info_obj['download_status'] = get_action_message('Download',
+            self.process_info_obj['download_status'] = get_action_message(self, 'Download',
                                                                           self.download_fixity, True,
                                                                           self.action_metadata)
             return True
@@ -375,7 +376,7 @@ class BaseResource(APIView):
             # Validate the final metadata
             metadata_validation = schema_validator('presqt/json_schemas/metadata_schema.json',
                                                    final_fts_metadata_data)
-            self.process_info_obj['message'] = get_action_message('Download', self.download_fixity,
+            self.process_info_obj['message'] = get_action_message(self, 'Download', self.download_fixity,
                                                                   metadata_validation, self.action_metadata)
 
             # Add the fixity file to the disk directory
@@ -523,7 +524,7 @@ class BaseResource(APIView):
                                                           resources_ignored,
                                                           resources_updated)
         # Validate the final metadata
-        upload_message = get_action_message('Upload',
+        upload_message = get_action_message(self, 'Upload',
                                             self.upload_fixity,
                                             self.metadata_validation,
                                             self.action_metadata)
@@ -537,7 +538,7 @@ class BaseResource(APIView):
             self.process_info_obj['failed_fixity'] = self.upload_failed_fixity
             write_file(self.process_info_path, self.process_info_obj, True)
         else:
-            updated_keywords = update_targets_keywords(self, func_dict['project_id'], )
+            self.keyword_enhancement_successful = update_targets_keywords(self, func_dict['project_id'])
             self.process_info_obj['upload_status'] = upload_message
         return True
 
@@ -642,7 +643,7 @@ class BaseResource(APIView):
 
         transfer_fixity = False if not self.download_fixity or not self.upload_fixity else True
         self.process_info_obj['message'] = get_action_message(
-            'Transfer', transfer_fixity, self.metadata_validation, self.action_metadata)
+            self, 'Transfer', transfer_fixity, self.metadata_validation, self.action_metadata)
 
         write_file(self.process_info_path, self.process_info_obj, True)
 

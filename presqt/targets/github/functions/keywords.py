@@ -81,7 +81,6 @@ def github_upload_keywords(token, resource_id, keywords):
     # This will raise an error if not a repo.
     resource = github_fetch_resource(token, resource_id)
 
-    project_id = resource_id
     if resource['kind_name'] in ['file', 'dir']:
         project_id = resource['id'].partition(':')[0]
         resource = github_fetch_resource(token, project_id)
@@ -100,14 +99,14 @@ def github_upload_keywords(token, resource_id, keywords):
         # than 35 characters, and cannot be a single hyphen.
         if len(keyword) < 35 and keyword not in resource['extra']['topics']:
             stripped_keyword = re.sub('[^A-Za-z0-9-]+', '', keyword.lower())
-            if stripped_keyword != '-':
+            if stripped_keyword not in ['-', '']:
                 new_keywords.append(stripped_keyword)
     data = {'names': list(set(new_keywords))}
 
     response = requests.put(put_url, headers=headers, data=json.dumps(data))
-
+    print(response.json())
     if response.status_code != 200:
         raise PresQTResponseException("GitHub returned a {} error trying to update keywords.".format(
             response.status_code), status.HTTP_400_BAD_REQUEST)
 
-    return {'updated_keywords': response.json()['names'], 'project_id': project_id}
+    return {'updated_keywords': response.json()['names'], 'project_id': resource['extra']['name']}
