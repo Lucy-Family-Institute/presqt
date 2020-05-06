@@ -643,6 +643,7 @@ class BaseResource(APIView):
         # Transfer was a success so update the server metadata file.
         self.process_info_obj['status_code'] = '200'
         self.process_info_obj['status'] = 'finished'
+        self.process_info_obj['enhanced_keywords'] = self.all_keywords
         self.process_info_obj['failed_fixity'] = list(
             set(self.download_failed_fixity + self.upload_failed_fixity))
 
