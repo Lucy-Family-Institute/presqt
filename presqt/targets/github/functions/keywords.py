@@ -81,6 +81,11 @@ def github_upload_keywords(token, resource_id, keywords):
     # This will raise an error if not a repo.
     resource = github_fetch_resource(token, resource_id)
 
+    project_id = resource_id
+    if resource['kind_name'] in ['file', 'dir']:
+        project_id = resource['id'].partition(':')[0]
+        resource = github_fetch_resource(token, project_id)
+
     headers = {"Authorization": "token {}".format(token),
                "Accept": "application/vnd.github.mercy-preview+json"}
     put_url = 'https://api.github.com/repos/{}/topics'.format(resource['extra']['full_name'])
@@ -105,4 +110,4 @@ def github_upload_keywords(token, resource_id, keywords):
         raise PresQTResponseException("GitHub returned a {} error trying to update keywords.".format(
             response.status_code), status.HTTP_400_BAD_REQUEST)
 
-    return {'updated_keywords': response.json()['names']}
+    return {'updated_keywords': response.json()['names'], 'project_id': project_id}

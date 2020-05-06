@@ -85,16 +85,19 @@ def osf_upload_keywords(token, resource_id, keywords):
     resource = get_osf_resource(resource_id, osf_instance)
 
     if resource.kind_name == 'project':
+        project_id = resource.id
         patch_url = 'https://api.osf.io/v2/nodes/{}/'.format(resource_id)
         data = {"data": {"type": "nodes", "id": resource_id, "attributes": {"tags": keywords}}}
 
     elif resource.kind_name == 'file':
+        project_id = resource.parent_project_id
         patch_url = 'https://api.osf.io/v2/files/{}/'.format(resource_id)
         data = {"data": {"type": "files", "id": resource_id, "attributes": {"tags": keywords}}}
 
     elif resource.kind_name == 'folder':
-        raise PresQTResponseException("Can not update OSF folder keywords.",
-                                      status.HTTP_400_BAD_REQUEST)
+        project_id = resource.parent_project_id
+        patch_url = 'https://api.osf.io/v2/nodes/{}/'.format(resource_id)
+        data = {"data": {"type": "nodes", "id": resource_id, "attributes": {"tags": keywords}}}
 
     response = requests.patch(patch_url, headers=headers, data=json.dumps(data))
 
@@ -102,4 +105,4 @@ def osf_upload_keywords(token, resource_id, keywords):
         raise PresQTResponseException("OSF returned a {} error trying to update keywords.".format(
             response.status_code), status.HTTP_400_BAD_REQUEST)
 
-    return {"updated_keywords": response.json()['data']['attributes']['tags']}
+    return {"updated_keywords": response.json()['data']['attributes']['tags'], "project_id": project_id}
