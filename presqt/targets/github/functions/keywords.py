@@ -1,4 +1,6 @@
 import json
+import re
+
 import requests
 
 from rest_framework import status
@@ -83,10 +85,18 @@ def github_upload_keywords(token, resource_id, keywords):
                "Accept": "application/vnd.github.mercy-preview+json"}
     put_url = 'https://api.github.com/repos/{}/topics'.format(resource['extra']['full_name'])
 
-    new_keywords = []
+    # Start the new_keywords list with the resource's original topics
+    new_keywords = resource['extra']['topics']
     for keyword in keywords:
-        if len(keyword) < 35:
-            new_keywords.append(keyword.lower().replace(' ', '-').replace(',', '-').replace('(', '').replace(')', '').replace('.', 'a'))
+        # Github can't have more than 20 topics
+        if len(new_keywords) > 19:
+            break
+        # Github topics can't contain any special characters other than a hyphen, must be less
+        # than 35 characters, and cannot be a single hyphen.
+        if len(keyword) < 35 and keyword not in resource['extra']['topics']:
+            stripped_keyword = re.sub('[^A-Za-z0-9-]+', '', keyword.lower())
+            if stripped_keyword != '-':
+                new_keywords.append(stripped_keyword)
     data = {'names': list(set(new_keywords))}
 
     response = requests.put(put_url, headers=headers, data=json.dumps(data))
