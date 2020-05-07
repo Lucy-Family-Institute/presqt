@@ -22,35 +22,42 @@ def github_upload_metadata(token, project_id, metadata_dict):
         The metadata to be written to the repo
     """
     header, username = validation_check(token)
-    project_data = requests.get("https://api.github.com/repositories/{}".format(project_id), headers=header)
-    project_name = project_data.json()['name']
+    project_data = requests.get(
+        "https://api.github.com/repositories/{}".format(project_id), headers=header)
 
-    base_put_url = "https://api.github.com/repos/{}/{}/contents/".format(username, project_name)
-    metadata_file_data = requests.get('{}PRESQT_FTS_METADATA.json'.format(base_put_url),
+    if project_data.status_code == 200:
+        project_name = project_data.json()['name']
+    else:
+        raise PresQTError(
+            "The request to create a metadata file has resulted in a {} error code from GitHub.".format(
+                project_data.status_code)
+
+    base_put_url="https://api.github.com/repos/{}/{}/contents/".format(username, project_name)
+    metadata_file_data=requests.get('{}PRESQT_FTS_METADATA.json'.format(base_put_url),
                                       headers=header).json()
 
     try:
-        sha = metadata_file_data['sha']
+        sha=metadata_file_data['sha']
     except KeyError:
-        sha = None
+        sha=None
 
     # If a metadata file already exists then grab its contents
     if sha:
-        base64_metadata = base64.b64decode(metadata_file_data['content'])
-        updated_metadata = json.loads(base64_metadata)
+        base64_metadata=base64.b64decode(metadata_file_data['content'])
+        updated_metadata=json.loads(base64_metadata)
 
         if schema_validator('presqt/json_schemas/metadata_schema.json', updated_metadata) is not True:
             # We need to change the file name, this metadata is improperly formatted and
             # therefore invalid.
-            invalid_base64_metadata = base64.b64encode(base64_metadata).decode('utf-8')
-            rename_payload = {
+            invalid_base64_metadata=base64.b64encode(base64_metadata).decode('utf-8')
+            rename_payload={
                 "message": "PresQT Invalid Upload",
                 "committer": {
                     "name": "PresQT",
                     "email": "N/A"},
                 "content": invalid_base64_metadata}
 
-            response = requests.put('{}{}'.format(base_put_url, 'INVALID_PRESQT_FTS_METADATA.json'),
+            response=requests.put('{}{}'.format(base_put_url, 'INVALID_PRESQT_FTS_METADATA.json'),
                                     headers=header,
                                      data=json.dumps(rename_payload))
             if response.status_code != 201:
@@ -59,17 +66,17 @@ def github_upload_metadata(token, project_id, metadata_dict):
                         response.status_code))
         else:
             # Loop through each 'action' in both metadata files and make a new list of them.
-            joined_actions = [entry for entry in itertools.chain(metadata_dict['actions'],
+            joined_actions=[entry for entry in itertools.chain(metadata_dict['actions'],
                                                                  updated_metadata['actions'])]
-            joined_keywords = [entry for entry in itertools.chain(metadata_dict['allEnhancedKeywords'],
+            joined_keywords=[entry for entry in itertools.chain(metadata_dict['allEnhancedKeywords'],
                                                                   updated_metadata['allEnhancedKeywords'])]
-            updated_metadata['actions'] = joined_actions
-            updated_metadata['allEnhancedKeywords'] = list(set(joined_keywords))
+            updated_metadata['actions']=joined_actions
+            updated_metadata['allEnhancedKeywords']=list(set(joined_keywords))
 
-            updated_metadata_bytes = json.dumps(updated_metadata, indent=4).encode('utf-8')
-            updated_base64_metadata = base64.b64encode(updated_metadata_bytes).decode('utf-8')
+            updated_metadata_bytes=json.dumps(updated_metadata, indent=4).encode('utf-8')
+            updated_base64_metadata=base64.b64encode(updated_metadata_bytes).decode('utf-8')
 
-            update_payload = {
+            update_payload={
                 "message": "PresQT Update",
                 "committer": {
                     "name": "PresQT",
@@ -80,7 +87,7 @@ def github_upload_metadata(token, project_id, metadata_dict):
             }
 
             # Now we need to update the metadata file with this updated metadata
-            response = requests.put('{}{}'.format(base_put_url, 'PRESQT_FTS_METADATA.json'),
+            response=requests.put('{}{}'.format(base_put_url, 'PRESQT_FTS_METADATA.json'),
                                                   headers=header,
                                                   data=json.dumps(update_payload))
             if response.status_code != 200:
@@ -89,17 +96,17 @@ def github_upload_metadata(token, project_id, metadata_dict):
                         response.status_code))
             return
 
-    metadata_bytes = json.dumps(metadata_dict, indent=4).encode('utf-8')
-    base64_metadata = base64.b64encode(metadata_bytes).decode('utf-8')
+    metadata_bytes=json.dumps(metadata_dict, indent=4).encode('utf-8')
+    base64_metadata=base64.b64encode(metadata_bytes).decode('utf-8')
 
-    payload = {
+    payload={
         "message": "PresQT Upload",
         "sha": sha,
         "committer": {
             "name": "PresQT",
             "email": "N/A"},
         "content": base64_metadata}
-    response = requests.put('{}{}'.format(base_put_url, 'PRESQT_FTS_METADATA.json'),
+    response=requests.put('{}{}'.format(base_put_url, 'PRESQT_FTS_METADATA.json'),
                                           headers=header,
                                           data=json.dumps(payload))
 
