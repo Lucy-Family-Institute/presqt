@@ -111,7 +111,7 @@ def github_fetch_resource(token, resource_id):
     header['Accept'] = 'application/vnd.github.mercy-preview+json'
 
     # Without a colon, we know this is a top level repo
-    if ':' not in resource_id:
+    if ':' not in str(resource_id):
         project_url = 'https://api.github.com/repositories/{}'.format(resource_id)
         response = requests.get(project_url, headers=header)
 
