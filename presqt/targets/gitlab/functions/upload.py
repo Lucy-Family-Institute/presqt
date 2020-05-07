@@ -74,20 +74,17 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
     # Check if a project with this name exists for this user
     if not resource_id:
         project_title = os_path[1][0]
-
         titles = [data['name'] for data in gitlab_paginated_data(headers, user_id)]
-        title = get_duplicate_title(project_title, titles, '-PresQT*-')
-
+        title = get_duplicate_title(project_title, titles, '-PresQT*-').replace('(', '-').replace(')', '-')
         response = requests.post('{}projects?name={}&visibility=public'.format(
             base_url, title), headers=headers)
-
         if response.status_code == 201:
             project_id = response.json()['id']
             project_name = response.json()['name']
         else:
             raise PresQTResponseException(
-                "Response has status code {} while creating project {}".format(
-                    response.status_code, project_title), status.HTTP_400_BAD_REQUEST)
+                "Response has status code {} while creating project {}. {}".format(
+                    response.status_code, project_title, response.json()['message']), status.HTTP_400_BAD_REQUEST)
 
         #*** UPLOAD FILES ***#
         # Upload files to project's repository
@@ -204,7 +201,7 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                                 "content": encoded_file}
 
                 response = upload_request("{}".format(full_encoded_url), headers=headers, data=request_data)
-
+                print('response', response.json())
                 if response.status_code not in [201, 200]:
                     raise PresQTResponseException(
                         'Upload failed with a status code of {}'.format(response.status_code),
