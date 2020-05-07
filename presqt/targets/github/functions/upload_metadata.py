@@ -22,8 +22,15 @@ def github_upload_metadata(token, project_id, metadata_dict):
         The metadata to be written to the repo
     """
     header, username = validation_check(token)
-    project_data = requests.get("https://api.github.com/repositories/{}".format(project_id), headers=header)
-    project_name = project_data.json()['name']
+    project_data = requests.get(
+        "https://api.github.com/repositories/{}".format(project_id), headers=header)
+
+    if project_data.status_code == 200:
+        project_name = project_data.json()['name']
+    else:
+        raise PresQTError(
+            "The request to create a metadata file has resulted in a {} error code from GitHub.".format(
+                project_data.status_code))
 
     base_put_url = "https://api.github.com/repos/{}/{}/contents/".format(username, project_name)
     metadata_file_data = requests.get('{}PRESQT_FTS_METADATA.json'.format(base_put_url),
@@ -52,7 +59,7 @@ def github_upload_metadata(token, project_id, metadata_dict):
 
             response = requests.put('{}{}'.format(base_put_url, 'INVALID_PRESQT_FTS_METADATA.json'),
                                     headers=header,
-                                     data=json.dumps(rename_payload))
+                                    data=json.dumps(rename_payload))
             if response.status_code != 201:
                 raise PresQTError(
                     "The request to rename the invalid metadata file has returned a {} error code from Github.".format(
@@ -81,8 +88,8 @@ def github_upload_metadata(token, project_id, metadata_dict):
 
             # Now we need to update the metadata file with this updated metadata
             response = requests.put('{}{}'.format(base_put_url, 'PRESQT_FTS_METADATA.json'),
-                                                  headers=header,
-                                                  data=json.dumps(update_payload))
+                                    headers=header,
+                                    data=json.dumps(update_payload))
             if response.status_code != 200:
                 raise PresQTError(
                     "The request to create a metadata file has resulted in a {} error code from GitHub.".format(
@@ -100,8 +107,8 @@ def github_upload_metadata(token, project_id, metadata_dict):
             "email": "N/A"},
         "content": base64_metadata}
     response = requests.put('{}{}'.format(base_put_url, 'PRESQT_FTS_METADATA.json'),
-                                          headers=header,
-                                          data=json.dumps(payload))
+                            headers=header,
+                            data=json.dumps(payload))
 
     if response.status_code != 201 and response.status_code != 200:
         raise PresQTError(
