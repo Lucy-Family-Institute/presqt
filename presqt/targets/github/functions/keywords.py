@@ -105,7 +105,7 @@ def github_upload_keywords(token, resource_id, keywords):
     data = {'names': list(set(new_keywords))}
 
     response = requests.put(put_url, headers=headers, data=json.dumps(data))
-    print(response.json())
+
     if response.status_code != 200:
         raise PresQTResponseException("GitHub returned a {} error trying to update keywords.".format(
             response.status_code), status.HTTP_400_BAD_REQUEST)
