@@ -65,7 +65,7 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         # Create a new repository with the name being the top level directory's name.
         # Note: GitHub doesn't allow spaces in repo_names
         repo_title = os_path[1][0].replace(' ', '_')
-        repo_name = create_repository(repo_title, token)
+        repo_name, repo_id = create_repository(repo_title, token)
         repo_name = repo_name.replace('(', '-').replace(')', '-')
 
         resources_ignored = []
@@ -119,7 +119,7 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                 'The resource with id, {}, does not exist for this user.'.format(resource_id),
                 status.HTTP_404_NOT_FOUND)
         repo_data = response.json()
-        repo_name = repo_data['name']
+        repo_id = repo_data['id']
 
         # Get all repo resources so we can check if any files already exist
         repo_resources = requests.get('{}/master?recursive=1'.format(repo_data['trees_url'][:-6]), headers=header).json()
@@ -192,7 +192,7 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         'resources_updated': resources_updated,
         'action_metadata': action_metadata,
         'file_metadata_list': file_metadata_list,
-        'project_id': repo_name
+        'project_id': repo_id
     }
 
 
