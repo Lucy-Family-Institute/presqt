@@ -161,6 +161,7 @@ class TestResourcePOST(SimpleTestCase):
         self.failed_fixity = ['/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
         self.resources_updated = []
         self.hash_algorithm = 'md5'
+        self.process_message = "Upload successful. Fixity can't be determined because GitHub may not have provided a file checksum. See PRESQT_FTS_METADATA.json for more details."
 
     def tearDown(self):
         """
@@ -204,6 +205,7 @@ class TestResourcePOST(SimpleTestCase):
         self.url = reverse('resource', kwargs={'target_name': 'github', 'resource_id': repo_id})
         self.resources_ignored = ['/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
         self.failed_fixity = []
+        self.process_message = 'Upload successful.'
         shared_upload_function_github(self)
 
         # Delete upload folder
@@ -215,6 +217,7 @@ class TestResourcePOST(SimpleTestCase):
         self.resources_updated = ['/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
         self.failed_fixity = ['/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
         self.resources_ignored = []
+        self.process_message = "Upload successful. Fixity can't be determined because GitHub may not have provided a file checksum. See PRESQT_FTS_METADATA.json for more details."
         shared_upload_function_github(self)
 
         # Delete upload folder
@@ -310,8 +313,7 @@ class TestResourcePOST(SimpleTestCase):
         """
         Ensure that an error is returned if Github doesn't return a 201 status code.
         """
-        self.assertRaises(PresQTError, github_upload_metadata, self.token, 'eggtest',
-                      {"bad": "metadata"})
+        self.assertRaises(PresQTError, github_upload_metadata, self.token, 'eggtest', {"bad": "metadata"})
 
     def test_error_updating_metadata_file(self):
         """
@@ -340,14 +342,14 @@ class TestResourcePOST(SimpleTestCase):
 
         for repo in response_json:
             if repo['title'] == self.repo_title:
-                repo_name = repo['title']
+                repo_id = repo['id']
 
         # Now I'll make an explicit call to our metadata function with a mocked server error and ensure
         # it is raising an exception.
         with patch('requests.put') as mock_request:
             mock_request.return_value = mock_req
             # Attempt to update the metadata, but the server is down!
-            self.assertRaises(PresQTError, github_upload_metadata, self.token, repo_name,
+            self.assertRaises(PresQTError, github_upload_metadata, self.token, repo_id,
                               {"context": {}, "actions": []})
 
         # Delete corresponding folder
@@ -381,6 +383,7 @@ class TestResourcePOST(SimpleTestCase):
         for repo in response_json:
             if repo['title'] == self.repo_title:
                 repo_name = repo['title']
+                repo_id = repo['id']
         metadata_file_get = requests.get("https://api.github.com/repos/presqt-test-user/{}/contents/PRESQT_FTS_METADATA.json".format(repo_name))
 
         # Update metadata to be invalid for testing purposes.
@@ -404,7 +407,7 @@ class TestResourcePOST(SimpleTestCase):
         with patch('requests.put') as mock_request:
             mock_request.return_value = mock_req
             # Attempt to update the metadata, but the server is down!
-            self.assertRaises(PresQTError, github_upload_metadata, self.token, repo_name,
+            self.assertRaises(PresQTError, github_upload_metadata, self.token, repo_id,
                               {"context": {}, "actions": []})
 
         # Delete corresponding folder
