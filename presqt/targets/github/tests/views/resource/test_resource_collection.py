@@ -166,6 +166,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         self.failed_fixity = ['/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
         self.resources_updated = []
         self.hash_algorithm = 'md5'
+        self.process_message = "Upload successful. Fixity can't be determined because GitHub may not have provided a file checksum. See PRESQT_FTS_METADATA.json for more details."
 
     def tearDown(self):
         """
@@ -404,6 +405,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         # Get the invalid metadata json
         response = requests.get(valid_metadata_link, headers=header)
         valid_metadata_file = json.loads(response.content)
+        print(valid_metadata_file)
         self.assertEqual(len(valid_metadata_file['actions']), 2)
 
         delete_github_repo('presqt-test-user', 'Good_Egg', header)
