@@ -81,13 +81,14 @@ def github_upload_keywords(token, resource_id, keywords):
     # This will raise an error if not a repo.
     resource = github_fetch_resource(token, resource_id)
 
+    project_id = resource_id
     if resource['kind_name'] in ['file', 'dir']:
         project_id = resource['id'].partition(':')[0]
         resource = github_fetch_resource(token, project_id)
 
     headers = {"Authorization": "token {}".format(token),
                "Accept": "application/vnd.github.mercy-preview+json"}
-    put_url = 'https://api.github.com/repos/{}/topics'.format(resource['extra']['full_name'])
+    put_url = 'https://api.github.com/repositories/{}/topics'.format(project_id)
 
     # Start the new_keywords list with the resource's original topics
     new_keywords = resource['extra']['topics']
