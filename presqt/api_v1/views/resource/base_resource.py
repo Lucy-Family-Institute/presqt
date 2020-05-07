@@ -414,7 +414,6 @@ class BaseResource(APIView):
         # If we are uploading (not transferring) then create the initial metadata based on the
         # zipped bag provided.
         if self.action == 'resource_upload':
-            self.all_keywords = []
             self.new_fts_metadata_files = []
             for path, subdirs, files in os.walk(self.data_directory):
                 for name in files:
@@ -436,6 +435,7 @@ class BaseResource(APIView):
                 'sourceUsername': None,
                 'destinationTargetName': self.destination_target_name,
                 'destinationUsername': None,
+                'keywordEnhancements': {},
                 'files': {
                     'created': self.new_fts_metadata_files,
                     'updated': [],
@@ -524,6 +524,7 @@ class BaseResource(APIView):
                                                           resources_ignored,
                                                           resources_updated)
         # Validate the final metadata
+        self.keyword_enhancement_successful = True
         upload_message = get_action_message(self, 'Upload',
                                             self.upload_fixity,
                                             self.metadata_validation,

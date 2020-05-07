@@ -82,6 +82,7 @@ def finite_depth_upload_helper(instance):
         'sourceUsername': None,
         'destinationTargetName': instance.destination_target_name,
         'destinationUsername': None,
+        'keywordEnhancements': {},
         'files': {
             'created': instance.new_fts_metadata_files,
             'updated': [],
@@ -110,7 +111,8 @@ def update_bagit_with_metadata(instance, zip_title):
             zip_title, root_path)
     instance.action_metadata['destinationTargetName'] = 'Zip File'
 
-    final_fts_metadata_data = create_fts_metadata(instance.action_metadata,
+    final_fts_metadata_data = create_fts_metadata(instance.all_keywords,
+                                                  instance.action_metadata,
                                                   instance.source_fts_metadata_actions)
     write_file(os.path.join(instance.data_directory, 'PRESQT_FTS_METADATA.json'),
                final_fts_metadata_data, True)

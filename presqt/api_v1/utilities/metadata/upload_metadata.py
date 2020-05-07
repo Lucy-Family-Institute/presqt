@@ -17,6 +17,7 @@ def get_upload_source_metadata(instance, bag):
         The bag we want to traverse and update.
     """
     instance.source_fts_metadata_actions = []
+    instance.all_keywords = []
     for bag_file in bag.payload_files():
         if os.path.split(bag_file)[-1] == 'PRESQT_FTS_METADATA.json':
             metadata_path = os.path.join(instance.resource_main_dir, bag_file)
@@ -25,7 +26,9 @@ def get_upload_source_metadata(instance, bag):
             if schema_validator('presqt/json_schemas/metadata_schema.json',
                                 source_metadata_content) is True:
                 instance.source_fts_metadata_actions = instance.source_fts_metadata_actions + \
-                    source_metadata_content['actions']
+                                                       source_metadata_content['actions']
+                instance.all_keywords = instance.all_keywords + \
+                                        source_metadata_content['allEnhancedKeywords']
                 os.remove(os.path.join(instance.resource_main_dir, bag_file))
                 bag.save(manifests=True)
             # If the FTS metadata is invalid then rename the file in the bag.
