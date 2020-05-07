@@ -108,9 +108,9 @@ def gitlab_fetch_resource(token, resource_id):
     except PresQTResponseException:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
-    partitioned_id = resource_id.partition(':')
+    partitioned_id = str(resource_id).partition(':')
 
-    if ':' in resource_id:
+    if ':' in str(resource_id):
         project_id = partitioned_id[0]
         project_url = "https://gitlab.com/api/v4/projects/{}".format(project_id)
 

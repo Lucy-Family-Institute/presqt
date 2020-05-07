@@ -104,7 +104,7 @@ def zenodo_fetch_resource(token, resource_id):
                                     status.HTTP_401_UNAUTHORIZED)
 
     # Let's first try to get the record with this id.
-    if len(resource_id) <= 7:
+    if len(str(resource_id)) <= 7:
         base_url = "https://zenodo.org/api/records/{}".format(resource_id)
         zenodo_project = requests.get(base_url, params=auth_parameter)
         if zenodo_project.status_code == 200:
