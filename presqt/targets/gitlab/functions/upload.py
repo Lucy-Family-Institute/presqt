@@ -201,7 +201,6 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                                 "content": encoded_file}
 
                 response = upload_request("{}".format(full_encoded_url), headers=headers, data=request_data)
-                print('response', response.json())
                 if response.status_code not in [201, 200]:
                     raise PresQTResponseException(
                         'Upload failed with a status code of {}'.format(response.status_code),

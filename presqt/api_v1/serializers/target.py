@@ -15,6 +15,8 @@ class SupportedActions(serializers.Serializer):
     resource_upload = serializers.BooleanField()
     resource_transfer_in = serializers.BooleanField()
     resource_transfer_out = serializers.BooleanField()
+    keywords = serializers.BooleanField()
+    keywords_upload = serializers.BooleanField()
 
 
 class SupportedTransferPartners(serializers.Serializer):

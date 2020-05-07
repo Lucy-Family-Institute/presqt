@@ -39,7 +39,12 @@ def link_builder(self, instance, list_of_actions):
     Returns an array of links.
     """
     links = []
-    instance_id = str(instance['id'])
+
+    try:
+        instance_id = str(instance['id'])
+    except KeyError:
+        instance_id = None
+
     if self.context.get('target_name') in ['github', 'gitlab']:
         instance_id = instance_id.replace('%252E', '%2E').replace('%252F', '%2F')
 

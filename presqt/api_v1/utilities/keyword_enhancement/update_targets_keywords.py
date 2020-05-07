@@ -11,10 +11,8 @@ def update_targets_keywords(self, project_id):
     # Upload enhanced source keywords to destination
     destination_keywords_upload_func = FunctionRouter.get_function(self.destination_target_name, 'keywords_upload')
     try:
-        print(project_id)
         updated_destination_keywords = destination_keywords_upload_func(self.destination_token, project_id, self.all_keywords)
     except PresQTResponseException as e:
-        print('updated_destination_keywords', e)
         metadata_succeeded = False
 
     # Upload enhanced source keywords to source

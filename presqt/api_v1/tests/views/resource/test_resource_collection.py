@@ -65,10 +65,11 @@ class TestResourceCollection(SimpleTestCase):
         If get_action_message is called and fixity and metadata has failed, we need to make the user
         aware.
         """
-        error_message = get_action_message('Download', False, False, {
+        self.keyword_enhancement_successful = True
+        error_message = get_action_message(self, 'Download', False, False, {
             "sourceTargetName": "egg", "destinationTargetName": "egg2", "files": {"created": [], "updated": [], "ignored": []}})
 
-        self.assertEqual(error_message, 'Download successful but with fixity and metadata errors.')
+        self.assertEqual(error_message, 'Download successful but with metadata, fixity errors.')
 
     def test_write_and_validate_metadata_error(self):
         """

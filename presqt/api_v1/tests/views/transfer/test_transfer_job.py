@@ -1,9 +1,7 @@
-import io
 import json
 import requests
 import shutil
-from unittest.mock import patch, MagicMock
-import zipfile
+from unittest.mock import patch
 
 from django.test import SimpleTestCase
 from rest_framework.reverse import reverse
@@ -13,7 +11,6 @@ from config.settings.base import (OSF_UPLOAD_TEST_USER_TOKEN, GITHUB_TEST_USER_T
                                   ZENODO_TEST_USER_TOKEN, OSF_TEST_USER_TOKEN)
 
 from presqt.api_v1.utilities import transfer_target_validation
-from presqt.api_v1.views.resource.base_resource import BaseResource
 from presqt.utilities import read_file, PresQTValidationError
 from presqt.targets.osf.utilities import delete_users_projects
 
@@ -31,7 +28,8 @@ class TestTransferJobGET(SimpleTestCase):
         self.source_token = GITHUB_TEST_USER_TOKEN
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.destination_token,
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
-                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
+                        'HTTP_PRESQT_KEYWORD_ACTION': 'enhance'}
         self.resource_id = '209373660'
         self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
 
@@ -86,7 +84,8 @@ class TestTransferJobGET(SimpleTestCase):
         self.url = reverse('resource_collection', kwargs={'target_name': 'zenodo'})
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': ZENODO_TEST_USER_TOKEN,
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
-                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
+                        'HTTP_PRESQT_KEYWORD_ACTION': 'enhance'}
         response = self.client.post(self.url, data={"source_target_name": "github",
                                                     "source_resource_id": self.resource_id},
                                     **self.headers)
@@ -340,7 +339,8 @@ class TestTransferJobGET(SimpleTestCase):
         """
         headers = {'HTTP_PRESQT_DESTINATION_TOKEN': GITHUB_TEST_USER_TOKEN,
                    'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN,
-                   'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+                   'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
+                   'HTTP_PRESQT_KEYWORD_ACTION': 'enhance'}
         url = reverse('resource_collection', kwargs={'target_name': 'github'})
 
         response = self.client.post(url,
@@ -385,7 +385,8 @@ class TestTransferJobPATCH(SimpleTestCase):
         self.source_token = GITHUB_TEST_USER_TOKEN
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.destination_token,
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
-                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
+                        'HTTP_PRESQT_KEYWORD_ACTION': 'enhance'}
         self.resource_id = '209373660'
         self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
 
@@ -433,7 +434,7 @@ class TestTransferJobPATCH(SimpleTestCase):
         """
         transfer_response = self.client.post(self.url, data={
             "source_target_name": "github", "source_resource_id": self.resource_id}, **self.headers)
-
+        print(transfer_response.data)
         ticket_number = transfer_response.data['ticket_number']
         ticket_path = 'mediafiles/transfers/{}'.format(ticket_number)
         # Verify process_info file status is 'in_progress' initially

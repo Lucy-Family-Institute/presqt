@@ -208,6 +208,7 @@ class TestResourcePOSTWithFile(SimpleTestCase):
         resource_instance.process_info_obj = {}
         resource_instance.source_fts_metadata_actions = []
         resource_instance.function_process = multiprocessing.Process()
+        resource_instance.all_keywords = []
         resource_instance._upload_resource()
 
         process_info = read_file(process_info_path, True)
@@ -353,7 +354,8 @@ class TestResourcePOSTWithBody(SimpleTestCase):
         self.destination_token = OSF_UPLOAD_TEST_USER_TOKEN
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.destination_token,
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
-                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
+                        'HTTP_PRESQT_KEYWORD_ACTION': 'enhance'}
 
     def test_error_400_missing_destination_token(self):
         """
