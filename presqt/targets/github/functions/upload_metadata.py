@@ -22,9 +22,7 @@ def github_upload_metadata(token, project_id, metadata_dict):
         The metadata to be written to the repo
     """
     header, username = validation_check(token)
-    print(project_id)
     project_data = requests.get("https://api.github.com/repositories/{}".format(project_id), headers=header)
-    print(project_data.json())
     project_name = project_data.json()['name']
 
     base_put_url = "https://api.github.com/repos/{}/{}/contents/".format(username, project_name)

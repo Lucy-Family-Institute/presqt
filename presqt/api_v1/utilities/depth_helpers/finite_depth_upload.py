@@ -82,7 +82,7 @@ def finite_depth_upload_helper(instance):
         'sourceUsername': None,
         'destinationTargetName': instance.destination_target_name,
         'destinationUsername': None,
-        'keywordEnhancements': {},
+        'keywordEnhancements': instance.action_metadata['keywordEnhancements'],
         'files': {
             'created': instance.new_fts_metadata_files,
             'updated': [],
