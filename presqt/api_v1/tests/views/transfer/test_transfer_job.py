@@ -1,4 +1,7 @@
+import base64
 import json
+from time import sleep
+
 import requests
 import shutil
 from unittest.mock import patch
@@ -124,6 +127,298 @@ class TestTransferJobGET(SimpleTestCase):
                                 'access_token': ZENODO_TEST_USER_TOKEN})
 
         # Delete corresponding folder
+        shutil.rmtree('mediafiles/transfers/{}'.format(self.ticket_number))
+
+    def test_transfer_keyword_enhancement_enhance(self):
+        """
+        Test that the keywords are getting enhanced correctly during a transfer with keywords
+        existing only on the target and not in the FTS Metadata.
+        """
+        github_project_id = "209372336"
+        github_target_keywords = ["animals", "eggs", "water"]
+
+        # TRANSFER RESOURCE TO OSF
+        response = self.client.post(self.url, data={
+            "source_target_name": "github", "source_resource_id": github_project_id}, **self.headers)
+
+        self.ticket_number = response.data['ticket_number']
+        self.process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
+            self.ticket_number)
+        self.transfer_job = response.data['transfer_job']
+        process_info = read_file(self.process_info_path, True)
+
+        self.assertEqual(self.transfer_job, ('http://testserver{}'.format(reverse(
+            'transfer_job', kwargs={'ticket_number': self.ticket_number}))))
+
+        response = self.client.get(self.transfer_job, **self.headers)
+        self.assertEqual(response.data['message'], 'Transfer is being processed on the server')
+
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file(self.process_info_path, True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+        self.assertNotEqual(process_info['status'], 'in_progress')
+
+        # VALIDATE KEYWORD AND METADATA FILE IN GITHUB
+        headers = {"Authorization": "token {}".format(GITHUB_TEST_USER_TOKEN),
+                  "Accept": 'application/vnd.github.mercy-preview+json'}
+        project_url = 'https://api.github.com/repositories/{}'.format(github_project_id)
+        response = requests.get(project_url, headers=headers)
+        self.assertGreater(len(response.json()['topics']), len(github_target_keywords))
+        metadata_link = "https://raw.githubusercontent.com/presqt-test-user/PrivateProject/master/PRESQT_FTS_METADATA.json"
+        response = requests.get(metadata_link, headers=headers)
+        metadata_file = json.loads(response.content)
+        self.assertEqual(response.status_code, 200)
+        self.assertGreater(len(metadata_file['allEnhancedKeywords']), 0)
+        self.assertGreater(len(metadata_file['actions'][0]['keywordEnhancements'].keys()), 0)
+        self.assertEquals(metadata_file['actions'][0]['action'], "transfer_enhancement")
+
+        # RESET KEYWORDS FROM GITHUB
+        put_url = 'https://api.github.com/repos/presqt-test-user/PrivateProject/topics'
+        data = {'names': github_target_keywords}
+        response = requests.put(put_url, headers=headers, data=json.dumps(data))
+        self.assertEqual(response.status_code, 200)
+
+        # DELETE METADATA FILE IN GITHUB
+        metadata_url = 'https://api.github.com/repos/presqt-test-user/PrivateProject/contents/PRESQT_FTS_METADATA.json?ref=master'
+        # Make a GET request first to get the SHA which is needed to delete :eyeroll:
+        get_response = requests.get(metadata_url, headers=headers)
+        sha = get_response.json()['sha']
+        delete_data = {
+            "message": "Delete while testing",
+            "committer": {
+                "name": "PresQT",
+                "email": "N/A"
+            },
+            "sha": sha
+        }
+        response = requests.delete(metadata_url, headers=headers, data=json.dumps(delete_data))
+        self.assertEqual(response.status_code, 200)
+
+        # VALIDATE KEYWORDS IN OSF
+        # Get project ID
+        osf_headers = {'HTTP_PRESQT_SOURCE_TOKEN': self.destination_token}
+        osf_collection_response = self.client.get(self.url, **osf_headers)
+        self.assertEqual(osf_collection_response.status_code, 200)
+        osf_id = osf_collection_response.data[0]['id']
+        # Get project details
+        osf_detail_response = self.client.get(reverse('resource', kwargs={"target_name": "osf", "resource_id": osf_id}), **osf_headers)
+        self.assertEqual(osf_detail_response.status_code, 200)
+        self.assertGreater(len(osf_detail_response.data['extra']['tags']), 0)
+
+        # VALIDATE METADATA FILE IN OSF
+        headers = {'Authorization': 'Bearer {}'.format(OSF_UPLOAD_TEST_USER_TOKEN)}
+        for node in requests.get('http://api.osf.io/v2/users/me/nodes', headers=headers).json()['data']:
+            if node['attributes']['title'] == 'PrivateProject':
+                storage_data = requests.get(
+                    node['relationships']['files']['links']['related']['href'], headers=headers).json()
+                folder_data = requests.get(
+                    storage_data['data'][0]['relationships']['files']['links']['related']['href'], headers=headers).json()
+
+        # Get the metadata file
+        for data in folder_data['data']:
+            if data['attributes']['name'] == 'PRESQT_FTS_METADATA.json':
+                # Download the content of the metadata file
+                metadata = requests.get(data['links']['move'], headers=headers).content
+                break
+        metadata = json.loads(metadata)
+
+        self.assertGreater(len(metadata['allEnhancedKeywords']), 0)
+        self.assertGreater(len(metadata['actions'][0]['keywordEnhancements'].keys()), 0)
+
+        # DELETE TICKET FOLDER
+        shutil.rmtree('mediafiles/transfers/{}'.format(self.ticket_number))
+
+    def test_transfer_keyword_enhancement_enhance_existing_keywords(self):
+        """
+        Test that the keywords are getting enhanced correctly during a transfer with different
+        keywords existing in the target and in the target resource's metadata file.
+        """
+        github_project_id = "209373575"
+        github_target_keywords = ["airplane", "wood", "dirt"]
+        github_metadata_keywords = ["cats", "dogs"]
+        github_keywords = github_target_keywords + github_metadata_keywords
+
+        # TRANSFER RESOURCE TO OSF
+        response = self.client.post(self.url, data={
+            "source_target_name": "github", "source_resource_id": github_project_id}, **self.headers)
+
+        self.ticket_number = response.data['ticket_number']
+        self.process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
+            self.ticket_number)
+        self.transfer_job = response.data['transfer_job']
+        process_info = read_file(self.process_info_path, True)
+
+        self.assertEqual(self.transfer_job, ('http://testserver{}'.format(reverse(
+            'transfer_job', kwargs={'ticket_number': self.ticket_number}))))
+
+        response = self.client.get(self.transfer_job, **self.headers)
+        self.assertEqual(response.data['message'], 'Transfer is being processed on the server')
+
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file(self.process_info_path, True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+        self.assertNotEqual(process_info['status'], 'in_progress')
+
+        # VALIDATE KEYWORD AND METADATA FILE IN GITHUB
+        headers = {"Authorization": "token {}".format(GITHUB_TEST_USER_TOKEN),
+                   "Accept": 'application/vnd.github.mercy-preview+json'}
+        project_url = 'https://api.github.com/repositories/{}'.format(github_project_id)
+        response = requests.get(project_url, headers=headers)
+        for keyword in github_keywords:
+            self.assertIn(keyword, response.json()['topics'])
+
+        sleep(5)
+
+        metadata_link = "https://raw.githubusercontent.com/presqt-test-user/ProjectFifteen/master/PRESQT_FTS_METADATA.json"
+        response = requests.get(metadata_link, headers=headers)
+        metadata_file = json.loads(response.content)
+        self.assertEqual(response.status_code, 200)
+        for keyword in github_keywords:
+            self.assertIn(keyword, metadata_file['allEnhancedKeywords'])
+        self.assertGreater(len(metadata_file['actions'][0]['keywordEnhancements'].keys()), 0)
+        self.assertEquals(metadata_file['actions'][0]['actionType'], "transfer_enhancement")
+
+        # RESET KEYWORDS FROM GITHUB
+        put_url = 'https://api.github.com/repos/presqt-test-user/ProjectFifteen/topics'
+        data = {'names': github_target_keywords}
+        response = requests.put(put_url, headers=headers, data=json.dumps(data))
+        self.assertEqual(response.status_code, 200)
+
+        # DELETE METADATA FILE IN GITHUB
+        original_github_metadata = {
+            "allEnhancedKeywords": ["cats", "dogs"],
+            "actions": []
+        }
+        updated_metadata_bytes = json.dumps(original_github_metadata, indent=4).encode('utf-8')
+        updated_base64_metadata = base64.b64encode(updated_metadata_bytes).decode('utf-8')
+
+        metadata_url = 'https://api.github.com/repos/presqt-test-user/ProjectFifteen/contents/PRESQT_FTS_METADATA.json?ref=master'
+        # Make a GET request first to get the SHA which is needed to delete :eyeroll:
+        get_response = requests.get(metadata_url, headers=headers)
+        sha = get_response.json()['sha']
+        data = {
+            "message": "Reset Metadata",
+            "committer": {
+                "name": "PresQT",
+                "email": "N/A"
+            },
+            "sha": sha,
+            "content": updated_base64_metadata
+        }
+        response = requests.put(metadata_url, headers=headers, data=json.dumps(data))
+        self.assertEqual(response.status_code, 200)
+
+        # VALIDATE KEYWORDS IN OSF
+        # Get project ID
+        osf_headers = {'HTTP_PRESQT_SOURCE_TOKEN': self.destination_token}
+        osf_collection_response = self.client.get(self.url, **osf_headers)
+        self.assertEqual(osf_collection_response.status_code, 200)
+        osf_id = osf_collection_response.data[0]['id']
+        # Get project details
+        osf_detail_response = self.client.get(reverse('resource', kwargs={"target_name": "osf", "resource_id": osf_id}), **osf_headers)
+        self.assertEqual(osf_detail_response.status_code, 200)
+        for keyword in github_keywords:
+            self.assertIn(keyword, osf_detail_response.data['extra']['tags'])
+
+        # VALIDATE METADATA FILE IN OSF
+        headers = {'Authorization': 'Bearer {}'.format(OSF_UPLOAD_TEST_USER_TOKEN)}
+        for node in requests.get('http://api.osf.io/v2/users/me/nodes', headers=headers).json()['data']:
+            if node['attributes']['title'] == 'ProjectFifteen':
+                storage_data = requests.get(
+                    node['relationships']['files']['links']['related']['href'], headers=headers).json()
+                folder_data = requests.get(
+                    storage_data['data'][0]['relationships']['files']['links']['related']['href'], headers=headers).json()
+
+        # Get the metadata file
+        for data in folder_data['data']:
+            if data['attributes']['name'] == 'PRESQT_FTS_METADATA.json':
+                # Download the content of the metadata file
+                metadata = requests.get(data['links']['move'], headers=headers).content
+                break
+        metadata = json.loads(metadata)
+
+        for keyword in github_keywords:
+            self.assertIn(keyword, metadata['allEnhancedKeywords'])
+
+        self.assertGreater(len(metadata['actions'][0]['keywordEnhancements'].keys()), 0)
+
+        # DELETE TICKET FOLDER
+        shutil.rmtree('mediafiles/transfers/{}'.format(self.ticket_number))
+
+    def test_transfer_keyword_enhancement_suggest(self):
+        """
+        Test that the keywords are getting suggested correctly during a transfer with keywords
+        existing only on the target and not in the FTS Metadata.
+        """
+        github_project_id = "209372336"
+        github_target_keywords = ["animals", "eggs", "water"]
+
+        # TRANSFER RESOURCE TO OSF
+        self.headers['HTTP_PRESQT_KEYWORD_ACTION'] = 'suggest'
+        response = self.client.post(self.url, data={
+            "source_target_name": "github", "source_resource_id": github_project_id}, **self.headers)
+
+        self.ticket_number = response.data['ticket_number']
+        self.process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
+            self.ticket_number)
+        self.transfer_job = response.data['transfer_job']
+        process_info = read_file(self.process_info_path, True)
+
+        self.assertEqual(self.transfer_job, ('http://testserver{}'.format(reverse(
+            'transfer_job', kwargs={'ticket_number': self.ticket_number}))))
+
+        response = self.client.get(self.transfer_job, **self.headers)
+        self.assertEqual(response.data['message'], 'Transfer is being processed on the server')
+
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file(self.process_info_path, True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+        self.assertNotEqual(process_info['status'], 'in_progress')
+
+        response = self.client.get(self.transfer_job, **self.headers)
+        self.assertEqual(response.data['initial_keywords'], github_target_keywords)
+        self.assertGreater(len(response.data['enhanced_keywords']), 3)
+
+        # VALIDATE KEYWORD AND VALIDATE THAT NO METADATA HAS BEEN WRITTEN TO GITHUB
+        headers = {"Authorization": "token {}".format(GITHUB_TEST_USER_TOKEN),
+                   "Accept": 'application/vnd.github.mercy-preview+json'}
+        project_url = 'https://api.github.com/repositories/{}'.format(github_project_id)
+        response = requests.get(project_url, headers=headers)
+        self.assertEqual(response.json()['topics'], github_target_keywords)
+        metadata_link = "https://raw.githubusercontent.com/presqt-test-user/PrivateProject/master/PRESQT_FTS_METADATA.json"
+        response = requests.get(metadata_link, headers=headers)
+        self.assertEqual(response.status_code, 404)
+
+        # VALIDATE METADATA FILE IN OSF
+        headers = {'Authorization': 'Bearer {}'.format(OSF_UPLOAD_TEST_USER_TOKEN)}
+        for node in requests.get('http://api.osf.io/v2/users/me/nodes', headers=headers).json()['data']:
+            if node['attributes']['title'] == 'PrivateProject':
+                storage_data = requests.get(
+                    node['relationships']['files']['links']['related']['href'], headers=headers).json()
+                folder_data = requests.get(
+                    storage_data['data'][0]['relationships']['files']['links']['related']['href'], headers=headers).json()
+
+        # Get the metadata file
+        for data in folder_data['data']:
+            if data['attributes']['name'] == 'PRESQT_FTS_METADATA.json':
+                # Download the content of the metadata file
+                metadata = requests.get(data['links']['move'], headers=headers).content
+                break
+        metadata = json.loads(metadata)
+
+        self.assertEqual(len(metadata['allEnhancedKeywords']), 3)
+        self.assertEqual(len(metadata['actions'][0]['keywordEnhancements'].keys()), 0)
+
+        # DELETE TICKET FOLDER
         shutil.rmtree('mediafiles/transfers/{}'.format(self.ticket_number))
 
     def test_get_error_400(self):

@@ -447,6 +447,34 @@ class TestResourcePOSTWithBody(SimpleTestCase):
         self.assertEqual(response.data,
                          {'error': "PresQT Error: source_resource_id can't be None or blank."})
 
+    def test_error_400_no_keyword_action(self):
+        """
+        Return a 400 if the POST fails because "'presqt-keyword-action' missing in headers.
+        """
+        headers = self.headers
+        headers.pop('HTTP_PRESQT_KEYWORD_ACTION')
+        url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        response = self.client.post(url, {"source_target_name": "curate_nd",
+                                          "source_resource_id": "dj52w379504"}, **headers)
+        # Verify the error status code and message
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data,
+                         {'error': "PresQT Error: 'presqt-keyword-action' missing in the request headers."})
+
+    def test_error_400_invalid_keyword_action(self):
+        """
+        Return a 400 if the POST fails because an invalid 'keyword_action' header was given.
+        """
+        headers = self.headers
+        headers['HTTP_PRESQT_KEYWORD_ACTION'] = 'bad_action'
+        url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        response = self.client.post(url, {"source_target_name": "curate_nd",
+                                          "source_resource_id": "dj52w379504"}, **headers)
+        # Verify the error status code and message
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data, {
+            'error': "PresQT Error: 'bad_action' is not a valid keyword_action. The options are 'enhance' or 'suggest'."})
+
     def test_error_404_source_target_name_invalid(self):
         """
         Returns a 404 if the source_target_name provided in the body is not a valid target name
