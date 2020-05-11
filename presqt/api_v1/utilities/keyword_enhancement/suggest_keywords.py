@@ -2,7 +2,7 @@ from presqt.api_v1.utilities import FunctionRouter, keyword_enhancer
 from presqt.utilities import PresQTResponseException
 
 
-def enhance_keywords(self):
+def suggest_keywords(self):
     # Fetch the source keywords
     keyword_fetch_func = FunctionRouter.get_function(self.source_target_name, 'keywords')
     try:
@@ -11,19 +11,14 @@ def enhance_keywords(self):
         return {}
 
     self.all_keywords = source_keywords + self.all_keywords
-    self.initial_keywords = self.all_keywords
 
     # Enhance source keywords
     try:
-        self.enhanced_keywords, self.all_keywords = keyword_enhancer(self.all_keywords)
+        self.suggested_keywords, all_keywords = keyword_enhancer(self.all_keywords)
     except PresQTResponseException:
         self.initial_keywords = []
         self.enhanced_keywords = []
 
-    keyword_dict = {
-        'initialKeywords': self.initial_keywords,
-        'enhancedKeywords': list(set(self.enhanced_keywords)),
-        'enhancer': 'scigraph'
-    }
+    keyword_dict = {}
 
     return keyword_dict
