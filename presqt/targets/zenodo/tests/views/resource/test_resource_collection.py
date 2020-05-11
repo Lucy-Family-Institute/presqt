@@ -123,6 +123,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         self.hash_algorithm = 'md5'
         self.auth_params = {'access_token': self.token}
         self.metadata_dict = {
+            "allEnhancedKeywords": [],
             "actions": [
                 {
                     "id": "uuid",
@@ -132,6 +133,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
                     "destinationTargetName": "zenodo",
                     "sourceUsername": "TestUser",
                     "destinationUsername": "81621",
+                    "keywordEnhancements": {},
                     "files": {
                         "created": [],
                         "updated": [],

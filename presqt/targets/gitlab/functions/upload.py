@@ -83,8 +83,8 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
             project_name = response.json()['name']
         else:
             raise PresQTResponseException(
-                "Response has status code {} while creating project {}. {}".format(
-                    response.status_code, project_title, response.json()['message']), status.HTTP_400_BAD_REQUEST)
+                "Response has status code {} while creating project {}.".format(
+                    response.status_code, project_title), status.HTTP_400_BAD_REQUEST)
 
         #*** UPLOAD FILES ***#
         # Upload files to project's repository

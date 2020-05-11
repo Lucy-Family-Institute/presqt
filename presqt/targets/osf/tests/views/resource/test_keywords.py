@@ -229,7 +229,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         # Verify the status code
         self.assertEqual(response.status_code, 400)
         # Verify the error message
-        self.assertEqual(response.data['error'], 'Can not update OSF folder keywords.')
+        self.assertEqual(response.data['error'], 'OSF returned a 404 error trying to update keywords.')
 
     def test_error_no_keywords_provided(self):
         """

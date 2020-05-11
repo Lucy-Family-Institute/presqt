@@ -23,7 +23,7 @@ def enhance_keywords(self):
 
     keyword_dict = {
         'initialKeywords': self.initial_keywords,
-        'enhancedKeywords': self.enhanced_keywords,
+        'enhancedKeywords': list(set(self.enhanced_keywords)),
         'enhancer': 'scigraph'
     }
 

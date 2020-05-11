@@ -434,7 +434,6 @@ class TestTransferJobPATCH(SimpleTestCase):
         """
         transfer_response = self.client.post(self.url, data={
             "source_target_name": "github", "source_resource_id": self.resource_id}, **self.headers)
-        print(transfer_response.data)
         ticket_number = transfer_response.data['ticket_number']
         ticket_path = 'mediafiles/transfers/{}'.format(ticket_number)
         # Verify process_info file status is 'in_progress' initially

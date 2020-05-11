@@ -1059,7 +1059,7 @@ class TestResourcePOST(SimpleTestCase):
             mock_request.return_value = mock_req
             # Attempt to update the metadata, but the server is down!
             self.assertRaises(PresQTError, osf_upload_metadata, self.token, node_id,
-                              {"context": {}, "actions": []})
+                              {"context": {}, "allEnhancedKeywords": [], "actions": []})
 
         # Delete corresponding folder
         shutil.rmtree(self.ticket_path)
@@ -1132,7 +1132,7 @@ class TestResourcePOST(SimpleTestCase):
         self.hash_algorithm = 'sha256'
 
         with mock.patch('presqt.api_v1.utilities.metadata.upload_metadata.write_and_validate_metadata') as upload_mock:
-            upload_mock.return_value = "Whoops"
+            upload_mock.return_value = False
             self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
             response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')},
                                         **self.headers)

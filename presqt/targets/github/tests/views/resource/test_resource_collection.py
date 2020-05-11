@@ -405,7 +405,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         # Get the invalid metadata json
         response = requests.get(valid_metadata_link, headers=header)
         valid_metadata_file = json.loads(response.content)
-        print(valid_metadata_file)
+    
         self.assertEqual(len(valid_metadata_file['actions']), 2)
 
         delete_github_repo('presqt-test-user', 'Good_Egg', header)
