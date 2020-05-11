@@ -21,7 +21,7 @@ from presqt.api_v1.utilities import (target_validation, transfer_target_validati
                                      get_upload_source_metadata, hash_tokens,
                                      finite_depth_upload_helper, structure_validation,
                                      keyword_action_validation,
-                                     enhance_keywords, update_targets_keywords)
+                                     enhance_keywords, update_targets_keywords, suggest_keywords)
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
@@ -325,7 +325,7 @@ class BaseResource(APIView):
         if self.action == 'resource_transfer_in' and self.keyword_action == 'enhance':
             keyword_enhancements = enhance_keywords(self)
         else:
-            keyword_enhancements = {}
+            keyword_enhancements = suggest_keywords(self)
 
         # Create PresQT action metadata
         self.source_username = func_dict['action_metadata']['sourceUsername']
@@ -539,7 +539,11 @@ class BaseResource(APIView):
             self.process_info_obj['failed_fixity'] = self.upload_failed_fixity
             write_file(self.process_info_path, self.process_info_obj, True)
         else:
-            self.keyword_enhancement_successful = update_targets_keywords(self, func_dict['project_id'])
+            if self.keyword_action == 'enhance':
+                self.keyword_enhancement_successful = update_targets_keywords(self, func_dict['project_id'])
+            else: # elif suggest
+                self.keyword_enhancement_successful = True
+
             self.process_info_obj['upload_status'] = upload_message
         return True
 
@@ -638,9 +642,15 @@ class BaseResource(APIView):
         # Transfer was a success so update the server metadata file.
         self.process_info_obj['status_code'] = '200'
         self.process_info_obj['status'] = 'finished'
-        self.process_info_obj['enhanced_keywords'] = self.all_keywords
         self.process_info_obj['failed_fixity'] = list(
             set(self.download_failed_fixity + self.upload_failed_fixity))
+
+        if self.keyword_action == 'enhance':
+            self.process_info_obj['enhanced_keywords'] = self.enhanced_keywords
+            self.process_info_obj['initial_keywords'] = self.initial_keywords
+        else: # elif suggest
+            self.process_info_obj['enhanced_keywords'] = self.suggested_keywords
+            self.process_info_obj['initial_keywords'] = self.all_keywords
 
         transfer_fixity = False if not self.download_fixity or not self.upload_fixity else True
         self.process_info_obj['message'] = get_action_message(
