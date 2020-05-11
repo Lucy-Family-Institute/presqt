@@ -1,33 +1,32 @@
 FROM python:3.7-alpine
-ARG BUILD_ENVIRONMENT
+LABEL purpose="Python container for CRON, logging and Django"
 
+ARG BUILD_ENVIRONMENT
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Specify environment variables that should be
+# present inside of the container. Default them
+# to 'NA' if they are not available.
+ENV ENVIRONMENT=${ENVIRONMENT:-production}
+ENV DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-config.settings.${ENVIRONMENT}}
+
+WORKDIR /usr/local/etc
+COPY requirements requirements
+
+# Install System Level Dependencies
 # Installing client libraries and any other package you need
 RUN apk update && apk add libpq make
 
 # Installing build dependencies
 RUN apk add --virtual .build-deps gcc python-dev musl-dev postgresql-dev tzdata
 
-
-# For development, we don't want to generate .pyc files
-# or buffer any output.
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-
-WORKDIR /usr/local/etc
-COPY requirements requirements
-
 RUN cp /usr/share/zoneinfo/America/Indianapolis /etc/localtime
 RUN echo "America/Indianapolis" > /etc/timezone
 RUN apk del tzdata
-
 RUN pip install -r requirements/${BUILD_ENVIRONMENT}.txt
 
 # Delete build dependencies
 RUN apk del .build-deps
 
 WORKDIR /usr/src/app
-COPY . /usr/src/app
-
-EXPOSE 8000
-
-ENTRYPOINT ["/usr/src/app/docker/django_entrypoint.sh"]
