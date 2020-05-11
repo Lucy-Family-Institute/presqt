@@ -173,7 +173,7 @@ class TestTransferJobGET(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertGreater(len(metadata_file['allEnhancedKeywords']), 0)
         self.assertGreater(len(metadata_file['actions'][0]['keywordEnhancements'].keys()), 0)
-        self.assertEquals(metadata_file['actions'][0]['action'], "transfer_enhancement")
+        self.assertEquals(metadata_file['actions'][0]['actionType'], "transfer_enhancement")
 
         # RESET KEYWORDS FROM GITHUB
         put_url = 'https://api.github.com/repos/presqt-test-user/PrivateProject/topics'
