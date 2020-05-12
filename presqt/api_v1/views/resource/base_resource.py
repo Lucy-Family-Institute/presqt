@@ -302,6 +302,9 @@ class BaseResource(APIView):
         self.source_fts_metadata_actions = []
         self.new_fts_metadata_files = []
         self.all_keywords = []
+        self.initial_keywords = []
+        self.suggested_keywords = []
+        self.enhanced_keywords = []
         for resource in func_dict['resources']:
             # Perform the fixity check and add extra info to the returned fixity object.
             # Note: This method of calling the function needs to stay this way for test Mock

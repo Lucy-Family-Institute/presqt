@@ -666,6 +666,117 @@ class TestTransferJobGET(SimpleTestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/transfers/{}'.format(ticket_number))
 
+    def test_transfer_target_keyword_error(self):
+        """
+        This test exists to test the error raising works in target functions in enhance_keywords()
+        """
+        github_id = "209373160:__pycache__"
+
+        # TRANSFER RESOURCE TO OSF
+        response = self.client.post(self.url, data={
+            "source_target_name": "github", "source_resource_id": github_id}, **self.headers)
+
+        self.ticket_number = response.data['ticket_number']
+        self.process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
+            self.ticket_number)
+        self.transfer_job = response.data['transfer_job']
+        process_info = read_file(self.process_info_path, True)
+
+        self.assertEqual(self.transfer_job, ('http://testserver{}'.format(reverse(
+            'transfer_job', kwargs={'ticket_number': self.ticket_number}))))
+
+        response = self.client.get(self.transfer_job, **self.headers)
+        self.assertEqual(response.data['message'], 'Transfer is being processed on the server')
+
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file(self.process_info_path, True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+        self.assertNotEqual(process_info['status'], 'in_progress')
+
+        # DELETE TICKET FOLDER
+        shutil.rmtree('mediafiles/transfers/{}'.format(self.ticket_number))
+
+    def test_keyword_upload_raises_error_during_transfer(self):
+        """
+        Test that the transfer endpoint is catching an error returned from the target server
+        when attempting to update metadata
+        """
+        # Create a mock response class
+        class MockResponse:
+            def __init__(self, json_data, status_code):
+                self.json_data = json_data
+                self.status_code = status_code
+        mock_req = MockResponse({'error': 'The server is down.'}, 500)
+
+        with patch('requests.put') as mock_request:
+            mock_request.return_value = mock_req
+
+            github_id = "209373160:__pycache__"
+
+            # TRANSFER RESOURCE TO OSF
+            response = self.client.post(self.url, data={
+                "source_target_name": "github", "source_resource_id": github_id}, **self.headers)
+
+            self.ticket_number = response.data['ticket_number']
+            self.process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
+                self.ticket_number)
+            self.transfer_job = response.data['transfer_job']
+            process_info = read_file(self.process_info_path, True)
+
+            self.assertEqual(self.transfer_job, ('http://testserver{}'.format(reverse(
+                'transfer_job', kwargs={'ticket_number': self.ticket_number}))))
+
+            response = self.client.get(self.transfer_job, **self.headers)
+            self.assertEqual(response.data['message'], 'Transfer is being processed on the server')
+
+            while process_info['status'] == 'in_progress':
+                try:
+                    process_info = read_file(self.process_info_path, True)
+                except json.decoder.JSONDecodeError:
+                    # Pass while the process_info file is being written to
+                    pass
+            self.assertNotEqual(process_info['status'], 'in_progress')
+
+            # DELETE TICKET FOLDER
+            shutil.rmtree('mediafiles/transfers/{}'.format(self.ticket_number))
+
+        with patch('requests.patch') as mock_request:
+            mock_request.return_value = mock_req
+
+            github_id = "209373160:__pycache__"
+
+            # TRANSFER RESOURCE TO OSF
+            response = self.client.post(self.url, data={
+                "source_target_name": "github", "source_resource_id": github_id}, **self.headers)
+
+            self.ticket_number = response.data['ticket_number']
+            self.process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
+                self.ticket_number)
+            self.transfer_job = response.data['transfer_job']
+            process_info = read_file(self.process_info_path, True)
+
+            self.assertEqual(self.transfer_job, ('http://testserver{}'.format(reverse(
+                'transfer_job', kwargs={'ticket_number': self.ticket_number}))))
+
+            response = self.client.get(self.transfer_job, **self.headers)
+            self.assertEqual(response.data['message'], 'Transfer is being processed on the server')
+
+            while process_info['status'] == 'in_progress':
+                try:
+                    process_info = read_file(self.process_info_path, True)
+                except json.decoder.JSONDecodeError:
+                    # Pass while the process_info file is being written to
+                    pass
+            self.assertNotEqual(process_info['status'], 'in_progress')
+
+            # DELETE TICKET FOLDER
+            shutil.rmtree('mediafiles/transfers/{}'.format(self.ticket_number))
+
+
+
 
 class TestTransferJobPATCH(SimpleTestCase):
     """

@@ -21,7 +21,7 @@ class Command(BaseCommand):
         directories_list = [
             '/usr/src/app/mediafiles/downloads/*/',
             '/usr/src/app/mediafiles/uploads/*/',
-            '/usr/src/app/mediafiles/transfers/*/'
+            '/usr/src/app/mediafiles/transfers/*/',
             '/usr/src/app/mediafiles/bag_tool/*/'
         ]
         directories = []
