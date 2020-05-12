@@ -82,6 +82,8 @@ def zenodo_upload_keywords(token, resource_id, keywords):
     project_id = resource_id
     if resource['kind_name'] == 'file':
         project_id = resource['container']
+        # Get the top level project
+        resource = zenodo_fetch_resource(token, project_id)
 
     headers = {"access_token": token}
     put_url = 'https://zenodo.org/api/deposit/depositions/{}'.format(project_id)
@@ -98,6 +100,7 @@ def zenodo_upload_keywords(token, resource_id, keywords):
                             headers={'Content-Type': 'application/json'})
 
     if response.status_code != 200:
+        print(response.json())
         raise PresQTResponseException("Zenodo returned a {} error trying to update keywords.".format(
             response.status_code), status.HTTP_400_BAD_REQUEST)
 
