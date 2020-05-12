@@ -135,17 +135,18 @@ def zenodo_fetch_resource(token, resource_id):
             zenodo_projects = requests.get(base_url, params=auth_parameter).json()
             for entry in zenodo_projects:
                 project_files = requests.get(entry['links']['self'], params=auth_parameter).json()
-                for entry in project_files['files']:
-                    if entry['id'] == resource_id:
+                for file in project_files['files']:
+                    if file['id'] == resource_id:
                         resource = {
+                            "container": entry['id'],
                             "kind": "item",
                             "kind_name": "file",
                             "id": resource_id,
-                            "title": entry['filename'],
+                            "title": file['filename'],
                             "date_created": None,
                             "date_modified": None,
                             "hashes": {
-                                "md5": entry['checksum']
+                                "md5": file['checksum']
                             },
                             "extra": {}}
                         # We found the file, break out of file loop

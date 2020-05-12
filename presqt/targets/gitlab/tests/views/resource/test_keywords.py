@@ -76,7 +76,8 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         # Get the ount of the initial keywords
         initial_keywords = len(get_response.data['keywords'])
 
-        response = self.client.post(url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
+        response = self.client.post(
+            url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
         # Verify the status code
         self.assertEqual(response.status_code, 202)
         # Verify the dict keys match what we expect
@@ -98,7 +99,8 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         resource_id = "17993268:README%252Emd"
         url = reverse('keywords', kwargs={'target_name': 'gitlab',
                                           'resource_id': resource_id})
-        response = self.client.post(url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
+        response = self.client.post(
+            url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
         # Verify the status code
         self.assertEqual(response.status_code, 400)
         # Verify the error message
@@ -118,7 +120,8 @@ class TestResourceKeywordsPOST(SimpleTestCase):
             resource_id = '17993268'
             url = reverse('keywords', kwargs={'target_name': 'gitlab',
                                               'resource_id': resource_id})
-            response = self.client.post(url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
+            response = self.client.post(
+                url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
 
             # Verify the status code
             self.assertEqual(response.status_code, 400)
@@ -126,3 +129,30 @@ class TestResourceKeywordsPOST(SimpleTestCase):
             # Ensure the error is what we're expecting.
             self.assertEqual(response.data['error'],
                              "GitLab returned a 500 error trying to update keywords.")
+
+    def test_update_project_keywords_through_file_endpoint(self):
+        """
+        If a file id is provided to the uplaod keywords function, ensure that the projects keywords
+        are updated.
+        """
+        from presqt.targets.gitlab.functions.keywords import gitlab_upload_keywords
+
+        file_id = '17993266:README%2Emd'
+        # Check projects existing keywords
+        headers = {"Private-Token": GITLAB_TEST_USER_TOKEN}
+        get_url = 'https://gitlab.com/api/v4/projects/17993266'
+
+        response = requests.get(get_url, headers=headers).json()
+        self.assertEqual(response['tag_list'], [])
+
+        # Make an explicit call to the function
+        func_dict = gitlab_upload_keywords(GITLAB_TEST_USER_TOKEN, file_id, ['eggs'])
+
+        # Check the project again and ensure it has a new keyword
+        response = requests.get(get_url, headers=headers).json()
+        self.assertEqual(response['tag_list'], func_dict['updated_keywords'])
+
+        # Set the poject back to having zero keywords
+        put_response = requests.put("{}?tag_list=".format(get_url), headers=headers)
+
+        self.assertEqual(put_response.status_code, 200)

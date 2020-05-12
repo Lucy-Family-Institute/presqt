@@ -1,6 +1,7 @@
 import requests
 import json
 from unittest.mock import patch
+from time import sleep
 
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
@@ -76,7 +77,8 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         # Get the ount of the initial keywords
         initial_keywords = len(get_response.data['keywords'])
 
-        response = self.client.post(url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
+        response = self.client.post(
+            url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
         # Verify the status code
         self.assertEqual(response.status_code, 202)
         # Verify the dict keys match what we expect
@@ -98,7 +100,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
                                     headers={'Content-Type': 'application/json'})
 
         self.assertEqual(put_response.status_code, 200)
-    
+
     def test_error_project_keywords(self):
         """
         Returns a 400 if the POST method is unsuccessful when getting a Zenodo `file` keywords.
@@ -106,7 +108,8 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         resource_id = "1644bae0-346b-49af-aaab-2409a688f85e"
         url = reverse('keywords', kwargs={'target_name': 'zenodo',
                                           'resource_id': resource_id})
-        response = self.client.post(url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
+        response = self.client.post(
+            url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
         # Verify the status code
         self.assertEqual(response.status_code, 400)
         # Verify the error message
@@ -125,7 +128,8 @@ class TestResourceKeywordsPOST(SimpleTestCase):
             resource_id = '3525310'
             url = reverse('keywords', kwargs={'target_name': 'zenodo',
                                               'resource_id': resource_id})
-            response = self.client.post(url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
+            response = self.client.post(
+                url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
 
             # Verify the status code
             self.assertEqual(response.status_code, 400)
@@ -133,3 +137,40 @@ class TestResourceKeywordsPOST(SimpleTestCase):
             # Ensure the error is what we're expecting.
             self.assertEqual(response.data['error'],
                              "Zenodo returned a 500 error trying to update keywords.")
+
+    def test_update_project_keywords_if_update_made_on_file(self):
+        """
+        If a file id is provided, ensure the top level project keywords are updated.
+        """
+        from presqt.targets.zenodo.functions.keywords import zenodo_upload_keywords
+
+        file_id = 'c67ad447-8afb-42c6-a92c-57936458460e'
+
+        # Check the keywords of this project initially
+        headers = {"access_token": ZENODO_TEST_USER_TOKEN}
+        get_url = 'https://zenodo.org/api/deposit/depositions/3525982'
+
+        response = requests.get(get_url, params=headers).json()
+        if 'keywords' in response['metadata'].keys():
+            self.assertEqual(response['metadata']['keywords'], [])
+
+        # Make an explicit call to the function
+        func_dict = zenodo_upload_keywords(ZENODO_TEST_USER_TOKEN, file_id, ['eggs'])
+
+        # Check the endpoint again and make sure eggs are there
+        updated_response = requests.get(get_url, params=headers).json()
+        self.assertEqual(updated_response['metadata']['keywords'], func_dict['updated_keywords'])
+
+        # Delete eggs
+        data = {'metadata': {
+            "title": response['title'],
+            "upload_type": response['metadata']['upload_type'],
+            "description": response['metadata']['description'],
+            "creators": response['metadata']['creators'],
+            "keywords": []
+        }}
+
+        response = requests.put(get_url, params=headers, data=json.dumps(data),
+                                headers={'Content-Type': 'application/json'})
+
+        self.assertEqual(response.status_code, 200)
