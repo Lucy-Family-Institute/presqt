@@ -100,7 +100,6 @@ def zenodo_upload_keywords(token, resource_id, keywords):
                             headers={'Content-Type': 'application/json'})
 
     if response.status_code != 200:
-        print(response.json())
         raise PresQTResponseException("Zenodo returned a {} error trying to update keywords.".format(
             response.status_code), status.HTTP_400_BAD_REQUEST)
 
