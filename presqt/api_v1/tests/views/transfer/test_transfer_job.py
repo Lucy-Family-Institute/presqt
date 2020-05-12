@@ -32,7 +32,7 @@ class TestTransferJobGET(SimpleTestCase):
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.destination_token,
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
-                        'HTTP_PRESQT_KEYWORD_ACTION': 'enhance'}
+                        'HTTP_PRESQT_KEYWORD_ACTION': 'suggest'}
         self.resource_id = '209373660'
         self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
 
@@ -136,7 +136,7 @@ class TestTransferJobGET(SimpleTestCase):
         """
         github_project_id = "209372336"
         github_target_keywords = ["animals", "eggs", "water"]
-
+        self.headers['HTTP_PRESQT_KEYWORD_ACTION'] = 'enhance'
         # TRANSFER RESOURCE TO OSF
         response = self.client.post(self.url, data={
             "source_target_name": "github", "source_resource_id": github_project_id}, **self.headers)
@@ -240,6 +240,7 @@ class TestTransferJobGET(SimpleTestCase):
         github_target_keywords = ["airplane", "wood", "dirt"]
         github_metadata_keywords = ["cats", "dogs"]
         github_keywords = github_target_keywords + github_metadata_keywords
+        self.headers['HTTP_PRESQT_KEYWORD_ACTION'] = 'enhance'
 
         # TRANSFER RESOURCE TO OSF
         response = self.client.post(self.url, data={
@@ -396,6 +397,7 @@ class TestTransferJobGET(SimpleTestCase):
         self.assertEqual(response.json()['topics'], github_target_keywords)
         metadata_link = "https://raw.githubusercontent.com/presqt-test-user/PrivateProject/master/PRESQT_FTS_METADATA.json"
         response = requests.get(metadata_link, headers=headers)
+        print(response.content)
         self.assertEqual(response.status_code, 404)
 
         # VALIDATE METADATA FILE IN OSF
@@ -671,6 +673,7 @@ class TestTransferJobGET(SimpleTestCase):
         This test exists to test the error raising works in target functions in enhance_keywords()
         """
         github_id = "209373160:__pycache__"
+        self.headers['HTTP_PRESQT_KEYWORD_ACTION'] = 'enhance'
 
         # TRANSFER RESOURCE TO OSF
         response = self.client.post(self.url, data={
@@ -704,6 +707,8 @@ class TestTransferJobGET(SimpleTestCase):
         Test that the transfer endpoint is catching an error returned from the target server
         when attempting to update metadata
         """
+        self.headers['HTTP_PRESQT_KEYWORD_ACTION'] = 'enhance'
+
         # Create a mock response class
         class MockResponse:
             def __init__(self, json_data, status_code):
@@ -775,9 +780,6 @@ class TestTransferJobGET(SimpleTestCase):
             # DELETE TICKET FOLDER
             shutil.rmtree('mediafiles/transfers/{}'.format(self.ticket_number))
 
-
-
-
 class TestTransferJobPATCH(SimpleTestCase):
     """
     Test the `api_v1/transfer/<ticket_id>/` endpoint's PATCH method.
@@ -792,7 +794,7 @@ class TestTransferJobPATCH(SimpleTestCase):
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.destination_token,
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
-                        'HTTP_PRESQT_KEYWORD_ACTION': 'enhance'}
+                        'HTTP_PRESQT_KEYWORD_ACTION': 'suggest'}
         self.resource_id = '209373660'
         self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
 
