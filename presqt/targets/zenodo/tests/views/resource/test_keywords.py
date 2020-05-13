@@ -101,6 +101,66 @@ class TestResourceKeywordsPOST(SimpleTestCase):
 
         self.assertEqual(put_response.status_code, 200)
 
+        # Delete the created Metadata file.
+        # 1. Find the metadata...
+        project_info = requests.get(put_url, params=headers).json()
+        for file in project_info['files']:
+            if file['filename'] == 'PRESQT_FTS_METADATA.json':
+                # 2. Delete the metadata
+                delete_url = file['links']['self']
+                response = requests.delete(delete_url, params=headers)
+
+                self.assertEqual(response.status_code, 204)
+
+    def test_success_keywords_error_metadata(self):
+        """
+        Test that if an error occured during metadata updating, the user is made aware.
+        """
+        class MockResponse:
+            def __init__(self, json_data, status_code):
+                self.json_data = json_data
+                self.status_code = status_code
+        mock_req = MockResponse({'error': 'The server is down.'}, 500)
+
+        with patch('requests.post') as mock_request:
+            mock_request.return_value = mock_req
+
+            resource_id = '3525310'
+            url = reverse('keywords', kwargs={'target_name': 'zenodo',
+                                              'resource_id': resource_id})
+            # First check the initial tags.
+            get_response = self.client.get(url, **self.header)
+            # Get the ount of the initial keywords
+            initial_keywords = len(get_response.data['keywords'])
+
+            response = self.client.post(
+                url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
+            # Verify the error
+            self.assertEqual(response.status_code, 400)
+            # Verify the dict keys match what we expect
+            self.assertEqual(
+                response.data['error'], 'Error updating the PresQT metadata file on zenodo. Keywords have been added successfully.')
+
+            updated_response = self.client.get(url, **self.header)
+            # Get the ount of the initial keywords
+            updated_keywords = len(updated_response.data['keywords'])
+            self.assertGreater(updated_keywords, initial_keywords)
+
+        # Set the project keywords back to what they were.
+        headers = {"access_token": ZENODO_TEST_USER_TOKEN}
+        put_url = 'https://zenodo.org/api/deposit/depositions/{}'.format(resource_id)
+        data = {'metadata': {
+            "title": "Test PresQT Project",
+            "upload_type": "other",
+            "description": "<p>This is a test for PresQT.</p>",
+            "creators": [{"name": "User, Test"}],
+            "keywords": ["eggs", "water", "animals"]}}
+
+        put_response = requests.put(put_url, params=headers, data=json.dumps(data),
+                                    headers={'Content-Type': 'application/json'})
+
+        self.assertEqual(put_response.status_code, 200)
+
     def test_error_project_keywords(self):
         """
         Returns a 400 if the POST method is unsuccessful when getting a Zenodo `file` keywords.
@@ -170,7 +230,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
             "keywords": []
         }}
 
-        response = requests.put(get_url, params=headers, data=json.dumps(data),
-                                headers={'Content-Type': 'application/json'})
+        put_response = requests.put(get_url, params=headers, data=json.dumps(data),
+                                    headers={'Content-Type': 'application/json'})
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(put_response.status_code, 200)
