@@ -179,6 +179,11 @@ class ResourceKeywords(BaseResource):
             "error": "Token is invalid. Response returned a 401 status code.""
         }
 
+        500: Internal Server Error
+        {
+            "error": "Error updating the PresQT metadata file on {Target}. Keywords have been added successfully."
+        }
+
         Target Error
         {
             "error": "{Target} returned a {status_code} error trying to update keywords.
@@ -264,7 +269,7 @@ class ResourceKeywords(BaseResource):
             return Response(
                 data={'error': "Error updating the PresQT metadata file on {}. Keywords have been added successfully.".format(
                     self.source_target_name)},
-                status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response(data={
             'keywords_added': keywords,
