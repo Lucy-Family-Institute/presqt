@@ -14,7 +14,9 @@
           "resource_download": { "type": "boolean" },
           "resource_upload": { "type": "boolean" },
           "resource_transfer_in": { "type": "boolean" },
-          "resource_transfer_out": { "type": "boolean" }
+          "resource_transfer_out": { "type": "boolean" },
+          "keywords": { "type": "boolean" },
+          "keywords_upload": { "type": "boolean" }
         }
       },
       "supported_transfer_partners": {
@@ -45,7 +47,8 @@
         "type": "array",
         "items": {
           "type": "string"
-        }}
+        }
+      }
     },
     "required": [
       "name",

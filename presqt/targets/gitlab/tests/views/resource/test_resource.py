@@ -218,7 +218,6 @@ class TestResourcePOST(SimpleTestCase):
         self.resource_id = project_id
         self.resources_ignored = [
             '/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
-        self.success_message = "Upload successful. Fixity can't be determined because GitLab may not have provided a file checksum. See PRESQT_FTS_METADATA.json for more details."
         self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': project_id})
         shared_upload_function_gitlab(self)
         shutil.rmtree(self.ticket_path)
@@ -362,7 +361,6 @@ class TestResourcePOST(SimpleTestCase):
         self.resource_id = project_id
         self.url = reverse('resource', kwargs={
                            'target_name': 'gitlab', 'resource_id': self.resource_id})
-        self.success_message = "Upload successful but with metadata errors."
         shared_upload_function_gitlab(self)
 
         shutil.rmtree(self.ticket_path)
@@ -394,7 +392,7 @@ class TestResourcePOST(SimpleTestCase):
             mock_request.return_value = mock_req
             # Attempt to update the metadata, but the server is down!
             self.assertRaises(PresQTError, gitlab_upload_metadata, self.token, project_id,
-                              {"context": {}, "actions": []})
+                              {"context": {}, "allEnhancedKeywords": [], "actions": []})
 
         # Delete upload folder and project
         delete_gitlab_project(project_id, GITLAB_UPLOAD_TEST_USER_TOKEN)
@@ -461,7 +459,6 @@ class TestResourcePOST(SimpleTestCase):
         self.duplicate_action = 'update'
         self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': self.resource_id})
         self.resources_ignored = ["/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png"]
-        self.success_message = "Upload successful. Fixity can't be determined because GitLab may not have provided a file checksum. See PRESQT_FTS_METADATA.json for more details."
         shared_upload_function_gitlab(self)
         shutil.rmtree(self.ticket_path)
 

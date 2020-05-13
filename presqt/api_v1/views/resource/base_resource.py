@@ -13,12 +13,15 @@ from rest_framework.views import APIView
 
 from presqt.api_v1.utilities import (target_validation, transfer_target_validation,
                                      get_destination_token, file_duplicate_action_validation,
-                                     FunctionRouter, get_source_token, transfer_post_body_validation,
+                                     FunctionRouter, get_source_token,
+                                     transfer_post_body_validation,
                                      spawn_action_process, get_or_create_hashes_from_bag,
                                      create_fts_metadata, create_download_metadata,
                                      create_upload_metadata, get_action_message,
                                      get_upload_source_metadata, hash_tokens,
-                                     finite_depth_upload_helper, structure_validation)
+                                     finite_depth_upload_helper, structure_validation,
+                                     keyword_action_validation,
+                                     enhance_keywords, update_targets_keywords, suggest_keywords)
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
@@ -116,7 +119,15 @@ class BaseResource(APIView):
         }
         or
         {
-        "error": "PresQT Error: PresQT FTS metadata cannot not be transferred by itself.
+        "error": "PresQT Error: PresQT FTS metadata cannot not be transferred by itself."
+        }
+        or
+        {
+        "error": "PresQT Error: 'presqt-keyword-action' missing in the request headers."
+        }
+        or
+        {
+        "error": PresQT Error: 'bad_action' is not a valid keyword_action. The options are 'enhance' or 'suggest'."
         }
 
         401: Unauthorized
@@ -182,7 +193,11 @@ class BaseResource(APIView):
             with zipfile.ZipFile(resource) as myzip:
                 myzip.extractall(self.ticket_path)
 
-            self.base_directory_name = next(os.walk(self.ticket_path))[1][0]
+            try:
+                self.base_directory_name = next(os.walk(self.ticket_path))[1][0]
+            except IndexError:
+                return Response(data={'error': 'PresQT Error: Bag is not formatted properly.'}, status=status.HTTP_400_BAD_REQUEST)
+
             self.resource_main_dir = os.path.join(self.ticket_path, self.base_directory_name)
 
             # Validate the 'bag' and check for checksum mismatches
@@ -254,10 +269,10 @@ class BaseResource(APIView):
         #   }
         try:
             func_dict = func(self.source_token, self.source_resource_id)
-            # If the resource is being transferred, has only one file, and that file is PresQT
-            # metadata then raise an error.
-            if self.action == 'resource_transfer_in' \
-                    and len(func_dict['resources']) == 1 \
+            # If the resource is being transferred, has only one file, and that file is the
+            # PresQT metadata then raise an error.
+            if self.action == 'resource_transfer_in' and \
+                    len(func_dict['resources']) == 1 \
                     and func_dict['resources'][0]['title'] == 'PRESQT_FTS_METADATA.json':
                 raise PresQTResponseException(
                     'PresQT Error: PresQT FTS metadata cannot not be transferred by itself.',
@@ -283,11 +298,16 @@ class BaseResource(APIView):
         # For each resource, perform fixity check, gather metadata, and save it to disk.
         fixity_info = []
         self.download_fixity = True
+        self.download_failed_fixity = []
         self.source_fts_metadata_actions = []
         self.new_fts_metadata_files = []
-        self.download_failed_fixity = []
+        self.all_keywords = []
+        self.initial_keywords = []
+        self.suggested_keywords = []
+        self.enhanced_keywords = []
         for resource in func_dict['resources']:
             # Perform the fixity check and add extra info to the returned fixity object.
+            # Note: This method of calling the function needs to stay this way for test Mock
             fixity_obj, self.download_fixity = download_fixity_checker.download_fixity_checker(
                 resource)
             fixity_info.append(fixity_obj)
@@ -303,15 +323,24 @@ class BaseResource(APIView):
             # Save the file to the disk.
             write_file('{}{}'.format(self.resource_main_dir, resource['path']), resource['file'])
 
+        # Enhance the source keywords
+        self.keyword_enhancement_successful = True
+        if self.action == 'resource_transfer_in' and self.keyword_action == 'enhance':
+            keyword_enhancements = enhance_keywords(self)
+        else:
+            keyword_enhancements = suggest_keywords(self)
+
         # Create PresQT action metadata
+        self.source_username = func_dict['action_metadata']['sourceUsername']
         self.action_metadata = {
             'id': str(uuid4()),
             'actionDateTime': str(timezone.now()),
             'actionType': self.action,
             'sourceTargetName': self.source_target_name,
-            'sourceUsername': func_dict['action_metadata']['sourceUsername'],
+            'sourceUsername': self.source_username,
             'destinationTargetName': 'Local Machine',
             'destinationUsername': None,
+            'keywordEnhancements': keyword_enhancements,
             'files': {
                 'created': self.new_fts_metadata_files,
                 'updated': [],
@@ -334,7 +363,7 @@ class BaseResource(APIView):
 
             # Make a BagIt 'bag' of the resources.
             bagit.make_bag(self.resource_main_dir, checksums=['md5', 'sha1', 'sha256', 'sha512'])
-            self.process_info_obj['download_status'] = get_action_message('Download',
+            self.process_info_obj['download_status'] = get_action_message(self, 'Download',
                                                                           self.download_fixity, True,
                                                                           self.action_metadata)
             return True
@@ -342,7 +371,7 @@ class BaseResource(APIView):
         # and update the server process file.
         else:
             # Create and write metadata file.
-            final_fts_metadata_data = create_fts_metadata(self.action_metadata,
+            final_fts_metadata_data = create_fts_metadata(self.all_keywords, self.action_metadata,
                                                           self.source_fts_metadata_actions)
             write_file(os.path.join(self.resource_main_dir, 'PRESQT_FTS_METADATA.json'),
                        final_fts_metadata_data, True)
@@ -350,7 +379,7 @@ class BaseResource(APIView):
             # Validate the final metadata
             metadata_validation = schema_validator('presqt/json_schemas/metadata_schema.json',
                                                    final_fts_metadata_data)
-            self.process_info_obj['message'] = get_action_message('Download', self.download_fixity,
+            self.process_info_obj['message'] = get_action_message(self, 'Download', self.download_fixity,
                                                                   metadata_validation, self.action_metadata)
 
             # Add the fixity file to the disk directory
@@ -409,6 +438,7 @@ class BaseResource(APIView):
                 'sourceUsername': None,
                 'destinationTargetName': self.destination_target_name,
                 'destinationUsername': None,
+                'keywordEnhancements': {},
                 'files': {
                     'created': self.new_fts_metadata_files,
                     'updated': [],
@@ -497,7 +527,8 @@ class BaseResource(APIView):
                                                           resources_ignored,
                                                           resources_updated)
         # Validate the final metadata
-        upload_message = get_action_message('Upload',
+        self.keyword_enhancement_successful = True
+        upload_message = get_action_message(self, 'Upload',
                                             self.upload_fixity,
                                             self.metadata_validation,
                                             self.action_metadata)
@@ -511,8 +542,12 @@ class BaseResource(APIView):
             self.process_info_obj['failed_fixity'] = self.upload_failed_fixity
             write_file(self.process_info_path, self.process_info_obj, True)
         else:
-            self.process_info_obj['upload_status'] = upload_message
+            if self.keyword_action == 'enhance':
+                self.keyword_enhancement_successful = update_targets_keywords(self, func_dict['project_id'])
+            else: # elif suggest
+                self.keyword_enhancement_successful = True
 
+            self.process_info_obj['upload_status'] = upload_message
         return True
 
     def transfer_post(self):
@@ -527,6 +562,7 @@ class BaseResource(APIView):
             self.destination_token = get_destination_token(self.request)
             self.source_token = get_source_token(self.request)
             self.file_duplicate_action = file_duplicate_action_validation(self.request)
+            self.keyword_action = keyword_action_validation(self.request)
             self.source_target_name, self.source_resource_id = transfer_post_body_validation(
                 self.request)
             target_valid, self.infinite_depth = target_validation(
@@ -612,9 +648,16 @@ class BaseResource(APIView):
         self.process_info_obj['failed_fixity'] = list(
             set(self.download_failed_fixity + self.upload_failed_fixity))
 
+        if self.keyword_action == 'enhance':
+            self.process_info_obj['enhanced_keywords'] = self.enhanced_keywords
+            self.process_info_obj['initial_keywords'] = self.initial_keywords
+        else: # elif suggest
+            self.process_info_obj['enhanced_keywords'] = self.suggested_keywords
+            self.process_info_obj['initial_keywords'] = self.all_keywords
+
         transfer_fixity = False if not self.download_fixity or not self.upload_fixity else True
         self.process_info_obj['message'] = get_action_message(
-            'Transfer', transfer_fixity, self.metadata_validation, self.action_metadata)
+            self, 'Transfer', transfer_fixity, self.metadata_validation, self.action_metadata)
 
         write_file(self.process_info_path, self.process_info_obj, True)
 

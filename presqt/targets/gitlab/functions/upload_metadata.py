@@ -30,6 +30,7 @@ def gitlab_upload_metadata(token, project_id, metadata_dict):
 
     metadata_file_response = requests.get(base_post_url, headers=headers)
     metadata_file_data = metadata_file_response.json()
+    request_type = requests.post
 
     # # If a metadata file already exists then grab its contents
     if metadata_file_response.status_code == 200:
@@ -53,12 +54,16 @@ def gitlab_upload_metadata(token, project_id, metadata_dict):
                 raise PresQTError(
                     "The request to rename the invalid metadata file has returned a {} error code from Gitlab.".format(
                         invalid_metadata_response.status_code))
+            request_type = requests.put
         else:
             # Loop through each 'action' in both metadata files and make a new list of them.
             joined_actions = [entry for entry in itertools.chain(metadata_dict['actions'],
                                                                  updated_metadata['actions'])]
+            joined_keywords = [entry for entry in itertools.chain(metadata_dict['allEnhancedKeywords'],
+                                                                  updated_metadata['allEnhancedKeywords'])]
 
             updated_metadata['actions'] = joined_actions
+            updated_metadata['allEnhancedKeywords'] = list(set(joined_keywords))
 
             updated_metadata_bytes = json.dumps(updated_metadata, indent=4).encode('utf-8')
             updated_base64_metadata = base64.b64encode(updated_metadata_bytes)
@@ -91,7 +96,7 @@ def gitlab_upload_metadata(token, project_id, metadata_dict):
             "encoding": "base64",
             "content": base64_metadata}
 
-    response = requests.post(post_url, headers=headers, data=data)
+    response = request_type(post_url, headers=headers, data=data)
 
     if response.status_code != 201:
         raise PresQTError(

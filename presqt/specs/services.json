@@ -2,5 +2,9 @@
     {
       "name": "eaasi",
       "readable_name": "EaaSI"
+    },
+    {
+      "name": "keyword_enhancement",
+      "readable_name": "Keyword Enhancement"
     }
   ]

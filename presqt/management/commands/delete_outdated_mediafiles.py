@@ -21,7 +21,8 @@ class Command(BaseCommand):
         directories_list = [
             '/usr/src/app/mediafiles/downloads/*/',
             '/usr/src/app/mediafiles/uploads/*/',
-            '/usr/src/app/mediafiles/transfers/*/'
+            '/usr/src/app/mediafiles/transfers/*/',
+            '/usr/src/app/mediafiles/bag_tool/*/'
         ]
         directories = []
         [directories.extend(glob(directory)) for directory in directories_list]
@@ -29,12 +30,11 @@ class Command(BaseCommand):
         for directory in directories:
             try:
                 data = read_file('{}process_info.json'.format(directory), True)
-            except FileNotFoundError:
+                expiration = parse(data['expiration'])
+            except (FileNotFoundError, KeyError):
                 shutil.rmtree(directory)
                 print('{} has been deleted. No process_info.json file found'.format(directory))
             else:
-                expiration = parse(data['expiration'])
-
                 if expiration <= timezone.now() or os.environ['ENVIRONMENT'] == 'development':
                     shutil.rmtree(directory)
                     print('{} has been deleted.'.format(directory))

@@ -208,6 +208,7 @@ class TestResourcePOSTWithFile(SimpleTestCase):
         resource_instance.process_info_obj = {}
         resource_instance.source_fts_metadata_actions = []
         resource_instance.function_process = multiprocessing.Process()
+        resource_instance.all_keywords = []
         resource_instance._upload_resource()
 
         process_info = read_file(process_info_path, True)
@@ -353,7 +354,8 @@ class TestResourcePOSTWithBody(SimpleTestCase):
         self.destination_token = OSF_UPLOAD_TEST_USER_TOKEN
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.destination_token,
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
-                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
+                        'HTTP_PRESQT_KEYWORD_ACTION': 'enhance'}
 
     def test_error_400_missing_destination_token(self):
         """
@@ -444,6 +446,34 @@ class TestResourcePOSTWithBody(SimpleTestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data,
                          {'error': "PresQT Error: source_resource_id can't be None or blank."})
+
+    def test_error_400_no_keyword_action(self):
+        """
+        Return a 400 if the POST fails because "'presqt-keyword-action' missing in headers.
+        """
+        headers = self.headers
+        headers.pop('HTTP_PRESQT_KEYWORD_ACTION')
+        url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        response = self.client.post(url, {"source_target_name": "curate_nd",
+                                          "source_resource_id": "dj52w379504"}, **headers)
+        # Verify the error status code and message
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data,
+                         {'error': "PresQT Error: 'presqt-keyword-action' missing in the request headers."})
+
+    def test_error_400_invalid_keyword_action(self):
+        """
+        Return a 400 if the POST fails because an invalid 'keyword_action' header was given.
+        """
+        headers = self.headers
+        headers['HTTP_PRESQT_KEYWORD_ACTION'] = 'bad_action'
+        url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        response = self.client.post(url, {"source_target_name": "curate_nd",
+                                          "source_resource_id": "dj52w379504"}, **headers)
+        # Verify the error status code and message
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data, {
+            'error': "PresQT Error: 'bad_action' is not a valid keyword_action. The options are 'enhance' or 'suggest'."})
 
     def test_error_404_source_target_name_invalid(self):
         """

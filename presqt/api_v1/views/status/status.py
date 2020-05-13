@@ -38,11 +38,12 @@ class StatusCollection(APIView):
 
         response_data = []
 
-        json_data = read_file('presqt/specs/targets.json', True)
+        json_data = read_file("presqt/specs/targets.json", True)
 
         # Find the JSON dictionary for the target_name provided
         for json_datum in json_data:
             service = json_datum["name"]
+            readable_name = json_datum["readable_name"]
             url = json_datum["status_url"]
             try:
                 response: requests.Response = requests.get(url, timeout=10)
@@ -68,7 +69,12 @@ class StatusCollection(APIView):
                 detail = "Connected to server successfully"
 
             response_data.append(
-                {"service": service, "status": status, "detail": detail,}
+                {
+                    "service": service,
+                    "readable_name": readable_name,
+                    "status": status,
+                    "detail": detail,
+                }
             )
 
         return Response(response_data)
