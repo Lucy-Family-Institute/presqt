@@ -52,8 +52,12 @@ def osf_upload_metadata(token, project_id, metadata_dict):
             # Loop through each 'action' in both metadata files and make a new list of them.
             joined_actions = [entry for entry in itertools.chain(metadata_dict['actions'],
                                                                  updated_metadata['actions'])]
+            joined_keywords = [entry for entry in itertools.chain(metadata_dict['allEnhancedKeywords'],
+                                                                  updated_metadata['allEnhancedKeywords'])]
 
             updated_metadata['actions'] = joined_actions
+            updated_metadata['allEnhancedKeywords'] = list(set(joined_keywords))
+            
             encoded_metadata = json.dumps(updated_metadata, indent=4).encode('utf-8')
 
             # Now we need to update the metadata file with this updated metadata

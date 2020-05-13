@@ -7,6 +7,7 @@ from rest_framework.test import APIClient
 from django.test import SimpleTestCase
 
 from config.settings.base import OSF_TEST_USER_TOKEN
+from presqt.utilities import PresQTResponseException
 
 
 class TestResourceKeywords(SimpleTestCase):
@@ -229,7 +230,8 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         # Verify the status code
         self.assertEqual(response.status_code, 400)
         # Verify the error message
-        self.assertEqual(response.data['error'], 'Can not update OSF folder keywords.')
+        self.assertEqual(response.data['error'],
+                         'OSF returned a 404 error trying to update keywords.')
 
     def test_error_no_keywords_provided(self):
         """
@@ -316,3 +318,11 @@ class TestResourceKeywordsPOST(SimpleTestCase):
             # Ensure the error is what we're expecting.
             self.assertEqual(response.data['error'],
                              "OSF returned a 500 error trying to update keywords.")
+
+    def test_bad_token_on_upload_function(self):
+        """
+        If the token provided is invalid, raise an error.
+        """
+        from presqt.targets.osf.functions.keywords import osf_upload_keywords
+        self.assertRaises(PresQTResponseException, osf_upload_keywords,
+                          'badtoken', 'badid', ['eggs'])

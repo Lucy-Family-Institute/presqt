@@ -52,6 +52,8 @@ class TransferJob(APIView):
             data['failed_fixity'] = process_data['failed_fixity']
             data['resources_ignored'] = process_data['resources_ignored']
             data['resources_updated'] = process_data['resources_updated']
+            data['enhanced_keywords'] = process_data['enhanced_keywords']
+            data['initial_keywords'] = process_data['initial_keywords']
         else:
             if transfer_status == 'in_progress':
                 http_status = status.HTTP_202_ACCEPTED

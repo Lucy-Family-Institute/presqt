@@ -79,7 +79,8 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         # Get the ount of the initial keywords
         initial_keywords = len(get_response.data['keywords'])
 
-        response = self.client.post(url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
+        response = self.client.post(
+            url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
         # Verify the status code
         self.assertEqual(response.status_code, 202)
         # Verify the dict keys match what we expect
@@ -103,7 +104,8 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         resource_id = "209372336:README%252Emd"
         url = reverse('keywords', kwargs={'target_name': 'github',
                                           'resource_id': resource_id})
-        response = self.client.post(url, data={"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
+        response = self.client.post(
+            url, data={"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
         # Verify the status code
         self.assertEqual(response.status_code, 400)
         # Verify the error message
@@ -123,7 +125,8 @@ class TestResourceKeywordsPOST(SimpleTestCase):
             resource_id = '209372336'
             url = reverse('keywords', kwargs={'target_name': 'github',
                                               'resource_id': resource_id})
-            response = self.client.post(url, data={"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
+            response = self.client.post(
+                url, data={"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
 
             # Verify the status code
             self.assertEqual(response.status_code, 400)
@@ -131,3 +134,64 @@ class TestResourceKeywordsPOST(SimpleTestCase):
             # Ensure the error is what we're expecting.
             self.assertEqual(response.data['error'],
                              "GitHub returned a 500 error trying to update keywords.")
+
+    def test_update_project_keywords_through_file_endpoint(self):
+        """
+        If a file id is provided to the uplaod keywords function, ensure that the projects keywords
+        are updated.
+        """
+        from presqt.targets.github.functions.keywords import github_upload_keywords
+
+        file_id = '209373421:README%252Emd'
+        # Check projects existing keywords
+        headers = {"Authorization": "token {}".format(GITHUB_TEST_USER_TOKEN),
+                   "Accept": "application/vnd.github.mercy-preview+json"}
+        get_url = 'https://api.github.com/repositories/209373421/topics'
+
+        response = requests.get(get_url, headers=headers).json()
+        self.assertEqual(response['names'], [])
+
+        # Make an explicit call to the function
+        func_dict = github_upload_keywords(GITHUB_TEST_USER_TOKEN, file_id, ['eggs'])
+
+        # Check the project again and ensure it has a new keyword
+        response = requests.get(get_url, headers=headers).json()
+        self.assertEqual(response['names'], func_dict['updated_keywords'])
+
+        # Set the poject back to having zero keywords
+        data = {'names': []}
+        put_response = requests.put(get_url, headers=headers, data=json.dumps(data))
+
+        self.assertEqual(put_response.status_code, 200)
+
+    def test_update_project_keywords_more_than_20_keywords(self):
+        """
+        If more than 20 keywords are included in the keyword list, ensure only 20 post to GitHub.
+        """
+        from presqt.targets.github.functions.keywords import github_upload_keywords
+
+        file_id = '209373421'
+        # Check projects existing keywords
+        headers = {"Authorization": "token {}".format(GITHUB_TEST_USER_TOKEN),
+                   "Accept": "application/vnd.github.mercy-preview+json"}
+        get_url = 'https://api.github.com/repositories/209373421/topics'
+
+        response = requests.get(get_url, headers=headers).json()
+        self.assertEqual(response['names'], [])
+
+        # Make an explicit call to the function
+        long_ass_list = ['overt', 'yoke', 'acoustics', 'rare', 'stupid', 'geese', 'spray', 'knit',
+                         'shaggy', 'weigh', 'sable', 'interfere', 'swing', 'accurate', 'overjoyed', 'point',
+                         'stretch', 'abrasive', 'fog', 'brash', 'delight', 'succeed']
+        func_dict = github_upload_keywords(GITHUB_TEST_USER_TOKEN, file_id, long_ass_list)
+
+        # Check the project again and ensure it has the new keywords, and length is only 20
+        response = requests.get(get_url, headers=headers).json()
+        self.assertEqual(response['names'], func_dict['updated_keywords'])
+        self.assertEqual(len(response['names']), 20)
+
+        # Set the poject back to having zero keywords
+        data = {'names': []}
+        put_response = requests.put(get_url, headers=headers, data=json.dumps(data))
+
+        self.assertEqual(put_response.status_code, 200)

@@ -1,4 +1,4 @@
-def create_fts_metadata(action_metadata, source_fts_metadata_actions):
+def create_fts_metadata(all_keywords, action_metadata, source_fts_metadata_actions):
     """
     Create an FTS metadata dictionary.
 
@@ -14,5 +14,6 @@ def create_fts_metadata(action_metadata, source_fts_metadata_actions):
     Dictionary of FTS metadata.
     """
     return {
+        'allEnhancedKeywords': all_keywords,
         'actions':  [action_metadata] + source_fts_metadata_actions
     }

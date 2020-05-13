@@ -25,7 +25,7 @@ def create_repository(title, token):
                              data=json.dumps(repository_payload))
 
     if response.status_code == 201:
-        return title
+        return title, response.json()['id']
 
     elif response.status_code == 422:
         # This is a little gross, but there isn't a better way to do it that I'm aware of.

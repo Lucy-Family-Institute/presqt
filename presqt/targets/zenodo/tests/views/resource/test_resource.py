@@ -24,7 +24,7 @@ class TestResourceGETJSON(SimpleTestCase):
         """
         # Get a project resource
         resource_id = '3525310'
-        extra_keys = ['access_right', 'creators', 'description', 'doi', 'license', 'prereserve_doi',
+        extra_keys = ['access_right', 'creators', 'description', 'doi', 'keywords', 'license', 'prereserve_doi',
                       'publication_date', 'title', 'upload_type']
 
         url = reverse('resource', kwargs={'target_name': 'zenodo',

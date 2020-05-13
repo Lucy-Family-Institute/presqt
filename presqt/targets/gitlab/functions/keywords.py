@@ -77,10 +77,14 @@ def gitlab_upload_keywords(token, resource_id, keywords):
     from presqt.targets.gitlab.functions.fetch import gitlab_fetch_resource
 
     # This will raise an error if not a project.
-    gitlab_fetch_resource(token, resource_id)
+    resource = gitlab_fetch_resource(token, resource_id)
+
+    project_id = resource_id
+    if resource['kind_name'] in ['file', 'dir']:
+        project_id = resource['id'].partition(':')[0]
 
     headers = {"Private-Token": "{}".format(token)}
-    put_url = 'https://gitlab.com/api/v4/projects/{}'.format(resource_id)
+    put_url = 'https://gitlab.com/api/v4/projects/{}'.format(project_id)
 
     new_keywords = [keyword.lower() for keyword in keywords]
 
@@ -92,4 +96,4 @@ def gitlab_upload_keywords(token, resource_id, keywords):
         raise PresQTResponseException("GitLab returned a {} error trying to update keywords.".format(
             response.status_code), status.HTTP_400_BAD_REQUEST)
 
-    return {'updated_keywords': response.json()['tag_list']}
+    return {'updated_keywords': response.json()['tag_list'], 'project_id': project_id}
