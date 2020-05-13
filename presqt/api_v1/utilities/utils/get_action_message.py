@@ -4,6 +4,8 @@ def get_action_message(self, action, fixity_status, metadata_validation, action_
 
     Parameters
     ----------
+    self: class instance
+        Base Resource class instance
     action: str
         The action string to add to the message.
     fixity_status: Boolean

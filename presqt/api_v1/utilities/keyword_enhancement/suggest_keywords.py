@@ -3,6 +3,12 @@ from presqt.utilities import PresQTResponseException
 
 
 def suggest_keywords(self):
+    """
+    Get a list of suggested enhanced keywords based on the source target's keywords and keywords
+    found in the source's FTS metadata file (if one exists).
+    Save the suggested keywords to self.suggested_keywords.
+    Save the source's keywords to self.all_keywords.
+    """
     # Fetch the source keywords
     keyword_fetch_func = FunctionRouter.get_function(self.source_target_name, 'keywords')
     try:

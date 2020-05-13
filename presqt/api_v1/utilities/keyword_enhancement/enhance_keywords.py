@@ -3,6 +3,12 @@ from presqt.utilities import PresQTResponseException
 
 
 def enhance_keywords(self):
+    """
+    Enhance keywords found at the source target and in the source target's FTS metadata file.
+    Save the list of enhanced keywords to self.enhanced_keywords.
+    Save the full list of keywords (source keywords and enhanced keywords) to self.all_keywords.
+    Save the source's initial keywords to self.initial_keywords.
+    """
     # Fetch the source keywords
     keyword_fetch_func = FunctionRouter.get_function(self.source_target_name, 'keywords')
     try:

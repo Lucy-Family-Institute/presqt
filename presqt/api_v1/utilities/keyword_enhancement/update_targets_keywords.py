@@ -7,6 +7,10 @@ from presqt.utilities import PresQTResponseException
 
 
 def update_targets_keywords(self, project_id):
+    """
+    Upload new enhanced keywords to the destination and source.
+    Edit and update/create the source's metadata file with the new keyword enhancements.
+    """
     metadata_succeeded = True
     # Upload enhanced source keywords to destination
     destination_keywords_upload_func = FunctionRouter.get_function(self.destination_target_name, 'keywords_upload')

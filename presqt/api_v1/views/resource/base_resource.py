@@ -269,8 +269,8 @@ class BaseResource(APIView):
         #   }
         try:
             func_dict = func(self.source_token, self.source_resource_id)
-            # If the resource is being transferred, has only one file, and that file is
-            # either PresQT metadata or keyword enhancements then raise an error.
+            # If the resource is being transferred, has only one file, and that file is the
+            # PresQT metadata then raise an error.
             if self.action == 'resource_transfer_in' and \
                     len(func_dict['resources']) == 1 \
                     and func_dict['resources'][0]['title'] == 'PRESQT_FTS_METADATA.json':
