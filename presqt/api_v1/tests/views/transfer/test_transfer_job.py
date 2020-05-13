@@ -163,7 +163,7 @@ class TestTransferJobGET(SimpleTestCase):
 
         # VALIDATE KEYWORD AND METADATA FILE IN GITHUB
         headers = {"Authorization": "token {}".format(GITHUB_TEST_USER_TOKEN),
-                  "Accept": 'application/vnd.github.mercy-preview+json'}
+                   "Accept": 'application/vnd.github.mercy-preview+json'}
         project_url = 'https://api.github.com/repositories/{}'.format(github_project_id)
         response = requests.get(project_url, headers=headers)
         self.assertGreater(len(response.json()['topics']), len(github_target_keywords))
@@ -204,7 +204,8 @@ class TestTransferJobGET(SimpleTestCase):
         self.assertEqual(osf_collection_response.status_code, 200)
         osf_id = osf_collection_response.data[0]['id']
         # Get project details
-        osf_detail_response = self.client.get(reverse('resource', kwargs={"target_name": "osf", "resource_id": osf_id}), **osf_headers)
+        osf_detail_response = self.client.get(
+            reverse('resource', kwargs={"target_name": "osf", "resource_id": osf_id}), **osf_headers)
         self.assertEqual(osf_detail_response.status_code, 200)
         self.assertGreater(len(osf_detail_response.data['extra']['tags']), 0)
 
@@ -271,19 +272,9 @@ class TestTransferJobGET(SimpleTestCase):
                    "Accept": 'application/vnd.github.mercy-preview+json'}
         project_url = 'https://api.github.com/repositories/{}'.format(github_project_id)
         response = requests.get(project_url, headers=headers)
+
         for keyword in github_keywords:
             self.assertIn(keyword, response.json()['topics'])
-
-        sleep(5)
-
-        metadata_link = "https://raw.githubusercontent.com/presqt-test-user/ProjectFifteen/master/PRESQT_FTS_METADATA.json"
-        response = requests.get(metadata_link, headers=headers)
-        metadata_file = json.loads(response.content)
-        self.assertEqual(response.status_code, 200)
-        for keyword in github_keywords:
-            self.assertIn(keyword, metadata_file['allEnhancedKeywords'])
-        self.assertGreater(len(metadata_file['actions'][0]['keywordEnhancements'].keys()), 0)
-        self.assertEquals(metadata_file['actions'][0]['actionType'], "transfer_enhancement")
 
         # RESET KEYWORDS FROM GITHUB
         put_url = 'https://api.github.com/repos/presqt-test-user/ProjectFifteen/topics'
@@ -322,7 +313,8 @@ class TestTransferJobGET(SimpleTestCase):
         self.assertEqual(osf_collection_response.status_code, 200)
         osf_id = osf_collection_response.data[0]['id']
         # Get project details
-        osf_detail_response = self.client.get(reverse('resource', kwargs={"target_name": "osf", "resource_id": osf_id}), **osf_headers)
+        osf_detail_response = self.client.get(
+            reverse('resource', kwargs={"target_name": "osf", "resource_id": osf_id}), **osf_headers)
         self.assertEqual(osf_detail_response.status_code, 200)
         for keyword in github_keywords:
             self.assertIn(keyword, osf_detail_response.data['extra']['tags'])
@@ -357,7 +349,7 @@ class TestTransferJobGET(SimpleTestCase):
         Test that the keywords are getting suggested correctly during a transfer with keywords
         existing only on the target and not in the FTS Metadata.
         """
-        github_project_id = "209372336"
+        github_project_id = "209372769"
         github_target_keywords = ["animals", "eggs", "water"]
 
         # TRANSFER RESOURCE TO OSF
@@ -395,15 +387,15 @@ class TestTransferJobGET(SimpleTestCase):
         project_url = 'https://api.github.com/repositories/{}'.format(github_project_id)
         response = requests.get(project_url, headers=headers)
         self.assertEqual(response.json()['topics'], github_target_keywords)
-        metadata_link = "https://raw.githubusercontent.com/presqt-test-user/PrivateProject/master/PRESQT_FTS_METADATA.json"
+        metadata_link = "https://raw.githubusercontent.com/presqt-test-user/ProjectTwentyEight/master/PRESQT_FTS_METADATA.json"
         response = requests.get(metadata_link, headers=headers)
-        print(response.content)
+
         self.assertEqual(response.status_code, 404)
 
         # VALIDATE METADATA FILE IN OSF
         headers = {'Authorization': 'Bearer {}'.format(OSF_UPLOAD_TEST_USER_TOKEN)}
         for node in requests.get('http://api.osf.io/v2/users/me/nodes', headers=headers).json()['data']:
-            if node['attributes']['title'] == 'PrivateProject':
+            if node['attributes']['title'] == 'ProjectTwentyEight':
                 storage_data = requests.get(
                     node['relationships']['files']['links']['related']['href'], headers=headers).json()
                 folder_data = requests.get(
@@ -779,6 +771,7 @@ class TestTransferJobGET(SimpleTestCase):
 
             # DELETE TICKET FOLDER
             shutil.rmtree('mediafiles/transfers/{}'.format(self.ticket_number))
+
 
 class TestTransferJobPATCH(SimpleTestCase):
     """
