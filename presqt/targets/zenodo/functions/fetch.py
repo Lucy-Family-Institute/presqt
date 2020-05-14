@@ -42,18 +42,20 @@ def zenodo_fetch_resources(token, search_parameter):
             search_parameters = search_parameter['title'].replace(' ', '+')
             base_url = 'https://zenodo.org/api/records?q=title:"{}"&sort=most_recent'.format(
                 search_parameters)
-            zenodo_projects = requests.get(base_url, params=auth_parameter).json()['hits']['hits']
-            is_record = True
 
         elif 'id' in search_parameter:
             base_url = 'https://zenodo.org/api/records?q=conceptrecid:{}'.format(search_parameter['id'])
-            zenodo_projects = requests.get(base_url, params=auth_parameter).json()['hits']['hits']
-            is_record = True
-        
+
         elif 'general' in search_parameter:
-            base_url = 'https://zenodo.org/api/records?q={}'.format(search_parameter['general'])
-            zenodo_projects = requests.get(base_url, params=auth_parameter).json()['hits']['hits']
-            is_record = True
+            search_parameters = search_parameter['general'].replace(' ', '+')
+            base_url = 'https://zenodo.org/api/records?q={}'.format(search_parameters)
+
+        elif 'keywords' in search_parameter:
+            search_parameters = search_parameter['keywords'].replace(' ', '+')
+            base_url = 'https://zenodo.org/api/records?q=keywords:{}'.format(search_parameters)
+
+        zenodo_projects = requests.get(base_url, params=auth_parameter).json()['hits']['hits']
+        is_record = True
 
     else:
         base_url = "https://zenodo.org/api/deposit/depositions"
