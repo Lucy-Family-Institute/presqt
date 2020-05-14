@@ -74,6 +74,15 @@ class TestResourceCollection(SimpleTestCase):
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
 
+        # Search by Keywords
+        response = self.client.get(url + "?keywords=egg", **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 200)
+        # Verify the dict keys match what we expect
+        keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
+        for data in response.data:
+            self.assertListEqual(keys, list(data.keys()))
+
     def test_success_large_project(self):
         """
         Return a 200 if the GET method is successful when grabbing OSF resources.
