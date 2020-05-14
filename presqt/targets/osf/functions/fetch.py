@@ -54,6 +54,10 @@ def osf_fetch_resources(token, search_parameter):
                 return []
             else:
                 url = user_data.json()['data'][0]['relationships']['nodes']['links']['related']['href']
+
+        elif 'keywords' in search_parameter:
+            search_parameters = search_parameter['keywords'].replace(' ', '+')
+            url = 'https://api.osf.io/v2/nodes/?filter[tags][icontains]={}'.format(search_parameters)
     else:
         url = None
     try:
