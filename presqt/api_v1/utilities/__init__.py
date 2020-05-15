@@ -25,3 +25,8 @@ from presqt.api_v1.utilities.utils.hash_tokens import hash_tokens
 from presqt.api_v1.utilities.depth_helpers.finite_depth_upload import finite_depth_upload_helper
 from presqt.api_v1.utilities.validation.structure_validation import structure_validation
 from presqt.api_v1.utilities.validation.search_validator import search_validator
+from presqt.api_v1.utilities.utils.keyword_enhancer import keyword_enhancer
+from presqt.api_v1.utilities.validation.keyword_action_validation import keyword_action_validation
+from presqt.api_v1.utilities.keyword_enhancement.enhance_keywords import enhance_keywords
+from presqt.api_v1.utilities.keyword_enhancement.update_targets_keywords import update_targets_keywords
+from presqt.api_v1.utilities.keyword_enhancement.suggest_keywords import suggest_keywords

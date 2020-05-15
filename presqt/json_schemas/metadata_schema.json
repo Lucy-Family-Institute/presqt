@@ -1,6 +1,10 @@
 {
   "type": "object",
   "properties": {
+    "allEnhancedKeywords": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
     "actions": {
       "type": "array",
       "items": {
@@ -11,8 +15,22 @@
           "actionType": { "type": "string" },
           "sourceTargetName": { "type": "string" },
           "destinationTargetName": { "type": ["string", "null"] },
-          "sourceUsername": { "type": ["string", "integer","null"] },
+          "sourceUsername": { "type": ["string", "integer", "null"] },
           "destinationUsername": { "type": ["string", "integer", "null"] },
+          "keywordEnhancements": {
+            "type": "object",
+            "properties": {
+              "initialKeywords": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "enhancedKeywords": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "enhancer": { "type": "string" }
+            }
+          },
           "files": {
             "type": "object",
             "properties": {
@@ -77,12 +95,13 @@
           "destinationTargetName",
           "sourceUsername",
           "destinationUsername",
+          "keywordEnhancements",
           "files"
         ],
         "additionalProperties": false
       }
     }
   },
-  "required": ["actions"],
+  "required": ["allEnhancedKeywords", "actions"],
   "additionalProperties": false
 }

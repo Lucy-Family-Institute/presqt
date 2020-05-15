@@ -65,7 +65,7 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         # Create a new repository with the name being the top level directory's name.
         # Note: GitHub doesn't allow spaces in repo_names
         repo_title = os_path[1][0].replace(' ', '_')
-        repo_name = create_repository(repo_title, token)
+        repo_name, repo_id = create_repository(repo_title, token)
         repo_name = repo_name.replace('(', '-').replace(')', '-')
 
         resources_ignored = []
@@ -192,7 +192,7 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         'resources_updated': resources_updated,
         'action_metadata': action_metadata,
         'file_metadata_list': file_metadata_list,
-        'project_id': repo_name
+        'project_id': repo_id
     }
 
 

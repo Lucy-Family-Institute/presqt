@@ -9,7 +9,9 @@
       "resource_download": true,
       "resource_upload": true,
       "resource_transfer_in": true,
-      "resource_transfer_out": true
+      "resource_transfer_out": true,
+      "keywords": true,
+      "keywords_upload": true
     },
     "supported_transfer_partners": {
       "transfer_in": ["github", "curate_nd", "zenodo", "gitlab"],
@@ -17,7 +19,7 @@
     },
     "supported_hash_algorithms": ["sha256", "md5"],
     "infinite_depth": true,
-    "search_parameters": ["title", "id", "author"]
+    "search_parameters": ["title", "id", "author", "keywords"]
   },
   {
     "name": "curate_nd",
@@ -29,7 +31,9 @@
       "resource_download": true,
       "resource_upload": true,
       "resource_transfer_in": true,
-      "resource_transfer_out": true
+      "resource_transfer_out": true,
+      "keywords": true,
+      "keywords_upload": false
     },
     "supported_transfer_partners": {
       "transfer_in": ["osf", "github", "zenodo", "gitlab"],
@@ -42,14 +46,16 @@
   {
     "name": "github",
     "readable_name": "GitHub",
-    "status_url": "https://api.github.com/repositories",
+    "status_url": "https://api.github.com/rate_limit",
     "supported_actions": {
       "resource_collection": true,
       "resource_detail": true,
       "resource_download": true,
       "resource_upload": true,
       "resource_transfer_in": true,
-      "resource_transfer_out": true
+      "resource_transfer_out": true,
+      "keywords": true,
+      "keywords_upload": true
     },
     "supported_transfer_partners": {
       "transfer_in": ["osf", "curate_nd", "gitlab"],
@@ -57,7 +63,7 @@
     },
     "supported_hash_algorithms": [],
     "infinite_depth": true,
-    "search_parameters": ["general", "title", "id", "author"]
+    "search_parameters": ["general", "title", "id", "author", "keywords"]
   },
   {
     "name": "zenodo",
@@ -69,7 +75,9 @@
       "resource_download": true,
       "resource_upload": true,
       "resource_transfer_in": true,
-      "resource_transfer_out": true
+      "resource_transfer_out": true,
+      "keywords": true,
+      "keywords_upload": true
     },
     "supported_transfer_partners": {
       "transfer_in": ["osf", "github", "curate_nd", "gitlab"],
@@ -77,7 +85,7 @@
     },
     "supported_hash_algorithms": ["md5"],
     "infinite_depth": false,
-    "search_parameters": ["general", "title", "id"]
+    "search_parameters": ["general", "title", "id", "keywords"]
   },
   {
     "name": "gitlab",
@@ -89,7 +97,9 @@
       "resource_download": true,
       "resource_upload": true,
       "resource_transfer_in": true,
-      "resource_transfer_out": true
+      "resource_transfer_out": true,
+      "keywords": true,
+      "keywords_upload": true
     },
     "supported_transfer_partners": {
       "transfer_in": ["osf", "github", "zenodo", "curate_nd"],

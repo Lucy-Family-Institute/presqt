@@ -42,18 +42,20 @@ def zenodo_fetch_resources(token, search_parameter):
             search_parameters = search_parameter['title'].replace(' ', '+')
             base_url = 'https://zenodo.org/api/records?q=title:"{}"&sort=most_recent'.format(
                 search_parameters)
-            zenodo_projects = requests.get(base_url, params=auth_parameter).json()['hits']['hits']
-            is_record = True
 
         elif 'id' in search_parameter:
             base_url = 'https://zenodo.org/api/records?q=conceptrecid:{}'.format(search_parameter['id'])
-            zenodo_projects = requests.get(base_url, params=auth_parameter).json()['hits']['hits']
-            is_record = True
-        
+
         elif 'general' in search_parameter:
-            base_url = 'https://zenodo.org/api/records?q={}'.format(search_parameter['general'])
-            zenodo_projects = requests.get(base_url, params=auth_parameter).json()['hits']['hits']
-            is_record = True
+            search_parameters = search_parameter['general'].replace(' ', '+')
+            base_url = 'https://zenodo.org/api/records?q={}'.format(search_parameters)
+
+        elif 'keywords' in search_parameter:
+            search_parameters = search_parameter['keywords'].replace(' ', '+')
+            base_url = 'https://zenodo.org/api/records?q=keywords:{}'.format(search_parameters)
+
+        zenodo_projects = requests.get(base_url, params=auth_parameter).json()['hits']['hits']
+        is_record = True
 
     else:
         base_url = "https://zenodo.org/api/deposit/depositions"
@@ -104,7 +106,7 @@ def zenodo_fetch_resource(token, resource_id):
                                     status.HTTP_401_UNAUTHORIZED)
 
     # Let's first try to get the record with this id.
-    if len(resource_id) <= 7:
+    if len(str(resource_id)) <= 7:
         base_url = "https://zenodo.org/api/records/{}".format(resource_id)
         zenodo_project = requests.get(base_url, params=auth_parameter)
         if zenodo_project.status_code == 200:
@@ -135,17 +137,18 @@ def zenodo_fetch_resource(token, resource_id):
             zenodo_projects = requests.get(base_url, params=auth_parameter).json()
             for entry in zenodo_projects:
                 project_files = requests.get(entry['links']['self'], params=auth_parameter).json()
-                for entry in project_files['files']:
-                    if entry['id'] == resource_id:
+                for file in project_files['files']:
+                    if file['id'] == resource_id:
                         resource = {
+                            "container": entry['id'],
                             "kind": "item",
                             "kind_name": "file",
                             "id": resource_id,
-                            "title": entry['filename'],
+                            "title": file['filename'],
                             "date_created": None,
                             "date_modified": None,
                             "hashes": {
-                                "md5": entry['checksum']
+                                "md5": file['checksum']
                             },
                             "extra": {}}
                         # We found the file, break out of file loop

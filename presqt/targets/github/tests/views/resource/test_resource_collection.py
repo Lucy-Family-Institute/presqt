@@ -55,7 +55,6 @@ class TestResourceCollection(SimpleTestCase):
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
 
-
         ###### Search by ID #######
         response = self.client.get(url + '?id=1296269', **self.header)
         # Verify the status code
@@ -76,6 +75,15 @@ class TestResourceCollection(SimpleTestCase):
 
         ### Search by General ###
         response = self.client.get(url + '?general=egg', **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 200)
+        # Verify the dict keys match what we expect
+        keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
+        for data in response.data:
+            self.assertListEqual(keys, list(data.keys()))
+
+        # Search by Keywords
+        response = self.client.get(url + "?keywords=egg", **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
@@ -114,25 +122,29 @@ class TestResourceCollection(SimpleTestCase):
         # TOO MANY KEYS
         response = self.client.get(url + '?title=hat&spaghetti=egg', **self.header)
 
-        self.assertEqual(response.data['error'], 'PresQT Error: The search query is not formatted correctly.')
+        self.assertEqual(response.data['error'],
+                         'PresQT Error: The search query is not formatted correctly.')
         self.assertEqual(response.status_code, 400)
 
         # BAD KEY
         response = self.client.get(url + '?spaghetti=egg', **self.header)
 
-        self.assertEqual(response.data['error'], 'PresQT Error: GitHub does not support spaghetti as a search parameter.')
+        self.assertEqual(
+            response.data['error'], 'PresQT Error: GitHub does not support spaghetti as a search parameter.')
         self.assertEqual(response.status_code, 400)
 
         # SPECIAL CHARACTERS IN REQUEST
         response = self.client.get(url + '?title=egg:boi', **self.header)
 
-        self.assertEqual(response.data['error'], 'PresQT Error: The search query is not formatted correctly.')
+        self.assertEqual(response.data['error'],
+                         'PresQT Error: The search query is not formatted correctly.')
         self.assertEqual(response.status_code, 400)
 
     def test_successful_search_with_no_results(self):
         url = reverse('resource_collection', kwargs={'target_name': 'github'})
         # NO AUTHOR FOUND
-        response = self.client.get(url + '?author=378rFDsahfojIO2QDJOgibberishauthor', **self.header)
+        response = self.client.get(
+            url + '?author=378rFDsahfojIO2QDJOgibberishauthor', **self.header)
         self.assertEqual(response.data, [])
 
         # NO ID FOUND
@@ -163,9 +175,11 @@ class TestResourceCollectionPOST(SimpleTestCase):
         self.url = reverse('resource_collection', kwargs={'target_name': 'github'})
         self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
         self.resources_ignored = []
-        self.failed_fixity = ['/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
+        self.failed_fixity = [
+            '/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
         self.resources_updated = []
         self.hash_algorithm = 'md5'
+        self.process_message = "Upload successful. Fixity can't be determined because GitHub may not have provided a file checksum. See PRESQT_FTS_METADATA.json for more details."
 
     def tearDown(self):
         """
@@ -404,6 +418,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         # Get the invalid metadata json
         response = requests.get(valid_metadata_link, headers=header)
         valid_metadata_file = json.loads(response.content)
+
         self.assertEqual(len(valid_metadata_file['actions']), 2)
 
         delete_github_repo('presqt-test-user', 'Good_Egg', header)

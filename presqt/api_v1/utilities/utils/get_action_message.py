@@ -1,9 +1,11 @@
-def get_action_message(action, fixity_status, metadata_validation, action_metadata):
+def get_action_message(self, action, fixity_status, metadata_validation, action_metadata):
     """
     Get the final action message depending on the status of fixity and metadata.
 
     Parameters
     ----------
+    self: class instance
+        Base Resource class instance
     action: str
         The action string to add to the message.
     fixity_status: Boolean
@@ -25,35 +27,37 @@ def get_action_message(action, fixity_status, metadata_validation, action_metada
 
     if action_metadata['destinationTargetName'] == 'curate_nd' and action != 'download':
         return "Resources submitted to CurateND for ingestion. Fixity can not be determined at this point."
+    
+    # Determine if metadata or keyword failed
+    error_list = []
+    if not metadata_validation:
+        error_list.append('metadata')
+    if not self.keyword_enhancement_successful:
+        error_list.append('keyword enhancement')
 
     for entry in new_file_list:
-        if source_target_data and entry['sourceHashes'] == {} or set(
-                entry['sourceHashes'].values()) == {None}:
-            if metadata_validation is True:
-                return "{} successful. Fixity can't be determined because {} may not have provided a file checksum. See PRESQT_FTS_METADATA.json for more details.".format(
-                    action, source_target_data['readable_name'])
-            else:
-                return "{} successful but with metadata errors. Fixity can't be determined because {} may not have provided a file checksum.".format(
-                    action, source_target_data['readable_name'])
+        # Check if the source or destination targets didn't provide checksums
+        if source_target_data and entry['sourceHashes'] == {} or set( entry['sourceHashes'].values()) == {None}:
+            no_fixity_target = source_target_data['readable_name']
+        elif destination_target_data and entry['destinationHashes'] == {} or set(entry['destinationHashes'].values()) == {None}:
+            no_fixity_target = destination_target_data['readable_name']
+        else:
+            no_fixity_target = None
 
-        if destination_target_data and entry['destinationHashes'] == {} or set(
-                entry['destinationHashes'].values()) == {None}:
-            if metadata_validation is True:
-                return "{} successful. Fixity can't be determined because {} may not have provided a file checksum. See PRESQT_FTS_METADATA.json for more details.".format(
-                    action, destination_target_data['readable_name'])
+        # If a target didn't provide checksums then return an error message that
+        # accurately reflects all errors along with a fixity warning.
+        if no_fixity_target:
+            if error_list:
+                return "{} successful but with {} errors. Fixity can't be determined because {} may not have provided a file checksum. See PRESQT_FTS_METADATA.json for more details.".format(
+                    action, ', '.join(error_list), no_fixity_target)
             else:
-                return "{} successful but with metadata errors. Fixity can't be determined because {} may not have provided a file checksum.".format(
-                    action, destination_target_data['readable_name'])
+                return "{} successful. Fixity can't be determined because {} may not have provided a file checksum. See PRESQT_FTS_METADATA.json for more details.".format(
+                    action, no_fixity_target)
 
-    # Fixity failed and metadata succeeded
-    if not fixity_status and metadata_validation is True:
-        return "{} successful but with fixity errors.".format(action)
-    # Fixity failed and metadata failed
-    elif not fixity_status and metadata_validation is not True:
-        return "{} successful but with fixity and metadata errors.".format(action)
-    # Fixity Succeeded and metadata failed
-    elif fixity_status and metadata_validation is not True:
-        return "{} successful but with metadata errors.".format(action)
-    # Both Succeeded
+    if not fixity_status:
+        error_list.append('fixity')
+
+    if error_list:
+        return '{} successful but with {} errors.'.format(action, ', '.join(error_list))
     else:
         return "{} successful.".format(action)

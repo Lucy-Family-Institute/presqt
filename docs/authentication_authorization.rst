@@ -10,23 +10,175 @@ Target Token Instructions
 
 Open Science Framework
 """"""""""""""""""""""
-After logging in, you can create a personal access token here https://osf.io/settings/tokens/create
+1. Navigate to https://osf.io/ and login to your account.
+
+.. figure::  images/qa/osf/osf_step_1.png
+    :align:   center
+    :scale: 25%
+
+2. Upon logging in, click on your username in the top right corner and then click on ``Settings``.
+
+.. figure::  images/qa/osf/osf_step_2.png
+    :align:   center
+    :scale: 90%
+
+3. Once in`` ``Settings``, click on ``Personal Access Tokens`` in the left hand menu.
+
+.. figure::  images/qa/osf/osf_step_3.png
+    :align:   center
+    :scale: 40%
+
+4. Click on ``Create token``.
+
+.. figure::  images/qa/osf/osf_step_4.png
+    :align:   center
+    :scale: 40%
+
+5. Create a token name and select all scope options. Then press ``Create token``.
+
+.. figure::  images/qa/osf/osf_step_5.png
+    :align:   center
+    :scale: 40%
+
+6. Make sure you copy this token somewhere securely, this will be the only time it is shown to you.
+
+.. figure::  images/qa/osf/osf_step_6.png
+    :align:   center
+    :scale: 40%
 
 CurateND
 """"""""
-After logging in, you can create a personal access token here https://curate.nd.edu/api/access_tokens
+1. Navigate to https://curate.nd.edu and login to your account.
+
+.. figure::  images/qa/curate_nd/curate_nd_step_1.png
+    :align:   center
+    :scale: 25%
+
+2. In the top right corner, select ``Manage`` and then click on ``API Access Tokens``.
+
+.. figure::  images/qa/curate_nd/curate_nd_step_2.png
+    :align:   center
+    :scale: 30%
+
+3. Click on ``Create New Token``.
+
+.. figure::  images/qa/curate_nd/curate_nd_step_3.png
+    :align:   center
+    :scale: 40%
+
+4. Make sure you copy this token somewhere securely.
+
+.. figure::  images/qa/curate_nd/curate_nd_step_4.png
+    :align:   center
+    :scale: 50%
 
 GitHub
 """"""
-After logging in, you can create a personal access token here https://github.com/settings/tokens
+1. Navigate to https://github.com and login to your account.
+
+.. figure::  images/qa/github/github_step_1.png
+    :align:   center
+    :scale: 50%
+
+2. In the top right corner, select your profile picture and then click on ``Settings``.
+
+.. figure::  images/qa/github/github_step_2.png
+    :align:   center
+    :scale: 30%
+
+3. In the bottom left of your settings, select ``Developer Settings``.
+
+.. figure::  images/qa/github/github_step_3.png
+    :align:   center
+    :scale: 30%
+
+4. On the left hand side of this screen, select ``Personal Access Tokens``.
+
+.. figure::  images/qa/github/github_step_4.png
+    :align:   center
+    :scale: 40%
+
+5. Click on ``Generate New Token``.
+
+.. figure::  images/qa/github/github_step_5.png
+    :align:   center
+    :scale: 40%
+
+6. Add a note about what the token will be used for, and select all scopes. Then select ``Generate Token``.
+
+.. figure::  images/qa/github/github_step_6.png
+    :align:   center
+    :scale: 35%
+
+7. Make sure you copy this token somewhere securely, this will be the only time it is shown to you.
+
+.. figure::  images/qa/github/github_step_7.png
+    :align:   center
+    :scale: 35%
 
 Zenodo
 """"""
-After logging in, you can create a personal access token here https://zenodo.org/account/settings/applications/tokens/new/
+1. Navigate to https://zenodo.org and login to your account.
+
+.. figure::  images/qa/zenodo/zenodo_step_1.png
+    :align:   center
+    :scale: 30%
+
+2. In the top right corner, select your username and then click on ``Applications``.
+
+.. figure::  images/qa/zenodo/zenodo_step_2.png
+    :align:   center
+    :scale: 40%
+
+3. In the ``Personal access tokens`` section, click on ``New token``.
+
+.. figure::  images/qa/zenodo/zenodo_step_3.png
+    :align:   center
+    :scale: 40%
+
+4. Give the token a name and select all scopes, then click ``Create``.
+
+.. figure::  images/qa/zenodo/zenodo_step_4.png
+    :align:   center
+    :scale: 40%
+
+5. Make sure you copy this token somewhere securely, this will be the only time it is shown to you.
+
+.. figure::  images/qa/zenodo/zenodo_step_5.png
+    :align:   center
+    :scale: 40%
 
 GitLab
 """"""
-After logging in, you can create a personal access token here https://gitlab.com/profile/personal_access_tokens
+1. Navigate to https://gitlab.com and login to your account.
+
+.. figure::  images/qa/gitlab/gitlab_step_1.png
+    :align:   center
+    :scale: 40%
+
+2. In the top right corner, select your username and then click on ``Settings``.
+
+.. figure::  images/qa/gitlab/gitlab_step_2.png
+    :align:   center
+    :scale: 40%
+
+3. In the left hand menu, select ``Access Tokens``.
+
+.. figure::  images/qa/gitlab/gitlab_step_3.png
+    :align:   center
+    :scale: 40%
+
+4. Give the token a name and select all scopes, then click ``Create personal access token``.
+
+.. figure::  images/qa/gitlab/gitlab_step_4.png
+    :align:   center
+    :scale: 35%
+
+5. Make sure you copy this token somewhere securely, this will be the only time it is shown to you.
+
+.. figure::  images/qa/gitlab/gitlab_step_5.png
+    :align:   center
+    :scale: 40%
 
 .. toctree::
    :maxdepth: 3

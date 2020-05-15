@@ -47,10 +47,12 @@ EaaSI       Send resources from a PresQT server to EaaSI to generate an emulatio
    developer_notes
    target_integration
    api_endpoints
+   web_services
    services
    service_endpoints
-   web_services
    resources
+   qa_instructions
+   other_integrations
    under_development
 
 Indices

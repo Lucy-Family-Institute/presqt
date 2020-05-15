@@ -1059,7 +1059,7 @@ class TestResourcePOST(SimpleTestCase):
             mock_request.return_value = mock_req
             # Attempt to update the metadata, but the server is down!
             self.assertRaises(PresQTError, osf_upload_metadata, self.token, node_id,
-                              {"context": {}, "actions": []})
+                              {"context": {}, "allEnhancedKeywords": [], "actions": []})
 
         # Delete corresponding folder
         shutil.rmtree(self.ticket_path)
@@ -1132,7 +1132,7 @@ class TestResourcePOST(SimpleTestCase):
         self.hash_algorithm = 'sha256'
 
         with mock.patch('presqt.api_v1.utilities.metadata.upload_metadata.write_and_validate_metadata') as upload_mock:
-            upload_mock.return_value = "Whoops"
+            upload_mock.return_value = False
             self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
             response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')},
                                         **self.headers)
@@ -1159,3 +1159,16 @@ class TestResourcePOST(SimpleTestCase):
 
         # Delete corresponding folder
         shutil.rmtree(self.ticket_path)
+
+    def test_success_400_bad_bag_only_single_file(self):
+        """
+        Test that we get a 400 error because a bad bag was uploaded.
+        """
+        self.resource_id = None
+        self.duplicate_action = 'ignore'
+        self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        self.file = 'presqt/api_v1/tests/resources/upload/bagless_zip.zip'
+        response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['error'], 'PresQT Error: Bag is not formatted properly.')
