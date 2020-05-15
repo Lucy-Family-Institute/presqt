@@ -158,7 +158,7 @@ def zenodo_upload_loop(action_metadata, resource_id, resource_main_dir, post_url
 
             data = {'name': formatted_name}
             files = {'file': open(os.path.join(path, name), "rb")}
-            # Make the upload request....
+        
             if formatted_name in file_title_list and file_duplicate_action == 'update':
                 # First we need to delete the old file
                 for entry in current_file_list:
@@ -171,7 +171,7 @@ def zenodo_upload_loop(action_metadata, resource_id, resource_main_dir, post_url
                                 status.HTTP_400_BAD_REQUEST)
                         # Add this resouce to the updated list
                         resources_updated.append(os.path.join(path, name))
-
+            # Make the upload request....
             response = requests.post(post_url, params=auth_parameter,
                                      data=data, files=files)
             if response.status_code != 201:
