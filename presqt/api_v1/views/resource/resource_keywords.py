@@ -214,7 +214,7 @@ class ResourceKeywords(BaseResource):
             # Catch any errors that happen
             return Response(data={'error': e.data}, status=e.status_code)
 
-        # Fetch the update keywords functtion
+        # Fetch the update keywords function
         func = FunctionRouter.get_function(self.source_target_name, self.action)
 
         # Add the keywords

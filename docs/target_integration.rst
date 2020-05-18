@@ -34,6 +34,8 @@ Target Collection/Details
         supported_hash_algorithms    array    The hash algorithms supported by the target
         infinite_depth               bool     Does the target support an infinite depth hierarchy?
         search_parameters            array    Which search parameters does the target support? options: [general, title, id, author]
+        keywords                     bool     Fetch keywords
+        keywords_upload              bool     Upload keywords to the target specific keyword attribute.
         ============================ ======== ======================================================================================
 
     **Target JSON Example:**
@@ -50,7 +52,9 @@ Target Collection/Details
                     "resource_download": true,
                     "resource_upload": true,
                     "resource_transfer_in": true,
-                    "resource_transfer_out": true
+                    "resource_transfer_out": true,
+                    "keywords": true,
+                    "keywords_upload": true
                 },
                 "supported_transfer_partners": {
                     "transfer_in": ["github", "curate_nd"],
@@ -455,6 +459,106 @@ Resource Transfer Endpoint
 
 The resource transfer endpoint utilizes the Download and Upload functions. If these two functions
 are in place then transfer is available.
+
+2. To support ``Keyword Enhancement`` during the transfer process, add keyword functions as outlined
+below in the Keyword Enhancement Endpoint section
+
+Keyword Enhancement Endpoint
+----------------------------
+Targets that want the ability to suggest or enhance new keywords must provide keyword functions.
+
+Suggest Keywords
+++++++++++++++++
+To support the suggestion of ``keywords``, a keyword fetch function must be written that will
+fetch keywords from the target.
+
+1. Update your target in ``presqt/specs/targets.json`` by setting ``keywords`` to ``true``.
+
+2. Add a function to return a dictionary of keywords found in the target.
+
+    * If you would like to keep your file/function names consistent with what already exists add this function at
+      ``presqt/targets/<target_name>/functions/keywords/<target_name>_fetch_keywords()``
+
+    * The function must have the following parameters **in this order**:
+
+        =========== === ================================================
+        token       str User's token for the target
+        resource_id str ID for the resource we want to get keywords from
+        =========== === ================================================
+
+    * The function must return a dictionary with the following keys:
+
+        ================ ===== ==========================================================================
+        keywords         array Array of keywords found in the target
+        <attribute_name> array Array of keywords found for this attribute
+
+                               Name the key whatever the attribute name is. See example for more details.
+        ================ ===== ==========================================================================
+
+    **Example Keyword Fetch Function:**
+
+        .. code-block:: python
+
+            def <your_target_name>_fetch_keywords(token, resource_id):
+                # Process to fetch keywords goes here.
+                # Variables below are defined here to show examples of structures.
+                # This target has keywords in two attributes, 'topics' and 'tags'.
+                keyword_dictionary = {
+                    'topics': ['cat', 'dog'],
+                    'tags': ['food', 'water'],
+                    'keywords': ['cat', 'dog', 'food', 'water']
+                }
+
+                return keyword_dictionary
+
+3. Add the keyword fetch function to ``presqt/api_v/utilities/utils/function_router.py``
+
+    * Follow the naming conventions laid out in this class' docstring
+    * This will make the function available in core PresQT code
+
+Enhance Keywords
+++++++++++++++++
+To support the enhancement of ``keywords``, a keyword upload function must be written that will
+upload new enhanced keywords to the target.
+
+1. Update your target in ``presqt/specs/targets.json`` by setting ``keywords_upload`` to ``true``.
+
+2. Add a function to upload give keywords to the target.
+
+    * If you would like to keep your file/function names consistent with what already exists add this function to
+      ``presqt/targets/<target_name>/functions/keywords/<target_name>_upload_keywords()``
+
+    * The function must have the following parameters **in this order**:
+
+    =========== ==== =================================================
+    token       str  User's token for the target
+    resource_id str  ID for the resource we want to upload keywords to
+    keywords    list List of new keywords to upload
+    =========== ==== =================================================
+
+    * The function must return a dictionary with the following keys:
+
+    ================ ==== ==============================================
+    updated_keywords list List of the final keyword list at the target
+    project_id       str  The ID of the project containing this resource
+    ================ ==== ==============================================
+
+    **Example Keyword Upload Function:**
+
+    .. code-block:: python
+
+        def <your_target_name>_upload_keywords(token, resource_id, keywords):
+            # Process to upload keywords goes here.
+            # Variables below are defined here to show examples of structures.
+            updated_keywords = ['cat', 'food', 'feline', 'grub']
+            project_id = '1234'
+
+            return {'updated_keywords': updated_keywords, 'project_id': project_id}
+
+3. Add the keyword upload function to ``presqt/api_v/utilities/utils/function_router.py``
+
+    * Follow the naming conventions laid out in this class' docstring
+    * This will make the function available in core PresQT code
 
 Error Handling
 --------------

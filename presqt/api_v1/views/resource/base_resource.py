@@ -127,7 +127,7 @@ class BaseResource(APIView):
         }
         or
         {
-        "error": PresQT Error: 'bad_action' is not a valid keyword_action. The options are 'enhance' or 'suggest'."
+        "error": "PresQT Error: 'bad_action' is not a valid keyword_action. The options are 'enhance' or 'suggest'."
         }
 
         401: Unauthorized

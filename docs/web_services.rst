@@ -163,6 +163,7 @@ to the metadata file.
 **Definition of** ``PresQT FTS Metadata`` **fields**:
 
 ===================== ====== ==============================================================================
+allEnhancedKeywords   array  All Keywords added to this resource via PresQT.
 actions               array  Array of PresQT actions that have taken place on the this project
 id                    string ID of the PresQT action (uuid4). Created at the time metadata is written
 actionDateTime        string Date and time that the action took place
@@ -171,6 +172,17 @@ sourceTargetName      string Name of the source target the action is taking plac
 sourceUsername        string Requesting user’s source target username
 destinationTargetName string Name of the destination target the action is taking place on
 destinationUsername   string Requesting user’s destination target username
+keywordEnhancements   dict   Keyword enhancements that took place during this action
+
+                             `*` Fields found in this dictionaries
+
+initialKeywords*      array  The initial keywords found in this target
+
+                             This includes keywords in the target keywords found in FTS metadata file
+
+enhancedKeywords*     array  The new keyword enhancements added to the target
+enhancer*             str    The enhancement service used to enhance the keywords
+
 files                 array  Array of files that were involved in the PresQT action
 sourcePath            string Path of the file at the source target
 sourceHashes          dict   Object that contains the file hashes at the source target
@@ -178,11 +190,11 @@ title                 string Title of the file at the source target
 extra                 dict   Object that contains all extra metadata we can retrieve from the source target
 failedFixityInfo      array  Array containing dictionaries of info on files that failed fixity check
 
-                             `*` Fields found in these dictionaries
+                             `**` Fields found in this dictionaries
 
-newGeneratedHash*     string PresQT generated hash of the file
-algorithmUsed*        string Hash Algorithm used for the newGeneratedHash
-reasonFixityFailed*   string Reason fixity failed for the file
+newGeneratedHash**    string PresQT generated hash of the file
+algorithmUsed**       string Hash Algorithm used for the newGeneratedHash
+reasonFixityFailed**  string Reason fixity failed for the file
 destinationPath       string Path of the file at the destination target
 destinationHashes     dict   Object that contains the file hashes at the destination target
 ===================== ====== ==============================================================================
@@ -192,6 +204,7 @@ destinationHashes     dict   Object that contains the file hashes at the destina
 .. code-block:: json
 
     {
+        "allEnhancedKeywords": ["cat", "dog", "feline", "doggo"],
         "actions": [
             {
                 "id": "bc5a48dc-d1f9-46bd-9137-48fe4843df77",
@@ -201,6 +214,11 @@ destinationHashes     dict   Object that contains the file hashes at the destina
                 "sourceUsername": "github_username",
                 "destinationTargetName": "osf",
                 "destinationUsername": "osf_username",
+                "keywordEnhancements": {
+                    "initialKeywords": ["cat", "dog"],
+                    "enhancedKeywords": ["feline", "doggo"],
+                    "enhancer": "scigraph"
+                },
                 "files": {
                     "created": [
                         {
@@ -246,6 +264,7 @@ destinationHashes     dict   Object that contains the file hashes at the destina
 .. code-block:: json
 
     {
+        "allEnhancedKeywords": ["cat", "dog", "feline", "doggo"],
         "actions": [
             {
                 "id": "bc5a48dc-d1f9-46bd-9137-48fe4843df77",
@@ -255,6 +274,11 @@ destinationHashes     dict   Object that contains the file hashes at the destina
                 "sourceUsername": "github_username",
                 "destinationTargetName": "osf",
                 "destinationUsername": "osf_username",
+                "keywordEnhancements": {
+                    "initialKeywords": ["cat", "dog"],
+                    "enhancedKeywords": ["feline", "doggo"],
+                    "enhancer": "scigraph"
+                },
                 "files": {
                     "created": [
                         {
@@ -300,6 +324,7 @@ destinationHashes     dict   Object that contains the file hashes at the destina
                 "sourceUsername": "osf_username",
                 "destinationTargetName": "Local Machine",
                 "destinationUsername": null,
+                "keywordEnhancements": {}
                 "files": {
                     "created": [
                         {
@@ -363,10 +388,91 @@ If an invalid ``PresQT FTS Metadata`` file is found at the top level of the reso
 by the action then we will rename the invalid metadata file to ``INVALID_PRESQT_FTS_METADATA.json`` and
 then we will create a new valid metadata file with the current actions metadata.
 
+Keyword Assignment
+------------------
+
+Keyword Enhancement Services
+++++++++++++++++++++++++++++
+
+* SciGraph http://ec-scigraph.sdsc.edu:9000/scigraph/docs/
+
+Keyword Difference Between Targets
+++++++++++++++++++++++++++++++++++
+
+Each target holds keywords in different attributes. Some may have keywords in multiple attributes.
+The following table outlines the keyword attributes for each target.
+
+=========== ======================
+**Targets** **Keyword Attributes**
+OSF         [Tags]
+Github      [Topics]
+Gitlab      [Tag List]
+CurateND    [Subjects]
+Zenodo      [Keywords]
+=========== ======================
+
+Keyword Assignment During Transfer
+++++++++++++++++++++++++++++++++++
+When transferring a resource you have the option to either enhance keywords or suggest keyword
+enhancements by adding ``presqt-keyword-action`` to the request headers. The options are ``suggest``
+or ``enhance``.
+
+Suggest Keywords
+""""""""""""""""
+If ``presqt-keyword-action`` is ``suggest`` then PresQT will take no actions on your behalf regarding
+keywords during the transfer. It will still gather keywords from the target and from the FTS metadata
+file found for the resource being transferred and enhance them with the given keyword enhancer
+(for now it defaults to SciGraph). The suggested enhancements will be returned in the ``Transfer Job``
+response once the transfer finishes.
+
+Enhance Keywords
+""""""""""""""""
+If ``presqt-keyword-action`` is ``enhance`` then PresQT will take several actions regarding keyword
+enhancements during the transfer process.
+
+1. Fetch all source keywords both in the target and in the FTS metadata file for the transferred resource.
+
+2. Get enhancements with the given enhancer (Defaults to SciGraph for now).
+
+3. Upload keyword enhancements to the ``Source Target`` and ``Destination Target``.
+
+4. Add the keyword enhancements to the FTS Metadata file that gets written to the ``Destination Target`` during the transfer.
+
+5. Add the keyword enhancements to the FTS Metadata file that gets written to the ``Source Target`` during the transfer.
+
+.. figure::  images/keyword_enhancement/keyword_enhancement_1.png
+   :align:   center
+
+   Image 2: Lifecycle of Keyword Enhancement during a transfer
+
+.. figure::  images/keyword_enhancement/keyword_enhancement_2.png
+   :align:   center
+
+   Image 3: Practical Example of Keyword Enhancement during a transfer
+
+Keyword Assignment Service Endpoint
++++++++++++++++++++++++++++++++++++
+
+Keyword Enhancement can be done without transferring.
+
+1. Use the ``Keyword Enhancement GET`` endpoint to fetch the keywords from the resource.
+
+2. Pass the keywords you want to enhance to the ``Keyword Enhancement POST`` endpoint.
+
+3. Enhanced keywords will get uploaded to the target and a new action will get written to the FTS metadata file.
+
+.. figure::  images/keyword_enhancement/keyword_enhancement_3.png
+   :align:   center
+
+   Image 4: Lifecycle of a Keyword Enhancement Service
+
+.. figure::  images/keyword_enhancement/keyword_enhancement_4.png
+   :align:   center
+
+   Image 5: Practical Example of a Keywords Enhancement Service
+
 Preservation Quality
 --------------------
 IN PROGRESS
 
-Keyword Assignment
-------------------
-IN PROGRESS
+
