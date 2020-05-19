@@ -92,6 +92,16 @@ class TestResourceKeywordsPOST(SimpleTestCase):
 
         self.assertEqual(response.status_code, 200)
 
+        # We also need to delete the metadata file.
+        delete_url = "https://gitlab.com/api/v4/projects/{}/repository/files/PRESQT_FTS_METADATA%2Ejson?ref=master".format(
+            resource_id)
+        data = {
+            "branch": "master",
+            "commit_message": "PRESQT DELETE METADATA"
+        }
+        delete_response = requests.delete(delete_url, headers=headers, data=data)
+        self.assertEqual(delete_response.status_code, 204)
+
     def test_error_project_keywords(self):
         """
         Returns a 400 if the POST method is unsuccessful when getting a GitLab `file` keywords.

@@ -1,11 +1,13 @@
+from uuid import uuid4
 
+from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework import status
 
 from presqt.api_v1.utilities import (
     get_source_token, target_validation, FunctionRouter, keyword_enhancer)
 from presqt.api_v1.views.resource.base_resource import BaseResource
-from presqt.utilities import PresQTValidationError, PresQTResponseException
+from presqt.utilities import PresQTValidationError, PresQTResponseException, PresQTError
 
 
 class ResourceKeywords(BaseResource):
@@ -177,6 +179,11 @@ class ResourceKeywords(BaseResource):
             "error": "Token is invalid. Response returned a 401 status code.""
         }
 
+        500: Internal Server Error
+        {
+            "error": "Error updating the PresQT metadata file on {Target}. Keywords have been added successfully."
+        }
+
         Target Error
         {
             "error": "{Target} returned a {status_code} error trying to update keywords.
@@ -227,6 +234,42 @@ class ResourceKeywords(BaseResource):
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch
             return Response(data={'error': e.data}, status=e.status_code)
+
+        # Update the metadata file, or create a new one.
+        metadata_func = FunctionRouter.get_function(self.source_target_name, 'metadata_upload')
+
+        # Build the metadata dictionary for this action.
+        metadata_dict = {
+            "allEnhancedKeywords": updated_keywords['updated_keywords'],
+            "actions": [{
+                'id': str(uuid4()),
+                'actionDateTime': str(timezone.now()),
+                'actionType': 'keyword_enhancement',
+                'sourceTargetName': self.source_target_name,
+                'destinationTargetName': self.source_target_name,
+                'sourceUsername': 'N/A',
+                'destinationUsername': 'N/A',
+                'keywordEnhancements': {
+                    'initialKeywords': initial_keywords['keywords'],
+                    'enhancedKeywords': updated_keywords['updated_keywords'],
+                    'enhancer': 'scigraph'
+                },
+                'files': {
+                    'created': [],
+                    'updated': [],
+                    'ignored': []
+                }
+            }]
+        }
+
+        try:
+            metadata_func(token, updated_keywords['project_id'], metadata_dict)
+        except PresQTError:
+            # Catch any errors that happen within the target fetch
+            return Response(
+                data={'error': "Error updating the PresQT metadata file on {}. Keywords have been added successfully.".format(
+                    self.source_target_name)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response(data={
             'keywords_added': keywords,

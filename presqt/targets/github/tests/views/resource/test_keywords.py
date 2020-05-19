@@ -97,6 +97,23 @@ class TestResourceKeywordsPOST(SimpleTestCase):
 
         self.assertEqual(response.status_code, 200)
 
+        # Delete the metadata file
+        # First get the sha, which will ensure the metadata file exists....
+        file_url = 'https://api.github.com/repos/presqt-test-user/PrivateProject/contents/PRESQT_FTS_METADATA.json'
+        file_sha = requests.get(file_url, headers=headers).json()['sha']
+
+        data = {
+            "message": "Delete Metadata",
+            "committer": {
+                "name": "PresQT",
+                "email": "N/A"
+            },
+            "sha": file_sha
+        }
+
+        delete_response = requests.delete(file_url, headers=headers, data=json.dumps(data))
+        self.assertEqual(delete_response.status_code, 200)
+
     def test_error_project_keywords(self):
         """
         Returns a 400 if the POST method is unsuccessful when getting a GitLab `file` keywords.
@@ -180,10 +197,10 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         self.assertEqual(response['names'], [])
 
         # Make an explicit call to the function
-        long_ass_list = ['overt', 'yoke', 'acoustics', 'rare', 'stupid', 'geese', 'spray', 'knit',
+        long_boi_list = ['overt', 'yoke', 'acoustics', 'rare', 'stupid', 'geese', 'spray', 'knit',
                          'shaggy', 'weigh', 'sable', 'interfere', 'swing', 'accurate', 'overjoyed', 'point',
                          'stretch', 'abrasive', 'fog', 'brash', 'delight', 'succeed']
-        func_dict = github_upload_keywords(GITHUB_TEST_USER_TOKEN, file_id, long_ass_list)
+        func_dict = github_upload_keywords(GITHUB_TEST_USER_TOKEN, file_id, long_boi_list)
 
         # Check the project again and ensure it has the new keywords, and length is only 20
         response = requests.get(get_url, headers=headers).json()
