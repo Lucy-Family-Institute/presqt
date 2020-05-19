@@ -1,3 +1,4 @@
+import base64
 import json
 import re
 
@@ -5,6 +6,7 @@ import requests
 
 from rest_framework import status
 
+from presqt.targets.github.utilities import validation_check
 from presqt.utilities import PresQTResponseException
 
 
@@ -36,19 +38,40 @@ def github_fetch_keywords(token, resource_id):
             ]
         }
     """
+    header, username = validation_check(token)
+    header['Accept'] = 'application/vnd.github.mercy-preview+json'
     from presqt.targets.github.functions.fetch import github_fetch_resource
 
     resource = github_fetch_resource(token, resource_id)
-
     if resource['kind_name'] in ['dir', 'file']:
         raise PresQTResponseException("GitHub directories and files do not have keywords.",
                                       status.HTTP_400_BAD_REQUEST)
 
-    if 'topics' in resource['extra'].keys():
-        return {
-            'topics': resource['extra']['topics'],
-            'keywords': resource['extra']['topics']
-        }
+    # See if a metadata file exists
+    metadata = None
+    project_data = requests.get(
+        "https://api.github.com/repositories/{}".format(resource_id), headers=header)
+    if project_data.status_code == 200:
+        project_name = project_data.json()['name']
+        metadata_url = "https://api.github.com/repos/{}/{}/contents/PRESQT_FTS_METADATA.json".format(
+            username, project_name)
+        metadata_file_data = requests.get(metadata_url, headers=header).json()
+        try:
+            sha = metadata_file_data['sha']
+        except KeyError:
+            sha = None
+        if sha:
+            base64_metadata = base64.b64decode(metadata_file_data['content'])
+            metadata = json.loads(base64_metadata)
+            print(metadata)
+
+    if metadata:
+        keywords = list(set(resource['extra']['topics'] + metadata['allEnhancedKeywords']))
+    else:
+        keywords = list(set(resource['extra']['topics']))
+    return {
+        'topics': keywords,
+        'keywords': keywords}
 
 
 def github_upload_keywords(token, resource_id, keywords):
