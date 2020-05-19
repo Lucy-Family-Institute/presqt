@@ -1,5 +1,14 @@
-QA Testing Instructions
-=======================
+QA Testing
+==========
+
+Resources
+---------
+We use the term ``resources`` for all content such as files, folders, projects, repos, items, etc.
+It's a catch all term since different websites name their content differently.
+
+BagIt Tool
+----------
+
 
 Getting Authorization Tokens From Partner Sites
 -----------------------------------------------
@@ -7,13 +16,11 @@ An ``Authorization Token`` is a unique identifier for a user requesting access t
 `Click here <https://presqt.readthedocs.io/en/latest/authentication_authorization.html#taget-token-instructions>`_
 for instructions on how to get authorization tokens for each target.
 
-Resources
----------
-We use the term ``resources`` for all content such as files, folders, projects, repos, items, etc.
-It's a catch all term since different websites name their content differently.
+Testing Instructions
+--------------------
 
 Login To Targets From PresQT Demo UI
-------------------------------------
+++++++++++++++++++++++++++++++++++++
 1. Click on any Target icon under 'Available Connections' to pop open a login window.
 
 .. figure:: images/qa/login/login_step_1.png
@@ -34,7 +41,7 @@ Login To Targets From PresQT Demo UI
 Once logged in you can switch between targets without having to provide your key.
 
 Navigate and Searching The Resource Collection
-----------------------------------------------
+++++++++++++++++++++++++++++++++++++++++++++++
 1. After logging in you can navigate through your ``Resource Collection`` by clicking on the folders and files on the left.
 2. Clicking on a resource shows you the ``Resource Details`` on the right.
 
@@ -50,7 +57,7 @@ the ``search icon``. Public resources will be shown in the ``Resource Collection
     :scale: 30%
 
 Resource Details And Actions
-----------------------------
+++++++++++++++++++++++++++++
 1. Once you click on a resource you will get its details and buttons for each action available
 for this resource. If the button is disabled then that action isn't available for that resource.
 
@@ -58,7 +65,7 @@ for this resource. If the button is disabled then that action isn't available fo
     :align: center
 
 Resource Download
------------------
++++++++++++++++++
 1. To download a resource, first select the resource in the ``resource collection`` and then click
 the ``Download`` action button in the details section.
 
@@ -86,7 +93,7 @@ the ``data`` folder.
     :scale: 50%
 
 Resource Upload
----------------
++++++++++++++++
 
 Upload As A New Project
 +++++++++++++++++++++++
@@ -157,7 +164,7 @@ process went.
 6. You should also see the new uploaded resources appear in the ``resource collection``.
 
 Resource Transfer
------------------
++++++++++++++++++
 1. To transfer a resource to another target, first select the resource in the ``resource collection``
 and then click the ``Transfer`` button in the details section.
 
