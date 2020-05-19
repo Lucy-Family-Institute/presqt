@@ -8,7 +8,13 @@ It's a catch all term since different websites name their content differently.
 
 BagIt Tool
 ----------
+BagIt is a hierarchical filesystem format for storing and transferring digital content. PresQT
+expects all files Uploaded to be zipped files in BagIt format. All downloads from PresQT come
+in BagIt format as well. PresQT has a tool that will take a zipped file and return it to you
+in BagIt format.
 
+.. figure:: images/qa/bagit_tool/bagit_1.png
+    :align: center
 
 Getting Authorization Tokens From Partner Sites
 -----------------------------------------------
