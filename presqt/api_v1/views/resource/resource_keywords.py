@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from presqt.api_v1.utilities import (
-    get_source_token, target_validation, FunctionRouter, keyword_enhancer)
+    get_source_token, target_validation, FunctionRouter, keyword_enhancer, get_target_data)
 from presqt.api_v1.views.resource.base_resource import BaseResource
 from presqt.utilities import PresQTValidationError, PresQTResponseException, PresQTError
 
@@ -239,10 +239,13 @@ class ResourceKeywords(BaseResource):
         metadata_func = FunctionRouter.get_function(self.source_target_name, 'metadata_upload')
 
         # Build the metadata dictionary for this action.
+        source_target_data = get_target_data(self.source_target_name)
+
         metadata_dict = {
             "allEnhancedKeywords": updated_keywords['updated_keywords'],
             "actions": [{
                 'id': str(uuid4()),
+                'details': 'Enhance Keywords in {}'.format(source_target_data['readable_name']),
                 'actionDateTime': str(timezone.now()),
                 'actionType': 'keyword_enhancement',
                 'sourceTargetName': self.source_target_name,

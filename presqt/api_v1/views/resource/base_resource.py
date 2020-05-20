@@ -21,7 +21,8 @@ from presqt.api_v1.utilities import (target_validation, transfer_target_validati
                                      get_upload_source_metadata, hash_tokens,
                                      finite_depth_upload_helper, structure_validation,
                                      keyword_action_validation,
-                                     enhance_keywords, update_targets_keywords, suggest_keywords)
+                                     enhance_keywords, update_targets_keywords, suggest_keywords,
+                                     get_target_data)
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
@@ -332,8 +333,17 @@ class BaseResource(APIView):
 
         # Create PresQT action metadata
         self.source_username = func_dict['action_metadata']['sourceUsername']
+        if self.action == 'resource_transfer_in':
+            source_target_data = get_target_data(self.source_target_name)
+            destination_target_data = get_target_data(self.destination_target_name)
+            self.details = "Transfer from {} to {}".format(source_target_data['readable_name'], destination_target_data['readable_name'])
+        else:
+            source_target_data = get_target_data(self.source_target_name)
+            self.details = "Download from {}".format(source_target_data['readable_name'])
+
         self.action_metadata = {
             'id': str(uuid4()),
+            'details': self.details,
             'actionDateTime': str(timezone.now()),
             'actionType': self.action,
             'sourceTargetName': self.source_target_name,
@@ -430,8 +440,11 @@ class BaseResource(APIView):
                         'sourcePath': os.path.join(path, name)[len(self.data_directory):],
                         'extra': {}})
 
+            destination_target_data = get_target_data(self.destination_target_name)
+            self.details = "Upload to {}".format(destination_target_data['readable_name'])
             self.action_metadata = {
                 'id': str(uuid4()),
+                'details': self.details,
                 'actionDateTime': str(timezone.now()),
                 'actionType': self.action,
                 'sourceTargetName': 'Local Machine',

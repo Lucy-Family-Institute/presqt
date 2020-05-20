@@ -12,6 +12,7 @@
         "properties": {
           "id": { "type": "string" },
           "actionDateTime": { "type": "string" },
+          "details": { "type": "string" },
           "actionType": { "type": "string" },
           "sourceTargetName": { "type": "string" },
           "destinationTargetName": { "type": ["string", "null"] },
@@ -89,6 +90,7 @@
         },
         "required": [
           "id",
+          "details",
           "actionDateTime",
           "actionType",
           "sourceTargetName",

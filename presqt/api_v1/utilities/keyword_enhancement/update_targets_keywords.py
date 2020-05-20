@@ -32,6 +32,7 @@ def update_targets_keywords(self, project_id):
             'actions': [
                 {
                     'id': str(uuid4()),
+                    'details': self.details,
                     'actionDateTime': str(timezone.now()),
                     'actionType': 'transfer_enhancement',
                     'sourceTargetName': self.source_target_name,
