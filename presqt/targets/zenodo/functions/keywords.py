@@ -45,12 +45,13 @@ def zenodo_fetch_keywords(token, resource_id):
     if resource['kind'] == 'container':
         file_url = "https://zenodo.org/api/deposit/depositions/{}/files".format(resource_id)
         project_files = requests.get(file_url, params=auth_parameter).json()
-    for file in project_files:
-        if file['filename'] == 'PRESQT_FTS_METADATA.json':
-            # Download the metadata
-            metadata_file = requests.get(file['links']['download'], params=auth_parameter).content
-            metadata = json.loads(metadata_file)
-            print(metadata)
+        for file in project_files:
+            if file['filename'] == 'PRESQT_FTS_METADATA.json':
+                # Download the metadata
+                metadata_file = requests.get(
+                    file['links']['download'], params=auth_parameter).content
+                metadata = json.loads(metadata_file)
+                print(metadata)
 
     if 'keywords' in resource['extra'].keys():
         if metadata:
