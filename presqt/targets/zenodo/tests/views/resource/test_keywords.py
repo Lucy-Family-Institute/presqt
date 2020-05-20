@@ -139,7 +139,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
             self.assertEqual(response.status_code, 500)
             # Verify the dict keys match what we expect
             self.assertEqual(
-                response.data['error'], 'Error updating the PresQT metadata file on zenodo. Keywords have been added successfully.')
+                response.data['error'], 'PresQT Error: Error updating the PresQT metadata file on zenodo. Keywords have been added successfully.')
 
             updated_response = self.client.get(url, **self.header)
             # Get the ount of the initial keywords
