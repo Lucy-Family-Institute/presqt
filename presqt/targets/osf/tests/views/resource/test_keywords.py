@@ -160,7 +160,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         self.assertEqual(response.status_code, 202)
         # Verify the dict keys match what we expect
         self.assertListEqual(self.keys, list(response.data.keys()))
-        # These
+        # Ensure the new list is equal to the initial one
         self.assertEqual(len(response.data['final_keywords']), initial_keywords)
 
         # Set the project keywords back to what they were.
