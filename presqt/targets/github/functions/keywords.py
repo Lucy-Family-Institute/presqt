@@ -63,7 +63,6 @@ def github_fetch_keywords(token, resource_id):
         if sha:
             base64_metadata = base64.b64decode(metadata_file_data['content'])
             metadata = json.loads(base64_metadata)
-            print(metadata)
 
     if metadata:
         keywords = list(set(resource['extra']['topics'] + metadata['allEnhancedKeywords']))
