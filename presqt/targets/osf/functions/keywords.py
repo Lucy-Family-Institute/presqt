@@ -126,8 +126,6 @@ def osf_upload_keywords(token, resource_id, keywords):
 
 
 def get_project_id(resource):
-    """
-    """
     if resource.kind_name == 'project':
         project_id = resource.id
     elif resource.kind_name == 'file':

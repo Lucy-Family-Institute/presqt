@@ -51,7 +51,6 @@ def zenodo_fetch_keywords(token, resource_id):
                 metadata_file = requests.get(
                     file['links']['download'], params=auth_parameter).content
                 metadata = json.loads(metadata_file)
-                print(metadata)
 
     if 'keywords' in resource['extra'].keys():
         if metadata:
