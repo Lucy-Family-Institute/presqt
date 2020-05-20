@@ -220,6 +220,60 @@ process went.
 
 8. You should also see the new transferred resources appear in the modal's ``resource collection`` on the right.
 
+Verifying Fixity
+----------------
+``Fixity`` means the assurance that a digital file has remained unchanged. We determine file fixity
+at every step along PresQT actions. More details about how PresQT handles fixity can be found
+`Here <https://presqt.readthedocs.io/en/latest/web_services.html#fixity>`_.
+
+Download
+++++++++
+All downloads come with a file with detailed fixity information named ``fixity_info.json``.
+This file has an entry for every file involved in the download including each file's checksum hash
+at the Source Target and the hash calculated on the PresQT servers before sent to the browser
+for download. To verify fixity remains, the user must calculate the files' hashes on their local
+machine and compare it to the hashes provided.
+
+.. figure:: images/qa/fixity/fixity_1.png
+    :align: center
+    :scale: 30%
+
+Upload
+++++++
+Fixity during upload can be determined by inspecting the ``PRESQT_FTS_METADATA.json`` file
+included with every upload. The attribute ``failedFixityInfo`` in this file will contain the
+details if the file being uploaded has failed fixity.
+
+
+.. figure:: images/qa/fixity/fixity_2.png
+    :align: center
+    :scale: 30%
+
+Transfer
+++++++++
+Fixity during ``Transfer`` can be determined the same as ``Upload`` by inspecting the
+``PRESQT_FTS_METADATA.json`` file in the destination target.
+
+Verifying Keyword Enhancement
+-----------------------------
+See `Here <https://presqt.readthedocs.io/en/latest/web_services.html#keyword-assignment>`_ for
+Keyword Enhancement details.
+
+Keyword Enhancement As A Service
+++++++++++++++++++++++++++++++++
+Keyword Enhancement as a service will write a new entry to the ``PRESQT_FTS_METADATA.json`` file
+in the target.  The action entry for keyword enhancement will say exactly which keywords were
+added during this enhancement.
+
+.. figure:: images/qa/fixity/kw_1.png
+    :align: center
+    :scale: 30%
+
+Keyword Enhancement During Transfer
++++++++++++++++++++++++++++++++++++
+Keyword Enhancement during a transfer will work similarly to ``Keyword Enhancement As A Service``.
+The difference is, for the destination target, the details of keyword enhancement will be located
+in the transfer action entry instead of there being a new action entry for keyword enhancement.
 
 Services
 --------

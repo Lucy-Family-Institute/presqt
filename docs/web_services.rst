@@ -391,8 +391,8 @@ then we will create a new valid metadata file with the current actions metadata.
 Keyword Assignment
 ------------------
 
-Keyword Enhancement Services
-++++++++++++++++++++++++++++
+Keyword Enhancers
++++++++++++++++++
 
 * SciGraph http://ec-scigraph.sdsc.edu:9000/scigraph/docs/
 
