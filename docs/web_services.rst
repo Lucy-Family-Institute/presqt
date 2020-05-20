@@ -324,7 +324,7 @@ destinationHashes     dict   Object that contains the file hashes at the destina
                 "sourceUsername": "osf_username",
                 "destinationTargetName": "Local Machine",
                 "destinationUsername": null,
-                "keywordEnhancements": {}
+                "keywordEnhancements": {},
                 "files": {
                     "created": [
                         {
