@@ -76,6 +76,7 @@ def finite_depth_upload_helper(instance):
 
     instance.action_metadata = {
         'id': str(uuid4()),
+        'details': instance.details,
         'actionDateTime': str(timezone.now()),
         'actionType': instance.action,
         'sourceTargetName': 'Server Created Zip',
