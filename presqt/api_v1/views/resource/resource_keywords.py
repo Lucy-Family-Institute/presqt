@@ -7,7 +7,6 @@ from rest_framework.views import APIView
 
 from presqt.api_v1.utilities import (
     get_source_token, target_validation, FunctionRouter, keyword_enhancer, get_target_data)
-from presqt.api_v1.views.resource.base_resource import BaseResource
 from presqt.utilities import PresQTValidationError, PresQTResponseException, PresQTError
 
 
