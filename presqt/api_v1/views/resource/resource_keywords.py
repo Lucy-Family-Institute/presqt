@@ -3,14 +3,14 @@ from uuid import uuid4
 from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.views import APIView
 
 from presqt.api_v1.utilities import (
     get_source_token, target_validation, FunctionRouter, keyword_enhancer, get_target_data)
-from presqt.api_v1.views.resource.base_resource import BaseResource
 from presqt.utilities import PresQTValidationError, PresQTResponseException, PresQTError
 
 
-class ResourceKeywords(BaseResource):
+class ResourceKeywords(APIView):
     """
     **Supported HTTP Methods**
 
@@ -73,24 +73,21 @@ class ResourceKeywords(BaseResource):
             "error": "Token is invalid. Response returned a 401 status code.""
         }
         """
-        self.request = request
-        self.source_target_name = target_name
-        self.source_resource_id = resource_id
-        self.action = 'keywords'
+        action = 'keywords'
 
         try:
-            token = get_source_token(self.request)
-            target_validation(self.source_target_name, self.action)
+            token = get_source_token(request)
+            target_validation(target_name, action)
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Fetch the proper function to call
-        func = FunctionRouter.get_function(self.source_target_name, self.action)
+        func = FunctionRouter.get_function(target_name, action)
 
         # Fetch the resource keywords
         try:
             # Will return a dictionary with resource's keywords
-            keywords = func(token, self.source_resource_id)
+            keywords = func(token, resource_id)
         except PresQTResponseException as e:
             # Catch any errors that happen
             return Response(data={'error': e.data}, status=e.status_code)
@@ -167,11 +164,11 @@ class ResourceKeywords(BaseResource):
         }
         or
         {
-            "error": "keywords is missing from the request body."
+            "error": "PresQT Error: keywords is missing from the request body."
         }
         or
         {
-            "error": "keywords must be in list format."
+            "error": "PresQT Error: keywords must be in list format."
         }
 
         401: Unauthorized
@@ -181,7 +178,7 @@ class ResourceKeywords(BaseResource):
 
         500: Internal Server Error
         {
-            "error": "Error updating the PresQT metadata file on {Target}. Keywords have been added successfully."
+            "error": "PresQT Error: Error updating the PresQT metadata file on {Target}. Keywords have been added successfully."
         }
 
         Target Error
@@ -189,40 +186,37 @@ class ResourceKeywords(BaseResource):
             "error": "{Target} returned a {status_code} error trying to update keywords.
         }
         """
-        self.request = request
-        self.source_target_name = target_name
-        self.source_resource_id = resource_id
-        self.action = "keywords_upload"
+        action = "keywords_upload"
 
         try:
             keywords = request.data['keywords']
         except KeyError:
-            return Response(data={"error": "keywords is missing from the request body."},
+            return Response(data={"error": "PresQT Error: keywords is missing from the request body."},
                             status=status.HTTP_400_BAD_REQUEST)
 
         if type(keywords) is not list:
-            return Response(data={"error": "keywords must be in list format."},
+            return Response(data={"error": "PresQT Error: keywords must be in list format."},
                             status=status.HTTP_400_BAD_REQUEST)
         try:
-            token = get_source_token(self.request)
-            target_validation(self.source_target_name, self.action)
-            target_validation(self.source_target_name, 'keywords')
+            token = get_source_token(request)
+            target_validation(target_name, action)
+            target_validation(target_name, 'keywords')
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Fetch the initial keyword function
-        func = FunctionRouter.get_function(self.source_target_name, 'keywords')
+        func = FunctionRouter.get_function(target_name, 'keywords')
 
         # Fetch the resource keywords
         try:
             # Will return a dictionary with resource's keywords
-            initial_keywords = func(token, self.source_resource_id)
+            initial_keywords = func(token, resource_id)
         except PresQTResponseException as e:
             # Catch any errors that happen
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Fetch the update keywords function
-        func = FunctionRouter.get_function(self.source_target_name, self.action)
+        func = FunctionRouter.get_function(target_name, action)
 
         # Add the keywords
         all_keywords = initial_keywords['keywords'] + keywords
@@ -230,16 +224,16 @@ class ResourceKeywords(BaseResource):
         # Function will upload new keywords to the selected resource
         try:
             # Will return a dictionary with the updated_keywords
-            updated_keywords = func(token, self.source_resource_id, all_keywords)
+            updated_keywords = func(token, resource_id, all_keywords)
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Update the metadata file, or create a new one.
-        metadata_func = FunctionRouter.get_function(self.source_target_name, 'metadata_upload')
+        metadata_func = FunctionRouter.get_function(target_name, 'metadata_upload')
 
         # Build the metadata dictionary for this action.
-        source_target_data = get_target_data(self.source_target_name)
+        source_target_data = get_target_data(target_name)
 
         metadata_dict = {
             "allEnhancedKeywords": updated_keywords['updated_keywords'],
@@ -248,8 +242,8 @@ class ResourceKeywords(BaseResource):
                 'details': 'Enhance Keywords in {}'.format(source_target_data['readable_name']),
                 'actionDateTime': str(timezone.now()),
                 'actionType': 'keyword_enhancement',
-                'sourceTargetName': self.source_target_name,
-                'destinationTargetName': self.source_target_name,
+                'sourceTargetName': target_name,
+                'destinationTargetName': target_name,
                 'sourceUsername': 'N/A',
                 'destinationUsername': 'N/A',
                 'keywordEnhancements': {
@@ -270,8 +264,8 @@ class ResourceKeywords(BaseResource):
         except PresQTError:
             # Catch any errors that happen within the target fetch
             return Response(
-                data={'error': "Error updating the PresQT metadata file on {}. Keywords have been added successfully.".format(
-                    self.source_target_name)},
+                data={'error': "PresQT Error: Error updating the PresQT metadata file on {}. Keywords have been added successfully.".format(
+                    target_name)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response(data={

@@ -245,7 +245,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         # Verify the status code
         self.assertEqual(response.status_code, 400)
         # Verify the error message
-        self.assertEqual(response.data['error'], 'keywords is missing from the request body.')
+        self.assertEqual(response.data['error'], 'PresQT Error: keywords is missing from the request body.')
 
     def test_no_token(self):
         resource_id = '5cd98b0af244ec0021e5f8dd'
@@ -271,7 +271,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         # Verify the status code
         self.assertEqual(response.status_code, 400)
         # Verify the error message
-        self.assertEqual(response.data['error'], 'keywords must be in list format.')
+        self.assertEqual(response.data['error'], 'PresQT Error: keywords must be in list format.')
 
     def test_failed_update_keywords_project(self):
         # Mock a server error for when a put request is made.
