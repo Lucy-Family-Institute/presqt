@@ -22,6 +22,18 @@ An ``Authorization Token`` is a unique identifier for a user requesting access t
 `Click here <https://presqt.readthedocs.io/en/latest/authentication_authorization.html#taget-token-instructions>`_
 for instructions on how to get authorization tokens for each target.
 
+Downloadable Bags
+-----------------
+Here are some pre-made ZIP files that are in BagIt format that can be downloaded for use with PresQT.
+
+:download:`presqt_Images.zip <qa_bagits/presqt_Images.zip>`
+
+:download:`presqt_MediaFiles.zip <qa_bagits/presqt_MediaFiles.zip>`
+
+:download:`presqt_TextFiles.zip <qa_bagits/presqt_TextFiles.zip>`
+
+:download:`presqt_MixedFileTypes.zip <qa_bagits/presqt_MixedFileTypes.zip>`
+
 Testing Instructions
 --------------------
 
