@@ -37,24 +37,31 @@ def gitlab_upload_metadata(token, project_id, metadata_dict):
         base64_metadata = base64.b64decode(metadata_file_data['content'])
         updated_metadata = json.loads(base64_metadata)
         if schema_validator('presqt/json_schemas/metadata_schema.json', updated_metadata) is not True:
-            # We need to change the file name, this metadata is improperly formatted and
-            # therefore invalid.
-            invalid_base64_metadata = base64.b64encode(base64_metadata)
-            data = {"branch": "master",
-                    "commit_message": "PresQT Invalid Metadata Upload",
-                    "encoding": "base64",
-                    "content": invalid_base64_metadata}
+            # Check if an invalid metadata file already exists
+            invalid_url = 'https://gitlab.com/api/v4/projects/{}/repository/files/INVALID_PRESQT_FTS_METADATA%2Ejson'.format(project_id)
+            invalid_metadata_get_response = requests.post(invalid_url, headers=headers)
 
-            invalid_metadata_response = requests.post(
-                'https://gitlab.com/api/v4/projects/{}/repository/files/INVALID_PRESQT_FTS_METADATA%2Ejson'.format(
-                    project_id),
-                headers=headers,
-                data=data)
-            if invalid_metadata_response.status_code != 201:
-                raise PresQTError(
-                    "The request to rename the invalid metadata file has returned a {} error code from Gitlab.".format(
-                        invalid_metadata_response.status_code))
-            request_type = requests.put
+            if invalid_metadata_get_response.status_code == 200:
+                invalid_base64_metadata = base64.b64decode(invalid_metadata_get_response.json()['content'])
+                invalid_base64_metadata_json = json.loads(base64_metadata)
+
+            else:
+
+                # We need to change the file name, this metadata is improperly formatted and
+                # therefore invalid.
+                invalid_base64_metadata = base64.b64encode(base64_metadata)
+                data = {"branch": "master",
+                        "commit_message": "PresQT Invalid Metadata Upload",
+                        "encoding": "base64",
+                        "content": invalid_base64_metadata}
+
+                invalid_metadata_response = requests.post(invalid_url, headers=headers, data=data)
+
+                if invalid_metadata_response.status_code != 201:
+                    raise PresQTError(
+                        "The request to rename the invalid metadata file has returned a {} error code from Gitlab.".format(
+                            invalid_metadata_response.status_code))
+                request_type = requests.put
         else:
             # Loop through each 'action' in both metadata files and make a new list of them.
             joined_actions = [entry for entry in itertools.chain(metadata_dict['actions'],
