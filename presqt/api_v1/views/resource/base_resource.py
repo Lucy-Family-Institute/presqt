@@ -336,10 +336,10 @@ class BaseResource(APIView):
         if self.action == 'resource_transfer_in':
             source_target_data = get_target_data(self.source_target_name)
             destination_target_data = get_target_data(self.destination_target_name)
-            self.details = "Transfer from {} to {}".format(source_target_data['readable_name'], destination_target_data['readable_name'])
+            self.details = "PresQT transfer from {} to {}".format(source_target_data['readable_name'], destination_target_data['readable_name'])
         else:
             source_target_data = get_target_data(self.source_target_name)
-            self.details = "Download from {}".format(source_target_data['readable_name'])
+            self.details = "PresQT download from {}".format(source_target_data['readable_name'])
 
         self.action_metadata = {
             'id': str(uuid4()),
