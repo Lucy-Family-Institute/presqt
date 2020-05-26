@@ -239,7 +239,7 @@ class ResourceKeywords(APIView):
             "allEnhancedKeywords": updated_keywords['updated_keywords'],
             "actions": [{
                 'id': str(uuid4()),
-                'details': 'Enhance Keywords in {}'.format(source_target_data['readable_name']),
+                'details': 'PresQT Enhance Keywords in {}'.format(source_target_data['readable_name']),
                 'actionDateTime': str(timezone.now()),
                 'actionType': 'keyword_enhancement',
                 'sourceTargetName': target_name,
