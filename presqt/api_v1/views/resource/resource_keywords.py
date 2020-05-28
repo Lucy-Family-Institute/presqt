@@ -269,6 +269,7 @@ class ResourceKeywords(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response(data={
+            'initial_keywords': initial_keywords,
             'keywords_added': keywords,
             'final_keywords': updated_keywords['updated_keywords']},
             status=status.HTTP_202_ACCEPTED)
