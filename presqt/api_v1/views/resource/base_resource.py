@@ -189,7 +189,7 @@ class BaseResource(APIView):
             # Generate ticket number
             ticket_number = uuid4()
             self.ticket_path = os.path.join("mediafiles", "uploads", str(ticket_number))
-
+        
             # Extract each file in the zip file to disk
             with zipfile.ZipFile(resource) as myzip:
                 myzip.extractall(self.ticket_path)
@@ -555,6 +555,8 @@ class BaseResource(APIView):
             self.process_info_obj['failed_fixity'] = self.upload_failed_fixity
             write_file(self.process_info_path, self.process_info_obj, True)
         else:
+            if not self.destination_resource_id:
+                self.destination_resource_id = func_dict['project_id']
             if self.keyword_action == 'enhance':
                 self.keyword_enhancement_successful = update_targets_keywords(self, func_dict['project_id'])
             else: # elif suggest
@@ -660,6 +662,8 @@ class BaseResource(APIView):
         self.process_info_obj['status'] = 'finished'
         self.process_info_obj['failed_fixity'] = list(
             set(self.download_failed_fixity + self.upload_failed_fixity))
+        self.process_info_obj['source_resource_id'] = self.source_resource_id
+        self.process_info_obj['destination_resource_id'] = self.destination_resource_id
 
         if self.keyword_action == 'enhance':
             self.process_info_obj['enhanced_keywords'] = self.enhanced_keywords

@@ -54,6 +54,8 @@ class TransferJob(APIView):
             data['resources_updated'] = process_data['resources_updated']
             data['enhanced_keywords'] = process_data['enhanced_keywords']
             data['initial_keywords'] = process_data['initial_keywords']
+            data['source_resource_id'] = process_data['source_resource_id']
+            data['destination_resource_id'] = process_data['destination_resource_id']
         else:
             if transfer_status == 'in_progress':
                 http_status = status.HTTP_202_ACCEPTED
