@@ -555,7 +555,8 @@ class BaseResource(APIView):
             self.process_info_obj['failed_fixity'] = self.upload_failed_fixity
             write_file(self.process_info_path, self.process_info_obj, True)
         else:
-            self.destination_resource_id = func_dict['project_id']
+            if not self.destination_resource_id:
+                self.destination_resource_id = func_dict['project_id']
             if self.keyword_action == 'enhance':
                 self.keyword_enhancement_successful = update_targets_keywords(self, func_dict['project_id'])
             else: # elif suggest
