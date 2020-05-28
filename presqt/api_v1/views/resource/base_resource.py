@@ -190,7 +190,7 @@ class BaseResource(APIView):
             ticket_number = uuid4()
             self.ticket_path = os.path.join("mediafiles", "uploads", str(ticket_number))
         
-        # Extract each file in the zip file to disk
+            # Extract each file in the zip file to disk
             with zipfile.ZipFile(resource) as myzip:
                 myzip.extractall(self.ticket_path)
 
