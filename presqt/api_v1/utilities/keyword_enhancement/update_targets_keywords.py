@@ -65,7 +65,7 @@ def update_desination_with_source_pre_suggest_keywords(self, project_id):
     Upload keywords to the destination from the source.
     """
     metadata_succeeded = True
-    # Upload enhanced source keywords to destination
+    # Upload initial source keywords to destination
     destination_keywords_upload_func = FunctionRouter.get_function(self.destination_target_name, 'keywords_upload')
     try:
         destination_keywords_upload_func(self.destination_token, project_id, self.initial_keywords)
