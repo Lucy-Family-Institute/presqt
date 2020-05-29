@@ -13,10 +13,11 @@ def suggest_keywords(self):
     keyword_fetch_func = FunctionRouter.get_function(self.source_target_name, 'keywords')
     try:
         source_keywords = keyword_fetch_func(self.source_token, self.source_resource_id)['keywords']
+        self.initial_keywords = source_keywords
     except PresQTResponseException:
         return {}
 
-    self.all_keywords = source_keywords + self.all_keywords
+    self.all_keywords = list(set(source_keywords + self.all_keywords))
 
     # Enhance source keywords
     try:
