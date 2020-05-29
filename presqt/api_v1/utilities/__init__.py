@@ -28,5 +28,5 @@ from presqt.api_v1.utilities.validation.search_validator import search_validator
 from presqt.api_v1.utilities.utils.keyword_enhancer import keyword_enhancer
 from presqt.api_v1.utilities.validation.keyword_action_validation import keyword_action_validation
 from presqt.api_v1.utilities.keyword_enhancement.enhance_keywords import enhance_keywords
-from presqt.api_v1.utilities.keyword_enhancement.update_targets_keywords import update_targets_keywords
+from presqt.api_v1.utilities.keyword_enhancement.update_targets_keywords import update_targets_keywords, update_desination_with_source_pre_suggest_keywords
 from presqt.api_v1.utilities.keyword_enhancement.suggest_keywords import suggest_keywords
