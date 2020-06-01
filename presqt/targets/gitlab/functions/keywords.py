@@ -56,7 +56,7 @@ def gitlab_fetch_keywords(token, resource_id):
         metadata = json.loads(base64_metadata)
 
     if metadata:
-        keywords = list(set(resource['extra']['tag_list'] + metadata['allEnhancedKeywords']))
+        keywords = list(set(resource['extra']['tag_list'] + metadata['presqtKeywords']))
     else:
         keywords = list(set(resource['extra']['tag_list']))
 

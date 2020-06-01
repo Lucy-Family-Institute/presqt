@@ -28,7 +28,7 @@ def get_upload_source_metadata(instance, bag):
                 instance.source_fts_metadata_actions = instance.source_fts_metadata_actions + \
                                                        source_metadata_content['actions']
                 instance.all_keywords = instance.all_keywords + \
-                                        source_metadata_content['allEnhancedKeywords']
+                                        source_metadata_content['presqtKeywords']
                 os.remove(os.path.join(instance.resource_main_dir, bag_file))
                 bag.save(manifests=True)
             # If the FTS metadata is invalid then rename the file in the bag.
