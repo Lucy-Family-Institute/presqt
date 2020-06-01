@@ -163,7 +163,7 @@ to the metadata file.
 **Definition of** ``PresQT FTS Metadata`` **fields**:
 
 ===================== ====== ==============================================================================
-presqtKeywords   array  All Keywords added to this resource via PresQT.
+presqtKeywords        array  All Keywords added to this resource via PresQT.
 actions               array  Array of PresQT actions that have taken place on the this project
 id                    string ID of the PresQT action (uuid4). Created at the time metadata is written
 actionDateTime        string Date and time that the action took place
