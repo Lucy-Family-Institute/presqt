@@ -60,7 +60,7 @@ def update_targets_keywords(self, project_id):
     return metadata_succeeded
 
 
-def update_desination_with_source_pre_suggest_keywords(self, project_id):
+def update_destination_with_source_pre_suggest_keywords(self, project_id):
     """
     Upload keywords to the destination from the source.
     """
@@ -70,7 +70,8 @@ def update_desination_with_source_pre_suggest_keywords(self, project_id):
     except PresQTResponseException:
         initial_keywords = []
 
-    keywords_for_project = self.initial_keywords + initial_keywords
+    keywords_for_project = list(set(self.initial_keywords + initial_keywords))
+
     metadata_succeeded = True
     # Upload initial source keywords to destination
     destination_keywords_upload_func = FunctionRouter.get_function(self.destination_target_name, 'keywords_upload')
