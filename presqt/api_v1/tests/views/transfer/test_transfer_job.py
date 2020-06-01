@@ -171,7 +171,7 @@ class TestTransferJobGET(SimpleTestCase):
         response = requests.get(metadata_link, headers=headers)
         metadata_file = json.loads(response.content)
         self.assertEqual(response.status_code, 200)
-        self.assertGreater(len(metadata_file['allEnhancedKeywords']), 0)
+        self.assertGreater(len(metadata_file['presqtKeywords']), 0)
         self.assertGreater(len(metadata_file['actions'][0]['keywordEnhancements'].keys()), 0)
         self.assertEquals(metadata_file['actions'][0]['actionType'], "transfer_enhancement")
 
@@ -226,7 +226,7 @@ class TestTransferJobGET(SimpleTestCase):
                 break
         metadata = json.loads(metadata)
 
-        self.assertGreater(len(metadata['allEnhancedKeywords']), 0)
+        self.assertGreater(len(metadata['presqtKeywords']), 0)
         self.assertGreater(len(metadata['actions'][0]['keywordEnhancements'].keys()), 0)
 
         # DELETE TICKET FOLDER
@@ -284,7 +284,7 @@ class TestTransferJobGET(SimpleTestCase):
 
         # DELETE METADATA FILE IN GITHUB
         original_github_metadata = {
-            "allEnhancedKeywords": ["cats", "dogs"],
+            "presqtKeywords": ["cats", "dogs"],
             "actions": []
         }
         updated_metadata_bytes = json.dumps(original_github_metadata, indent=4).encode('utf-8')
@@ -337,7 +337,7 @@ class TestTransferJobGET(SimpleTestCase):
         metadata = json.loads(metadata)
 
         for keyword in github_keywords:
-            self.assertIn(keyword, metadata['allEnhancedKeywords'])
+            self.assertIn(keyword, metadata['presqtKeywords'])
 
         self.assertGreater(len(metadata['actions'][0]['keywordEnhancements'].keys()), 0)
 
@@ -409,7 +409,7 @@ class TestTransferJobGET(SimpleTestCase):
                 break
         metadata = json.loads(metadata)
 
-        self.assertEqual(len(metadata['allEnhancedKeywords']), 3)
+        self.assertEqual(len(metadata['presqtKeywords']), 3)
         self.assertEqual(len(metadata['actions'][0]['keywordEnhancements'].keys()), 0)
 
         # DELETE TICKET FOLDER

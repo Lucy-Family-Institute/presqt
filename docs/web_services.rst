@@ -163,7 +163,7 @@ to the metadata file.
 **Definition of** ``PresQT FTS Metadata`` **fields**:
 
 ===================== ====== ==============================================================================
-allEnhancedKeywords   array  All Keywords added to this resource via PresQT.
+presqtKeywords        array  All Keywords added to this resource via PresQT.
 actions               array  Array of PresQT actions that have taken place on the this project
 id                    string ID of the PresQT action (uuid4). Created at the time metadata is written
 actionDateTime        string Date and time that the action took place
@@ -204,7 +204,7 @@ destinationHashes     dict   Object that contains the file hashes at the destina
 .. code-block:: json
 
     {
-        "allEnhancedKeywords": ["cat", "dog", "feline", "doggo"],
+        "presqtKeywords": ["cat", "dog", "feline", "doggo"],
         "actions": [
             {
                 "id": "bc5a48dc-d1f9-46bd-9137-48fe4843df77",
@@ -264,7 +264,7 @@ destinationHashes     dict   Object that contains the file hashes at the destina
 .. code-block:: json
 
     {
-        "allEnhancedKeywords": ["cat", "dog", "feline", "doggo"],
+        "presqtKeywords": ["cat", "dog", "feline", "doggo"],
         "actions": [
             {
                 "id": "bc5a48dc-d1f9-46bd-9137-48fe4843df77",

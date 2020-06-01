@@ -28,7 +28,7 @@ def update_targets_keywords(self, project_id):
     else:
         # Update/create source FTS metadata file with enhanced keywords
         enhance_dict = {
-            'allEnhancedKeywords': self.all_keywords,
+            'presqtKeywords': self.all_keywords,
             'actions': [
                 {
                     'id': str(uuid4()),
@@ -64,11 +64,18 @@ def update_desination_with_source_pre_suggest_keywords(self, project_id):
     """
     Upload keywords to the destination from the source.
     """
+    destination_keywords_get_func = FunctionRouter.get_function(self.destination_target_name, 'keywords')
+    try:
+        initial_keywords = destination_keywords_get_func(self.destination_token, project_id)['keywords']
+    except PresQTResponseException:
+        initial_keywords = []
+
+    keywords_for_project = self.initial_keywords + initial_keywords
     metadata_succeeded = True
     # Upload initial source keywords to destination
     destination_keywords_upload_func = FunctionRouter.get_function(self.destination_target_name, 'keywords_upload')
     try:
-        destination_keywords_upload_func(self.destination_token, project_id, self.initial_keywords)
+        destination_keywords_upload_func(self.destination_token, project_id, keywords_for_project)
     except PresQTResponseException:
         metadata_succeeded = False
 

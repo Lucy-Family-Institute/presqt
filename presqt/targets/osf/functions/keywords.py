@@ -61,7 +61,7 @@ def osf_fetch_keywords(token, resource_id):
             metadata = json.loads(metadata_file)
 
     if metadata:
-        keywords = list(set(resource.tags + metadata['allEnhancedKeywords']))
+        keywords = list(set(resource.tags + metadata['presqtKeywords']))
     else:
         keywords = list(set(resource.tags))
 

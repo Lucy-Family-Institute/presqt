@@ -1,7 +1,7 @@
 {
   "type": "object",
   "properties": {
-    "allEnhancedKeywords": {
+    "presqtKeywords": {
       "type": "array",
       "items": { "type": "string" }
     },
@@ -104,6 +104,6 @@
       }
     }
   },
-  "required": ["allEnhancedKeywords", "actions"],
+  "required": ["presqtKeywords", "actions"],
   "additionalProperties": false
 }
