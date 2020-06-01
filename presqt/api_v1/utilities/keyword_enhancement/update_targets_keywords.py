@@ -39,9 +39,9 @@ def update_targets_keywords(self, project_id):
                     'sourceUsername': self.source_username,
                     'destinationTargetName': self.source_target_name,
                     'destinationUsername': self.source_username,
-                    'keywordEnhancements': {
-                        'initialKeywords': self.initial_keywords,
-                        'enhancedKeywords': self.enhanced_keywords,
+                    'keywords': {
+                        'sourceKeywordsAdded': self.initial_keywords,
+                        'sourceKeywordsEnhanced': self.enhanced_keywords,
                         'enhancer': 'scigraph'
 
                     },

@@ -246,9 +246,9 @@ class ResourceKeywords(APIView):
                 'destinationTargetName': target_name,
                 'sourceUsername': 'N/A',
                 'destinationUsername': 'N/A',
-                'keywordEnhancements': {
-                    'initialKeywords': initial_keywords['keywords'],
-                    'enhancedKeywords': updated_keywords['updated_keywords'],
+                'keywords': {
+                    'sourceKeywordsAdded': initial_keywords['keywords'],
+                    'sourceKeywordsEnhanced': updated_keywords['updated_keywords'],
                     'enhancer': 'scigraph'
                 },
                 'files': {

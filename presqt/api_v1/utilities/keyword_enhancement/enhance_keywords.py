@@ -27,8 +27,8 @@ def enhance_keywords(self):
         self.enhanced_keywords = []
 
     keyword_dict = {
-        'initialKeywords': self.initial_keywords,
-        'enhancedKeywords': list(set(self.enhanced_keywords)),
+        'sourceKeywordsAdded': self.initial_keywords,
+        'sourceKeywordsEnhanced': list(set(self.enhanced_keywords)),
         'enhancer': 'scigraph'
     }
 

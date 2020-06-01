@@ -162,42 +162,42 @@ to the metadata file.
 
 **Definition of** ``PresQT FTS Metadata`` **fields**:
 
-===================== ====== ==============================================================================
-presqtKeywords        array  All Keywords added to this resource via PresQT.
-actions               array  Array of PresQT actions that have taken place on the this project
-id                    string ID of the PresQT action (uuid4). Created at the time metadata is written
-actionDateTime        string Date and time that the action took place
-actionType            string Type of action (Download, Upload, Transfer)
-sourceTargetName      string Name of the source target the action is taking place on
-sourceUsername        string Requesting user’s source target username
-destinationTargetName string Name of the destination target the action is taking place on
-destinationUsername   string Requesting user’s destination target username
-keywordEnhancements   dict   Keyword enhancements that took place during this action
+======================= ====== ==============================================================================
+presqtKeywords          array  All Keywords added to this resource via PresQT.
+actions                 array  Array of PresQT actions that have taken place on the this project
+id                      string ID of the PresQT action (uuid4). Created at the time metadata is written
+actionDateTime          string Date and time that the action took place
+actionType              string Type of action (Download, Upload, Transfer)
+sourceTargetName        string Name of the source target the action is taking place on
+sourceUsername          string Requesting user’s source target username
+destinationTargetName   string Name of the destination target the action is taking place on
+destinationUsername     string Requesting user’s destination target username
+keywords                dict   Keyword enhancements that took place during this action
 
-                             `*` Fields found in this dictionaries
+                               `*` Fields found in this dictionaries
 
-initialKeywords*      array  The initial keywords found in this target
+sourceKeywordsAdded*    array  The source keywords added during this action
 
-                             This includes keywords in the target keywords found in FTS metadata file
+                               This includes keywords in the target keywords found in FTS metadata file
 
-enhancedKeywords*     array  The new keyword enhancements added to the target
-enhancer*             str    The enhancement service used to enhance the keywords
+sourceKeywordsEnhanced* array  The new keyword enhancements added to the target
+enhancer*               str    The enhancement service used to enhance the keywords
 
-files                 array  Array of files that were involved in the PresQT action
-sourcePath            string Path of the file at the source target
-sourceHashes          dict   Object that contains the file hashes at the source target
-title                 string Title of the file at the source target
-extra                 dict   Object that contains all extra metadata we can retrieve from the source target
-failedFixityInfo      array  Array containing dictionaries of info on files that failed fixity check
+files                   array  Array of files that were involved in the PresQT action
+sourcePath              string Path of the file at the source target
+sourceHashes            dict   Object that contains the file hashes at the source target
+title                   string Title of the file at the source target
+extra                   dict   Object that contains all extra metadata we can retrieve from the source target
+failedFixityInfo        array  Array containing dictionaries of info on files that failed fixity check
 
-                             `**` Fields found in this dictionaries
+                               `**` Fields found in this dictionaries
 
-newGeneratedHash**    string PresQT generated hash of the file
-algorithmUsed**       string Hash Algorithm used for the newGeneratedHash
-reasonFixityFailed**  string Reason fixity failed for the file
-destinationPath       string Path of the file at the destination target
-destinationHashes     dict   Object that contains the file hashes at the destination target
-===================== ====== ==============================================================================
+newGeneratedHash**      string PresQT generated hash of the file
+algorithmUsed**         string Hash Algorithm used for the newGeneratedHash
+reasonFixityFailed**    string Reason fixity failed for the file
+destinationPath         string Path of the file at the destination target
+destinationHashes       dict   Object that contains the file hashes at the destination target
+======================= ====== ==============================================================================
 
 **Example of** ``PresQT FTS Metadata`` **generated by a transfer of a project from GitHub to OSF**:
 
@@ -214,9 +214,9 @@ destinationHashes     dict   Object that contains the file hashes at the destina
                 "sourceUsername": "github_username",
                 "destinationTargetName": "osf",
                 "destinationUsername": "osf_username",
-                "keywordEnhancements": {
-                    "initialKeywords": ["cat", "dog"],
-                    "enhancedKeywords": ["feline", "doggo"],
+                "keywords": {
+                    "sourceKeywordsAdded": ["cat", "dog"],
+                    "sourceKeywordsEnhanced": ["feline", "doggo"],
                     "enhancer": "scigraph"
                 },
                 "files": {
@@ -274,9 +274,9 @@ destinationHashes     dict   Object that contains the file hashes at the destina
                 "sourceUsername": "github_username",
                 "destinationTargetName": "osf",
                 "destinationUsername": "osf_username",
-                "keywordEnhancements": {
-                    "initialKeywords": ["cat", "dog"],
-                    "enhancedKeywords": ["feline", "doggo"],
+                "keywords": {
+                    "sourceKeywordsAdded": ["cat", "dog"],
+                    "sourceKeywordsEnhanced": ["feline", "doggo"],
                     "enhancer": "scigraph"
                 },
                 "files": {
@@ -324,7 +324,7 @@ destinationHashes     dict   Object that contains the file hashes at the destina
                 "sourceUsername": "osf_username",
                 "destinationTargetName": "Local Machine",
                 "destinationUsername": null,
-                "keywordEnhancements": {},
+                "keywords": {},
                 "files": {
                     "created": [
                         {

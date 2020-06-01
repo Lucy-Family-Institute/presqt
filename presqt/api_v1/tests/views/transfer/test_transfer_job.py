@@ -172,7 +172,7 @@ class TestTransferJobGET(SimpleTestCase):
         metadata_file = json.loads(response.content)
         self.assertEqual(response.status_code, 200)
         self.assertGreater(len(metadata_file['presqtKeywords']), 0)
-        self.assertGreater(len(metadata_file['actions'][0]['keywordEnhancements'].keys()), 0)
+        self.assertGreater(len(metadata_file['actions'][0]['keywords'].keys()), 0)
         self.assertEquals(metadata_file['actions'][0]['actionType'], "transfer_enhancement")
 
         # RESET KEYWORDS FROM GITHUB
@@ -227,7 +227,7 @@ class TestTransferJobGET(SimpleTestCase):
         metadata = json.loads(metadata)
 
         self.assertGreater(len(metadata['presqtKeywords']), 0)
-        self.assertGreater(len(metadata['actions'][0]['keywordEnhancements'].keys()), 0)
+        self.assertGreater(len(metadata['actions'][0]['keywords'].keys()), 0)
 
         # DELETE TICKET FOLDER
         shutil.rmtree('mediafiles/transfers/{}'.format(self.ticket_number))
@@ -339,7 +339,7 @@ class TestTransferJobGET(SimpleTestCase):
         for keyword in github_keywords:
             self.assertIn(keyword, metadata['presqtKeywords'])
 
-        self.assertGreater(len(metadata['actions'][0]['keywordEnhancements'].keys()), 0)
+        self.assertGreater(len(metadata['actions'][0]['keywords'].keys()), 0)
 
         # DELETE TICKET FOLDER
         shutil.rmtree('mediafiles/transfers/{}'.format(self.ticket_number))
@@ -410,7 +410,7 @@ class TestTransferJobGET(SimpleTestCase):
         metadata = json.loads(metadata)
 
         self.assertEqual(len(metadata['presqtKeywords']), 3)
-        self.assertEqual(len(metadata['actions'][0]['keywordEnhancements'].keys()), 0)
+        self.assertEqual(len(metadata['actions'][0]['keywords'].keys()), 0)
 
         # DELETE TICKET FOLDER
         shutil.rmtree('mediafiles/transfers/{}'.format(self.ticket_number))

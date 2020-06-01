@@ -351,7 +351,7 @@ class BaseResource(APIView):
             'destinationTargetName': 'Local Machine',
             'destinationUsername': None,
             # TODO: Put self.all_keywords here as sourceKeywords...
-            'keywordEnhancements': keyword_enhancements,
+            'keywords': keyword_enhancements,
             'files': {
                 'created': self.new_fts_metadata_files,
                 'updated': [],
@@ -452,7 +452,7 @@ class BaseResource(APIView):
                 'sourceUsername': None,
                 'destinationTargetName': self.destination_target_name,
                 'destinationUsername': None,
-                'keywordEnhancements': {},
+                'keywords': {},
                 'files': {
                     'created': self.new_fts_metadata_files,
                     'updated': [],

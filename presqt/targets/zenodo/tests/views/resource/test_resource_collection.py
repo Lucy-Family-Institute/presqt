@@ -142,7 +142,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
                     "destinationTargetName": "zenodo",
                     "sourceUsername": "TestUser",
                     "destinationUsername": "81621",
-                    "keywordEnhancements": {},
+                    "keywords": {},
                     "files": {
                         "created": [],
                         "updated": [],
