@@ -378,7 +378,8 @@ class TestTransferJobGET(SimpleTestCase):
         self.assertNotEqual(process_info['status'], 'in_progress')
 
         response = self.client.get(self.transfer_job, **self.headers)
-        self.assertEqual(response.data['initial_keywords'], github_target_keywords)
+        for keyword in response.data['initial_keywords']:
+            self.assertIn(keyword, github_target_keywords)
         self.assertGreater(len(response.data['enhanced_keywords']), 3)
 
         # VALIDATE KEYWORD AND VALIDATE THAT NO METADATA HAS BEEN WRITTEN TO GITHUB

@@ -26,6 +26,4 @@ def suggest_keywords(self):
         self.initial_keywords = []
         self.enhanced_keywords = []
 
-    keyword_dict = {}
-
-    return keyword_dict
+    return {}

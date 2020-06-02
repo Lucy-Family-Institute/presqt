@@ -32,8 +32,18 @@ def transfer_post_body_validation(request):
         raise PresQTValidationError(
             "PresQT Error: source_resource_id was not found in the request body.", status.HTTP_400_BAD_REQUEST)
 
+    try:
+        keywords = request_data['keywords']
+    except KeyError:
+        raise PresQTValidationError(
+            "PresQT Error: keywords was not found in the request body.", status.HTTP_400_BAD_REQUEST)
+    else:
+        if type(keywords) is not list:
+            raise PresQTValidationError(
+                "PresQT Error: keywords must be in list format.", status.HTTP_400_BAD_REQUEST)
+
     if source_resource_id is None or source_resource_id == "":
         raise PresQTValidationError(
             "PresQT Error: source_resource_id can't be None or blank.", status.HTTP_400_BAD_REQUEST)
 
-    return source_target, source_resource_id
+    return source_target, source_resource_id, keywords

@@ -579,7 +579,7 @@ class BaseResource(APIView):
             self.source_token = get_source_token(self.request)
             self.file_duplicate_action = file_duplicate_action_validation(self.request)
             self.keyword_action = keyword_action_validation(self.request)
-            self.source_target_name, self.source_resource_id = transfer_post_body_validation(
+            self.source_target_name, self.source_resource_id, self.keywords = transfer_post_body_validation(
                 self.request)
             target_valid, self.infinite_depth = target_validation(
                 self.destination_target_name, self.action)
