@@ -88,7 +88,7 @@ class TestTransferJobGET(SimpleTestCase):
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': ZENODO_TEST_USER_TOKEN,
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
-                        'HTTP_PRESQT_KEYWORD_ACTION': 'enhance'}
+                        'HTTP_PRESQT_KEYWORD_ACTION': 'automatic'}
         response = self.client.post(self.url, data={"source_target_name": "github",
                                                     "source_resource_id": self.resource_id},
                                     **self.headers)
@@ -136,7 +136,7 @@ class TestTransferJobGET(SimpleTestCase):
         """
         github_project_id = "209372336"
         github_target_keywords = ["animals", "eggs", "water"]
-        self.headers['HTTP_PRESQT_KEYWORD_ACTION'] = 'enhance'
+        self.headers['HTTP_PRESQT_KEYWORD_ACTION'] = 'automatic'
         # TRANSFER RESOURCE TO OSF
         response = self.client.post(self.url, data={
             "source_target_name": "github", "source_resource_id": github_project_id}, **self.headers)
@@ -241,7 +241,7 @@ class TestTransferJobGET(SimpleTestCase):
         github_target_keywords = ["airplane", "wood", "dirt"]
         github_metadata_keywords = ["cats", "dogs"]
         github_keywords = github_target_keywords + github_metadata_keywords
-        self.headers['HTTP_PRESQT_KEYWORD_ACTION'] = 'enhance'
+        self.headers['HTTP_PRESQT_KEYWORD_ACTION'] = 'automatic'
 
         # TRANSFER RESOURCE TO OSF
         response = self.client.post(self.url, data={
@@ -629,7 +629,7 @@ class TestTransferJobGET(SimpleTestCase):
         headers = {'HTTP_PRESQT_DESTINATION_TOKEN': GITHUB_TEST_USER_TOKEN,
                    'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN,
                    'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
-                   'HTTP_PRESQT_KEYWORD_ACTION': 'enhance'}
+                   'HTTP_PRESQT_KEYWORD_ACTION': 'automatic'}
         url = reverse('resource_collection', kwargs={'target_name': 'github'})
 
         response = self.client.post(url,
@@ -665,7 +665,7 @@ class TestTransferJobGET(SimpleTestCase):
         This test exists to test the error raising works in target functions in enhance_keywords()
         """
         github_id = "209373160:__pycache__"
-        self.headers['HTTP_PRESQT_KEYWORD_ACTION'] = 'enhance'
+        self.headers['HTTP_PRESQT_KEYWORD_ACTION'] = 'automatic'
 
         # TRANSFER RESOURCE TO OSF
         response = self.client.post(self.url, data={
@@ -699,7 +699,7 @@ class TestTransferJobGET(SimpleTestCase):
         Test that the transfer endpoint is catching an error returned from the target server
         when attempting to update metadata
         """
-        self.headers['HTTP_PRESQT_KEYWORD_ACTION'] = 'enhance'
+        self.headers['HTTP_PRESQT_KEYWORD_ACTION'] = 'automatic'
 
         # Create a mock response class
         class MockResponse:

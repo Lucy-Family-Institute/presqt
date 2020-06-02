@@ -128,7 +128,7 @@ class BaseResource(APIView):
         }
         or
         {
-        "error": "PresQT Error: 'bad_action' is not a valid keyword_action. The options are 'enhance' or 'suggest'."
+        "error": "PresQT Error: 'bad_action' is not a valid keyword_action. The options are 'automatic' or 'suggest'."
         }
 
         401: Unauthorized
@@ -326,7 +326,7 @@ class BaseResource(APIView):
 
         # Enhance the source keywords
         self.keyword_enhancement_successful = True
-        if self.action == 'resource_transfer_in' and self.keyword_action == 'enhance':
+        if self.action == 'resource_transfer_in' and self.keyword_action == 'automatic':
             keyword_enhancements = enhance_keywords(self)
         else:
             keyword_enhancements = suggest_keywords(self)
@@ -558,7 +558,7 @@ class BaseResource(APIView):
         else:
             if not self.destination_resource_id:
                 self.destination_resource_id = func_dict['project_id']
-            if self.keyword_action == 'enhance':
+            if self.keyword_action == 'automatic':
                 self.keyword_enhancement_successful = update_targets_keywords(self, func_dict['project_id'])
             else:  # elif suggest
                 self.keyword_enhancement_successful = update_destination_with_source_pre_suggest_keywords(self, func_dict['project_id'])
@@ -666,7 +666,7 @@ class BaseResource(APIView):
         self.process_info_obj['source_resource_id'] = self.source_resource_id
         self.process_info_obj['destination_resource_id'] = self.destination_resource_id
 
-        if self.keyword_action == 'enhance':
+        if self.keyword_action == 'automatic':
             self.process_info_obj['enhanced_keywords'] = self.enhanced_keywords
             self.process_info_obj['initial_keywords'] = self.initial_keywords
         else: # elif suggest

@@ -355,7 +355,7 @@ class TestResourcePOSTWithBody(SimpleTestCase):
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.destination_token,
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
-                        'HTTP_PRESQT_KEYWORD_ACTION': 'enhance'}
+                        'HTTP_PRESQT_KEYWORD_ACTION': 'automatic'}
 
     def test_error_400_missing_destination_token(self):
         """
@@ -473,7 +473,7 @@ class TestResourcePOSTWithBody(SimpleTestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data, {
-            'error': "PresQT Error: 'bad_action' is not a valid keyword_action. The options are 'enhance' or 'suggest'."})
+            'error': "PresQT Error: 'bad_action' is not a valid keyword_action. The options are 'automatic' or 'suggest'."})
 
     def test_error_404_source_target_name_invalid(self):
         """

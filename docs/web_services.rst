@@ -415,7 +415,7 @@ Keyword Assignment During Transfer
 ++++++++++++++++++++++++++++++++++
 When transferring a resource you have the option to either enhance keywords or suggest keyword
 enhancements by adding ``presqt-keyword-action`` to the request headers. The options are ``suggest``
-or ``enhance``.
+or ``automatic``.
 
 Suggest Keywords
 """"""""""""""""
@@ -427,7 +427,7 @@ response once the transfer finishes.
 
 Enhance Keywords
 """"""""""""""""
-If ``presqt-keyword-action`` is ``enhance`` then PresQT will take several actions regarding keyword
+If ``presqt-keyword-action`` is ``automatic`` then PresQT will take several actions regarding keyword
 enhancements during the transfer process.
 
 1. Fetch all source keywords both in the target and in the FTS metadata file for the transferred resource.
