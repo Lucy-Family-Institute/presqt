@@ -473,7 +473,7 @@ class TestResourcePOSTWithBody(SimpleTestCase):
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data, {
-            'error': "PresQT Error: 'bad_action' is not a valid keyword_action. The options are 'automatic' or 'suggest'."})
+            'error': "PresQT Error: 'bad_action' is not a valid keyword_action. The options are 'automatic' or 'manual'."})
 
     def test_error_404_source_target_name_invalid(self):
         """

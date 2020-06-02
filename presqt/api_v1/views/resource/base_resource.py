@@ -128,7 +128,7 @@ class BaseResource(APIView):
         }
         or
         {
-        "error": "PresQT Error: 'bad_action' is not a valid keyword_action. The options are 'automatic' or 'suggest'."
+        "error": "PresQT Error: 'bad_action' is not a valid keyword_action. The options are 'automatic' or 'manual'."
         }
 
         401: Unauthorized
@@ -560,7 +560,7 @@ class BaseResource(APIView):
                 self.destination_resource_id = func_dict['project_id']
             if self.keyword_action == 'automatic':
                 self.keyword_enhancement_successful = update_targets_keywords(self, func_dict['project_id'])
-            else:  # elif suggest
+            else:  # manual
                 self.keyword_enhancement_successful = update_destination_with_source_pre_suggest_keywords(self, func_dict['project_id'])
 
             self.process_info_obj['upload_status'] = upload_message
@@ -661,7 +661,7 @@ class BaseResource(APIView):
         # Transfer was a success so update the server metadata file.
         self.process_info_obj['status_code'] = '200'
         self.process_info_obj['status'] = 'finished'
-        self.process_info_obj['failed_fixity'] = list(
+        self.process_info_obj['failed_fixity'] = list(manual
             set(self.download_failed_fixity + self.upload_failed_fixity))
         self.process_info_obj['source_resource_id'] = self.source_resource_id
         self.process_info_obj['destination_resource_id'] = self.destination_resource_id
@@ -669,7 +669,7 @@ class BaseResource(APIView):
         if self.keyword_action == 'automatic':
             self.process_info_obj['enhanced_keywords'] = self.enhanced_keywords
             self.process_info_obj['initial_keywords'] = self.initial_keywords
-        else: # elif suggest
+        else: # manual
             self.process_info_obj['enhanced_keywords'] = self.suggested_keywords
             self.process_info_obj['initial_keywords'] = self.all_keywords
 

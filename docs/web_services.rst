@@ -414,12 +414,12 @@ Zenodo      [Keywords]
 Keyword Assignment During Transfer
 ++++++++++++++++++++++++++++++++++
 When transferring a resource you have the option to either enhance keywords or suggest keyword
-enhancements by adding ``presqt-keyword-action`` to the request headers. The options are ``suggest``
+enhancements by adding ``presqt-keyword-action`` to the request headers. The options are ``manual``
 or ``automatic``.
 
 Suggest Keywords
 """"""""""""""""
-If ``presqt-keyword-action`` is ``suggest`` then PresQT will take no actions on your behalf regarding
+If ``presqt-keyword-action`` is ``manual`` then PresQT will take no actions on your behalf regarding
 keywords during the transfer. It will still gather keywords from the target and from the FTS metadata
 file found for the resource being transferred and enhance them with the given keyword enhancer
 (for now it defaults to SciGraph). The suggested enhancements will be returned in the ``Transfer Job``

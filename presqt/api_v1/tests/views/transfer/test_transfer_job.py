@@ -32,7 +32,7 @@ class TestTransferJobGET(SimpleTestCase):
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.destination_token,
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
-                        'HTTP_PRESQT_KEYWORD_ACTION': 'suggest'}
+                        'HTTP_PRESQT_KEYWORD_ACTION': 'manual'}
         self.resource_id = '209373660'
         self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
 
@@ -353,7 +353,7 @@ class TestTransferJobGET(SimpleTestCase):
         github_target_keywords = ["animals", "eggs", "water"]
 
         # TRANSFER RESOURCE TO OSF
-        self.headers['HTTP_PRESQT_KEYWORD_ACTION'] = 'suggest'
+        self.headers['HTTP_PRESQT_KEYWORD_ACTION'] = 'manual'
         response = self.client.post(self.url, data={
             "source_target_name": "github", "source_resource_id": github_project_id}, **self.headers)
 
@@ -787,7 +787,7 @@ class TestTransferJobPATCH(SimpleTestCase):
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.destination_token,
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
-                        'HTTP_PRESQT_KEYWORD_ACTION': 'suggest'}
+                        'HTTP_PRESQT_KEYWORD_ACTION': 'manual'}
         self.resource_id = '209373660'
         self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
 

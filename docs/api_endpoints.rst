@@ -851,7 +851,7 @@ Transfer New Top Level Resource
     :statuscode 400: ``source_target_name`` was not found in the request body
     :statuscode 400: Source target does not allow transfer to the destination target
     :statuscode 400: Destination target does not allow transfer to the source target
-    :statuscode 400: Invalid ``presqt-keyword-action`` header given. The options are ``automatic`` or ``suggest``
+    :statuscode 400: Invalid ``presqt-keyword-action`` header given. The options are ``automatic`` or ``manual``
     :statuscode 400: ``presqt-keyword-action`` missing in the request headers
     :statuscode 401: ``Source Token`` is invalid
     :statuscode 401: ``Destination Token`` is invalid
@@ -915,7 +915,7 @@ Transfer To Existing Resource
     :statuscode 400: ``source_target_name`` was not found in the request body
     :statuscode 400: Source target does not allow transfer to the destination target
     :statuscode 400: Destination target does not allow transfer to the source target
-    :statuscode 400: Invalid ``presqt-keyword-action`` header given. The options are ``automatic`` or ``suggest``
+    :statuscode 400: Invalid ``presqt-keyword-action`` header given. The options are ``automatic`` or ``manual``
     :statuscode 400: ``presqt-keyword-action`` missing in the request headers
     :statuscode 401: ``Source Token`` is invalid
     :statuscode 401: ``Destination Token`` is invalid
