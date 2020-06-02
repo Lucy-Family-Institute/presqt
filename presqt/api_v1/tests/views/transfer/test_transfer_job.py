@@ -171,7 +171,7 @@ class TestTransferJobGET(SimpleTestCase):
         response = requests.get(metadata_link, headers=headers)
         metadata_file = json.loads(response.content)
         self.assertEqual(response.status_code, 200)
-        self.assertGreater(len(metadata_file['presqtKeywords']), 0)
+        self.assertGreater(len(metadata_file['allKeywords']), 0)
         self.assertGreater(len(metadata_file['actions'][0]['keywords'].keys()), 0)
         self.assertEquals(metadata_file['actions'][0]['actionType'], "transfer_enhancement")
 
@@ -226,7 +226,7 @@ class TestTransferJobGET(SimpleTestCase):
                 break
         metadata = json.loads(metadata)
 
-        self.assertGreater(len(metadata['presqtKeywords']), 0)
+        self.assertGreater(len(metadata['allKeywords']), 0)
         self.assertGreater(len(metadata['actions'][0]['keywords'].keys()), 0)
 
         # DELETE TICKET FOLDER
@@ -284,7 +284,7 @@ class TestTransferJobGET(SimpleTestCase):
 
         # DELETE METADATA FILE IN GITHUB
         original_github_metadata = {
-            "presqtKeywords": ["cats", "dogs"],
+            "allKeywords": ["cats", "dogs"],
             "actions": []
         }
         updated_metadata_bytes = json.dumps(original_github_metadata, indent=4).encode('utf-8')
@@ -337,7 +337,7 @@ class TestTransferJobGET(SimpleTestCase):
         metadata = json.loads(metadata)
 
         for keyword in github_keywords:
-            self.assertIn(keyword, metadata['presqtKeywords'])
+            self.assertIn(keyword, metadata['allKeywords'])
 
         self.assertGreater(len(metadata['actions'][0]['keywords'].keys()), 0)
 
@@ -410,7 +410,7 @@ class TestTransferJobGET(SimpleTestCase):
                 break
         metadata = json.loads(metadata)
 
-        self.assertEqual(len(metadata['presqtKeywords']), 3)
+        self.assertEqual(len(metadata['allKeywords']), 3)
         self.assertEqual(len(metadata['actions'][0]['keywords'].keys()), 0)
 
         # DELETE TICKET FOLDER

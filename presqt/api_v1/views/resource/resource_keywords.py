@@ -236,7 +236,7 @@ class ResourceKeywords(APIView):
         source_target_data = get_target_data(target_name)
 
         metadata_dict = {
-            "presqtKeywords": updated_keywords['updated_keywords'],
+            "allKeywords": updated_keywords['updated_keywords'],
             "actions": [{
                 'id': str(uuid4()),
                 'details': 'PresQT Enhance Keywords in {}'.format(source_target_data['readable_name']),

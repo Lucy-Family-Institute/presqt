@@ -2,7 +2,7 @@ from presqt.api_v1.utilities import FunctionRouter, keyword_enhancer
 from presqt.utilities import PresQTResponseException
 
 
-def enhance_keywords(self):
+def automatic_keywords(self):
     """
     Enhance keywords found at the source target and in the source target's FTS metadata file.
     Save the list of enhanced keywords to self.enhanced_keywords.
@@ -16,7 +16,7 @@ def enhance_keywords(self):
     except PresQTResponseException:
         return {}
 
-    self.all_keywords = source_keywords + self.all_keywords
+    self.all_keywords = source_keywords + self.all_keywords + self.keywords
     self.initial_keywords = self.all_keywords
 
     # Enhance source keywords

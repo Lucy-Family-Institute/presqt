@@ -65,7 +65,7 @@ def github_fetch_keywords(token, resource_id):
             metadata = json.loads(base64_metadata)
 
     if metadata:
-        keywords = list(set(resource['extra']['topics'] + metadata['presqtKeywords']))
+        keywords = list(set(resource['extra']['topics'] + metadata['allKeywords']))
     else:
         keywords = list(set(resource['extra']['topics']))
     return {

@@ -28,7 +28,7 @@ def update_targets_keywords(self, project_id):
     else:
         # Update/create source FTS metadata file with enhanced keywords
         enhance_dict = {
-            'presqtKeywords': self.all_keywords,
+            'allKeywords': self.all_keywords,
             'actions': [
                 {
                     'id': str(uuid4()),

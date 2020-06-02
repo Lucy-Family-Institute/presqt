@@ -392,7 +392,7 @@ class TestResourcePOST(SimpleTestCase):
             mock_request.return_value = mock_req
             # Attempt to update the metadata, but the server is down!
             self.assertRaises(PresQTError, gitlab_upload_metadata, self.token, project_id,
-                              {"context": {}, "presqtKeywords": [], "actions": []})
+                              {"context": {}, "allKeywords": [], "actions": []})
 
         # Delete upload folder and project
         delete_gitlab_project(project_id, GITLAB_UPLOAD_TEST_USER_TOKEN)

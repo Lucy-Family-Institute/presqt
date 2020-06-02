@@ -32,7 +32,7 @@ def create_download_metadata(instance, resource, fixity_obj):
             instance.source_fts_metadata_actions = instance.source_fts_metadata_actions + \
                                                    source_fts_metadata_content['actions']
             instance.all_keywords = instance.all_keywords + \
-                                       source_fts_metadata_content['presqtKeywords']
+                                       source_fts_metadata_content['allKeywords']
             return True
         # If the metadata is invalid rename and write it. We don't want invalid contents.
         else:

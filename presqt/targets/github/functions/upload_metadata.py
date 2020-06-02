@@ -68,10 +68,10 @@ def github_upload_metadata(token, project_id, metadata_dict):
             # Loop through each 'action' in both metadata files and make a new list of them.
             joined_actions = [entry for entry in itertools.chain(metadata_dict['actions'],
                                                                  updated_metadata['actions'])]
-            joined_keywords = [entry for entry in itertools.chain(metadata_dict['presqtKeywords'],
-                                                                  updated_metadata['presqtKeywords'])]
+            joined_keywords = [entry for entry in itertools.chain(metadata_dict['allKeywords'],
+                                                                  updated_metadata['allKeywords'])]
             updated_metadata['actions'] = joined_actions
-            updated_metadata['presqtKeywords'] = list(set(joined_keywords))
+            updated_metadata['allKeywords'] = list(set(joined_keywords))
 
             updated_metadata_bytes = json.dumps(updated_metadata, indent=4).encode('utf-8')
             updated_base64_metadata = base64.b64encode(updated_metadata_bytes).decode('utf-8')

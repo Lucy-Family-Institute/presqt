@@ -21,7 +21,7 @@ from presqt.api_v1.utilities import (target_validation, transfer_target_validati
                                      get_upload_source_metadata, hash_tokens,
                                      finite_depth_upload_helper, structure_validation,
                                      keyword_action_validation,
-                                     enhance_keywords, update_targets_keywords, suggest_keywords,
+                                     automatic_keywords, update_targets_keywords, suggest_keywords,
                                      get_target_data, update_destination_with_source_pre_suggest_keywords)
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
@@ -327,9 +327,9 @@ class BaseResource(APIView):
         # Enhance the source keywords
         self.keyword_enhancement_successful = True
         if self.action == 'resource_transfer_in' and self.keyword_action == 'automatic':
-            keyword_enhancements = enhance_keywords(self)
+            keyword_dict = automatic_keywords(self)
         else:
-            keyword_enhancements = suggest_keywords(self)
+            keyword_dict = suggest_keywords(self)
 
         # Create PresQT action metadata
         self.source_username = func_dict['action_metadata']['sourceUsername']
@@ -351,7 +351,7 @@ class BaseResource(APIView):
             'destinationTargetName': 'Local Machine',
             'destinationUsername': None,
             # TODO: Put self.all_keywords here as sourceKeywords...
-            'keywords': keyword_enhancements,
+            'keywords': keyword_dict,
             'files': {
                 'created': self.new_fts_metadata_files,
                 'updated': [],
