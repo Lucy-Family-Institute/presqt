@@ -328,8 +328,10 @@ class BaseResource(APIView):
         self.keyword_enhancement_successful = True
         if self.action == 'resource_transfer_in' and self.keyword_action == 'automatic':
             keyword_dict = automatic_keywords(self)
-        else:
+        elif self.action == 'resource_transfer_in' and self.keyword_action == 'manual':
             keyword_dict = manual_keywords(self)
+        else:
+            keyword_dict = {}
 
         # Create PresQT action metadata
         self.source_username = func_dict['action_metadata']['sourceUsername']
@@ -416,7 +418,9 @@ class BaseResource(APIView):
         Upload resources to the target and perform a fixity check on the resulting hashes.
         """
         action = 'resource_upload'
-
+        # This doesn't happen during an upload, so it won't be an error. If there is an error during
+        # transfer this will be overwritten.
+        self.keyword_enhancement_successful = True
         # Write the process id to the process_info file
         self.process_info_obj['function_process_id'] = self.function_process.pid
         write_file(self.process_info_path, self.process_info_obj, True)

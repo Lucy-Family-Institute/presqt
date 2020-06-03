@@ -41,7 +41,7 @@ def update_targets_keywords(self, project_id):
         updated_source_keywords = source_keywords_upload_func(
             self.source_token, self.source_resource_id, self.enhanced_keywords + self.initial_keywords)
     except PresQTResponseException:
-        return False
+        return False, destination_initial_keywords
     else:
         # Update/create source FTS metadata file with enhanced keywords
         enhance_dict = {

@@ -46,8 +46,13 @@ class TestTransferJobGET(SimpleTestCase):
         """
         Make a POST request to `resource` to begin transferring a resource.
         """
-        response = self.client.post(self.url, data={
-            "source_target_name": "github", "source_resource_id": self.resource_id}, **self.headers)
+        response = self.client.post(self.url, {
+            "source_target_name": "github",
+            "source_resource_id": self.resource_id,
+            "keywords": []},
+            **self.headers,
+            format='json')
+
         self.ticket_number = response.data['ticket_number']
         self.process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
             self.ticket_number)
@@ -89,9 +94,10 @@ class TestTransferJobGET(SimpleTestCase):
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
                         'HTTP_PRESQT_KEYWORD_ACTION': 'automatic'}
-        response = self.client.post(self.url, data={"source_target_name": "github",
-                                                    "source_resource_id": self.resource_id},
-                                    **self.headers)
+        response = self.client.post(self.url, {"source_target_name": "github",
+                                               "source_resource_id": self.resource_id,
+                                               "keywords": []},
+                                    **self.headers, format='json')
         self.ticket_number = response.data['ticket_number']
         self.process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
             self.ticket_number)
@@ -129,7 +135,7 @@ class TestTransferJobGET(SimpleTestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/transfers/{}'.format(self.ticket_number))
 
-    def test_transfer_keyword_enhancement_enhance(self):
+    def test_transfer_keyword_enhancement_automatic(self):
         """
         Test that the keywords are getting enhanced correctly during a transfer with keywords
         existing only on the target and not in the FTS Metadata.
@@ -138,8 +144,10 @@ class TestTransferJobGET(SimpleTestCase):
         github_target_keywords = ["animals", "eggs", "water"]
         self.headers['HTTP_PRESQT_KEYWORD_ACTION'] = 'automatic'
         # TRANSFER RESOURCE TO OSF
-        response = self.client.post(self.url, data={
-            "source_target_name": "github", "source_resource_id": github_project_id}, **self.headers)
+        response = self.client.post(self.url, {
+            "source_target_name": "github",
+            "source_resource_id": github_project_id,
+            "keywords": []}, **self.headers, format='json')
 
         self.ticket_number = response.data['ticket_number']
         self.process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
@@ -244,8 +252,10 @@ class TestTransferJobGET(SimpleTestCase):
         self.headers['HTTP_PRESQT_KEYWORD_ACTION'] = 'automatic'
 
         # TRANSFER RESOURCE TO OSF
-        response = self.client.post(self.url, data={
-            "source_target_name": "github", "source_resource_id": github_project_id}, **self.headers)
+        response = self.client.post(self.url, {
+            "source_target_name": "github",
+            "source_resource_id": github_project_id,
+            "keywords": []}, **self.headers, format='json')
 
         self.ticket_number = response.data['ticket_number']
         self.process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
@@ -344,9 +354,9 @@ class TestTransferJobGET(SimpleTestCase):
         # DELETE TICKET FOLDER
         shutil.rmtree('mediafiles/transfers/{}'.format(self.ticket_number))
 
-    def test_transfer_keyword_enhancement_suggest(self):
+    def test_transfer_keyword_enhancement_manual(self):
         """
-        Test that the keywords are getting suggested correctly during a transfer with keywords
+        Test that the keywords are getting manually added during a transfer with keywords
         existing only on the target and not in the FTS Metadata.
         """
         github_project_id = "209372769"
@@ -354,8 +364,10 @@ class TestTransferJobGET(SimpleTestCase):
 
         # TRANSFER RESOURCE TO OSF
         self.headers['HTTP_PRESQT_KEYWORD_ACTION'] = 'manual'
-        response = self.client.post(self.url, data={
-            "source_target_name": "github", "source_resource_id": github_project_id}, **self.headers)
+        response = self.client.post(self.url, {
+            "source_target_name": "github",
+            "source_resource_id": github_project_id,
+            "keywords": ["test", "words"]}, **self.headers, format='json')
 
         self.ticket_number = response.data['ticket_number']
         self.process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
@@ -380,7 +392,8 @@ class TestTransferJobGET(SimpleTestCase):
         response = self.client.get(self.transfer_job, **self.headers)
         for keyword in response.data['initial_keywords']:
             self.assertIn(keyword, github_target_keywords)
-        self.assertGreater(len(response.data['enhanced_keywords']), 3)
+
+        self.assertEqual(response.data['enhanced_keywords'], ["test", "words"])
 
         # VALIDATE KEYWORD AND VALIDATE THAT NO METADATA HAS BEEN WRITTEN TO GITHUB
         headers = {"Authorization": "token {}".format(GITHUB_TEST_USER_TOKEN),
@@ -410,8 +423,8 @@ class TestTransferJobGET(SimpleTestCase):
                 break
         metadata = json.loads(metadata)
 
-        self.assertEqual(len(metadata['allKeywords']), 3)
-        self.assertEqual(len(metadata['actions'][0]['keywords'].keys()), 0)
+        self.assertEqual(len(metadata['allKeywords']), 5)
+        self.assertEqual(len(metadata['actions'][0]['keywords'].keys()), 3)
 
         # DELETE TICKET FOLDER
         shutil.rmtree('mediafiles/transfers/{}'.format(self.ticket_number))
@@ -420,9 +433,10 @@ class TestTransferJobGET(SimpleTestCase):
         """
         Return a 400 if the `presqt-destination-token` is missing in the headers.
         """
-        response = self.client.post(self.url, data={"source_target_name": "github",
-                                                    "source_resource_id": self.resource_id},
-                                    **self.headers)
+        response = self.client.post(self.url, {
+            "source_target_name": "github",
+            "source_resource_id": self.resource_id,
+            "keywords": []}, **self.headers, format='json')
         ticket_number = response.data['ticket_number']
         process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(ticket_number)
         process_info = read_file(process_info_path, True)
@@ -452,8 +466,8 @@ class TestTransferJobGET(SimpleTestCase):
         the 'presqt-destination-token' in the process_info file.
         """
         response = self.client.post(self.url, data={"source_target_name": "github",
-                                                    "source_resource_id": self.resource_id},
-                                    **self.headers)
+                                                    "source_resource_id": self.resource_id, "keywords": []},
+                                    **self.headers, format='json')
 
         ticket_number = response.data['ticket_number']
         process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
@@ -484,9 +498,10 @@ class TestTransferJobGET(SimpleTestCase):
         Return a 500 if the BaseResource._transfer_resource method running on the server gets a 401 error because the token is invalid.
         """
         self.headers['HTTP_PRESQT_DESTINATION_TOKEN'] = 'bad_token'
-        response = self.client.post(self.url, data={"source_target_name": "github",
-                                                    "source_resource_id": self.resource_id},
-                                    **self.headers)
+        response = self.client.post(self.url, {
+            "source_target_name": "github",
+            "source_resource_id": self.resource_id, "keywords": []},
+            **self.headers, format='json')
         ticket_number = response.data['ticket_number']
         process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
             ticket_number)
@@ -527,9 +542,10 @@ class TestTransferJobGET(SimpleTestCase):
         with patch('presqt.targets.osf.classes.base.OSFBase.post') as mock_request:
             mock_request.return_value = mock_req
             # Attempt to create the project (but the server is down from our mock!)
-            response = self.client.post(self.url, data={"source_target_name": "github",
-                                                        "source_resource_id": self.resource_id},
-                                        **self.headers)
+            response = self.client.post(self.url, {
+                "source_target_name": "github",
+                "source_resource_id": self.resource_id, "keywords": []},
+                **self.headers, format='json')
             ticket_number = response.data['ticket_number']
             process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
                 ticket_number)
@@ -567,9 +583,10 @@ class TestTransferJobGET(SimpleTestCase):
         with patch('presqt.targets.github.functions.download.github_download_resource') as mock_request:
             mock_request.return_value = mock_req
             # Attempt to create the project (but the server is down from our mock!)
-            response = self.client.post(self.url, data={"source_target_name": "github",
-                                                        "source_resource_id": "garbage_id"},
-                                        **self.headers)
+            response = self.client.post(self.url, {
+                "source_target_name": "github",
+                "source_resource_id": "garbage_id", "keywords": []},
+                **self.headers, format='json')
             ticket_number = response.data['ticket_number']
             process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
                 ticket_number)
@@ -598,9 +615,10 @@ class TestTransferJobGET(SimpleTestCase):
         Various invalidly formatted request tests.
         """
         # Bad Target Name #
-        response = self.client.post(self.url, data={"source_target_name": "eggs",
-                                                    "source_resource_id": self.resource_id},
-                                    **self.headers)
+        response = self.client.post(self.url, {
+            "source_target_name": "eggs",
+            "source_resource_id": self.resource_id, "keywords": []},
+            **self.headers, format='json')
         self.assertEqual(response.data['error'], "PresQT Error: 'eggs' is not a valid Target name.")
 
     def test_transfer_in_targets_not_allowed(self):
@@ -633,10 +651,10 @@ class TestTransferJobGET(SimpleTestCase):
                    'HTTP_PRESQT_KEYWORD_ACTION': 'automatic'}
         url = reverse('resource_collection', kwargs={'target_name': 'github'})
 
-        response = self.client.post(url,
-                                    data={"source_target_name": "osf",
-                                          "source_resource_id": '5db34c37af84c3000ee1487d'},
-                                    **headers)
+        response = self.client.post(url, {
+            "source_target_name": "osf",
+            "source_resource_id": '5db34c37af84c3000ee1487d', "keywords": []},
+            **headers, format='json')
 
         ticket_number = response.data['ticket_number']
         process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(ticket_number)
@@ -669,8 +687,11 @@ class TestTransferJobGET(SimpleTestCase):
         self.headers['HTTP_PRESQT_KEYWORD_ACTION'] = 'automatic'
 
         # TRANSFER RESOURCE TO OSF
-        response = self.client.post(self.url, data={
-            "source_target_name": "github", "source_resource_id": github_id}, **self.headers)
+        response = self.client.post(self.url, {
+            "source_target_name": "github",
+            "source_resource_id": github_id,
+            "keywords": []},
+            **self.headers, format='json')
 
         self.ticket_number = response.data['ticket_number']
         self.process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
@@ -715,8 +736,10 @@ class TestTransferJobGET(SimpleTestCase):
             github_id = "209373160:__pycache__"
 
             # TRANSFER RESOURCE TO OSF
-            response = self.client.post(self.url, data={
-                "source_target_name": "github", "source_resource_id": github_id}, **self.headers)
+            response = self.client.post(self.url, {
+                "source_target_name": "github",
+                "source_resource_id": github_id,
+                "keywords": []}, **self.headers, format='json')
 
             self.ticket_number = response.data['ticket_number']
             self.process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
@@ -747,8 +770,10 @@ class TestTransferJobGET(SimpleTestCase):
             github_id = "209373160:__pycache__"
 
             # TRANSFER RESOURCE TO OSF
-            response = self.client.post(self.url, data={
-                "source_target_name": "github", "source_resource_id": github_id}, **self.headers)
+            response = self.client.post(self.url, {
+                "source_target_name": "github",
+                "source_resource_id": github_id,
+                "keywords": []}, **self.headers, format='json')
 
             self.ticket_number = response.data['ticket_number']
             self.process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
@@ -796,8 +821,10 @@ class TestTransferJobPATCH(SimpleTestCase):
         """
         Return a 200 for successful cancelled transfer process.
         """
-        transfer_response = self.client.post(self.url, data={
-            "source_target_name": "github", "source_resource_id": self.resource_id}, **self.headers)
+        transfer_response = self.client.post(self.url, {
+            "source_target_name": "github",
+            "source_resource_id": self.resource_id,
+            "keywords": []}, **self.headers, format='json')
 
         ticket_number = transfer_response.data['ticket_number']
         ticket_path = 'mediafiles/transfers/{}'.format(ticket_number)
@@ -834,8 +861,10 @@ class TestTransferJobPATCH(SimpleTestCase):
         """
         Return a 406 for unsuccessful cancel because the transfer finished already.
         """
-        transfer_response = self.client.post(self.url, data={
-            "source_target_name": "github", "source_resource_id": self.resource_id}, **self.headers)
+        transfer_response = self.client.post(self.url, {
+            "source_target_name": "github",
+            "source_resource_id": self.resource_id,
+            "keywords": []}, **self.headers, format='json')
         ticket_number = transfer_response.data['ticket_number']
         ticket_path = 'mediafiles/transfers/{}'.format(ticket_number)
         # Verify process_info file status is 'in_progress' initially
@@ -871,9 +900,11 @@ class TestTransferJobPATCH(SimpleTestCase):
         """
         Return a 400 if the `presqt-destination-token` is missing in the headers.
         """
-        response = self.client.post(self.url, data={"source_target_name": "github",
-                                                    "source_resource_id": self.resource_id},
-                                    **self.headers)
+        response = self.client.post(self.url, {
+            "source_target_name": "github",
+            "source_resource_id": self.resource_id,
+            "keywords": []},
+            **self.headers, format='json')
         ticket_number = response.data['ticket_number']
 
         url = reverse('transfer_job', kwargs={'ticket_number': ticket_number})

@@ -83,7 +83,8 @@ class TestResourceGET(SimpleTestCase):
         response = self.client.get(url, **self.header)
         # Verify the error status code and message
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data, {'error': "PresQT Error: 'bad_name' is not a valid Target name."})
+        self.assertEqual(
+            response.data, {'error': "PresQT Error: 'bad_name' is not a valid Target name."})
 
 
 class TestResourceGETZip(SimpleTestCase):
@@ -126,7 +127,8 @@ class TestResourceGETZip(SimpleTestCase):
         response = self.client.get(url, **self.header)
         # Verify the error status code and message
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data, {'error': "PresQT Error: 'bad_name' is not a valid Target name."})
+        self.assertEqual(
+            response.data, {'error': "PresQT Error: 'bad_name' is not a valid Target name."})
 
     def test_error_400_missing_token(self):
         """
@@ -364,8 +366,10 @@ class TestResourcePOSTWithBody(SimpleTestCase):
         headers = self.headers
         headers.pop('HTTP_PRESQT_DESTINATION_TOKEN')
         url = reverse('resource_collection', kwargs={'target_name': 'osf'})
-        response = self.client.post(
-            url, {"source_target_name": "curate_nd", "source_resource_id": "dj52w379504"}, **headers)
+        response = self.client.post(url, {
+            "source_target_name": "curate_nd",
+            "source_resource_id": "dj52w379504",
+            "keywords": []}, **headers, format='json')
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data,
@@ -378,8 +382,10 @@ class TestResourcePOSTWithBody(SimpleTestCase):
         headers = self.headers
         headers.pop('HTTP_PRESQT_SOURCE_TOKEN')
         url = reverse('resource_collection', kwargs={'target_name': 'osf'})
-        response = self.client.post(url, {"source_target_name": "curate_nd",
-                                          "source_resource_id": "dj52w379504"}, **headers)
+        response = self.client.post(url, {
+            "source_target_name": "curate_nd",
+            "source_resource_id": "dj52w379504",
+            "keywords": []}, **headers, format='json')
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data,
@@ -392,8 +398,10 @@ class TestResourcePOSTWithBody(SimpleTestCase):
         headers = self.headers
         headers.pop('HTTP_PRESQT_FILE_DUPLICATE_ACTION')
         url = reverse('resource_collection', kwargs={'target_name': 'osf'})
-        response = self.client.post(url, {"source_target_name": "curate_nd",
-                                          "source_resource_id": "dj52w379504"}, **headers)
+        response = self.client.post(url, {
+            "source_target_name": "curate_nd",
+            "source_resource_id": "dj52w379504",
+            "keywords": []}, **headers, format='json')
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data,
@@ -406,8 +414,10 @@ class TestResourcePOSTWithBody(SimpleTestCase):
         headers = self.headers
         headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = 'bad_action'
         url = reverse('resource_collection', kwargs={'target_name': 'osf'})
-        response = self.client.post(url, {"source_target_name": "curate_nd",
-                                          "source_resource_id": "dj52w379504"}, **headers)
+        response = self.client.post(url, {
+            "source_target_name": "curate_nd",
+            "source_resource_id": "dj52w379504",
+            "keywords": []}, **headers, format='json')
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data, {
@@ -418,7 +428,9 @@ class TestResourcePOSTWithBody(SimpleTestCase):
         Return a 400 if the POST fails because the source_target_name is missing from the request body.
         """
         url = reverse('resource_collection', kwargs={'target_name': 'osf'})
-        response = self.client.post(url, {"source_resource_id": "dj52w379504"}, **self.headers)
+        response = self.client.post(url, {
+            "source_resource_id": "dj52w379504",
+            "keywords": []}, **self.headers, format='json')
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(
@@ -429,7 +441,9 @@ class TestResourcePOSTWithBody(SimpleTestCase):
         Return a 400 if the POST fails because the source_resource_id is missing from the request body.
         """
         url = reverse('resource_collection', kwargs={'target_name': 'osf'})
-        response = self.client.post(url, {"source_target_name": "curate_nd"}, **self.headers)
+        response = self.client.post(url, {
+            "source_target_name": "curate_nd",
+            "keywords": []}, **self.headers, format='json')
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data,
@@ -440,8 +454,10 @@ class TestResourcePOSTWithBody(SimpleTestCase):
         Return a 400 if the POST fails because the source_resource_id is missing from the request body.
         """
         url = reverse('resource_collection', kwargs={'target_name': 'osf'})
-        response = self.client.post(
-            url, {"source_target_name": "curate_nd", "source_resource_id": ""}, **self.headers)
+        response = self.client.post(url, {
+            "source_target_name": "curate_nd",
+            "source_resource_id": "",
+            "keywords": []}, **self.headers, format='json')
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data,
@@ -454,8 +470,10 @@ class TestResourcePOSTWithBody(SimpleTestCase):
         headers = self.headers
         headers.pop('HTTP_PRESQT_KEYWORD_ACTION')
         url = reverse('resource_collection', kwargs={'target_name': 'osf'})
-        response = self.client.post(url, {"source_target_name": "curate_nd",
-                                          "source_resource_id": "dj52w379504"}, **headers)
+        response = self.client.post(url, {
+            "source_target_name": "curate_nd",
+            "source_resource_id": "dj52w379504",
+            "keywords": []}, **headers, format='json')
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data,
@@ -468,8 +486,10 @@ class TestResourcePOSTWithBody(SimpleTestCase):
         headers = self.headers
         headers['HTTP_PRESQT_KEYWORD_ACTION'] = 'bad_action'
         url = reverse('resource_collection', kwargs={'target_name': 'osf'})
-        response = self.client.post(url, {"source_target_name": "curate_nd",
-                                          "source_resource_id": "dj52w379504"}, **headers)
+        response = self.client.post(url, {
+            "source_target_name": "curate_nd",
+            "source_resource_id": "dj52w379504",
+            "keywords": []}, **headers, format='json')
         # Verify the error status code and message
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data, {
@@ -480,22 +500,28 @@ class TestResourcePOSTWithBody(SimpleTestCase):
         Returns a 404 if the source_target_name provided in the body is not a valid target name
         """
         url = reverse('resource_collection', kwargs={'target_name': 'osf'})
-        response = self.client.post(
-            url, {"source_target_name": "bad_name", "source_resource_id": "dj52w379504"}, **self.headers)
+        response = self.client.post(url, {
+            "source_target_name": "bad_name",
+            "source_resource_id": "dj52w379504",
+            "keywords": []}, **self.headers, format='json')
         # Verify the error status code and message
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data, {'error': "PresQT Error: 'bad_name' is not a valid Target name."})
+        self.assertEqual(
+            response.data, {'error': "PresQT Error: 'bad_name' is not a valid Target name."})
 
     def test_error_404_destination_target_name_invalid(self):
         """
         Returns a 404 if the destination_target_name provided in the body is not a valid target name
         """
         url = reverse('resource_collection', kwargs={'target_name': 'bad_name'})
-        response = self.client.post(url, {"source_target_name": "osf",
-                                          "source_resource_id": "dj52w379504"}, **self.headers)
+        response = self.client.post(url, {
+            "source_target_name": "osf",
+            "source_resource_id": "dj52w379504",
+            "keywords": []}, **self.headers, format='json')
         # Verify the error status code and message
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data, {'error': "PresQT Error: 'bad_name' is not a valid Target name."})
+        self.assertEqual(
+            response.data, {'error': "PresQT Error: 'bad_name' is not a valid Target name."})
 
     def test_error_400_source_target_not_destination_action(self):
         """
@@ -508,10 +534,39 @@ class TestResourcePOSTWithBody(SimpleTestCase):
             mock_file.return_value = json_file
             url = reverse('resource',
                           kwargs={'target_name': 'test', 'resource_id': 'resource_id'})
-            response = self.client.post(url, {"source_target_name": "osf",
-                                              "source_resource_id": "dj52w379504"},
-                                        **self.headers)
+            response = self.client.post(url, {
+                "source_target_name": "osf",
+                "source_resource_id": "dj52w379504",
+                "keywords": []},
+                **self.headers, format='json')
             # Verify the error status code and message
             self.assertEqual(response.status_code, 400)
             self.assertEqual(response.data,
                              {'error': "PresQT Error: 'test' does not support the action 'resource_transfer_in'."})
+    
+    def test_error_400_keywords_not_in_body(self):
+        """
+        Returns a 400 if no keywords found in request body
+        """
+        url = reverse('resource_collection', kwargs={'target_name': 'github'})
+        response = self.client.post(url, {
+            "source_target_name": "osf",
+            "source_resource_id": "dj52w379504"}, **self.headers, format='json')
+        # Verify the error status code and message
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(
+            response.data, {'error': "PresQT Error: keywords was not found in the request body."})
+    
+    def test_error_400_keywords_not_list(self):
+        """
+        Returns a 400 if keywords found in request body not in list format
+        """
+        url = reverse('resource_collection', kwargs={'target_name': 'github'})
+        response = self.client.post(url, {
+            "source_target_name": "osf",
+            "source_resource_id": "dj52w379504",
+            "keywords": "oops"}, **self.headers, format='json')
+        # Verify the error status code and message
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(
+            response.data, {'error': "PresQT Error: keywords must be in list format."})
