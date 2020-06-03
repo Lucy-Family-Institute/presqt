@@ -12,23 +12,34 @@ def update_targets_keywords(self, project_id):
     Edit and update/create the source's metadata file with the new keyword enhancements.
     """
     metadata_succeeded = True
-    # Upload enhanced source keywords to destination
-    destination_keywords_get_func = FunctionRouter.get_function(self.destination_target_name, 'keywords')
-    try:
-        initial_keywords = destination_keywords_get_func(self.destination_token, project_id)['keywords']
-    except PresQTResponseException:
-        initial_keywords = []
+   
+    # Get the initial destination keywords, if any
+    destination_keywords_get_func = FunctionRouter.get_function(
+        self.destination_target_name, 'keywords')
 
-    destination_keywords_upload_func = FunctionRouter.get_function(self.destination_target_name, 'keywords_upload')
     try:
-        destination_keywords_upload_func(self.destination_token, project_id, self.all_keywords + initial_keywords)
+        destination_initial_keywords = destination_keywords_get_func(
+            self.destination_token, project_id)['keywords']
+    except PresQTResponseException:
+        destination_initial_keywords = []
+
+    # Upload enhanced source keywords to destination
+    destination_keywords_upload_func = FunctionRouter.get_function(
+        self.destination_target_name, 'keywords_upload')
+
+    try:
+        destination_keywords_upload_func(
+            self.destination_token, project_id, self.all_keywords + destination_initial_keywords)
     except PresQTResponseException:
         metadata_succeeded = False
 
     # Upload enhanced source keywords to source
-    source_keywords_upload_func = FunctionRouter.get_function(self.source_target_name, 'keywords_upload')
+    source_keywords_upload_func = FunctionRouter.get_function(
+        self.source_target_name, 'keywords_upload')
+
     try:
-        updated_source_keywords = source_keywords_upload_func(self.source_token, self.source_resource_id, self.enhanced_keywords + self.initial_keywords)
+        updated_source_keywords = source_keywords_upload_func(
+            self.source_token, self.source_resource_id, self.enhanced_keywords + self.initial_keywords)
     except PresQTResponseException:
         return False
     else:
@@ -60,30 +71,37 @@ def update_targets_keywords(self, project_id):
             ]
         }
 
-        source_upload_metadata_func = FunctionRouter.get_function(self.source_target_name, 'metadata_upload')
-        source_upload_metadata_func(self.source_token, updated_source_keywords['project_id'], enhance_dict)
+        source_upload_metadata_func = FunctionRouter.get_function(
+            self.source_target_name, 'metadata_upload')
 
-    return metadata_succeeded, initial_keywords
+        source_upload_metadata_func(
+            self.source_token, updated_source_keywords['project_id'], enhance_dict)
+
+    return metadata_succeeded, destination_initial_keywords
 
 
 def update_destination_with_source_and_manual_keywords(self, project_id):
     """
     Upload keywords to the destination from the source.
     """
-    destination_keywords_get_func = FunctionRouter.get_function(self.destination_target_name, 'keywords')
+    destination_keywords_get_func = FunctionRouter.get_function(
+        self.destination_target_name, 'keywords')
     try:
-        initial_keywords = destination_keywords_get_func(self.destination_token, project_id)['keywords']
+        destination_initial_keywords = destination_keywords_get_func(
+            self.destination_token, project_id)['keywords']
     except PresQTResponseException:
-        initial_keywords = []
+        destination_initial_keywords = []
 
-    keywords_for_project = list(set(self.initial_keywords + initial_keywords + self.keywords))
+    # Combine all the keywords that have been setup for this action...
+    keywords_for_project = list(set(self.initial_keywords + destination_initial_keywords + self.keywords))
 
     metadata_succeeded = True
     # Upload initial source keywords to destination
-    destination_keywords_upload_func = FunctionRouter.get_function(self.destination_target_name, 'keywords_upload')
+    destination_keywords_upload_func = FunctionRouter.get_function(
+        self.destination_target_name, 'keywords_upload')
     try:
         destination_keywords_upload_func(self.destination_token, project_id, keywords_for_project)
     except PresQTResponseException:
         metadata_succeeded = False
 
-    return metadata_succeeded
+    return metadata_succeeded, destination_initial_keywords

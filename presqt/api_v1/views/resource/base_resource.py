@@ -538,10 +538,14 @@ class BaseResource(APIView):
             if not self.destination_resource_id:
                 self.destination_resource_id = func_dict['project_id']
             if self.keyword_action == 'automatic':
-                self.keyword_enhancement_successful, self.destination_initial_keywords = update_targets_keywords(self, func_dict['project_id'])
-                self.all_keywords = self.all_keywords + self.destination_initial_keywords
-            else:  # manual
-                self.keyword_enhancement_successful = update_destination_with_source_and_manual_keywords(self, func_dict['project_id'])
+                self.keyword_enhancement_successful, self.destination_initial_keywords = update_targets_keywords(
+                    self, func_dict['project_id'])
+            # Manual enhancement
+            else:
+                self.keyword_enhancement_successful, self.destination_initial_keywords = update_destination_with_source_and_manual_keywords(
+                    self, func_dict['project_id'])
+            # Add the destination initial keywords to all keywords for accurate metadata list
+            self.all_keywords = self.all_keywords + self.destination_initial_keywords
 
         self.metadata_validation = create_upload_metadata(self,
                                                           func_dict['file_metadata_list'],

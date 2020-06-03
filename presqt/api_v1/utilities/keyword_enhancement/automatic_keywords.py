@@ -25,7 +25,7 @@ def automatic_keywords(self):
     except PresQTResponseException:
         self.initial_keywords = []
         self.enhanced_keywords = []
-    
+
     self.all_keywords = self.all_keywords + self.keywords
 
     keyword_dict = {

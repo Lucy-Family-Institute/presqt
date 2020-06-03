@@ -1,12 +1,10 @@
-from presqt.api_v1.utilities import FunctionRouter, keyword_enhancer
+from presqt.api_v1.utilities import FunctionRouter
 from presqt.utilities import PresQTResponseException
 
 
 def manual_keywords(self):
     """
-    Get a list of suggested enhanced keywords based on the source target's keywords and keywords
-    found in the source's FTS metadata file (if one exists).
-    Save the suggested keywords to self.suggested_keywords.
+    Get a list of source keywords to add to the destination project.
     Save the source's keywords to self.all_keywords.
     """
     # Fetch the source keywords
