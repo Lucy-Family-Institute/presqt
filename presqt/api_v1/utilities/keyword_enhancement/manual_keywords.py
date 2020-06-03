@@ -17,4 +17,8 @@ def manual_keywords(self):
 
     self.all_keywords = list(set(source_keywords + self.all_keywords + self.keywords))
 
-    return {}
+    return {
+        'sourceKeywordsAdded': self.initial_keywords,
+        'sourceKeywordsEnhanced': self.keywords,
+        'enhancer': 'scigraph'
+    }
