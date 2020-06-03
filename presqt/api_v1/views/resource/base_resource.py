@@ -21,8 +21,8 @@ from presqt.api_v1.utilities import (target_validation, transfer_target_validati
                                      get_upload_source_metadata, hash_tokens,
                                      finite_depth_upload_helper, structure_validation,
                                      keyword_action_validation,
-                                     automatic_keywords, update_targets_keywords, suggest_keywords,
-                                     get_target_data, update_destination_with_source_pre_suggest_keywords)
+                                     automatic_keywords, update_targets_keywords, manual_keywords,
+                                     get_target_data, update_destination_with_source_and_manual_keywords)
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
@@ -329,7 +329,7 @@ class BaseResource(APIView):
         if self.action == 'resource_transfer_in' and self.keyword_action == 'automatic':
             keyword_dict = automatic_keywords(self)
         else:
-            keyword_dict = suggest_keywords(self)
+            keyword_dict = manual_keywords(self)
 
         # Create PresQT action metadata
         self.source_username = func_dict['action_metadata']['sourceUsername']
@@ -533,6 +533,16 @@ class BaseResource(APIView):
                              for file in func_dict['resources_updated']]
         self.process_info_obj['resources_updated'] = resources_updated
 
+        if self.action == 'resource_transfer_in':
+            self.keyword_enhancement_successful = True
+            if not self.destination_resource_id:
+                self.destination_resource_id = func_dict['project_id']
+            if self.keyword_action == 'automatic':
+                self.keyword_enhancement_successful, self.destination_initial_keywords = update_targets_keywords(self, func_dict['project_id'])
+                self.all_keywords = self.all_keywords + self.destination_initial_keywords
+            else:  # manual
+                self.keyword_enhancement_successful = update_destination_with_source_and_manual_keywords(self, func_dict['project_id'])
+
         self.metadata_validation = create_upload_metadata(self,
                                                           func_dict['file_metadata_list'],
                                                           func_dict['action_metadata'],
@@ -540,7 +550,6 @@ class BaseResource(APIView):
                                                           resources_ignored,
                                                           resources_updated)
         # Validate the final metadata
-        self.keyword_enhancement_successful = True
         upload_message = get_action_message(self, 'Upload',
                                             self.upload_fixity,
                                             self.metadata_validation,
@@ -554,13 +563,6 @@ class BaseResource(APIView):
             self.process_info_obj['hash_algorithm'] = self.hash_algorithm
             self.process_info_obj['failed_fixity'] = self.upload_failed_fixity
             write_file(self.process_info_path, self.process_info_obj, True)
-        else:
-            if not self.destination_resource_id:
-                self.destination_resource_id = func_dict['project_id']
-            if self.keyword_action == 'automatic':
-                self.keyword_enhancement_successful = update_targets_keywords(self, func_dict['project_id'])
-            else:  # manual
-                self.keyword_enhancement_successful = update_destination_with_source_pre_suggest_keywords(self, func_dict['project_id'])
 
             self.process_info_obj['upload_status'] = upload_message
         return True
@@ -666,11 +668,11 @@ class BaseResource(APIView):
         self.process_info_obj['destination_resource_id'] = self.destination_resource_id
 
         if self.keyword_action == 'automatic':
-            self.process_info_obj['enhanced_keywords'] = self.enhanced_keywords
+            self.process_info_obj['enhanced_keywords'] = self.enhanced_keywords + self.keywords
             self.process_info_obj['initial_keywords'] = self.initial_keywords
         else: # manual
-            self.process_info_obj['enhanced_keywords'] = self.suggested_keywords
-            self.process_info_obj['initial_keywords'] = self.all_keywords
+            self.process_info_obj['enhanced_keywords'] = self.keywords
+            self.process_info_obj['initial_keywords'] = self.initial_keywords
 
         transfer_fixity = False if not self.download_fixity or not self.upload_fixity else True
         self.process_info_obj['message'] = get_action_message(

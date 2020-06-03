@@ -2,7 +2,7 @@ from presqt.api_v1.utilities import FunctionRouter, keyword_enhancer
 from presqt.utilities import PresQTResponseException
 
 
-def suggest_keywords(self):
+def manual_keywords(self):
     """
     Get a list of suggested enhanced keywords based on the source target's keywords and keywords
     found in the source's FTS metadata file (if one exists).
@@ -17,13 +17,6 @@ def suggest_keywords(self):
     except PresQTResponseException:
         return {}
 
-    self.all_keywords = list(set(source_keywords + self.all_keywords))
-
-    # Enhance source keywords
-    try:
-        self.suggested_keywords, all_keywords = keyword_enhancer(self.all_keywords)
-    except PresQTResponseException:
-        self.initial_keywords = []
-        self.enhanced_keywords = []
+    self.all_keywords = list(set(source_keywords + self.all_keywords + self.keywords))
 
     return {}

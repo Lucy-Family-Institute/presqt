@@ -13,9 +13,15 @@ def update_targets_keywords(self, project_id):
     """
     metadata_succeeded = True
     # Upload enhanced source keywords to destination
+    destination_keywords_get_func = FunctionRouter.get_function(self.destination_target_name, 'keywords')
+    try:
+        initial_keywords = destination_keywords_get_func(self.destination_token, project_id)['keywords']
+    except PresQTResponseException:
+        initial_keywords = []
+
     destination_keywords_upload_func = FunctionRouter.get_function(self.destination_target_name, 'keywords_upload')
     try:
-        updated_destination_keywords = destination_keywords_upload_func(self.destination_token, project_id, self.all_keywords)
+        destination_keywords_upload_func(self.destination_token, project_id, self.all_keywords + initial_keywords)
     except PresQTResponseException:
         metadata_succeeded = False
 
@@ -57,10 +63,10 @@ def update_targets_keywords(self, project_id):
         source_upload_metadata_func = FunctionRouter.get_function(self.source_target_name, 'metadata_upload')
         source_upload_metadata_func(self.source_token, updated_source_keywords['project_id'], enhance_dict)
 
-    return metadata_succeeded
+    return metadata_succeeded, initial_keywords
 
 
-def update_destination_with_source_pre_suggest_keywords(self, project_id):
+def update_destination_with_source_and_manual_keywords(self, project_id):
     """
     Upload keywords to the destination from the source.
     """
@@ -70,7 +76,7 @@ def update_destination_with_source_pre_suggest_keywords(self, project_id):
     except PresQTResponseException:
         initial_keywords = []
 
-    keywords_for_project = list(set(self.initial_keywords + initial_keywords))
+    keywords_for_project = list(set(self.initial_keywords + initial_keywords + self.keywords))
 
     metadata_succeeded = True
     # Upload initial source keywords to destination
