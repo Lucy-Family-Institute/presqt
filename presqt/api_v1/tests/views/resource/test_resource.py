@@ -543,7 +543,7 @@ class TestResourcePOSTWithBody(SimpleTestCase):
             self.assertEqual(response.status_code, 400)
             self.assertEqual(response.data,
                              {'error': "PresQT Error: 'test' does not support the action 'resource_transfer_in'."})
-    
+
     def test_error_400_keywords_not_in_body(self):
         """
         Returns a 400 if no keywords found in request body
@@ -556,7 +556,7 @@ class TestResourcePOSTWithBody(SimpleTestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             response.data, {'error': "PresQT Error: keywords was not found in the request body."})
-    
+
     def test_error_400_keywords_not_list(self):
         """
         Returns a 400 if keywords found in request body not in list format
