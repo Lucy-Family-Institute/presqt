@@ -16,7 +16,7 @@ def automatic_keywords(self):
     except PresQTResponseException:
         return {}
 
-    self.all_keywords = source_keywords + self.all_keywords + self.keywords
+    self.all_keywords = list(set(source_keywords + self.all_keywords))
     self.initial_keywords = self.all_keywords
 
     # Enhance source keywords
@@ -25,10 +25,12 @@ def automatic_keywords(self):
     except PresQTResponseException:
         self.initial_keywords = []
         self.enhanced_keywords = []
+    
+    self.all_keywords = self.all_keywords + self.keywords
 
     keyword_dict = {
         'sourceKeywordsAdded': self.initial_keywords,
-        'sourceKeywordsEnhanced': list(set(self.enhanced_keywords)),
+        'sourceKeywordsEnhanced': list(set(self.enhanced_keywords + self.keywords)),
         'enhancer': 'scigraph'
     }
 

@@ -304,7 +304,7 @@ class BaseResource(APIView):
         self.new_fts_metadata_files = []
         self.all_keywords = []
         self.initial_keywords = []
-        self.suggested_keywords = []
+        self.manual_keywords = []
         self.enhanced_keywords = []
         for resource in func_dict['resources']:
             # Perform the fixity check and add extra info to the returned fixity object.
@@ -350,7 +350,6 @@ class BaseResource(APIView):
             'sourceUsername': self.source_username,
             'destinationTargetName': 'Local Machine',
             'destinationUsername': None,
-            # TODO: Put self.all_keywords here as sourceKeywords...
             'keywords': keyword_dict,
             'files': {
                 'created': self.new_fts_metadata_files,

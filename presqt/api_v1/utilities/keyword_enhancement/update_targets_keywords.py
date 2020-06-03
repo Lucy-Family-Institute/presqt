@@ -22,13 +22,13 @@ def update_targets_keywords(self, project_id):
     # Upload enhanced source keywords to source
     source_keywords_upload_func = FunctionRouter.get_function(self.source_target_name, 'keywords_upload')
     try:
-        updated_source_keywords = source_keywords_upload_func(self.source_token, self.source_resource_id, self.all_keywords)
+        updated_source_keywords = source_keywords_upload_func(self.source_token, self.source_resource_id, self.enhanced_keywords + self.initial_keywords)
     except PresQTResponseException:
         return False
     else:
         # Update/create source FTS metadata file with enhanced keywords
         enhance_dict = {
-            'allKeywords': self.all_keywords,
+            'allKeywords': self.initial_keywords + self.enhanced_keywords,
             'actions': [
                 {
                     'id': str(uuid4()),
@@ -40,7 +40,7 @@ def update_targets_keywords(self, project_id):
                     'destinationTargetName': self.source_target_name,
                     'destinationUsername': self.source_username,
                     'keywords': {
-                        'sourceKeywordsAdded': self.initial_keywords,
+                        'sourceKeywordsAdded': [],
                         'sourceKeywordsEnhanced': self.enhanced_keywords,
                         'enhancer': 'scigraph'
 
