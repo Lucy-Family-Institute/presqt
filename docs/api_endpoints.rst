@@ -817,7 +817,8 @@ Transfer New Top Level Resource
         Example body json:
             {
                 "source_target_name":"github",
-                "source_resource_id": "209372336"
+                "source_resource_id": "209372336",
+                "keywords": ["keywords", "to", "add"]
             }
 
     **Example response**:
@@ -849,9 +850,11 @@ Transfer New Top Level Resource
     :statuscode 400: ``source_resource_id`` can't be none or blank
     :statuscode 400: ``source_resource_id`` was not found in the request body
     :statuscode 400: ``source_target_name`` was not found in the request body
+    :statuscode 400: ``keywords`` was not found in the request body.
+    :statuscode 400: ``keywords`` must be in list format.
     :statuscode 400: Source target does not allow transfer to the destination target
     :statuscode 400: Destination target does not allow transfer to the source target
-    :statuscode 400: Invalid ``presqt-keyword-action`` header given. The options are ``enhance`` or ``suggest``
+    :statuscode 400: Invalid ``presqt-keyword-action`` header given. The options are ``automatic`` or ``manual``
     :statuscode 400: ``presqt-keyword-action`` missing in the request headers
     :statuscode 401: ``Source Token`` is invalid
     :statuscode 401: ``Destination Token`` is invalid
@@ -881,7 +884,8 @@ Transfer To Existing Resource
         Example body json:
             {
                 "source_target_name":"github",
-                "source_resource_id": "209372336"
+                "source_resource_id": "209372336",
+                "keywords": ["keywords", "to", "add"]
             }
 
     **Example response**:
@@ -913,9 +917,11 @@ Transfer To Existing Resource
     :statuscode 400: ``source_resource_id`` can't be none or blank
     :statuscode 400: ``source_resource_id`` was not found in the request body
     :statuscode 400: ``source_target_name`` was not found in the request body
+    :statuscode 400: ``keywords`` was not found in the request body.
+    :statuscode 400: ``keywords`` must be in list format.
     :statuscode 400: Source target does not allow transfer to the destination target
     :statuscode 400: Destination target does not allow transfer to the source target
-    :statuscode 400: Invalid ``presqt-keyword-action`` header given. The options are ``enhance`` or ``suggest``
+    :statuscode 400: Invalid ``presqt-keyword-action`` header given. The options are ``automatic`` or ``manual``
     :statuscode 400: ``presqt-keyword-action`` missing in the request headers
     :statuscode 401: ``Source Token`` is invalid
     :statuscode 401: ``Destination Token`` is invalid

@@ -21,8 +21,8 @@ from presqt.api_v1.utilities import (target_validation, transfer_target_validati
                                      get_upload_source_metadata, hash_tokens,
                                      finite_depth_upload_helper, structure_validation,
                                      keyword_action_validation,
-                                     enhance_keywords, update_targets_keywords, suggest_keywords,
-                                     get_target_data, update_desination_with_source_pre_suggest_keywords)
+                                     automatic_keywords, update_targets_keywords, manual_keywords,
+                                     get_target_data)
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
@@ -100,35 +100,43 @@ class BaseResource(APIView):
         }
         or
         {
-        "error": "PresQT Error: source_resource_id can't be None or blank."
+            "error": "PresQT Error: source_resource_id can't be None or blank."
         }
         or
         {
-        "error": "PresQT Error: source_resource_id was not found in the request body."
+            "error": "PresQT Error: source_resource_id was not found in the request body."
         }
         or
         {
-        "error": "PresQT Error: source_target_name was not found in the request body."
+            "error": "PresQT Error: source_target_name was not found in the request body."
         }
         or
         {
-        "error": "PresQT Error: 'source_target' does not allow transfer to 'destination_target'."
+            "error": "PresQT Error: keywords was not found in the request body."
         }
         or
         {
-        "error": "PresQT Error: 'destination_target' does not allow transfer from 'source_target'."
+            "error": "PresQT Error: keywords must be in list format."
         }
         or
         {
-        "error": "PresQT Error: PresQT FTS metadata cannot not be transferred by itself."
+            "error": "PresQT Error: 'source_target' does not allow transfer to 'destination_target'."
         }
         or
         {
-        "error": "PresQT Error: 'presqt-keyword-action' missing in the request headers."
+            "error": "PresQT Error: 'destination_target' does not allow transfer from 'source_target'."
         }
         or
         {
-        "error": "PresQT Error: 'bad_action' is not a valid keyword_action. The options are 'enhance' or 'suggest'."
+            "error": "PresQT Error: PresQT FTS metadata cannot not be transferred by itself."
+        }
+        or
+        {
+            "error": "PresQT Error: 'presqt-keyword-action' missing in the request headers."
+        }
+        or
+        {
+            "error": "PresQT Error: 'bad_action' is not a valid keyword_action. The options are 'automatic' or 'manual'."
         }
 
         401: Unauthorized
@@ -304,7 +312,7 @@ class BaseResource(APIView):
         self.new_fts_metadata_files = []
         self.all_keywords = []
         self.initial_keywords = []
-        self.suggested_keywords = []
+        self.manual_keywords = []
         self.enhanced_keywords = []
         for resource in func_dict['resources']:
             # Perform the fixity check and add extra info to the returned fixity object.
@@ -326,10 +334,12 @@ class BaseResource(APIView):
 
         # Enhance the source keywords
         self.keyword_enhancement_successful = True
-        if self.action == 'resource_transfer_in' and self.keyword_action == 'enhance':
-            keyword_enhancements = enhance_keywords(self)
+        if self.action == 'resource_transfer_in' and self.keyword_action == 'automatic':
+            keyword_dict = automatic_keywords(self)
+        elif self.action == 'resource_transfer_in' and self.keyword_action == 'manual':
+            keyword_dict = manual_keywords(self)
         else:
-            keyword_enhancements = suggest_keywords(self)
+            keyword_dict = {}
 
         # Create PresQT action metadata
         self.source_username = func_dict['action_metadata']['sourceUsername']
@@ -350,8 +360,7 @@ class BaseResource(APIView):
             'sourceUsername': self.source_username,
             'destinationTargetName': 'Local Machine',
             'destinationUsername': None,
-            # TODO: Put self.all_keywords here as sourceKeywords...
-            'keywordEnhancements': keyword_enhancements,
+            'keywords': keyword_dict,
             'files': {
                 'created': self.new_fts_metadata_files,
                 'updated': [],
@@ -417,7 +426,9 @@ class BaseResource(APIView):
         Upload resources to the target and perform a fixity check on the resulting hashes.
         """
         action = 'resource_upload'
-
+        # This doesn't happen during an upload, so it won't be an error. If there is an error during
+        # transfer this will be overwritten.
+        self.keyword_enhancement_successful = True
         # Write the process id to the process_info file
         self.process_info_obj['function_process_id'] = self.function_process.pid
         write_file(self.process_info_path, self.process_info_obj, True)
@@ -452,7 +463,7 @@ class BaseResource(APIView):
                 'sourceUsername': None,
                 'destinationTargetName': self.destination_target_name,
                 'destinationUsername': None,
-                'keywordEnhancements': {},
+                'keywords': {},
                 'files': {
                     'created': self.new_fts_metadata_files,
                     'updated': [],
@@ -534,6 +545,17 @@ class BaseResource(APIView):
                              for file in func_dict['resources_updated']]
         self.process_info_obj['resources_updated'] = resources_updated
 
+        if self.action == 'resource_transfer_in':
+            self.keyword_enhancement_successful = True
+            if not self.destination_resource_id:
+                self.destination_resource_id = func_dict['project_id']
+                
+                self.keyword_enhancement_successful, self.destination_initial_keywords = update_targets_keywords(
+                    self, func_dict['project_id'])
+
+            # Add the destination initial keywords to all keywords for accurate metadata list
+            self.all_keywords = self.all_keywords + self.destination_initial_keywords
+
         self.metadata_validation = create_upload_metadata(self,
                                                           func_dict['file_metadata_list'],
                                                           func_dict['action_metadata'],
@@ -541,7 +563,6 @@ class BaseResource(APIView):
                                                           resources_ignored,
                                                           resources_updated)
         # Validate the final metadata
-        self.keyword_enhancement_successful = True
         upload_message = get_action_message(self, 'Upload',
                                             self.upload_fixity,
                                             self.metadata_validation,
@@ -555,13 +576,6 @@ class BaseResource(APIView):
             self.process_info_obj['hash_algorithm'] = self.hash_algorithm
             self.process_info_obj['failed_fixity'] = self.upload_failed_fixity
             write_file(self.process_info_path, self.process_info_obj, True)
-        else:
-            if not self.destination_resource_id:
-                self.destination_resource_id = func_dict['project_id']
-            if self.keyword_action == 'enhance':
-                self.keyword_enhancement_successful = update_targets_keywords(self, func_dict['project_id'])
-            else:  # elif suggest
-                self.keyword_enhancement_successful = update_desination_with_source_pre_suggest_keywords(self, func_dict['project_id'])
 
             self.process_info_obj['upload_status'] = upload_message
         return True
@@ -579,7 +593,7 @@ class BaseResource(APIView):
             self.source_token = get_source_token(self.request)
             self.file_duplicate_action = file_duplicate_action_validation(self.request)
             self.keyword_action = keyword_action_validation(self.request)
-            self.source_target_name, self.source_resource_id = transfer_post_body_validation(
+            self.source_target_name, self.source_resource_id, self.keywords = transfer_post_body_validation(
                 self.request)
             target_valid, self.infinite_depth = target_validation(
                 self.destination_target_name, self.action)
@@ -666,12 +680,12 @@ class BaseResource(APIView):
         self.process_info_obj['source_resource_id'] = self.source_resource_id
         self.process_info_obj['destination_resource_id'] = self.destination_resource_id
 
-        if self.keyword_action == 'enhance':
-            self.process_info_obj['enhanced_keywords'] = self.enhanced_keywords
+        if self.keyword_action == 'automatic':
+            self.process_info_obj['enhanced_keywords'] = self.enhanced_keywords + self.keywords
             self.process_info_obj['initial_keywords'] = self.initial_keywords
-        else: # elif suggest
-            self.process_info_obj['enhanced_keywords'] = self.suggested_keywords
-            self.process_info_obj['initial_keywords'] = self.all_keywords
+        else: # manual
+            self.process_info_obj['enhanced_keywords'] = self.keywords
+            self.process_info_obj['initial_keywords'] = self.initial_keywords
 
         transfer_fixity = False if not self.download_fixity or not self.upload_fixity else True
         self.process_info_obj['message'] = get_action_message(

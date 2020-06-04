@@ -350,7 +350,7 @@ class TestResourcePOST(SimpleTestCase):
             mock_request.return_value = mock_req
             # Attempt to update the metadata, but the server is down!
             self.assertRaises(PresQTError, github_upload_metadata, self.token, repo_id,
-                              {"context": {}, "presqtKeywords": [], "actions": []})
+                              {"context": {}, "allKeywords": [], "actions": []})
 
         # Delete corresponding folder
         shutil.rmtree(self.ticket_path)

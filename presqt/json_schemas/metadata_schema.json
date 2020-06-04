@@ -1,7 +1,7 @@
 {
   "type": "object",
   "properties": {
-    "presqtKeywords": {
+    "allKeywords": {
       "type": "array",
       "items": { "type": "string" }
     },
@@ -18,14 +18,14 @@
           "destinationTargetName": { "type": ["string", "null"] },
           "sourceUsername": { "type": ["string", "integer", "null"] },
           "destinationUsername": { "type": ["string", "integer", "null"] },
-          "keywordEnhancements": {
+          "keywords": {
             "type": "object",
             "properties": {
-              "initialKeywords": {
+              "sourceKeywordsAdded": {
                 "type": "array",
                 "items": { "type": "string" }
               },
-              "enhancedKeywords": {
+              "sourceKeywordsEnhanced": {
                 "type": "array",
                 "items": { "type": "string" }
               },
@@ -97,13 +97,13 @@
           "destinationTargetName",
           "sourceUsername",
           "destinationUsername",
-          "keywordEnhancements",
+          "keywords",
           "files"
         ],
         "additionalProperties": false
       }
     }
   },
-  "required": ["presqtKeywords", "actions"],
+  "required": ["allKeywords", "actions"],
   "additionalProperties": false
 }
