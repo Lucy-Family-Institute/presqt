@@ -400,11 +400,33 @@ class TestTransferJobGET(SimpleTestCase):
                    "Accept": 'application/vnd.github.mercy-preview+json'}
         project_url = 'https://api.github.com/repositories/{}'.format(github_project_id)
         response = requests.get(project_url, headers=headers)
-        self.assertEqual(response.json()['topics'], github_target_keywords)
-        metadata_link = "https://raw.githubusercontent.com/presqt-test-user/ProjectTwentyEight/master/PRESQT_FTS_METADATA.json"
-        response = requests.get(metadata_link, headers=headers)
+        self.assertGreater(len(response.json()['topics']), len(github_target_keywords))
 
-        self.assertEqual(response.status_code, 404)
+        # DELETE METADATA FILE IN GITHUB
+        metadata_url = 'https://api.github.com/repos/presqt-test-user/ProjectTwentyEight/contents/PRESQT_FTS_METADATA.json'
+        # Make a GET request first to get the SHA which is needed to delete :eyeroll:
+        file_sha = requests.get(metadata_url, headers=headers).json()['sha']
+
+        data = {
+            "message": "Delete Metadata",
+            "committer": {
+                "name": "PresQT",
+                "email": "N/A"
+            },
+            "sha": file_sha
+        }
+
+        delete_response = requests.delete(metadata_url, headers=headers, data=json.dumps(data))
+        self.assertEqual(delete_response.status_code, 200)
+
+        # Set the project keywords back to what they were.
+        headers = {"Authorization": "token {}".format(GITHUB_TEST_USER_TOKEN),
+                   "Accept": "application/vnd.github.mercy-preview+json"}
+        put_url = 'https://api.github.com/repos/presqt-test-user/ProjectTwentyEight/topics'
+        data = {'names': github_target_keywords}
+        response = requests.put(put_url, headers=headers, data=json.dumps(data))
+
+        self.assertEqual(response.status_code, 200)
 
         # VALIDATE METADATA FILE IN OSF
         headers = {'Authorization': 'Bearer {}'.format(OSF_UPLOAD_TEST_USER_TOKEN)}
