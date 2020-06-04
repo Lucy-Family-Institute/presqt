@@ -100,35 +100,43 @@ class BaseResource(APIView):
         }
         or
         {
-        "error": "PresQT Error: source_resource_id can't be None or blank."
+            "error": "PresQT Error: source_resource_id can't be None or blank."
         }
         or
         {
-        "error": "PresQT Error: source_resource_id was not found in the request body."
+            "error": "PresQT Error: source_resource_id was not found in the request body."
         }
         or
         {
-        "error": "PresQT Error: source_target_name was not found in the request body."
+            "error": "PresQT Error: source_target_name was not found in the request body."
         }
         or
         {
-        "error": "PresQT Error: 'source_target' does not allow transfer to 'destination_target'."
+            "error": "PresQT Error: keywords was not found in the request body."
         }
         or
         {
-        "error": "PresQT Error: 'destination_target' does not allow transfer from 'source_target'."
+            "error": "PresQT Error: keywords must be in list format."
         }
         or
         {
-        "error": "PresQT Error: PresQT FTS metadata cannot not be transferred by itself."
+            "error": "PresQT Error: 'source_target' does not allow transfer to 'destination_target'."
         }
         or
         {
-        "error": "PresQT Error: 'presqt-keyword-action' missing in the request headers."
+            "error": "PresQT Error: 'destination_target' does not allow transfer from 'source_target'."
         }
         or
         {
-        "error": "PresQT Error: 'bad_action' is not a valid keyword_action. The options are 'automatic' or 'manual'."
+            "error": "PresQT Error: PresQT FTS metadata cannot not be transferred by itself."
+        }
+        or
+        {
+            "error": "PresQT Error: 'presqt-keyword-action' missing in the request headers."
+        }
+        or
+        {
+            "error": "PresQT Error: 'bad_action' is not a valid keyword_action. The options are 'automatic' or 'manual'."
         }
 
         401: Unauthorized
