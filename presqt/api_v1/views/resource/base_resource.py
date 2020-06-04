@@ -22,7 +22,7 @@ from presqt.api_v1.utilities import (target_validation, transfer_target_validati
                                      finite_depth_upload_helper, structure_validation,
                                      keyword_action_validation,
                                      automatic_keywords, update_targets_keywords, manual_keywords,
-                                     get_target_data, update_destination_with_source_and_manual_keywords)
+                                     get_target_data)
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
@@ -549,13 +549,10 @@ class BaseResource(APIView):
             self.keyword_enhancement_successful = True
             if not self.destination_resource_id:
                 self.destination_resource_id = func_dict['project_id']
-            if self.keyword_action == 'automatic':
+                
                 self.keyword_enhancement_successful, self.destination_initial_keywords = update_targets_keywords(
                     self, func_dict['project_id'])
-            # Manual enhancement
-            else:
-                self.keyword_enhancement_successful, self.destination_initial_keywords = update_destination_with_source_and_manual_keywords(
-                    self, func_dict['project_id'])
+
             # Add the destination initial keywords to all keywords for accurate metadata list
             self.all_keywords = self.all_keywords + self.destination_initial_keywords
 
