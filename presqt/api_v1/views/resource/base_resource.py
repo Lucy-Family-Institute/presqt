@@ -550,8 +550,8 @@ class BaseResource(APIView):
             if not self.destination_resource_id:
                 self.destination_resource_id = func_dict['project_id']
                 
-            self.keyword_enhancement_successful, self.destination_initial_keywords = update_targets_keywords(
-                self, self.destination_resource_id)
+                self.keyword_enhancement_successful, self.destination_initial_keywords = update_targets_keywords(
+                    self, func_dict['project_id'])
 
             # Add the destination initial keywords to all keywords for accurate metadata list
             self.all_keywords = self.all_keywords + self.destination_initial_keywords
