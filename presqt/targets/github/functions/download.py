@@ -141,11 +141,25 @@ def github_download_resource(token, resource_id):
         resource_url = 'https://api.github.com/repos/{}/contents/{}'.format(repo_full_name,
                                                                             path_to_file)
         resource_response = requests.get(resource_url, headers=header)
-        if resource_response.status_code != 200:
+        resource_data = resource_response.json()
+        if resource_response.status_code == 403:
+            # 403 most likely means the blob contents were too big so we have to attempt to
+            # get the file contents a different method
+            trees_url = '{}/master?recursive=1'.format(repo_data['trees_url'][:-6])
+            trees_response = requests.get(trees_url, headers=header)
+            for tree in trees_response.json()['tree']:
+                if path_to_file == tree['path']:
+                    file_sha = tree['sha']
+            git_blob_url = 'https://api.github.com/repos/{}/git/blobs/{}'.format(repo_data['full_name'], file_sha)
+            file_get = requests.get(git_blob_url, headers=header)
+            resource_data = file_get.json()
+            resource_data['name'] = path_to_file.rpartition('/')[2]
+            resource_data['path'] = path_to_file.rpartition('/')
+            resource_data['type'] = 'file'
+        elif resource_response.status_code != 200:
             raise PresQTResponseException(
                 'The resource with id, {}, does not exist for this user.'.format(resource_id),
                 status.HTTP_404_NOT_FOUND)
-        resource_data = resource_response.json()
 
         # If the resource to get is a folder
         if isinstance(resource_data, list):

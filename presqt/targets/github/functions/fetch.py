@@ -156,20 +156,31 @@ def github_fetch_resource(token, resource_id):
         # This initial request will get the repository, which we need to get the proper contents url
         # The contents url contains a username and project name which we don't have readily available
         # to us.
-        initial_repo_get = requests.get('https://api.github.com/repositories/{}'.format(repo_id),
-                                        headers=header)
+        initial_repo_get = requests.get('https://api.github.com/repositories/{}'.format(repo_id), headers=header)
+        repo_data = initial_repo_get.json()
         if initial_repo_get.status_code != 200:
             raise PresQTResponseException("The resource could not be found by the requesting user.",
                                           status.HTTP_404_NOT_FOUND)
 
-        get_url = '{}{}'.format(initial_repo_get.json(
-        )['contents_url'].partition('{')[0], path_to_resource)
+        get_url = '{}{}'.format(repo_data['contents_url'].partition('{')[0], path_to_resource)
         file_get = requests.get(get_url, headers=header)
-
-        if file_get.status_code != 200:
+        file_json = file_get.json()
+        if file_get.status_code == 403:
+            # 403 most likely means the blob contents were too big so we have to attempt to
+            # get the file contents a different method
+            trees_url = '{}/master?recursive=1'.format(repo_data['trees_url'][:-6])
+            trees_response = requests.get(trees_url, headers=header)
+            for tree in trees_response.json()['tree']:
+                if path_to_resource == tree['path']:
+                    file_sha = tree['sha']
+            git_blob_url = 'https://api.github.com/repos/{}/git/blobs/{}'.format(repo_data['full_name'], file_sha)
+            file_get = requests.get(git_blob_url, headers=header)
+            file_json = file_get.json()
+            file_json['name'] = path_to_resource.rpartition('/')[2]
+            file_json['path'] = path_to_resource.rpartition('/')
+        elif file_get.status_code != 200:
             raise PresQTResponseException("The resource could not be found by the requesting user.",
                                           status.HTTP_404_NOT_FOUND)
-        file_json = file_get.json()
 
         if isinstance(file_json, list):
             return {
