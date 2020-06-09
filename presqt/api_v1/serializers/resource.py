@@ -67,7 +67,7 @@ class ResourceSerializer(serializers.Serializer):
         """
         list_of_actions = action_checker(self.context.get('target_name'))
         # Build a list of endpoint_actions and compare with list_of_actions
-        endpoint_actions = ['resource_download', 'resource_upload', 'resource_transfer_in']
+        endpoint_actions = ['resource_download', 'resource_upload', 'resource_transfer_in', 'resource_detail']
         resource_actions = list_intersection(list_of_actions, endpoint_actions)
 
         links = link_builder(self, instance, resource_actions)
