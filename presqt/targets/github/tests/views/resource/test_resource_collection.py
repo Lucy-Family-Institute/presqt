@@ -419,7 +419,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         response = requests.get(valid_metadata_link, headers=header)
         valid_metadata_file = json.loads(response.content)
 
-        self.assertEqual(len(valid_metadata_file['actions']), 2)
+        self.assertEqual(len(valid_metadata_file['actions']), 1)
 
         delete_github_repo('presqt-test-user', 'Good_Egg', header)
         # Delete upload folder

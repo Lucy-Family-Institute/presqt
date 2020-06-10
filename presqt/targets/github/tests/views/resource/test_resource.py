@@ -56,14 +56,27 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual('repo', response.data['kind_name'])
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('ProjectTwo', response.data['title'])
-        # Download Link
-        self.assertEqual(len(response.data['links']), 3)
+        # Download, Upload, Transfer, Detail Links
+        self.assertEqual(len(response.data['links']), 4)
 
     def test_success_file(self):
         """
         Returns a 200 if the GET method is successful when getting a GitHub `file`.
         """
         resource_id = '209373787:README%2Emd'
+        url = reverse('resource', kwargs={'target_name': 'github',
+                                          'resource_id': resource_id,
+                                          'resource_format': 'json'})
+        response = self.client.get(url, **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 200)
+    
+    def test_success_big_file(self):
+        """
+        Returns a 200 if the GET method is successful when getting a GitHub `file` larger than 100MB.
+        """
+        resource_id = '266134247:Media_Files%2F20180726_174402%252Emp4'
+
         url = reverse('resource', kwargs={'target_name': 'github',
                                           'resource_id': resource_id,
                                           'resource_format': 'json'})

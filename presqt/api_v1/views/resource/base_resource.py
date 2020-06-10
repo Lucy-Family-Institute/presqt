@@ -35,6 +35,7 @@ class BaseResource(APIView):
     """
     Base View for Resource views. Handles shared POSTs (upload and transfer) and download methods.
     """
+
     def post(self, request, target_name, resource_id=None):
         """
         Upload resources to a specific resource or create a new resource.
@@ -197,7 +198,7 @@ class BaseResource(APIView):
             # Generate ticket number
             ticket_number = uuid4()
             self.ticket_path = os.path.join("mediafiles", "uploads", str(ticket_number))
-        
+
             # Extract each file in the zip file to disk
             with zipfile.ZipFile(resource) as myzip:
                 myzip.extractall(self.ticket_path)
@@ -300,7 +301,6 @@ class BaseResource(APIView):
             write_file(self.process_info_path, self.process_info_obj, True)
             return False
 
-
         # The directory all files should be saved in.
         self.resource_main_dir = os.path.join(self.ticket_path, self.base_directory_name)
 
@@ -346,7 +346,8 @@ class BaseResource(APIView):
         if self.action == 'resource_transfer_in':
             source_target_data = get_target_data(self.source_target_name)
             destination_target_data = get_target_data(self.destination_target_name)
-            self.details = "PresQT Transfer from {} to {}".format(source_target_data['readable_name'], destination_target_data['readable_name'])
+            self.details = "PresQT Transfer from {} to {}".format(
+                source_target_data['readable_name'], destination_target_data['readable_name'])
         else:
             source_target_data = get_target_data(self.source_target_name)
             self.details = "PresQT Download from {}".format(source_target_data['readable_name'])
@@ -549,9 +550,9 @@ class BaseResource(APIView):
             self.keyword_enhancement_successful = True
             if not self.destination_resource_id:
                 self.destination_resource_id = func_dict['project_id']
-                
-                self.keyword_enhancement_successful, self.destination_initial_keywords = update_targets_keywords(
-                    self, func_dict['project_id'])
+
+            self.keyword_enhancement_successful, self.destination_initial_keywords = update_targets_keywords(
+                self, self.destination_resource_id)
 
             # Add the destination initial keywords to all keywords for accurate metadata list
             self.all_keywords = self.all_keywords + self.destination_initial_keywords
@@ -683,7 +684,7 @@ class BaseResource(APIView):
         if self.keyword_action == 'automatic':
             self.process_info_obj['enhanced_keywords'] = self.enhanced_keywords + self.keywords
             self.process_info_obj['initial_keywords'] = self.initial_keywords
-        else: # manual
+        else:  # manual
             self.process_info_obj['enhanced_keywords'] = self.keywords
             self.process_info_obj['initial_keywords'] = self.initial_keywords
 
