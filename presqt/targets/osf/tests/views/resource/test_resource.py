@@ -70,7 +70,7 @@ class TestResourceGETJSON(SimpleTestCase):
                 self.assertEqual(link['method'], 'GET')
             if link['name'] == 'Upload':
                 self.assertEqual(link['method'], 'POST')
-        self.assertEqual(len(response.data['links']), 3)
+        self.assertEqual(len(response.data['links']), 4)
 
     def test_success_file(self):
         """
@@ -93,7 +93,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual('file', response.data['kind_name'])
         self.assertEqual('2017-01-27 PresQT Workshop Planning Meeting Items.docx',
                          response.data['title'])
-        self.assertEqual(len(response.data['links']), 1)
+        self.assertEqual(len(response.data['links']), 2)
         self.assertEqual(response.data['links'][0]['name'], 'Download')
 
     def test_success_file_no_format(self):
@@ -1059,7 +1059,7 @@ class TestResourcePOST(SimpleTestCase):
             mock_request.return_value = mock_req
             # Attempt to update the metadata, but the server is down!
             self.assertRaises(PresQTError, osf_upload_metadata, self.token, node_id,
-                              {"context": {}, "allEnhancedKeywords": [], "actions": []})
+                              {"context": {}, "allKeywords": [], "actions": []})
 
         # Delete corresponding folder
         shutil.rmtree(self.ticket_path)

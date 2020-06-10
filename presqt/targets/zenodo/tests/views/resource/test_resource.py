@@ -41,7 +41,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('Test PresQT Project', response.data['title'])
         # # Download, Upload, Transfer Links
-        self.assertEqual(len(response.data['links']), 3)
+        self.assertEqual(len(response.data['links']), 4)
 
         # Get a file resource
         resource_id = '1644bae0-346b-49af-aaab-2409a688f85e'
@@ -57,7 +57,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('1900s_Cat.jpg', response.data['title'])
         # Download Link
-        self.assertEqual(len(response.data['links']), 1)
+        self.assertEqual(len(response.data['links']), 2)
 
     def test_success_public_resource(self):
         """
@@ -82,7 +82,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('A Curious Egg', response.data['title'])
         # # Download, Upload, Transfer Links
-        self.assertEqual(len(response.data['links']), 3)
+        self.assertEqual(len(response.data['links']), 4)
 
         # Get a public file resource
         resource_id = '7c2a7648-44ec-4f17-98a1-b1736761d59b'
@@ -98,7 +98,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('article.pdf', response.data['title'])
         # Download Link
-        self.assertEqual(len(response.data['links']), 1)
+        self.assertEqual(len(response.data['links']), 2)
 
     def test_error_404_not_authorized(self):
         """

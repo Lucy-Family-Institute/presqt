@@ -39,6 +39,24 @@ class TestResourceKeywords(SimpleTestCase):
         self.assertIn('water', response.data['keywords'])
         self.assertIn('animals', response.data['keywords'])
 
+    def test_success_no_project_keywords_but_metadata_keywords(self):
+        """
+        If there's no keywords on the target itself we want to check that it's pulling them from
+        the metadata file.
+        """
+        resource_id = '3525982'
+        # Ensure no keywords for this project
+        url = reverse('resource', kwargs={'target_name': 'zenodo',
+                                          'resource_id': resource_id})
+        response = self.client.get(url, **self.header)
+        self.assertEqual(response.data['extra']['keywords'], [])
+
+        keywords_url = reverse('keywords', kwargs={'target_name': 'zenodo',
+                                                   'resource_id': resource_id})
+        keywords_response = self.client.get(keywords_url, **self.header)
+
+        self.assertGreater(keywords_response.data['keywords'], [])
+
     def test_error_project_keywords(self):
         """
         Returns a 400 if the GET method is unsuccessful when getting a Zenodo `file` keywords.
@@ -50,7 +68,8 @@ class TestResourceKeywords(SimpleTestCase):
         # Verify the status code
         self.assertEqual(response.status_code, 400)
         # Verify the error message
-        self.assertEqual(response.data['error'], "Zenodo files do not have keywords.")
+        self.assertEqual(response.data['error'],
+                         "The requested Zenodo resource does not have keywords.")
 
 
 class TestResourceKeywordsPOST(SimpleTestCase):
@@ -139,7 +158,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
             self.assertEqual(response.status_code, 500)
             # Verify the dict keys match what we expect
             self.assertEqual(
-                response.data['error'], 'Error updating the PresQT metadata file on zenodo. Keywords have been added successfully.')
+                response.data['error'], 'PresQT Error: Error updating the PresQT metadata file on zenodo. Keywords have been added successfully.')
 
             updated_response = self.client.get(url, **self.header)
             # Get the ount of the initial keywords
@@ -173,7 +192,8 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         # Verify the status code
         self.assertEqual(response.status_code, 400)
         # Verify the error message
-        self.assertEqual(response.data['error'], "Zenodo files do not have keywords.")
+        self.assertEqual(response.data['error'],
+                         "The requested Zenodo resource does not have keywords.")
 
     def test_failed_update_keywords(self):
         # Mock a server error for when a put request is made.

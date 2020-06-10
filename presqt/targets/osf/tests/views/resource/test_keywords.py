@@ -57,19 +57,21 @@ class TestResourceKeywords(SimpleTestCase):
         self.assertIn('animals', response.data['keywords'])
         self.assertIn('PresQT', response.data['keywords'])
 
-    def test_error_folder_keywords(self):
+    def test_success_folder_keywords(self):
         """
-        Returns a 200 if the GET method is successful when getting an OSF `file`.
+        Returns a 200 if there are no keywords for the folder, but we find keywords in the metadata file.
         """
         resource_id = '5cd98b0af244ec0021e5f8dd'
         url = reverse('keywords', kwargs={'target_name': 'osf',
                                           'resource_id': resource_id})
         response = self.client.get(url, **self.header)
-        # Verify the status code
-        self.assertEqual(response.status_code, 400)
-        # Verify the dict keys match what we expect
-        self.assertEqual(response.data['error'],
-                         'There are no keywords to enhance for this resource.')
+        # # Verify the status code
+        self.assertEqual(response.status_code, 200)
+       # Spot check some individual keywords
+        self.assertIn('eggs', response.data['keywords'])
+        self.assertIn('water', response.data['keywords'])
+        self.assertIn('animals', response.data['keywords'])
+        self.assertIn('PresQT', response.data['keywords'])
 
     def test_error_storage_keywords(self):
         """
@@ -158,8 +160,8 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         self.assertEqual(response.status_code, 202)
         # Verify the dict keys match what we expect
         self.assertListEqual(self.keys, list(response.data.keys()))
-        # Ensure the new list is larger than the initial one.
-        self.assertGreater(len(response.data['final_keywords']), initial_keywords)
+        # Ensure the new list is equal to the initial one
+        self.assertEqual(len(response.data['final_keywords']), initial_keywords)
 
         # Set the project keywords back to what they were.
         headers = {'Authorization': 'Bearer {}'.format(OSF_TEST_USER_TOKEN),
@@ -185,12 +187,12 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         initial_keywords = len(get_response.data['keywords'])
 
         response = self.client.post(
-            url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
+            url, {"keywords": ["h20", "aqua", "breakfast", "spaghetti", "wood"]}, **self.header, format='json')
         # Verify the status code
         self.assertEqual(response.status_code, 202)
         # Verify the dict keys match what we expect
         self.assertListEqual(self.keys, list(response.data.keys()))
-        # Ensure the new list is larger than the initial one.
+        # Ensure the new list is equal to the initial one
         self.assertGreater(len(response.data['final_keywords']), initial_keywords)
 
         # Set the project keywords back to what they were.
@@ -245,7 +247,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         # Verify the status code
         self.assertEqual(response.status_code, 400)
         # Verify the error message
-        self.assertEqual(response.data['error'], 'keywords is missing from the request body.')
+        self.assertEqual(response.data['error'], 'PresQT Error: keywords is missing from the request body.')
 
     def test_no_token(self):
         resource_id = '5cd98b0af244ec0021e5f8dd'
@@ -271,7 +273,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         # Verify the status code
         self.assertEqual(response.status_code, 400)
         # Verify the error message
-        self.assertEqual(response.data['error'], 'keywords must be in list format.')
+        self.assertEqual(response.data['error'], 'PresQT Error: keywords must be in list format.')
 
     def test_failed_update_keywords_project(self):
         # Mock a server error for when a put request is made.

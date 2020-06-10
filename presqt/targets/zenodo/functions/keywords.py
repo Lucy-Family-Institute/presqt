@@ -3,6 +3,7 @@ import requests
 
 from rest_framework import status
 
+from presqt.targets.zenodo.utilities import zenodo_validation_check
 from presqt.utilities import PresQTResponseException
 
 
@@ -34,19 +35,38 @@ def zenodo_fetch_keywords(token, resource_id):
             ]
         }
     """
-    from presqt.targets.zenodo.functions.fetch import zenodo_fetch_resource
+    auth_parameter = zenodo_validation_check(token)
 
+    from presqt.targets.zenodo.functions.fetch import zenodo_fetch_resource
     resource = zenodo_fetch_resource(token, resource_id)
 
+    # Find the metadata file...
+    metadata = None
+    if resource['kind'] == 'container':
+        file_url = "https://zenodo.org/api/deposit/depositions/{}/files".format(resource_id)
+        project_files = requests.get(file_url, params=auth_parameter).json()
+        for file in project_files:
+            if file['filename'] == 'PRESQT_FTS_METADATA.json':
+                # Download the metadata
+                metadata_file = requests.get(
+                    file['links']['download'], params=auth_parameter).content
+                metadata = json.loads(metadata_file)
+
     if 'keywords' in resource['extra'].keys():
+        if metadata:
+            try:
+                keywords = list(set(resource['extra']['keywords'] + metadata['allKeywords']))
+            except KeyError:
+                keywords = list(set(resource['extra']['keywords']))
+        else:
+            keywords = list(set(resource['extra']['keywords']))
+
         return {
-            'zenodo_keywords': resource['extra']['keywords'],
-            'keywords': resource['extra']['keywords']
-        }
+            'zenodo_keywords': keywords,
+            'keywords': keywords}
 
     else:
-        # Files don't have keywords
-        raise PresQTResponseException("Zenodo files do not have keywords.",
+        raise PresQTResponseException("The requested Zenodo resource does not have keywords.",
                                       status.HTTP_400_BAD_REQUEST)
 
 

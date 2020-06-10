@@ -42,8 +42,8 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual('item', response.data['kind_name'])
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('Funny Pic', response.data['title'])
-        # Download Link
-        self.assertEqual(len(response.data['links']), 1)
+        # Download, Detail Links
+        self.assertEqual(len(response.data['links']), 2)
 
     @skip('Curate Test Server Issues')
     def test_success_file(self):
@@ -67,8 +67,8 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual('file', response.data['kind_name'])
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('DrZ3gwlX0AIbee-.png', response.data['title'])
-        # Download Link
-        self.assertEqual(len(response.data['links']), 1)
+        # Download, Detail Links
+        self.assertEqual(len(response.data['links']), 2)
 
     @skip('Curate Test Server Issues')
     def test_error_403_not_authorized(self):
