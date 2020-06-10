@@ -83,7 +83,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
     def setUp(self):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}
-        self.keys = ['keywords_added', 'final_keywords']
+        self.keys = ['initial_keywords', 'keywords_added', 'final_keywords']
 
     def test_success_project_keywords(self):
         """

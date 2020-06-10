@@ -226,6 +226,33 @@ class TestDownload(SimpleTestCase):
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
+    
+    def test_success_big_file(self):
+        """
+        Return a 200 along with a zip file of the big file requested.
+        """
+        resource_id = '266134247:Media_Files%2F20180726_174402%252Emp4'
+        shared_call_get_resource_zip(self, resource_id)
+
+        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number,
+                                              'response_format': 'zip'})
+        response = self.client.get(url, **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 200)
+
+        zip_file = zipfile.ZipFile(io.BytesIO(response.content))
+
+        # Verify the name of the zip file
+        self.assertEquals(
+            response._headers['content-disposition'][1],
+            'attachment; filename={}_download_{}.zip'.format(self.target_name, resource_id))
+        # Verify content type
+        self.assertEqual(response._headers['content-type'][1], 'application/zip')
+        # Verify the number of resources in the zip is correct
+        self.assertEqual(len(zip_file.namelist()), 13)
+
+        # Delete corresponding folder
+        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
 
     def test_success_file_bad_project(self):
         """
