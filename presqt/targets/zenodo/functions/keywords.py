@@ -54,7 +54,10 @@ def zenodo_fetch_keywords(token, resource_id):
 
     if 'keywords' in resource['extra'].keys():
         if metadata:
-            keywords = list(set(resource['extra']['keywords'] + metadata['allKeywords']))
+            try:
+                keywords = list(set(resource['extra']['keywords'] + metadata['allKeywords']))
+            except KeyError:
+                keywords = list(set(resource['extra']['keywords']))
         else:
             keywords = list(set(resource['extra']['keywords']))
 
