@@ -56,8 +56,8 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual('repo', response.data['kind_name'])
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('ProjectTwo', response.data['title'])
-        # Download Link
-        self.assertEqual(len(response.data['links']), 3)
+        # Download, Upload, Transfer, Detail Links
+        self.assertEqual(len(response.data['links']), 4)
 
     def test_success_file(self):
         """

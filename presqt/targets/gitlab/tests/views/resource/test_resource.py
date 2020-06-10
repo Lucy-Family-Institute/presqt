@@ -47,7 +47,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('ProjectNine', response.data['title'])
 
-        self.assertEqual(len(response.data['links']), 3)
+        self.assertEqual(len(response.data['links']), 4)
 
     def test_success_dir(self):
         """
@@ -67,7 +67,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('android', response.data['title'])
 
-        self.assertEqual(len(response.data['links']), 3)
+        self.assertEqual(len(response.data['links']), 4)
 
     def test_success_file(self):
         """
@@ -87,7 +87,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('README.md', response.data['title'])
         # Download Link
-        self.assertEqual(len(response.data['links']), 1)
+        self.assertEqual(len(response.data['links']), 2)
 
     def test_error_404_not_authorized(self):
         """
