@@ -614,7 +614,7 @@ Upload New Top Level Resource
         }
 
     :reqheader presqt-destination-token: User's ``Token`` for the destination target
-    :reqheader presqt-file-duplicate-action: Action to be taken if a duplicate file is found
+    :reqheader presqt-file-duplicate-action: Action to be taken if a duplicate file is found (Either ``update`` or ``ignore``)
     :form presqt-file: The ``Resource`` to ``Upload``. Must be a BagIt file in ZIP format.
     :statuscode 202: ``Resource`` has begun uploading
     :statuscode 400: The ``Target`` does not support the action ``resource_upload``
@@ -661,7 +661,7 @@ Upload To Existing Resource
         }
 
     :reqheader presqt-destination-token: User's ``Token`` for the destination target
-    :reqheader presqt-file-duplicate-action: Action to be taken if a duplicate file is found
+    :reqheader presqt-file-duplicate-action: Action to be taken if a duplicate file is found (Either ``update`` or ``ignore``)
     :form presqt-file: The ``Resource`` to ``Upload``. Must be a BagIt file in ZIP format.
     :statuscode 202: ``Resource`` has begun uploading
     :statuscode 400: The ``Target`` does not support the action ``resource_upload``
@@ -836,8 +836,8 @@ Transfer New Top Level Resource
 
     :reqheader presqt-destination-token: User's ``Token`` for the destination target
     :reqheader presqt-source-token: User's ``Token`` for the source target
-    :reqheader presqt-file-duplicate-action: Action to be taken if a duplicate file is found
-    :reqheader presqt-keyword-action: Type of keyword action to perform
+    :reqheader presqt-file-duplicate-action: Action to be taken if a duplicate file is found (Either ``update`` or ``ignore``)
+    :reqheader presqt-keyword-action: Type of keyword action to perform (Either ``automatic`` or ``manual``)
     :jsonparam string source_target_name: The ``Source Target`` where the ``Resource`` being ``Transferred`` exists
     :jsonparam string source_resource_id: The ID of the ``Resource`` to ``Transfer``
     :statuscode 202: ``Resource`` has begun transferring
@@ -903,8 +903,8 @@ Transfer To Existing Resource
 
     :reqheader presqt-destination-token: User's ``Token`` for the destination target
     :reqheader presqt-source-token: User's ``Token`` for the source target
-    :reqheader presqt-file-duplicate-action: Action to be taken if a duplicate file is found
-    :reqheader presqt-keyword-action: Type of keyword action to perform
+    :reqheader presqt-file-duplicate-action: Action to be taken if a duplicate file is found (Either ``update`` or ``ignore``)
+    :reqheader presqt-keyword-action: Type of keyword action to perform (Either ``automatic`` or ``manual``)
     :jsonparam string source_target_name: The ``Source Target`` where the ``Resource`` being ``Transferred`` exists
     :jsonparam string source_resource_id: The ID of the ``Resource`` to ``Transfer``
     :statuscode 202: ``Resource`` has begun transferring
@@ -1122,7 +1122,7 @@ Upload Keywords to a Resource
 
         Example body json:
             {
-                "keywords": ["cat", "dog"]
+                "keywords": ["cat", "water"]
             }
 
     **Example response**:
@@ -1134,7 +1134,7 @@ Upload Keywords to a Resource
 
         {
             "keywords_added": [
-                "Animals",
+                "feline",
                 "aqua",
                 "dihydrogen oxide",
                 "DISORDERED SOLVENT",
@@ -1146,8 +1146,7 @@ Upload Keywords to a Resource
                 "Water"
             ],
             "final_keywords": [
-                "animal",
-                "Animals",
+                "feline",
                 "aqua",
                 "dihydrogen oxide",
                 "DISORDERED SOLVENT",
