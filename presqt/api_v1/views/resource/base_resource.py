@@ -22,7 +22,7 @@ from presqt.api_v1.utilities import (target_validation, transfer_target_validati
                                      finite_depth_upload_helper, structure_validation,
                                      keyword_action_validation,
                                      automatic_keywords, update_targets_keywords, manual_keywords,
-                                     get_target_data)
+                                     get_target_data, get_keyword_support)
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
@@ -334,9 +334,9 @@ class BaseResource(APIView):
 
         # Enhance the source keywords
         self.keyword_enhancement_successful = True
-        if self.action == 'resource_transfer_in' and self.keyword_action == 'automatic':
+        if self.action == 'resource_transfer_in' and self.keyword_action == 'automatic' and self.supports_keywords:
             keyword_dict = automatic_keywords(self)
-        elif self.action == 'resource_transfer_in' and self.keyword_action == 'manual':
+        elif self.action == 'resource_transfer_in' and self.keyword_action == 'manual' and self.supports_keywords:
             keyword_dict = manual_keywords(self)
         else:
             keyword_dict = {}
@@ -550,12 +550,12 @@ class BaseResource(APIView):
             self.keyword_enhancement_successful = True
             if not self.destination_resource_id:
                 self.destination_resource_id = func_dict['project_id']
+            if self.supports_keywords:
+                self.keyword_enhancement_successful, self.destination_initial_keywords = update_targets_keywords(
+                    self, func_dict['project_id'])
 
-            self.keyword_enhancement_successful, self.destination_initial_keywords = update_targets_keywords(
-                self, self.destination_resource_id)
-
-            # Add the destination initial keywords to all keywords for accurate metadata list
-            self.all_keywords = self.all_keywords + self.destination_initial_keywords
+                # Add the destination initial keywords to all keywords for accurate metadata list
+                self.all_keywords = self.all_keywords + self.destination_initial_keywords
 
         self.metadata_validation = create_upload_metadata(self,
                                                           func_dict['file_metadata_list'],
@@ -600,6 +600,7 @@ class BaseResource(APIView):
                 self.destination_target_name, self.action)
             target_validation(self.source_target_name, 'resource_transfer_out')
             transfer_target_validation(self.source_target_name, self.destination_target_name)
+            self.supports_keywords = get_keyword_support(self.source_target_name, self.destination_target_name)
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
