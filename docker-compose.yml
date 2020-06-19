@@ -31,7 +31,7 @@ services:
   # be stored within the container, but passed in via
   # environment variables.
   presqt_django:
-    command: "/usr/src/app/docker/django_entrypoint.sh"
+    command: "docker/django_entrypoint.sh"
     build:
       context: .
       dockerfile: django.dockerfile
@@ -67,7 +67,7 @@ services:
   # per container, we need something separate
   # to run scheduled jobs.
   presqt_cron:
-    command: "/usr/src/app/docker/cron_startup.sh"
+    command: "docker/cron_startup.sh"
     restart: always
     depends_on:
       - presqt_django
@@ -98,7 +98,7 @@ services:
       - backend
 
   presqt_nginx_logger:
-    command: "/usr/src/app/docker/nginx_logger_startup.sh"
+    command: "docker/nginx_logger_startup.sh"
     restart: always
     depends_on:
       - presqt_nginx
