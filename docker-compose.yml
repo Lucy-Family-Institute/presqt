@@ -21,9 +21,11 @@ services:
       - ./config/ssl:/etc/ssl
       - ./config/nginx/conf.d/${ENVIRONMENT}_local.conf:/etc/nginx/conf.d/default.conf
       - ./config/nginx/snippets:/etc/nginx/snippets
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf
       - presqt_ui_volume:/usr/src/app/ui
       - presqt_static_volume:/usr/src/app/staticfiles
       - presqt_media_volume:/usr/src/app/mediafiles
+      - nginx_logs_volume:/var/log/nginx/
 
   # Create a Django container. Note that no secrets should
   # be stored within the container, but passed in via
@@ -95,6 +97,24 @@ services:
     networks:
       - backend
 
+  presqt_nginx_logger:
+    command: "/usr/src/app/docker/nginx_logger_startup.sh"
+    restart: always
+    depends_on:
+      - presqt_nginx
+    build:
+      context: .
+      dockerfile: django.dockerfile
+      args:
+        BUILD_ENVIRONMENT: ${ENVIRONMENT:-production}
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+    volumes:
+      - .:/usr/src/app
+      - nginx_logs_volume:/var/log/nginx/
+
+
+
 # We create two top-level networks to provide some isolation
 # of concerns / greater security. In our case, we use this to
 # disallow direct connections between the NGINX container and
@@ -107,3 +127,4 @@ volumes:
   presqt_static_volume:
   presqt_media_volume:
   presqt_ui_volume:
+  nginx_logs_volume:
