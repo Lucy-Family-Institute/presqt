@@ -14,6 +14,7 @@ omit =
         presqt/targets/github/tests/*
         presqt/targets/zenodo/tests/*
         presqt/targets/gitlab/tests/*
+        presqt/targets/figshare/tests/*
         */__init__.py
         presqt/api_v1/views/bag_and_zip/*
 
