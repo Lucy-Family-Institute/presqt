@@ -19,7 +19,7 @@ class TestResourceCollection(SimpleTestCase):
 
     def test_success_figshare(self):
         """
-        Return a 200 if the GET method is successful when grabbing GitLab resources.
+        Return a 200 if the GET method is successful when grabbing FigShare resources.
         """
         url = reverse('resource_collection', kwargs={'target_name': 'figshare'})
         response = self.client.get(url, **self.header)
@@ -35,6 +35,35 @@ class TestResourceCollection(SimpleTestCase):
         # No links at the moment, this will change when Details are added #
         for data in response.data:
             self.assertEqual(len(data['links']), 0)
+
+    def test_success_with_search(self):
+        """
+        Return a 200 if the GET method was successfull with search parameters.
+        """
+        url = reverse('resource_collection', kwargs={'target_name': 'figshare'})
+        response = self.client.get(url + '?id=82430', **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 200)
+        # Verify the dict keys match what we expect
+        keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
+        for data in response.data:
+            self.assertListEqual(keys, list(data.keys()))
+        # Verify the count of resource objects is what we expect.
+        self.assertEqual(len(response.data), 2)
+
+        # No links at the moment, this will change when Details are added #
+        for data in response.data:
+            self.assertEqual(len(data['links']), 0)
+
+    def test_404_no_search_results(self):
+        """
+        Return a 404 if no search results were found.
+        """
+        url = reverse('resource_collection', kwargs={'target_name': 'figshare'})
+        response = self.client.get(url + '?id=egg', **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.data['error'], "Project with id, egg, can not be found.")
 
     def test_error_400_missing_token_figshare(self):
         """
@@ -65,7 +94,6 @@ class TestResourceCollection(SimpleTestCase):
         Test for a 400 with a bad parameter
         """
         url = reverse('resource_collection', kwargs={'target_name': 'figshare'})
-        # THIS TEST IS ONLY TEMPORARY, SEARCH WILL EVENTUALLY BE ADDED TO FIGSHARE
         response = self.client.get(url + '?title=hat', **self.header)
 
         self.assertEqual(
