@@ -39,3 +39,43 @@ def get_figshare_project_data(initial_data, headers, resources):
             })
 
     return resources
+
+
+def get_search_project_data(initial_data, headers, resources):
+    """
+    Get all directories and files of a given project.
+
+    Parameters
+    ----------
+    initial_data: list
+        List of all top level projects
+    headers: dict
+        The authorizaion header that Figshare expects
+    resources: list
+        A list of resources to append to
+
+    Returns
+    -------
+    A list of resources.
+    """
+    resources.append({
+        "kind": "container",
+        "kind_name": "project",
+        "container": None,
+        "id": initial_data['id'],
+        "title": initial_data['title']
+    })
+
+    file_get = requests.get("https://api.figshare.com/v2/projects/{}/articles".format(initial_data['id']),
+                            headers=headers).json()
+
+    for file in file_get:
+        resources.append({
+            "kind": "item",
+            "kind_name": file['defined_type_name'],
+            "container": initial_data['id'],
+            "id": file['id'],
+            "title": file['title']
+        })
+
+    return resources
