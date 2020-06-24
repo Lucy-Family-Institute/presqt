@@ -81,7 +81,7 @@ def get_search_project_data(initial_data, headers, resources):
 
     for article in article_get:
         resources.append({
-            "kind": "item",
+            "kind": "container",
             "kind_name": article['defined_type_name'],
             "container": initial_data['id'],
             "id": "{}:{}".format(initial_data['id'], article['id']),
