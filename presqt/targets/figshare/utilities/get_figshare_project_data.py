@@ -26,17 +26,27 @@ def get_figshare_project_data(initial_data, headers, resources):
             "id": project['id'],
             "title": project['title']
         })
-        file_get = requests.get("https://api.figshare.com/v2/account/projects/{}/articles".format(
+        article_get = requests.get("https://api.figshare.com/v2/account/projects/{}/articles".format(
             project['id']), headers=headers).json()
 
-        for file in file_get:
+        for article in article_get:
             resources.append({
-                "kind": "item",
-                "kind_name": file["defined_type_name"],
+                "kind": "container",
+                "kind_name": article["defined_type_name"],
                 "container": project['id'],
-                "id": "{}:{}".format(project['id'],file['id']),
-                "title": file['title']
+                "id": "{}:{}".format(project['id'], article['id']),
+                "title": article['title']
             })
+            file_get = requests.get(article['url'], headers=headers).json()
+
+            for file in file_get['files']:
+                resources.append({
+                    "kind": "item",
+                    "kind_name": "file",
+                    "container": "{}:{}".format(project['id'], article['id']),
+                    "id": "{}:{}:{}".format(project['id'], article['id'], file['id']),
+                    "title": file['name']
+                })
 
     return resources
 
@@ -66,16 +76,26 @@ def get_search_project_data(initial_data, headers, resources):
         "title": initial_data['title']
     })
 
-    file_get = requests.get("https://api.figshare.com/v2/projects/{}/articles".format(initial_data['id']),
-                            headers=headers).json()
+    article_get = requests.get("https://api.figshare.com/v2/projects/{}/articles".format(
+        initial_data['id']), headers=headers).json()
 
-    for file in file_get:
+    for article in article_get:
         resources.append({
             "kind": "item",
-            "kind_name": file['defined_type_name'],
+            "kind_name": article['defined_type_name'],
             "container": initial_data['id'],
-            "id": "{}:{}".format(initial_data['id'], file['id']),
-            "title": file['title']
+            "id": "{}:{}".format(initial_data['id'], article['id']),
+            "title": article['title']
         })
+        file_get = requests.get(article['url'], headers=headers).json()
+        
+        for file in file_get['files']:
+            resources.append({
+                "kind": "item",
+                "kind_name": "file",
+                "container": "{}:{}".format(initial_data['id'], article['id']),
+                "id": "{}:{}:{}".format(initial_data['id'], article['id'], file['id']),
+                "title": file['name']
+            })
 
     return resources
