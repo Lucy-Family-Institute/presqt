@@ -115,7 +115,7 @@
     "status_url": "https://api.figshare.com/v2/projects",
     "supported_actions": {
       "resource_collection": true,
-      "resource_detail": false,
+      "resource_detail": true,
       "resource_download": false,
       "resource_upload": false,
       "resource_transfer_in": false,
