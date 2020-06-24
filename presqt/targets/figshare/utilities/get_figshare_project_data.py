@@ -34,7 +34,7 @@ def get_figshare_project_data(initial_data, headers, resources):
                 "kind": "item",
                 "kind_name": file["defined_type_name"],
                 "container": project['id'],
-                "id": file['id'],
+                "id": "{}:{}".format(project['id'],file['id']),
                 "title": file['title']
             })
 
@@ -74,7 +74,7 @@ def get_search_project_data(initial_data, headers, resources):
             "kind": "item",
             "kind_name": file['defined_type_name'],
             "container": initial_data['id'],
-            "id": file['id'],
+            "id": "{}:{}".format(initial_data['id'], file['id']),
             "title": file['title']
         })
 
