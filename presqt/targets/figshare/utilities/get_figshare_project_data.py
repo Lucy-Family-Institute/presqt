@@ -88,7 +88,7 @@ def get_search_project_data(initial_data, headers, resources):
             "title": article['title']
         })
         file_get = requests.get(article['url'], headers=headers).json()
-        
+
         for file in file_get['files']:
             resources.append({
                 "kind": "item",
