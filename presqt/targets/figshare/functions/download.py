@@ -105,6 +105,7 @@ def figshare_download_resource(token, resource_id):
     data = response.json()
     project_name = data['title']
     file_urls = None
+    files = None
 
     if len(split_id) == 1:
         # This will be a download of a whole project.
@@ -146,7 +147,7 @@ def figshare_download_resource(token, resource_id):
                     }]
                     empty_containers = []
                     action_metadata = {"sourceUsername": username}
-            else:
+            if not files:
                 # We could not find the file.
                 raise PresQTResponseException("The resource could not be found by the requesting user.",
                                               status.HTTP_404_NOT_FOUND)
