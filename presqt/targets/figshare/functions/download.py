@@ -97,18 +97,22 @@ def figshare_download_resource(token, resource_id):
     project_url = "https://api.figshare.com/v2/account/projects/{}".format(split_id[0])
     response = requests.get(project_url, headers=headers)
     if response.status_code != 200:
+        # Looking for a private project was unsuccessful, try a public project.
         project_url = "https://api.figshare.com/v2/projects/{}".format(split_id[0])
         response = requests.get(project_url, headers=headers)
         if response.status_code != 200:
+            # Project id is invalid
             raise PresQTResponseException("The resource could not be found by the requesting user.",
                                           status.HTTP_404_NOT_FOUND)
     data = response.json()
     project_name = data['title']
+
+    # Flags to be used for file checks.
     file_urls = None
     files = None
 
     if len(split_id) == 1:
-        # This will be a download of a whole project.
+        # Download the contents of the project and build the list of file urls to download.
         articles_url = project_url + "/articles"
         files, empty_containers, action_metadata = download_project(
             username, articles_url, headers, project_name, [])
@@ -126,14 +130,17 @@ def figshare_download_resource(token, resource_id):
             response = requests.get(article_url, headers=headers)
 
             if response.status_code != 200:
+                # We couldn't find the article.
                 raise PresQTResponseException("The resource could not be found by the requesting user.",
                                               status.HTTP_404_NOT_FOUND)
         if len(split_id) == 2:
+            # Download the contents of the article and build the list of file urls to download.
             files, empty_containers, action_metadata = download_article(
                 username, article_url, headers, project_name, [])
             file_urls = [file['file'] for file in files]
 
         elif len(split_id) == 3:
+            # Single file download.
             data = response.json()
             for file in data['files']:
                 if str(file['id']) == split_id[2]:
