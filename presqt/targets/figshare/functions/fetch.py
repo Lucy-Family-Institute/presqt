@@ -34,7 +34,7 @@ def figshare_fetch_resources(token, search_parameter):
     base_url = "https://api.figshare.com/v2/"
 
     try:
-        headers = validation_check(token)
+        headers, username = validation_check(token)
     except PresQTResponseException:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
@@ -88,7 +88,7 @@ def figshare_fetch_resource(token, resource_id):
     }
     """
     try:
-        headers = validation_check(token)
+        headers, username = validation_check(token)
     except PresQTResponseException:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)

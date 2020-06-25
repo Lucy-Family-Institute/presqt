@@ -25,5 +25,6 @@ def validation_check(token):
     if request.status_code == 403:
         raise PresQTResponseException("Token is invalid. Response returned a 403 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
-    else:
-        return headers
+    username = request.json()['email']
+
+    return headers, username
