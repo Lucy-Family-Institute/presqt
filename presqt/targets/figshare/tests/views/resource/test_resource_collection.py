@@ -30,11 +30,10 @@ class TestResourceCollection(SimpleTestCase):
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
         # Verify the count of resource objects is what we expect.
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data), 3)
 
-        # No links at the moment, this will change when Details are added #
         for data in response.data:
-            self.assertEqual(len(data['links']), 0)
+            self.assertEqual(len(data['links']), 1)
 
     def test_success_with_search(self):
         """
@@ -49,11 +48,9 @@ class TestResourceCollection(SimpleTestCase):
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
         # Verify the count of resource objects is what we expect.
-        self.assertEqual(len(response.data), 2)
-
-        # No links at the moment, this will change when Details are added #
+        self.assertEqual(len(response.data), 7)
         for data in response.data:
-            self.assertEqual(len(data['links']), 0)
+            self.assertEqual(len(data['links']), 1)
 
     def test_404_no_search_results(self):
         """
