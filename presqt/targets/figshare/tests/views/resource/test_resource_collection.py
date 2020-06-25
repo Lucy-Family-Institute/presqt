@@ -33,7 +33,7 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(len(response.data), 3)
 
         for data in response.data:
-            self.assertEqual(len(data['links']), 2)
+            self.assertEqual(len(data['links']), 1)
 
     def test_success_with_search(self):
         """
@@ -50,7 +50,7 @@ class TestResourceCollection(SimpleTestCase):
         # Verify the count of resource objects is what we expect.
         self.assertEqual(len(response.data), 7)
         for data in response.data:
-            self.assertEqual(len(data['links']), 2)
+            self.assertEqual(len(data['links']), 1)
 
     def test_404_no_search_results(self):
         """
