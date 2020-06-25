@@ -14,7 +14,7 @@
       "keywords_upload": true
     },
     "supported_transfer_partners": {
-      "transfer_in": ["github", "curate_nd", "zenodo", "gitlab"],
+      "transfer_in": ["github", "curate_nd", "zenodo", "gitlab", "figshare"],
       "transfer_out": ["github", "zenodo", "gitlab"]
     },
     "supported_hash_algorithms": ["sha256", "md5"],
@@ -58,7 +58,7 @@
       "keywords_upload": true
     },
     "supported_transfer_partners": {
-      "transfer_in": ["osf", "curate_nd", "gitlab"],
+      "transfer_in": ["osf", "curate_nd", "gitlab", "figshare"],
       "transfer_out": ["osf", "zenodo", "gitlab"]
     },
     "supported_hash_algorithms": [],
@@ -80,7 +80,7 @@
       "keywords_upload": true
     },
     "supported_transfer_partners": {
-      "transfer_in": ["osf", "github", "curate_nd", "gitlab"],
+      "transfer_in": ["osf", "github", "curate_nd", "gitlab", "figshare"],
       "transfer_out": ["osf", "github", "gitlab"]
     },
     "supported_hash_algorithms": ["md5"],
@@ -102,7 +102,7 @@
       "keywords_upload": true
     },
     "supported_transfer_partners": {
-      "transfer_in": ["osf", "github", "zenodo", "curate_nd"],
+      "transfer_in": ["osf", "github", "zenodo", "curate_nd", "figshare"],
       "transfer_out": ["osf", "github", "zenodo"]
     },
     "supported_hash_algorithms": ["sha256"],
