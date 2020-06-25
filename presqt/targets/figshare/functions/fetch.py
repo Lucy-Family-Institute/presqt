@@ -106,7 +106,6 @@ def figshare_fetch_resource(token, resource_id):
             response = requests.get(project_url, headers=headers)
 
             if response.status_code != 200:
-                # Well we tried...
                 raise PresQTResponseException("The resource could not be found by the requesting user.",
                                               status.HTTP_404_NOT_FOUND)
         data = response.json()
@@ -132,12 +131,11 @@ def figshare_fetch_resource(token, resource_id):
         response = requests.get(article_url, headers=headers)
 
         if response.status_code != 200:
-            # Let's see if this is a public project....
+            # Let's see if this is a public article....
             article_url = "https://api.figshare.com/v2/articles/{}".format(split_id[1])
             response = requests.get(article_url, headers=headers)
 
             if response.status_code != 200:
-                # Well we tried...
                 raise PresQTResponseException("The resource could not be found by the requesting user.",
                                               status.HTTP_404_NOT_FOUND)
         data = response.json()
@@ -164,12 +162,11 @@ def figshare_fetch_resource(token, resource_id):
         response = requests.get(article_url, headers=headers)
 
         if response.status_code != 200:
-            # Let's see if this is a public project....
+            # Let's see if this file belongs to a public article....
             article_url = "https://api.figshare.com/v2/articles/{}".format(split_id[1])
             response = requests.get(article_url, headers=headers)
 
             if response.status_code != 200:
-                # Well we tried...
                 raise PresQTResponseException("The resource could not be found by the requesting user.",
                                               status.HTTP_404_NOT_FOUND)
         for file in response.json()['files']:
