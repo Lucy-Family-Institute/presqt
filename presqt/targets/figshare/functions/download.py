@@ -146,7 +146,10 @@ def figshare_download_resource(token, resource_id):
                     }]
                     empty_containers = []
                     action_metadata = {"sourceUsername": username}
-
+            else:
+                # We could not find the file.
+                raise PresQTResponseException("The resource could not be found by the requesting user.",
+                                              status.HTTP_404_NOT_FOUND)
     if file_urls:
         # Start the async calls for project or article downloads
         loop = asyncio.new_event_loop()
