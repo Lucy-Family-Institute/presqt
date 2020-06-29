@@ -58,7 +58,7 @@
       "keywords_upload": true
     },
     "supported_transfer_partners": {
-      "transfer_in": ["osf", "curate_nd", "gitlab", "figshare"],
+      "transfer_in": ["osf", "curate_nd", "gitlab", "figshare", "zenodo"],
       "transfer_out": ["osf", "zenodo", "gitlab"]
     },
     "supported_hash_algorithms": [],
