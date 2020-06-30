@@ -194,7 +194,7 @@ FigShare
     :align:   center
     :scale: 40%
 
-3. Scroll down to the bottom of he screen, and click ``Create Personal Token``.
+3. Scroll down to the bottom of the screen, and click ``Create Personal Token``.
 
 .. figure::  images/qa/figshare/figshare3.png
     :align:   center
