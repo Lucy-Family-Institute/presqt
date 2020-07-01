@@ -42,17 +42,12 @@ def zenodo_fetch_keywords(token, resource_id):
 
     # Find the metadata file...
     metadata = None
-    is_private = True
     if resource['kind'] == 'container':
         file_url = "https://zenodo.org/api/deposit/depositions/{}/files".format(resource_id)
-        project_files = requests.get(file_url, params=auth_parameter)
+        project_files_response = requests.get(file_url, params=auth_parameter)
 
-        if project_files.status_code != 200:
-            is_private = False
-
-        if is_private:
-            # If a user owned project, we'll look for the metadata file.
-            for file in project_files.json():
+        if project_files_response.status_code == 200:
+            for file in project_files_response.json():
                 if file['filename'] == 'PRESQT_FTS_METADATA.json':
                     # Download the metadata
                     metadata_file = requests.get(
