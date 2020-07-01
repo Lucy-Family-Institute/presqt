@@ -44,7 +44,14 @@ def zenodo_fetch_keywords(token, resource_id):
     metadata = None
     if resource['kind'] == 'container':
         file_url = "https://zenodo.org/api/deposit/depositions/{}/files".format(resource_id)
-        project_files = requests.get(file_url, params=auth_parameter).json()
+        project_files = requests.get(file_url, params=auth_parameter)
+        if project_files.status_code != 200:
+            file_url = "https://zenodo.org/api/records/{}/files".format(resource_id)
+            project_files = requests.get(file_url, params=auth_parameter)
+            if project_files.status_code != 200:
+                raise PresQTResponseException("The requested Zenodo resource does not have keywords.",
+                                              status.HTTP_400_BAD_REQUEST)
+
         for file in project_files:
             if file['filename'] == 'PRESQT_FTS_METADATA.json':
                 # Download the metadata
