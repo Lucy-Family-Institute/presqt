@@ -102,7 +102,9 @@ class ResourceKeywords(APIView):
 
         return Response(data={
             "keywords": keywords['keywords'],
-            "enhanced_keywords": final_list_of_keywords},
+            "enhanced_keywords": new_list_of_keywords,
+            "all_keywords": final_list_of_keywords
+        },
             status=status.HTTP_200_OK)
 
     def post(self, request, target_name, resource_id):
