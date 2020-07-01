@@ -5,9 +5,6 @@ from unittest.mock import patch
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 from django.test import SimpleTestCase
-from django.utils.datastructures import MultiValueDict
-from django.utils.http import urlencode
-
 from config.settings.base import GITHUB_TEST_USER_TOKEN
 
 
@@ -21,7 +18,7 @@ class TestResourceKeywords(SimpleTestCase):
     def setUp(self):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}
-        self.keys = ['keywords', 'enhanced_keywords']
+        self.keys = ['keywords', 'enhanced_keywords', 'all_keywords']
 
     def test_success_project_keywords(self):
         """

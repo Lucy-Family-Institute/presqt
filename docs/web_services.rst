@@ -413,22 +413,22 @@ Zenodo      [Keywords]
 
 Keyword Assignment During Transfer
 ++++++++++++++++++++++++++++++++++
-When transferring a resource you have the option to either enhance keywords or suggest keyword
-enhancements by adding ``presqt-keyword-action`` to the request headers. The options are ``manual``
-or ``automatic``.
+When transferring a resource you have the option of either manual or automatic keyword enhancement.
+Manual enhancement will only add ``source`` keywords and the keywords provided in the request body.
+Automatic will add all enhancements including any provided in the request body.
+These can be set by setting ``presqt-keyword-action`` in the headers to either ``manual`` or ``automatic``
 
-Suggest Keywords
-""""""""""""""""
-If ``presqt-keyword-action`` is ``manual`` then PresQT will take no actions on your behalf regarding
-keywords during the transfer. It will still gather keywords from the target and from the FTS metadata
-file found for the resource being transferred and enhance them with the given keyword enhancer
-(for now it defaults to SciGraph). The suggested enhancements will be returned in the ``Transfer Job``
-response once the transfer finishes.
+Manual Keywords
+"""""""""""""""
+If ``presqt-keyword-action`` is ``manual`` then PresQT will only add keywords found in the
+source target and keywords given in the body of the request. This means you need to get the possible
+enhancements before initiating a transfer.
 
-Enhance Keywords
-""""""""""""""""
-If ``presqt-keyword-action`` is ``automatic`` then PresQT will take several actions regarding keyword
-enhancements during the transfer process.
+Automatic Keywords
+""""""""""""""""""
+If ``presqt-keyword-action`` is ``automatic`` then PresQT will add keywords found in the source,
+keywords given in the request body, and any keyword enhancements found during the transfer process.
+The following steps occur during the transfer in this case:
 
 1. Fetch all source keywords both in the target and in the FTS metadata file for the transferred resource.
 

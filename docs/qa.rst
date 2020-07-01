@@ -292,6 +292,40 @@ Services
 
 Send a Proposal to EaaSI
 ++++++++++++++++++++++++
+1. To send a resource to EaaSI, first select the resource in the ``resource collection`` and then click
+the ``Services`` action button in the details section. A drop down menu will appear from where you can select
+``EaaSI``.
 
-TBD
+.. figure:: images/qa/eaasi/eaasi1.png
+    :align: center
+
+2. A modal will pop open with an ``EaaSI stepper``. First read the proposal and ensure the information is correct.
+Once you have verified that this is what you'd like to do, press the ``Send`` button.
+
+.. figure:: images/qa/eaasi/eaasi2.png
+    :align: center
+    :scale: 30%
+
+3. A spinner will keep you informed of where in the process the request is, whether that be on the
+PresQT server or on EaaSI's.
+
+.. figure:: images/qa/eaasi/eaasi3.png
+    :align: center
+    :scale: 30%
+
+4. Once the upload is completed, the modal will provide you with details about how the process went.
+There will also be a link for you to download the EaaSI created image.
+
+.. figure:: images/qa/eaasi/eaasi4.png
+    :align: center
+    :scale: 30%
+
+5. You can now open the image and run it however you please. Note: At this point in time, EaaSI's
+server is only returning cd-rom images for us during testing. The environments will be changed to accurately
+take into account the files contained within the project as development continues.
+
+.. figure:: images/qa/eaasi/eaasi5.png
+    :align: center
+    :scale: 30%
+
 
