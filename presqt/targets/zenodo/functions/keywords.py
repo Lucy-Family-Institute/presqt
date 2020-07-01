@@ -51,6 +51,7 @@ def zenodo_fetch_keywords(token, resource_id):
             is_private = False
 
         if is_private:
+            # If a user owned project, we'll look for the metadata file.
             for file in project_files.json():
                 if file['filename'] == 'PRESQT_FTS_METADATA.json':
                     # Download the metadata
