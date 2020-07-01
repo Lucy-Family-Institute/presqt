@@ -18,7 +18,7 @@ class TestResourceKeywords(SimpleTestCase):
     def setUp(self):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_TEST_USER_TOKEN}
-        self.keys = ['keywords', 'enhanced_keywords']
+        self.keys = ['keywords', 'enhanced_keywords', 'all_keywords']
 
     def test_success_project_keywords(self):
         """
