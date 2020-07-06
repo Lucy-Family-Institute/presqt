@@ -54,6 +54,13 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
                                     "destinationHash": {'hash_algorithm': 'the_hash'}}
                                 }
         'project_id': ID of the parent project for this upload. Needed for metadata upload.
+
+    FigShare's Upload Process
+        1.
+        2.
+        3.
+        4.
+        5.
     """
     try:
         headers, username = validation_check(token)
@@ -73,6 +80,7 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
     if not resource_id:
         # Create a new project with the name being the top level directory's name.
         project_name, project_id = create_project(project_title, headers, token)
+
         # Create article, for now we'll name it the same as the project
         article_id = create_article(project_title, headers, project_id)
     else:
@@ -164,5 +172,3 @@ def upload_parts(headers, upload_url, parts, file_info):
         if upload_status.status_code != 200:
             raise PresQTResponseException(
                 "FigShare returned an error trying to upload.", status.HTTP_400_BAD_REQUEST)
-
-    return True
