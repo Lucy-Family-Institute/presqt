@@ -67,56 +67,82 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
     file_metadata_list = []
     action_metadata = {'destinationUsername': username}
 
+    project_title = os_path[1][0]
+
     # Upload a new project
     if not resource_id:
         # Create a new project with the name being the top level directory's name.
-        project_title = os_path[1][0]
         project_name, project_id = create_project(project_title, headers, token)
         # Create article, for now we'll name it the same as the project
         article_id = create_article(project_title, headers, project_id)
-        # Get md5, size and name of zip file to be uploaded
-        for path, subdirs, files in os.walk(resource_main_dir):
-            if not subdirs and not files:
-                resources_ignored.append(path)
-            for name in files:
-                file_info = open(os.path.join(path, name), 'rb')
-                zip_hash = hash_generator(file_info.read(), 'md5')
-                zip_size = os.path.getsize(os.path.join(path, name))
+    else:
+        # Upload to an existing project
+        split_id = str(resource_id).split(":")
+        if len(split_id) == 1:
+            # We only have a project and we need to make a new article id
+            article_id = create_article(project_title, headers, resource_id)
+        elif len(split_id) == 2:
+            article_id = split_id[1]
+        else:
+            # Can't upload to file
+            raise PresQTResponseException(
+                "Can not upload into an existing file.",
+                status.HTTP_400_BAD_REQUEST)
 
-                file_data = {
-                    "md5": zip_hash,
-                    "name": name,
-                    "size": zip_size
-                }
+    # Get the article title
+    article_title = requests.get("https://api.figshare.com/v2/account/articles/{}".format(article_id),
+                                 headers=headers).json()['title']
 
-                # Initiate file upload
-                upload_response = requests.post(
-                    "https://api.figshare.com/v2/account/articles/{}/files".format(article_id),
-                    headers=headers,
-                    data=json.dumps(file_data))
+    # Get md5, size and name of zip file to be uploaded
+    for path, subdirs, files in os.walk(resource_main_dir):
+        if not subdirs and not files:
+            resources_ignored.append(path)
+        for name in files:
+            file_info = open(os.path.join(path, name), 'rb')
+            zip_hash = hash_generator(file_info.read(), 'md5')
+            zip_size = os.path.getsize(os.path.join(path, name))
 
-                if upload_response.status_code != 201:
-                    raise PresQTResponseException(
-                        "FigShare returned an error trying to upload {}.".format(name),
-                        status.HTTP_400_BAD_REQUEST)
+            file_data = {
+                "md5": zip_hash,
+                "name": name,
+                "size": zip_size
+            }
 
-                # Get location information
-                file_url = upload_response.json()['location']
-                upload_response = requests.get(file_url, headers=headers).json()
-                upload_url = upload_response['upload_url']
-                file_id = upload_response['id']
+            file_metadata_list.append({
+                'actionRootPath': os.path.join(path, name),
+                'destinationPath': '/{}/{}/{}'.format(project_title, article_title, name),
+                'title': name,
+                'destinationHash': zip_hash})
 
-                # Get upload information
-                file_upload_response = requests.get(upload_url, headers=headers).json()
-                # Loop through parts and upload
-                file_status = upload_parts(
-                    headers, upload_url, file_upload_response['parts'], file_info)
+            # Initiate file upload
+            upload_response = requests.post(
+                "https://api.figshare.com/v2/account/articles/{}/files".format(article_id),
+                headers=headers,
+                data=json.dumps(file_data))
 
-                # If all complete
-                complete_upload = requests.post(
-                    "https://api.figshare.com/v2/account/articles/{}/files/{}".format(
-                        article_id, file_id),
-                    headers=headers)
+            if upload_response.status_code != 201:
+                raise PresQTResponseException(
+                    "FigShare returned an error trying to upload {}.".format(name),
+                    status.HTTP_400_BAD_REQUEST)
+
+            # Get location information
+            file_url = upload_response.json()['location']
+            upload_response = requests.get(file_url, headers=headers).json()
+            upload_url = upload_response['upload_url']
+            file_id = upload_response['id']
+
+            # Get upload information
+            file_upload_response = requests.get(upload_url, headers=headers).json()
+            # Loop through parts and upload
+            file_status = upload_parts(
+                headers, upload_url, file_upload_response['parts'], file_info)
+
+            # If all complete
+            complete_upload = requests.post(
+                "https://api.figshare.com/v2/account/articles/{}/files/{}".format(
+                    article_id, file_id),
+                headers=headers)
+
     return {
         "resources_ignored": resources_ignored,
         "resources_updated": resources_updated,
