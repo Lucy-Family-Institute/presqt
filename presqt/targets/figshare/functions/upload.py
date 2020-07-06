@@ -54,6 +54,13 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
                                     "destinationHash": {'hash_algorithm': 'the_hash'}}
                                 }
         'project_id': ID of the parent project for this upload. Needed for metadata upload.
+
+    FigShare's Upload Process
+        1.
+        2.
+        3.
+        4.
+        5.
     """
     try:
         headers, username = validation_check(token)
@@ -72,8 +79,10 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
         # Create a new project with the name being the top level directory's name.
         project_title = os_path[1][0]
         project_name, project_id = create_project(project_title, headers, token)
+
         # Create article, for now we'll name it the same as the project
         article_id = create_article(project_title, headers, project_id)
+
         # Get md5, size and name of zip file to be uploaded
         for path, subdirs, files in os.walk(resource_main_dir):
             if not subdirs and not files:
@@ -102,21 +111,22 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
 
                 # Get location information
                 file_url = upload_response.json()['location']
-                upload_response = requests.get(file_url, headers=headers).json()
-                upload_url = upload_response['upload_url']
-                file_id = upload_response['id']
+                get_response = requests.get(file_url, headers=headers).json()
+                upload_url = get_response['upload_url']
+                file_id = get_response['id']
 
                 # Get upload information
                 file_upload_response = requests.get(upload_url, headers=headers).json()
                 # Loop through parts and upload
-                file_status = upload_parts(
-                    headers, upload_url, file_upload_response['parts'], file_info)
+                upload_parts(headers, upload_url, file_upload_response['parts'], file_info)
 
                 # If all complete
-                complete_upload = requests.post(
+                complete_upload_response = requests.post(
                     "https://api.figshare.com/v2/account/articles/{}/files/{}".format(
                         article_id, file_id),
                     headers=headers)
+
+                # TODO: Verify upload was successful
     return {
         "resources_ignored": resources_ignored,
         "resources_updated": resources_updated,
@@ -138,5 +148,3 @@ def upload_parts(headers, upload_url, parts, file_info):
         if upload_status.status_code != 200:
             raise PresQTResponseException(
                 "FigShare returned an error trying to upload.", status.HTTP_400_BAD_REQUEST)
-
-    return True
