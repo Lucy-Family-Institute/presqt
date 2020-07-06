@@ -16,7 +16,9 @@ def create_project(project_title, headers, token):
     project_title : str
         The title of the project being created
     headers : dict
-        The users FigShare Auth header.
+        The users FigShare Auth header
+    token : str
+        The users Auth token
     """
     project_payload = {"title": project_title}
     response = requests.post(
@@ -40,6 +42,6 @@ def create_project(project_title, headers, token):
 
     else:
         raise PresQTResponseException(
-            "Response has status code {} while creating repository {}".format(response.status_code,
-                                                                              project_title),
+            "Response has status code {} while creating project {}".format(response.status_code,
+                                                                           project_title),
             status.HTTP_400_BAD_REQUEST)
