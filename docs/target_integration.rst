@@ -41,7 +41,7 @@ Target Collection/Details
     **Target JSON Example:**
 
         .. code-block:: json
-e
+
             {
                 "name": "osf",
                 "readable_name": "OSF",

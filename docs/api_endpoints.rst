@@ -1082,7 +1082,6 @@ Get a Resource's Keywords And Keyword Enhancements
             "enhanced_keywords": [
                 "animals",
                 "Animals",
-                "eggs",
                 "EGG",
                 "Electrostatic Gravity Gradiometer",
                 "water",
@@ -1093,6 +1092,22 @@ Get a Resource's Keywords And Keyword Enhancements
                 "dihydrogen oxide",
                 "OXYGEN ATOM",
                 "oxidane",
+            ],
+            "all_keywords": [
+                "animals",
+                "Animals",
+                "EGG",
+                "Electrostatic Gravity Gradiometer",
+                "water",
+                "Water",
+                "DISORDERED SOLVENT",
+                "aqua",
+                "Wasser",
+                "dihydrogen oxide",
+                "OXYGEN ATOM",
+                "oxidane",
+                "eggs",
+                "animal",
                 "water"
             ]
         }
