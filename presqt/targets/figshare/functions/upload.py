@@ -56,11 +56,10 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
         'project_id': ID of the parent project for this upload. Needed for metadata upload.
 
     FigShare's Upload Process
-        1.
-        2.
-        3.
-        4.
-        5.
+        1. Initiate new file upload (POST) within the article. Send file size, md5, and name but no file contents yet.
+        2. Send a GET request to the 'Uploader Service' to determine that the status is "Pending" and how many parts to split the upload into.
+        3. Split the file into the correct number of parts and upload each using a PUT request.
+        4. Send a POST request to complete the upload.
     """
     try:
         headers, username = validation_check(token)
@@ -130,7 +129,7 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
 
             if upload_response.status_code != 201:
                 raise PresQTResponseException(
-                    "FigShare returned an error trying to upload {}.".format(name),
+                    "FigShare returned an error trying to upload {}. Some items may still have been created on FigShare.".format(name),
                     status.HTTP_400_BAD_REQUEST)
 
             # Get location information
@@ -142,14 +141,18 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
             # Get upload information
             file_upload_response = requests.get(upload_url, headers=headers).json()
             # Loop through parts and upload
-            file_status = upload_parts(
-                headers, upload_url, file_upload_response['parts'], file_info)
+            upload_parts( headers, upload_url, file_upload_response['parts'], file_info)
 
             # If all complete
             complete_upload = requests.post(
                 "https://api.figshare.com/v2/account/articles/{}/files/{}".format(
                     article_id, file_id),
                 headers=headers)
+
+            if complete_upload.status_code != 202:
+                raise PresQTResponseException(
+                    "FigShare returned an error trying to upload {}. Some items may still have been created on FigShare.".format(name),
+                    status.HTTP_400_BAD_REQUEST)
 
     return {
         "resources_ignored": resources_ignored,
@@ -162,6 +165,8 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
 
 def upload_parts(headers, upload_url, parts, file_info):
     """
+    Upload the parts of the file to FigShare. File offsets are determined by the initial
+    FigShare POST upload.
     """
     headers["Content-Type"] = "application/binary"
     for part in parts:
@@ -171,4 +176,4 @@ def upload_parts(headers, upload_url, parts, file_info):
             "{}/{}".format(upload_url, part['partNo']), headers=headers, data=data)
         if upload_status.status_code != 200:
             raise PresQTResponseException(
-                "FigShare returned an error trying to upload.", status.HTTP_400_BAD_REQUEST)
+                "FigShare returned an error trying to upload. Some items may still have been created on FigShare.", status.HTTP_400_BAD_REQUEST)
