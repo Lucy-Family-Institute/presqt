@@ -4,7 +4,7 @@ def delete_users_projects(auth_token):
     """
     Deletes all of a given users projects on OSF.
 
-    Warning: Mainly used for testing/Actions are irreversable
+    Warning: Mainly used for testing/Actions are irreversible
     
     Parameters
     ----------

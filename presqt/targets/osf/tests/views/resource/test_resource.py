@@ -848,13 +848,12 @@ class TestResourcePOST(SimpleTestCase):
         self.url = reverse('resource', kwargs={
                            'target_name': 'osf', 'resource_id': self.resource_id})
         self.file = 'presqt/api_v1/tests/resources/upload/FolderBagItToUpload.zip'
-        self.resources_ignored = [
-            '/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
+        self.resources_ignored = ['/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
         self.resources_updated = []
         self.hash_algorithm = 'sha256'
         shared_upload_function_osf(self)
 
-        # # Verify files exist in OSF
+        # Verify files exist in OSF
         file_data = requests.get(folder_data['data'][0]['relationships']
                                  ['files']['links']['related']['href'], headers=headers).json()
         self.assertEqual(file_data['links']['meta']['total'], 2)
