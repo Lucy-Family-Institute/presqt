@@ -54,9 +54,13 @@ def figshare_upload_metadata(token, article_id, metadata_dict):
                         headers=headers)
 
                     if schema_validator('presqt/json_schemas/metadata_schema.json', updated_metadata) is not True:
-                        metadata_file_upload_process(updated_metadata, headers,
-                                                     "INVALID_PRESQT_FTS_METADATA.json", article['id'])
-                        break
+                        # Make old metadata invalid
+                        metadata_file_upload_process(
+                            updated_metadata, headers, "INVALID_PRESQT_FTS_METADATA.json", article['id'])
+                        # Add new metadata file
+                        metadata_file_upload_process(
+                            metadata_dict, headers, "PRESQT_FTS_METADATA.json", article['id'])
+                        return
 
                     # Loop through each 'action' in both metadata files and make a new list of them.
                     joined_actions = [entry for entry in itertools.chain(metadata_dict['actions'],
