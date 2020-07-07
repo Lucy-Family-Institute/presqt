@@ -20,14 +20,17 @@ More information can be found here https://presqt.crc.nd.edu/
 
 **Current Target Integrations**:
 
-=========== ============== ========== ========== ============ ========== ===================================== ================================= =================== =============== ===================
-**Target**  **Collection** **Search** **Detail** **Download** **Upload** **Transfer In [Targets]**             **Transfer Out [Targets]**        **Hash Algorithms** **Keyword Get** **Keywords Upload**
-OSF         ✅             ✅         ✅          ✅           ✅         ✅[Github, CurateND, Zenodo, GitLab]  ✅ [Github, Zenodo, GitLab]       [sha256, md5]       ✅              ✅
-curateND    ✅             ✅         ✅          ✅           ❌         ❌                                    ✅ [OSF, Github, Zenodo, GitLab]  [md5]               ✅              ❌
-Github      ✅             ✅         ✅          ✅           ✅         ✅[OSF, CurateND, Zenodo, GitLab]     ✅ [OSF, Zenodo, GitLab]          [ ]                 ✅              ✅
-Zenodo      ✅             ✅         ✅          ✅           ✅         ✅[OSF, Github, CurateND, GitLab]     ✅ [OSF, Github, GitLab]          [md5]               ✅              ✅
-GitLab      ✅             ✅         ✅          ✅           ✅         ✅[OSF, Github, CurateND, Zenodo]     ✅ [OSF, GitHub, Zenodo]          [sha256]            ✅              ✅
-=========== ============== ========== ========== ============ ========== ===================================== ================================= =================== =============== ===================
+=========== ============== ========== ========== ============ ========== ================================================ =========================================== =================== =============== ===================
+**Target**  **Collection** **Search** **Detail** **Download** **Upload** **Transfer In [Targets]**                        **Transfer Out [Targets]**                  **Hash Algorithms** **Keyword Get** **Keywords Upload**
+OSF         ✅             ✅         ✅         ✅           ✅        ✅[Github, CurateND, Zenodo, GitLab, FigShare]   ✅ [Github, Zenodo, GitLab, FigShare]       [sha256, md5]       ✅              ✅
+curateND    ✅             ✅         ✅         ✅           ❌        ❌                                               ✅ [OSF, Github, Zenodo, GitLab, FigShare]  [md5]               ✅              ❌
+Github      ✅             ✅         ✅         ✅           ✅        ✅[OSF, CurateND, Zenodo, GitLab, FigShare]      ✅ [OSF, Zenodo, GitLab, FigShare]          [ ]                 ✅              ✅
+Zenodo      ✅             ✅         ✅         ✅           ✅        ✅[OSF, Github, CurateND, GitLab, FigShare]      ✅ [OSF, Github, GitLab, FigShare]          [md5]               ✅              ✅
+GitLab      ✅             ✅         ✅         ✅           ✅        ✅[OSF, Github, CurateND, Zenodo, FigShare]      ✅ [OSF, GitHub, Zenodo, FigShare]          [sha256]            ✅              ✅
+GitLab      ✅             ✅         ✅         ✅           ✅        ✅[OSF, Github, CurateND, Zenodo, FigShare]      ✅ [OSF, GitHub, Zenodo, FigShare]          [sha256]            ✅              ✅
+FigShare    ✅             ✅         ✅         ✅           ✅        ✅[OSF, Github, CurateND, Zenodo, Gitlab]        ✅ [OSF, Github, Gitlab, Zenodo]            [md5]               ❌              ❌
+=========== ============== ========== ========== ============ ========== ================================================ =========================================== =================== =============== ===================
+
 
 **Current Service Integrations**:
 
