@@ -85,6 +85,7 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
     else:
         # Upload to an existing project
         split_id = str(resource_id).split(":")
+        project_id = split_id[0]
         if len(split_id) == 1:
             # We only have a project and we need to make a new article id
             article_id = create_article(project_title, headers, resource_id)
@@ -129,7 +130,8 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
 
             if upload_response.status_code != 201:
                 raise PresQTResponseException(
-                    "FigShare returned an error trying to upload {}. Some items may still have been created on FigShare.".format(name),
+                    "FigShare returned an error trying to upload {}. Some items may still have been created on FigShare.".format(
+                        name),
                     status.HTTP_400_BAD_REQUEST)
 
             # Get location information
@@ -141,7 +143,7 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
             # Get upload information
             file_upload_response = requests.get(upload_url, headers=headers).json()
             # Loop through parts and upload
-            upload_parts( headers, upload_url, file_upload_response['parts'], file_info)
+            upload_parts(headers, upload_url, file_upload_response['parts'], file_info)
 
             # If all complete
             complete_upload = requests.post(
@@ -151,7 +153,8 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
 
             if complete_upload.status_code != 202:
                 raise PresQTResponseException(
-                    "FigShare returned an error trying to upload {}. Some items may still have been created on FigShare.".format(name),
+                    "FigShare returned an error trying to upload {}. Some items may still have been created on FigShare.".format(
+                        name),
                     status.HTTP_400_BAD_REQUEST)
 
     return {
@@ -159,7 +162,7 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
         "resources_updated": resources_updated,
         "action_metadata": action_metadata,
         "file_metadata_list": file_metadata_list,
-        "project_id": article_id,
+        "project_id": "{}:{}".format(project_id, article_id)
     }
 
 
