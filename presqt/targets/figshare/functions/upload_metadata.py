@@ -1,13 +1,10 @@
-import io
-import json
 import requests
 import itertools
 
 from rest_framework import status
 
 from presqt.json_schemas.schema_handlers import schema_validator
-from presqt.api_v1.utilities.fixity.hash_generator import hash_generator
-from presqt.targets.figshare.functions.upload import upload_parts
+from presqt.targets.figshare.utilities.helpers.upload_helpers import figshare_file_upload_process
 from presqt.targets.figshare.utilities.validation_check import validation_check
 from presqt.targets.figshare.utilities.helpers.create_article import create_article
 from presqt.utilities import PresQTResponseException
@@ -55,10 +52,10 @@ def figshare_upload_metadata(token, article_id, metadata_dict):
 
                     if schema_validator('presqt/json_schemas/metadata_schema.json', updated_metadata) is not True:
                         # Make old metadata invalid
-                        metadata_file_upload_process(
+                        figshare_file_upload_process(
                             updated_metadata, headers, "INVALID_PRESQT_FTS_METADATA.json", article['id'])
                         # Add new metadata file
-                        metadata_file_upload_process(
+                        figshare_file_upload_process(
                             metadata_dict, headers, "PRESQT_FTS_METADATA.json", article['id'])
                         return
 
@@ -70,7 +67,7 @@ def figshare_upload_metadata(token, article_id, metadata_dict):
                     updated_metadata['actions'] = joined_actions
                     updated_metadata['allKeywords'] = list(set(joined_keywords))
 
-                    metadata_file_upload_process(updated_metadata, headers,
+                    figshare_file_upload_process(updated_metadata, headers,
                                                  "PRESQT_FTS_METADATA.json", article['id'])
                     return
 
@@ -78,58 +75,4 @@ def figshare_upload_metadata(token, article_id, metadata_dict):
     article_id = create_article("PRESQT_FTS_METADATA", headers, split_id[0])
 
     # New Metadata file
-    metadata_file_upload_process(metadata_dict, headers, file_name, article_id)
-
-
-def metadata_file_upload_process(metadata_dict, headers, file_name, article_id):
-    """
-    This function covers the file upload process for FigShare.
-
-    Parameters
-    ----------
-    metadata_dict: dict
-        The metadata dictionary to writte to FigShare
-    headers: dict
-        The user's FigShare Auth header
-    file_name: str
-        The name of the file being uploaded
-    article_id: str
-        The id of the article to upload to
-    """
-    metadata_bytes = json.dumps(metadata_dict, indent=4).encode('utf-8')
-
-    file_data = {
-        "md5": hash_generator(metadata_bytes, 'md5'),
-        "name": file_name,
-        "size": len(metadata_bytes)}
-
-    upload_response = requests.post(
-        "https://api.figshare.com/v2/account/articles/{}/files".format(article_id), headers=headers, data=json.dumps(file_data))
-    if upload_response.status_code != 201:
-        raise PresQTResponseException(
-            "FigShare returned an error trying to upload {}. Some items may still have been created on FigShare.".format(
-                file_name),
-            status.HTTP_400_BAD_REQUEST)
-
-    # Get location information
-    file_url = upload_response.json()['location']
-    get_upload_response = requests.get(file_url, headers=headers).json()
-    upload_url = get_upload_response['upload_url']
-    file_id = get_upload_response['id']
-
-    # Get upload information
-    file_upload_response = requests.get(upload_url, headers=headers).json()
-    virtual_file = io.BytesIO(metadata_bytes)
-    upload_parts(headers, upload_url,
-                 file_upload_response['parts'], virtual_file)
-
-    complete_upload = requests.post(
-        "https://api.figshare.com/v2/account/articles/{}/files/{}".format(
-            article_id, file_id),
-        headers=headers)
-
-    if complete_upload.status_code != 202:
-        raise PresQTResponseException(
-            "FigShare returned an error trying to upload {}. Some items may still have been created on FigShare.".format(
-                file_name),
-            status.HTTP_400_BAD_REQUEST)
+    figshare_file_upload_process(metadata_dict, headers, file_name, article_id)
