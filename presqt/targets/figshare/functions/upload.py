@@ -1,4 +1,4 @@
-import base64
+import io
 import json
 import os
 import requests
@@ -9,7 +9,8 @@ from presqt.api_v1.utilities.fixity.hash_generator import hash_generator
 from presqt.targets.figshare.utilities.validation_check import validation_check
 from presqt.targets.figshare.utilities.helpers.create_project import create_project
 from presqt.targets.figshare.utilities.helpers.create_article import create_article
-from presqt.utilities import PresQTResponseException, write_file, read_file
+from presqt.targets.figshare.utilities.helpers.upload_helpers import figshare_file_upload_process
+from presqt.utilities import PresQTResponseException
 
 
 def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorithm, file_duplicate_action):
@@ -108,54 +109,15 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
         for name in files:
             file_info = open(os.path.join(path, name), 'rb')
             zip_hash = hash_generator(file_info.read(), 'md5')
-            zip_size = os.path.getsize(os.path.join(path, name))
 
-            file_data = {
-                "md5": zip_hash,
-                "name": name,
-                "size": zip_size
-            }
+            figshare_file_upload_process(file_info, headers, name, article_id, file_type='zip',
+                                         path=path)
 
             file_metadata_list.append({
                 'actionRootPath': os.path.join(path, name),
                 'destinationPath': '/{}/{}/{}'.format(project_title, article_title, name),
                 'title': name,
                 'destinationHash': zip_hash})
-
-            # Initiate file upload
-            upload_response = requests.post(
-                "https://api.figshare.com/v2/account/articles/{}/files".format(article_id),
-                headers=headers,
-                data=json.dumps(file_data))
-
-            if upload_response.status_code != 201:
-                raise PresQTResponseException(
-                    "FigShare returned an error trying to upload {}. Some items may still have been created on FigShare.".format(
-                        name),
-                    status.HTTP_400_BAD_REQUEST)
-
-            # Get location information
-            file_url = upload_response.json()['location']
-            upload_response = requests.get(file_url, headers=headers).json()
-            upload_url = upload_response['upload_url']
-            file_id = upload_response['id']
-
-            # Get upload information
-            file_upload_response = requests.get(upload_url, headers=headers).json()
-            # Loop through parts and upload
-            upload_parts(headers, upload_url, file_upload_response['parts'], file_info)
-
-            # If all complete
-            complete_upload = requests.post(
-                "https://api.figshare.com/v2/account/articles/{}/files/{}".format(
-                    article_id, file_id),
-                headers=headers)
-
-            if complete_upload.status_code != 202:
-                raise PresQTResponseException(
-                    "FigShare returned an error trying to upload {}. Some items may still have been created on FigShare.".format(
-                        name),
-                    status.HTTP_400_BAD_REQUEST)
 
     return {
         "resources_ignored": resources_ignored,
@@ -164,19 +126,3 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
         "file_metadata_list": file_metadata_list,
         "project_id": "{}:{}".format(project_id, article_id)
     }
-
-
-def upload_parts(headers, upload_url, parts, file_info):
-    """
-    Upload the parts of the file to FigShare. File offsets are determined by the initial
-    FigShare POST upload.
-    """
-    headers["Content-Type"] = "application/binary"
-    for part in parts:
-        file_info.seek(part['startOffset'])
-        data = file_info.read(part['endOffset'] - part['startOffset'] + 1)
-        upload_status = requests.put(
-            "{}/{}".format(upload_url, part['partNo']), headers=headers, data=data)
-        if upload_status.status_code != 200:
-            raise PresQTResponseException(
-                "FigShare returned an error trying to upload. Some items may still have been created on FigShare.", status.HTTP_400_BAD_REQUEST)
