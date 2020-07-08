@@ -11,6 +11,7 @@ from presqt.targets.figshare.utilities.helpers.create_project import create_proj
 from presqt.targets.figshare.utilities.helpers.create_article import create_article
 from presqt.targets.figshare.utilities.helpers.upload_helpers import figshare_file_upload_process
 from presqt.utilities import PresQTResponseException
+from presqt.targets.utilities import get_duplicate_title
 
 
 def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorithm, file_duplicate_action):
@@ -80,7 +81,6 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
     if not resource_id:
         # Create a new project with the name being the top level directory's name.
         project_name, project_id = create_project(project_title, headers, token)
-
         # Create article, for now we'll name it the same as the project
         article_id = create_article(project_title, headers, project_id)
     else:
@@ -92,7 +92,12 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
                                      headers=headers).json()['title']
         if len(split_id) == 1:
             # We only have a project and we need to make a new article id
-            article_id = create_article(project_title, headers, resource_id)
+            # Check to see if an article with this name already exists....
+            articles = requests.get("https://api.figshare.com/v2/account/projects/{}/articles".format(project_id),
+                                    headers=headers).json()
+            article_titles = [article['title'] for article in articles]
+            new_title = get_duplicate_title(project_title, article_titles, "(PresQT*)")
+            article_id = create_article(new_title, headers, resource_id)
         elif len(split_id) == 2:
             article_id = split_id[1]
         else:
