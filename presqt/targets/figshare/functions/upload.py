@@ -88,12 +88,16 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
         split_id = str(resource_id).split(":")
         project_id = split_id[0]
 
-        project_response_data = requests.get("https://api.figshare.com/v2/account/projects/{}".format(
-            project_id), headers=headers).json()
+        try:
+            project_title = requests.get("https://api.figshare.com/v2/account/projects/{}".format(
+                project_id), headers=headers).json()['title']
+        except KeyError:
+            print(project_id)
+            raise PresQTResponseException(
+                "Project with id, {}, could not be found by the requesting user.".format(
+                    project_id), status.HTTP_400_BAD_REQUEST)
 
         if len(split_id) == 1:
-            # Get the project title
-            project_title = project_response_data['title']
             # We only have a project and we need to make a new article id
             # Check to see if an article with this name already exists
             articles = requests.get("https://api.figshare.com/v2/account/projects/{}/articles".format(project_id),
@@ -102,8 +106,6 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
             new_title = get_duplicate_title(project_title, article_titles, "(PresQT*)")
             article_id = create_article(new_title, headers, resource_id)
         elif len(split_id) == 2:
-            # Get the project title
-            project_title = project_response_data['title']
             article_id = split_id[1]
         else:
             # Can't upload to file
@@ -112,8 +114,13 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
                 status.HTTP_400_BAD_REQUEST)
 
     # Get the article title
-    article_title = requests.get("https://api.figshare.com/v2/account/articles/{}".format(article_id),
-                                 headers=headers).json()['title']
+    try:
+        article_title = requests.get("https://api.figshare.com/v2/account/articles/{}".format(article_id),
+                                     headers=headers).json()['title']
+    except KeyError:
+        raise PresQTResponseException(
+            "Article with id, {}, could not be found by the requesting user.".format(
+                article_id), status.HTTP_400_BAD_REQUEST)
 
     # Get md5, size and name of zip file to be uploaded
     for path, subdirs, files in os.walk(resource_main_dir):
@@ -121,6 +128,7 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
             resources_ignored.append(path)
         for name in files:
             file_info = open(os.path.join(path, name), 'rb')
+            zip_hash = hash_generator(file_info.read(), 'md5')
 
             figshare_file_upload_process(file_info, headers, name, article_id, file_type='zip',
                                          path=path)
@@ -129,7 +137,7 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
                 'actionRootPath': os.path.join(path, name),
                 'destinationPath': '/{}/{}/{}'.format(project_title, article_title, name),
                 'title': name,
-                'destinationHash': hash_generator(file_info.read(), 'md5')})
+                'destinationHash': zip_hash})
 
     return {
         "resources_ignored": resources_ignored,
