@@ -280,7 +280,8 @@ class TestResourcePost(SimpleTestCase):
         """
         self.url = reverse('resource_collection', kwargs={'target_name': 'figshare'})
 
-        response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+        response = self.client.post(
+            self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
 
         ticket_number = response.data['ticket_number']
         ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
@@ -311,7 +312,8 @@ class TestResourcePost(SimpleTestCase):
 
         # Get Project ID
         figshare_headers = {'Authorization': 'token {}'.format(self.token)}
-        response_data = requests.get("https://api.figshare.com/v2/account/projects", headers=figshare_headers).json()
+        response_data = requests.get(
+            "https://api.figshare.com/v2/account/projects", headers=figshare_headers).json()
         for project_data in response_data:
             if project_data['title'] == 'NewProject':
                 project_id = project_data['id']
@@ -319,7 +321,8 @@ class TestResourcePost(SimpleTestCase):
         # Upload resources to the existing project
         self.duplicate_action = 'ignore'
         url = reverse('resource', kwargs={'target_name': 'figshare', 'resource_id': project_id})
-        existing_response = self.client.post(url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+        existing_response = self.client.post(
+            url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
         ticket_number = existing_response.data['ticket_number']
         ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
@@ -347,3 +350,63 @@ class TestResourcePost(SimpleTestCase):
         # Re-upload to make sure a duplicate is not made
 
         # Upload file to existing article
+
+    def test_401_unauthorized_user(self):
+        """
+        If a user does not have a valid FigShare API token, we should return a 401 unauthorized status.
+        """
+        headers = {'HTTP_PRESQT_DESTINATION_TOKEN': 'eggyboi',
+                   'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+        self.url = reverse('resource_collection', kwargs={'target_name': 'figshare'})
+        response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **headers)
+
+        ticket_number = response.data['ticket_number']
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+
+        # Wait until the spawned off process finishes in the background
+        # to do validation on the resulting files
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+
+        upload_job_response = self.client.get(response.data['upload_job'], **headers)
+        # Ensure the response is what we expect
+        self.assertEqual(upload_job_response.data['status_code'], 401)
+        self.assertEqual(upload_job_response.data['message'],
+                         "Token is invalid. Response returned a 401 status code.")
+
+        # Delete upload folder
+        shutil.rmtree(ticket_path)
+
+    def test_cant_upload_to_file(self):
+        """
+        Return a 400 if user attempts to upload to a file.
+        """
+        url = reverse('resource', kwargs={'target_name': 'figshare',
+                                          'resource_id': "78213:21321:213139"})
+        response = self.client.post(url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+        ticket_number = response.data['ticket_number']
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+
+        # Wait until the spawned off process finishes in the background
+        # to do validation on the resulting files
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+
+        upload_job_response = self.client.get(response.data['upload_job'], **headers)
+        # Ensure the response is what we expect
+        self.assertEqual(upload_job_response.data['status_code'], 400)
+        self.assertEqual(upload_job_response.data['message'],
+                         "Can not upload into an existing file.")
+
+        # Delete upload folder
+        shutil.rmtree(ticket_path)
