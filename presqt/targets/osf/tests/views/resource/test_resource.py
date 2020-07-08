@@ -1171,3 +1171,4 @@ class TestResourcePOST(SimpleTestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['error'], 'PresQT Error: Bag is not formatted properly.')
+
