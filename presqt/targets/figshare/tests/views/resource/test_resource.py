@@ -8,12 +8,10 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from config.settings.base import FIGSHARE_TEST_USER_TOKEN
-from presqt.targets.figshare.functions.upload_metadata import figshare_upload_metadata
 from presqt.targets.figshare.utilities.delete_users_projects_figshare import \
     delete_users_projects_figshare
 from presqt.targets.figshare.utilities.helpers.create_article import create_article
 from presqt.targets.figshare.utilities.helpers.create_project import create_project
-from presqt.targets.figshare.utilities.helpers.upload_helpers import figshare_file_upload_process
 from presqt.targets.utilities import process_wait
 from presqt.utilities import read_file, PresQTError
 
@@ -514,6 +512,8 @@ class TestResourcePost(SimpleTestCase):
         """
         Ensure that an error is returned if Figshare doesn't return a 201 status code.
         """
+        from presqt.targets.figshare.functions.upload_metadata import figshare_upload_metadata
+
         self.assertRaises(PresQTError, figshare_upload_metadata,
                           'badToken', 'eggtest', {"bad": "metadata"})
 
@@ -521,6 +521,8 @@ class TestResourcePost(SimpleTestCase):
         """
         Test that an error is raised if there's an issue updating a metadata file.
         """
+        from presqt.targets.figshare.functions.upload_metadata import figshare_upload_metadata
+
         # Mock a server error for when a put request is made.
         class MockResponse:
             def __init__(self, json_data, status_code):
@@ -587,6 +589,8 @@ class TestResourcePost(SimpleTestCase):
         """
         Ensure that if an invalid metadata file is found, it is renamed and a new valid one is uploaded.
         """
+        from presqt.targets.figshare.utilities.helpers.upload_helpers import figshare_file_upload_process
+
         ##### UPLOAD A NEW PROJECT #####
         self.url = reverse('resource_collection', kwargs={'target_name': 'figshare'})
 
@@ -760,7 +764,7 @@ class TestResourcePost(SimpleTestCase):
         """
         Ensure that an error is returned if Figshare doesn't return a 201 status code.
         """
-        self.assertRaises(PresQTError, create_project, "Title", {"bad": "nope"}, "Lalala")
+        self.assertRaises(PresQTError, create_project, "Title", {"bad": "nope"}, self.token)
     
     def test_bad_create_article_request(self):
         """
