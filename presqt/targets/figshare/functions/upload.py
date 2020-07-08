@@ -87,6 +87,9 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
         # Upload to an existing project
         split_id = str(resource_id).split(":")
         project_id = split_id[0]
+        # Get the project title
+        project_title = requests.get("https://api.figshare.com/v2/account/projects/{}".format(project_id),
+                                     headers=headers).json()['title']
         if len(split_id) == 1:
             # We only have a project and we need to make a new article id
             article_id = create_article(project_title, headers, resource_id)
