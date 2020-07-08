@@ -1,6 +1,7 @@
 import base64
 import json
 import shutil
+from unittest.mock import patch
 
 import requests
 from django.test import SimpleTestCase
@@ -8,6 +9,7 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from config.settings.base import FIGSHARE_TEST_USER_TOKEN
+from presqt.targets.figshare.functions.upload_metadata import figshare_upload_metadata
 from presqt.targets.figshare.utilities.delete_users_projects_figshare import \
     delete_users_projects_figshare
 from presqt.targets.github.functions.upload_metadata import github_upload_metadata
@@ -278,6 +280,7 @@ class TestResourcePost(SimpleTestCase):
         Return a 200 when uploading a new top level container.
 
         """
+        ##### UPLOAD A NEW PROJECT #####
         self.url = reverse('resource_collection', kwargs={'target_name': 'figshare'})
 
         response = self.client.post(
@@ -310,13 +313,15 @@ class TestResourcePost(SimpleTestCase):
         # delete upload folder
         shutil.rmtree(ticket_path)
 
+        ##### UPLOAD TO EXISTING PROJECT #####
         # Get Project ID
         figshare_headers = {'Authorization': 'token {}'.format(self.token)}
-        response_data = requests.get(
-            "https://api.figshare.com/v2/account/projects", headers=figshare_headers).json()
+        response_data = requests.get("https://api.figshare.com/v2/account/projects", headers=figshare_headers).json()
         for project_data in response_data:
             if project_data['title'] == 'NewProject':
                 project_id = project_data['id']
+                project_url = project_data['url']
+                break
 
         # Upload resources to the existing project
         self.duplicate_action = 'ignore'
@@ -347,9 +352,42 @@ class TestResourcePost(SimpleTestCase):
         self.assertEqual(process_info['resources_updated'], [])
         self.assertEqual(process_info['hash_algorithm'], 'md5')
 
-        # Re-upload to make sure a duplicate is not made
+        # delete upload folder
+        shutil.rmtree(ticket_path)
 
-        # Upload file to existing article
+        ##### UPLOAD TO EXISTING ARTICLE #####
+        project_response = requests.get(project_url + '/articles', headers=figshare_headers)
+        article_id = project_response.json()[0]['id']
+        article_url = reverse('resource', kwargs={'target_name': 'figshare', 'resource_id': '{}:{}'.format(project_id, article_id)})
+
+        existing_article_response = self.client.post(
+            article_url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+        ticket_number = existing_article_response.data['ticket_number']
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+
+        # Verify status code and message
+        self.assertEqual(existing_article_response.status_code, 202)
+        self.assertEqual(existing_article_response.data['message'], 'The server is processing the request.')
+
+        # Verify process_info file status is 'in_progress' initially
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        self.assertEqual(process_info['status'], 'in_progress')
+
+        # Wait until the spawned off process finishes in the background to do further validation
+        process_wait(process_info, ticket_path)
+
+        # Verify process_info.json file data
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        self.assertEqual(process_info['status'], 'finished')
+        self.assertEqual(process_info['message'], 'Upload successful.')
+        self.assertEqual(process_info['status_code'], '200')
+        self.assertEqual(process_info['failed_fixity'], [])
+        self.assertEqual(process_info['resources_ignored'], [])
+        self.assertEqual(process_info['resources_updated'], [])
+        self.assertEqual(process_info['hash_algorithm'], 'md5')
+
+        # delete upload folder
+        shutil.rmtree(ticket_path)
 
     def test_401_unauthorized_user(self):
         """
@@ -402,11 +440,76 @@ class TestResourcePost(SimpleTestCase):
                 # Pass while the process_info file is being written to
                 pass
 
-        upload_job_response = self.client.get(response.data['upload_job'], **headers)
+        upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
         # Ensure the response is what we expect
         self.assertEqual(upload_job_response.data['status_code'], 400)
-        self.assertEqual(upload_job_response.data['message'],
-                         "Can not upload into an existing file.")
+        self.assertEqual(upload_job_response.data['message'], "Can not upload into an existing file.")
 
         # Delete upload folder
         shutil.rmtree(ticket_path)
+
+    def test_bad_metadata_request(self):
+        """
+        Ensure that an error is returned if Figshare doesn't return a 201 status code.
+        """
+        self.assertRaises(PresQTError, figshare_upload_metadata, 'badToken', 'eggtest', {"bad": "metadata"})
+
+    # def test_error_updating_metadata_file(self):
+    #     """
+    #     Test that an error is raised if there's an issue updating a metadata file.
+    #     """
+    #     # Mock a server error for when a put request is made.
+    #     class MockResponse:
+    #         def __init__(self, json_data, status_code):
+    #             self.json_data = json_data
+    #             self.status_code = status_code
+    #     mock_req = MockResponse({'error': 'The server is down.'}, 500)
+    #
+    #     ##### UPLOAD A NEW PROJECT #####
+    #     self.url = reverse('resource_collection', kwargs={'target_name': 'figshare'})
+    #
+    #     response = self.client.post(
+    #         self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+    #
+    #     ticket_number = response.data['ticket_number']
+    #     ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+    #
+    #     # Verify status code and message
+    #     self.assertEqual(response.status_code, 202)
+    #     self.assertEqual(response.data['message'], 'The server is processing the request.')
+    #
+    #     # Verify process_info file status is 'in_progress' initially
+    #     process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+    #     self.assertEqual(process_info['status'], 'in_progress')
+    #
+    #     # Wait until the spawned off process finishes in the background to do further validation
+    #     process_wait(process_info, ticket_path)
+    #
+    #     # Verify process_info.json file data
+    #     process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+    #     self.assertEqual(process_info['status'], 'finished')
+    #     self.assertEqual(process_info['message'], 'Upload successful.')
+    #     self.assertEqual(process_info['status_code'], '200')
+    #     self.assertEqual(process_info['failed_fixity'], [])
+    #     self.assertEqual(process_info['resources_ignored'], [])
+    #     self.assertEqual(process_info['resources_updated'], [])
+    #     self.assertEqual(process_info['hash_algorithm'], 'md5')
+    #
+    #     # Get Project ID
+    #     figshare_headers = {'Authorization': 'token {}'.format(self.token)}
+    #     response_data = requests.get("https://api.figshare.com/v2/account/projects", headers=figshare_headers).json()
+    #     for project_data in response_data:
+    #         if project_data['title'] == 'NewProject':
+    #             project_id = project_data['id']
+    #             break
+    #
+    #     # Now I'll make an explicit call to our metadata function with a mocked server error and ensure
+    #     # it is raising an exception.
+    #     with patch('requests.put') as mock_request:
+    #         mock_request.return_value = mock_req
+    #         # Attempt to update the metadata, but the server is down!
+    #         self.assertRaises(PresQTError, figshare_upload_metadata, self.token, project_id,
+    #                           {"context": {}, "allKeywords": [], "actions": []})
+    #
+    #     # Delete corresponding folder
+    #     shutil.rmtree(ticket_path)

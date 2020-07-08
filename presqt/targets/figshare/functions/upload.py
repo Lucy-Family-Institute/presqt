@@ -87,18 +87,23 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
         # Upload to an existing project
         split_id = str(resource_id).split(":")
         project_id = split_id[0]
-        # Get the project title
-        project_title = requests.get("https://api.figshare.com/v2/account/projects/{}".format(project_id),
-                                     headers=headers).json()['title']
+
+        project_response_data = requests.get("https://api.figshare.com/v2/account/projects/{}".format(
+            project_id), headers=headers).json()
+
         if len(split_id) == 1:
+            # Get the project title
+            project_title = project_response_data['title']
             # We only have a project and we need to make a new article id
-            # Check to see if an article with this name already exists....
+            # Check to see if an article with this name already exists
             articles = requests.get("https://api.figshare.com/v2/account/projects/{}/articles".format(project_id),
                                     headers=headers).json()
             article_titles = [article['title'] for article in articles]
             new_title = get_duplicate_title(project_title, article_titles, "(PresQT*)")
             article_id = create_article(new_title, headers, resource_id)
         elif len(split_id) == 2:
+            # Get the project title
+            project_title = project_response_data['title']
             article_id = split_id[1]
         else:
             # Can't upload to file
