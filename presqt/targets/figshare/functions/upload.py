@@ -92,7 +92,6 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
             project_title = requests.get("https://api.figshare.com/v2/account/projects/{}".format(
                 project_id), headers=headers).json()['title']
         except KeyError:
-            print(project_id)
             raise PresQTResponseException(
                 "Project with id, {}, could not be found by the requesting user.".format(
                     project_id), status.HTTP_400_BAD_REQUEST)
@@ -124,8 +123,6 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
 
     # Get md5, size and name of zip file to be uploaded
     for path, subdirs, files in os.walk(resource_main_dir):
-        if not subdirs and not files:
-            resources_ignored.append(path)
         for name in files:
             file_info = open(os.path.join(path, name), 'rb')
             zip_hash = hash_generator(file_info.read(), 'md5')
