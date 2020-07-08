@@ -116,7 +116,6 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
             resources_ignored.append(path)
         for name in files:
             file_info = open(os.path.join(path, name), 'rb')
-            zip_hash = hash_generator(file_info.read(), 'md5')
 
             figshare_file_upload_process(file_info, headers, name, article_id, file_type='zip',
                                          path=path)
@@ -125,7 +124,7 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
                 'actionRootPath': os.path.join(path, name),
                 'destinationPath': '/{}/{}/{}'.format(project_title, article_title, name),
                 'title': name,
-                'destinationHash': zip_hash})
+                'destinationHash': hash_generator(file_info.read(), 'md5')})
 
     return {
         "resources_ignored": resources_ignored,
