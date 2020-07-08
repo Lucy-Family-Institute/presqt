@@ -53,7 +53,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('Hello World', response.data['title'])
         # Detail Link
-        self.assertEqual(len(response.data['links']), 2)
+        self.assertEqual(len(response.data['links']), 4)
 
     def test_success_public_project(self):
         """
@@ -78,7 +78,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual(
             'Post Pregnancy Family Planning Choices in the Public and Private Sectors in Kenya and Indonesia', response.data['title'])
         # Detail Link
-        self.assertEqual(len(response.data['links']), 2)
+        self.assertEqual(len(response.data['links']), 4)
 
     def test_success_article(self):
         """
@@ -102,7 +102,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('Ecoute', response.data['title'])
         # Detail Link
-        self.assertEqual(len(response.data['links']), 2)
+        self.assertEqual(len(response.data['links']), 4)
 
     def test_success_public_article(self):
         """
@@ -127,7 +127,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual('PPFP Choices Kenya and Indonesia Facility Assessment Tools',
                          response.data['title'])
         # Detail Link
-        self.assertEqual(len(response.data['links']), 2)
+        self.assertEqual(len(response.data['links']), 4)
 
     def test_success_file(self):
         """
