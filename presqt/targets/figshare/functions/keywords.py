@@ -43,16 +43,35 @@ def figshare_fetch_keywords(token, resource_id):
                                       status.HTTP_401_UNAUTHORIZED)
 
     split_id = resource_id.split(":")
-    if len(split_id) == 1 or len(split_id) == 3:
-        raise PresQTResponseException("FigShare projects/files do no have keywords.",
+    if len(split_id) == 3:
+        # Resource is a file
+        raise PresQTResponseException("FigShare files do no have keywords.",
                                       status.HTTP_400_BAD_REQUEST)
+    elif len(split_id) == 1:
+        # Resource is a project. Projects don't have keywords but we can get the keywords from the
+        # FTS metadata file if it exists
 
-    from presqt.targets.figshare.functions.fetch import figshare_fetch_resource
-    resource = figshare_fetch_resource(token, resource_id)
+        # We need to check for a metadata article.
+        article_list = requests.get(
+            "https://api.figshare.com/v2/account/projects/{}/articles".format(split_id[0]),
+            headers=headers).json()
+        for article in article_list:
+            if article['title'] == "PRESQT_FTS_METADATA":
+                # Check for metadata file
+                project_files = requests.get("{}/files".format(article['url']), headers=headers).json()
+                for file in project_files:
+                    if file['name'] == "PRESQT_FTS_METADATA.json":
+                        # Download file, delete old file, mixem up, have a time.
+                        file_contents = requests.get(file['download_url'], headers=headers).json()
+                        keywords = file_contents['allKeywords']
+    else:
+        # Resource is an article.
+        from presqt.targets.figshare.functions.fetch import figshare_fetch_resource
+        resource = figshare_fetch_resource(token, resource_id)
 
-    # Since keywords only exist on the article level, we won't look into the metadata file whilst
-    # retrieving keywords for FigShare.
-    keywords = list(set(resource['extra']['tags']))
+        # Since keywords only exist on the article level, we won't look into the metadata file whilst
+        # retrieving keywords for FigShare.
+        keywords = list(set(resource['extra']['tags']))
 
     return {
         "tags": keywords,
@@ -86,9 +105,11 @@ def figshare_upload_keywords(token, resource_id, keywords):
         }
     """
     split_id = resource_id.split(":")
-    if len(split_id) == 1 or len(split_id) == 3:
+    if len(split_id) == 3:
         raise PresQTResponseException("FigShare projects/files do no have keywords.",
                                       status.HTTP_400_BAD_REQUEST)
+    elif len(split_id) == 1:
+        return {'updated_keywords': keywords, 'project_id': resource_id}
 
     from presqt.targets.figshare.functions.fetch import figshare_fetch_resource
     # This will raise an error if the id is invalid
