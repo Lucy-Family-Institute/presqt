@@ -121,7 +121,7 @@
       "resource_transfer_in": true,
       "resource_transfer_out": true,
       "keywords": true,
-      "keywords_upload": false
+      "keywords_upload": true
     },
     "supported_transfer_partners": {
       "transfer_in": ["curate_nd", "osf", "github", "gitlab", "zenodo"],
