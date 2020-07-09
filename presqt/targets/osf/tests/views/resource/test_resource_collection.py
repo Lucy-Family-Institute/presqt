@@ -2,7 +2,7 @@ from django.test import SimpleTestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
-from config.settings.base import OSF_PRESQT_FORK_TOKEN, OSF_TEST_USER_TOKEN, OSF_PRIVATE_USER_TOKEN
+from config.settings.base import OSF_PRESQT_FORK_TOKEN, OSF_TEST_USER_TOKEN
 
 
 class TestResourceCollection(SimpleTestCase):
