@@ -24,7 +24,7 @@ def figshare_fetch_keywords(token, resource_id):
     A dictionary object that represents the FigShare resource keywords.
     Dictionary must be in the following format:
         {
-            "topics": [
+            "tags": [
                 "eggs",
                 "ham",
                 "bacon"
