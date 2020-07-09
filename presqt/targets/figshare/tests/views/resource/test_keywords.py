@@ -20,7 +20,7 @@ class TestResourceKeywords(SimpleTestCase):
 
     def test_success_project_keywords(self):
         """
-        Returns a 200 if the GET method is successful when getting a GitLab `project`.
+        Returns a 200 if the GET method is successful when getting a FigShare `project`.
         """
         resource_id = '83375:12533801'
         url = reverse('keywords', kwargs={'target_name': 'figshare',
@@ -35,7 +35,7 @@ class TestResourceKeywords(SimpleTestCase):
         self.assertIn('listen', response.data['keywords'])
         self.assertIn('ear', response.data['keywords'])
 
-    def test_error_project_keywords(self):
+    def test_error_file_keywords(self):
         """
         Returns a 400 if the GET method is unsuccessful when getting a FigShare `file` keywords.
         """
@@ -48,7 +48,7 @@ class TestResourceKeywords(SimpleTestCase):
         # Verify the error message
         self.assertEqual(response.data['error'],
                          "FigShare projects/files do no have keywords.")
-    
+
     def test_bad_token(self):
         """
         Returns a 401 if token is invalid.
