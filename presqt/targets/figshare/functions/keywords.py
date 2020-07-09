@@ -55,6 +55,7 @@ def figshare_fetch_keywords(token, resource_id):
         article_list = requests.get(
             "https://api.figshare.com/v2/account/projects/{}/articles".format(split_id[0]),
             headers=headers).json()
+        keywords = []
         for article in article_list:
             if article['title'] == "PRESQT_FTS_METADATA":
                 # Check for metadata file
