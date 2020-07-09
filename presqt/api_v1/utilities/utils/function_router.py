@@ -31,7 +31,7 @@ from presqt.targets.figshare.functions.fetch import figshare_fetch_resources, fi
 from presqt.targets.figshare.functions.download import figshare_download_resource
 from presqt.targets.figshare.functions.upload import figshare_upload_resource
 from presqt.targets.figshare.functions.upload_metadata import figshare_upload_metadata
-from presqt.targets.figshare.functions.keywords import figshare_fetch_keywords
+from presqt.targets.figshare.functions.keywords import figshare_fetch_keywords, figshare_upload_keywords
 
 
 class FunctionRouter(object):
@@ -108,3 +108,4 @@ class FunctionRouter(object):
     figshare_resource_upload = figshare_upload_resource
     figshare_metadata_upload = figshare_upload_metadata
     figshare_keywords = figshare_fetch_keywords
+    figshare_keywords_upload = figshare_upload_keywords
