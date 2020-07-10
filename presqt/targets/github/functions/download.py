@@ -124,7 +124,7 @@ def github_download_resource(token, resource_id):
     else:
         partitioned_id = resource_id.partition(':')
         repo_id = partitioned_id[0]
-        path_to_file = partitioned_id[2].replace('%2F', '/').replace('%2E', '.')
+        path_to_file = partitioned_id[2].replace('%2F', '/').replace('%2E', '.').replace('%252F', '/').replace('%252E', '.')
 
         # Get initial repo data for the resource requested
         repo_url = 'https://api.github.com/repositories/{}'.format(repo_id)
