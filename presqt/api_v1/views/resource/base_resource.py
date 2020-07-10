@@ -288,6 +288,8 @@ class BaseResource(APIView):
                     'PresQT Error: PresQT FTS metadata cannot not be transferred by itself.',
                     status.HTTP_400_BAD_REQUEST)
         except PresQTResponseException as e:
+            #TODO: Functionalize this error section
+
             # Catch any errors that happen within the target fetch.
             # Update the server process_info file appropriately.
             self.process_info_obj['status_code'] = e.status_code
@@ -324,7 +326,11 @@ class BaseResource(APIView):
             if not fixity_obj['fixity']:
                 self.download_failed_fixity.append(resource['path'])
 
-            # Create metadata for this resource. Return True if a valid FTS metadata file is found.
+            #TODO: Remove logic from create_download_metadata and instead add an if statement
+            # that checks the resource['title'] == 'PRESQT_FTS_METADATA.json'
+
+            # Create metadata for this resource.
+            # Return True if a valid FTS metadata file is found.
             if create_download_metadata(self, resource, fixity_obj):
                 # Don't write valid FTS metadata file.
                 continue
@@ -369,7 +375,9 @@ class BaseResource(APIView):
             }
         }
 
-        # Write empty containers to disk
+        #TODO: Move this up to make it occur after we loop through func_dict['resources'] and write
+        # resources
+        #Write empty containers to disk
         for container_path in func_dict['empty_containers']:
             # Make sure the container_path has a '/' and the beginning and end
             if container_path[-1] != '/':
