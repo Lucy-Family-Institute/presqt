@@ -67,16 +67,12 @@ def zenodo_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
             resource_id), params=auth_parameter).json()
 
         try:
-            project_title = name_helper['title']
+            final_title = name_helper['title']
         except KeyError:
             raise PresQTResponseException(
                 "Can't find the resource with id {}, on Zenodo".format(resource_id),
                 status.HTTP_404_NOT_FOUND)
         action_metadata = {"destinationUsername": None}
-        post_url = "https://zenodo.org/api/deposit/depositions/{}/files".format(resource_id)
-
-        upload_dict = zenodo_upload_loop(action_metadata, resource_id, resource_main_dir,
-                                         post_url, auth_parameter, project_title)
 
     else:
         action_metadata = {"destinationUsername": None}
@@ -84,19 +80,18 @@ def zenodo_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         name_helper = requests.get("https://zenodo.org/api/deposit/depositions",
                                    params=auth_parameter).json()
         titles = [project['title'] for project in name_helper]
-        new_title = get_duplicate_title(project_title, titles, ' (PresQT*)')
-        resource_id = zenodo_upload_helper(auth_parameter, new_title)
+        final_title = get_duplicate_title(project_title, titles, ' (PresQT*)')
+        resource_id = zenodo_upload_helper(auth_parameter, final_title)
 
-        post_url = "https://zenodo.org/api/deposit/depositions/{}/files".format(resource_id)
-
-        upload_dict = zenodo_upload_loop(action_metadata, resource_id, resource_main_dir,
-                                         post_url, auth_parameter, new_title)
+    post_url = "https://zenodo.org/api/deposit/depositions/{}/files".format(resource_id)
+    upload_dict = zenodo_upload_loop(action_metadata, resource_id, resource_main_dir,
+                                     post_url, auth_parameter, final_title, file_duplicate_action)
 
     return upload_dict
 
 
 def zenodo_upload_loop(action_metadata, resource_id, resource_main_dir, post_url, auth_parameter,
-                       title):
+                       title, file_duplicate_action):
     """
     Loop through the files to be uploaded and return the dictionary.
 
@@ -112,6 +107,8 @@ def zenodo_upload_loop(action_metadata, resource_id, resource_main_dir, post_url
         Zenodo's authorization paramater
     title : str
         The title of the project created
+    file_duplicate_action : str
+        The action to take when a duplicate file is found
 
     Returns
     -------
@@ -140,16 +137,40 @@ def zenodo_upload_loop(action_metadata, resource_id, resource_main_dir, post_url
         'project_id': ID of the parent project for this upload. Needed for metadata upload.
     """
     resources_ignored = []
-    file_metadata_list = []
     resources_updated = []
+    file_metadata_list = []
     action_metadata = {'destinationUsername': None}
+
+    # Get current files associated with the resource.
+    project_url = "https://zenodo.org/api/deposit/depositions/{}".format(resource_id)
+    current_file_list = requests.get(project_url, params=auth_parameter).json()['files']
+    file_title_list = [entry['filename'] for entry in current_file_list]
 
     for path, subdirs, files in os.walk(resource_main_dir):
         if not subdirs and not files:
             resources_ignored.append(path)
+
         for name in files:
-            data = {'name': name}
+            formatted_name = name.replace(' ', '_')
+            if formatted_name in file_title_list and file_duplicate_action == 'ignore':
+                resources_ignored.append(os.path.join(path, name))
+                continue
+
+            data = {'name': formatted_name}
             files = {'file': open(os.path.join(path, name), "rb")}
+        
+            if formatted_name in file_title_list and file_duplicate_action == 'update':
+                # First we need to delete the old file
+                for entry in current_file_list:
+                    if formatted_name == entry['filename']:
+                        delete_response = requests.delete(
+                            entry['links']['self'], params=auth_parameter)
+                        if delete_response.status_code != 204:
+                            raise PresQTResponseException(
+                                "Zenodo returned an error trying to update {}".format(name),
+                                status.HTTP_400_BAD_REQUEST)
+                        # Add this resouce to the updated list
+                        resources_updated.append(os.path.join(path, name))
             # Make the upload request....
             response = requests.post(post_url, params=auth_parameter,
                                      data=data, files=files)
@@ -160,8 +181,8 @@ def zenodo_upload_loop(action_metadata, resource_id, resource_main_dir, post_url
 
             file_metadata_list.append({
                 'actionRootPath': os.path.join(path, name),
-                'destinationPath': '/{}/{}'.format(title, name),
-                'title': name,
+                'destinationPath': '/{}/{}'.format(title, formatted_name),
+                'title': formatted_name,
                 'destinationHash': response.json()['checksum']})
 
     return {

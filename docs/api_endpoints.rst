@@ -32,6 +32,8 @@ Search by project 'id': ``resources/?id=123456``
 
 Search by project 'author': ``resources/?author=bfox6``
 
+Search by project 'keywords': ``resources/?keywords=cat``
+
 Target Endpoints
 ----------------
 
@@ -69,6 +71,8 @@ Target Collection
                     "resource_upload": true,
                     "resource_transfer_in": true,
                     "resource_transfer_out": true
+                    "keywords": true,
+                    "keywords_upload": true,
                 },
                 "supported_transfer_partners": {
                     "transfer_in": [
@@ -102,7 +106,9 @@ Target Collection
                     "resource_download": true,
                     "resource_upload": false,
                     "resource_transfer_in": false,
-                    "resource_transfer_out": true
+                    "resource_transfer_out": true,
+                    "keywords": true,
+                    "keywords_upload": false,
                 },
                 "supported_transfer_partners": {
                     "transfer_in": [],
@@ -159,7 +165,9 @@ Target Details
                 "resource_download": true,
                 "resource_upload": true,
                 "resource_transfer_in": true,
-                "resource_transfer_out": true
+                "resource_transfer_out": true,
+                "keywords": true,
+                "keywords_upload": true,
             },
             "supported_transfer_partners": {
                 "transfer_in": [
@@ -606,7 +614,7 @@ Upload New Top Level Resource
         }
 
     :reqheader presqt-destination-token: User's ``Token`` for the destination target
-    :reqheader presqt-file-duplicate-action: Action to be taken if a duplicate file is found
+    :reqheader presqt-file-duplicate-action: Action to be taken if a duplicate file is found (Either ``update`` or ``ignore``)
     :form presqt-file: The ``Resource`` to ``Upload``. Must be a BagIt file in ZIP format.
     :statuscode 202: ``Resource`` has begun uploading
     :statuscode 400: The ``Target`` does not support the action ``resource_upload``
@@ -653,7 +661,7 @@ Upload To Existing Resource
         }
 
     :reqheader presqt-destination-token: User's ``Token`` for the destination target
-    :reqheader presqt-file-duplicate-action: Action to be taken if a duplicate file is found
+    :reqheader presqt-file-duplicate-action: Action to be taken if a duplicate file is found (Either ``update`` or ``ignore``)
     :form presqt-file: The ``Resource`` to ``Upload``. Must be a BagIt file in ZIP format.
     :statuscode 202: ``Resource`` has begun uploading
     :statuscode 400: The ``Target`` does not support the action ``resource_upload``
@@ -809,7 +817,8 @@ Transfer New Top Level Resource
         Example body json:
             {
                 "source_target_name":"github",
-                "source_resource_id": "209372336"
+                "source_resource_id": "209372336",
+                "keywords": ["keywords", "to", "add"]
             }
 
     **Example response**:
@@ -827,7 +836,8 @@ Transfer New Top Level Resource
 
     :reqheader presqt-destination-token: User's ``Token`` for the destination target
     :reqheader presqt-source-token: User's ``Token`` for the source target
-    :reqheader presqt-file-duplicate-action: Action to be taken if a duplicate file is found
+    :reqheader presqt-file-duplicate-action: Action to be taken if a duplicate file is found (Either ``update`` or ``ignore``)
+    :reqheader presqt-keyword-action: Type of keyword action to perform (Either ``automatic`` or ``manual``)
     :jsonparam string source_target_name: The ``Source Target`` where the ``Resource`` being ``Transferred`` exists
     :jsonparam string source_resource_id: The ID of the ``Resource`` to ``Transfer``
     :statuscode 202: ``Resource`` has begun transferring
@@ -836,12 +846,16 @@ Transfer New Top Level Resource
     :statuscode 400: ``presqt-source-token`` missing in the request headers
     :statuscode 400: ``presqt-destination-token`` missing in the request headers
     :statuscode 400: ``presqt-file-duplicate-action`` missing in the request headers
-    :statuscode 400: Invalid ``file_duplicate_action`` header give. The options are ``ignore`` or ``update``
+    :statuscode 400: Invalid ``file-duplicate-action`` header give. The options are ``ignore`` or ``update``
     :statuscode 400: ``source_resource_id`` can't be none or blank
     :statuscode 400: ``source_resource_id`` was not found in the request body
     :statuscode 400: ``source_target_name`` was not found in the request body
+    :statuscode 400: ``keywords`` was not found in the request body.
+    :statuscode 400: ``keywords`` must be in list format.
     :statuscode 400: Source target does not allow transfer to the destination target
     :statuscode 400: Destination target does not allow transfer to the source target
+    :statuscode 400: Invalid ``presqt-keyword-action`` header given. The options are ``automatic`` or ``manual``
+    :statuscode 400: ``presqt-keyword-action`` missing in the request headers
     :statuscode 401: ``Source Token`` is invalid
     :statuscode 401: ``Destination Token`` is invalid
     :statuscode 403: User does not have access to the ``Resource`` to transfer
@@ -870,7 +884,8 @@ Transfer To Existing Resource
         Example body json:
             {
                 "source_target_name":"github",
-                "source_resource_id": "209372336"
+                "source_resource_id": "209372336",
+                "keywords": ["keywords", "to", "add"]
             }
 
     **Example response**:
@@ -888,7 +903,8 @@ Transfer To Existing Resource
 
     :reqheader presqt-destination-token: User's ``Token`` for the destination target
     :reqheader presqt-source-token: User's ``Token`` for the source target
-    :reqheader presqt-file-duplicate-action: Action to be taken if a duplicate file is found
+    :reqheader presqt-file-duplicate-action: Action to be taken if a duplicate file is found (Either ``update`` or ``ignore``)
+    :reqheader presqt-keyword-action: Type of keyword action to perform (Either ``automatic`` or ``manual``)
     :jsonparam string source_target_name: The ``Source Target`` where the ``Resource`` being ``Transferred`` exists
     :jsonparam string source_resource_id: The ID of the ``Resource`` to ``Transfer``
     :statuscode 202: ``Resource`` has begun transferring
@@ -901,8 +917,12 @@ Transfer To Existing Resource
     :statuscode 400: ``source_resource_id`` can't be none or blank
     :statuscode 400: ``source_resource_id`` was not found in the request body
     :statuscode 400: ``source_target_name`` was not found in the request body
+    :statuscode 400: ``keywords`` was not found in the request body.
+    :statuscode 400: ``keywords`` must be in list format.
     :statuscode 400: Source target does not allow transfer to the destination target
     :statuscode 400: Destination target does not allow transfer to the source target
+    :statuscode 400: Invalid ``presqt-keyword-action`` header given. The options are ``automatic`` or ``manual``
+    :statuscode 400: ``presqt-keyword-action`` missing in the request headers
     :statuscode 401: ``Source Token`` is invalid
     :statuscode 401: ``Destination Token`` is invalid
     :statuscode 403: User does not have access to the ``Resource`` to transfer
@@ -940,7 +960,9 @@ Transfer Job
             "message": "Transfer successful.",
             "failed_fixity": [],
             "resources_ignored": [],
-            "resources_updated": []
+            "resources_updated": [],
+            "initial_keywords": [],
+            "enhanced_keywords": []
         }
 
     **Example response if transfer is in progress**:
@@ -1024,3 +1046,143 @@ Transfer Job
     :statuscode 401: Header ``presqt-destination-token`` does not match the ``presqt-destination-token`` for this server process
     :statuscode 401: Header ``presqt-source-token`` does not match the ``presqt-source-token`` for this server process
     :statuscode 404: Invalid ``Ticket Number``
+
+Keyword Enhancement Endpoints
+-----------------------------
+
+Get a Resource's Keywords And Keyword Enhancements
+++++++++++++++++++++++++++++++++++++++++++++++++++
+
+.. http:get:: /api_v1/targets/(str: target_name)/resources/(str: resource_id)/keywords/
+
+    Retrieve a resource's keywords that are both stored in the target and in the PresQT Metadata File (if one exists).
+    Send the keywords to a keyword enhancer. Return both the ``Target Keywords`` and ``Enhanced Keywords`` in the payload.
+
+    **Example request**:
+
+    .. sourcecode:: http
+
+        GET /api_v1/targets/OSF/resources/1234/keywords/ HTTP/1.1
+        Host: presqt-prod.crc.nd.edu
+        Accept: application/json
+
+    **Example response**:
+
+    .. sourcecode:: http
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json
+
+        {
+            "keywords": [
+                "eggs",
+                "animal",
+                "water"
+            ],
+            "enhanced_keywords": [
+                "animals",
+                "Animals",
+                "EGG",
+                "Electrostatic Gravity Gradiometer",
+                "water",
+                "Water",
+                "DISORDERED SOLVENT",
+                "aqua",
+                "Wasser",
+                "dihydrogen oxide",
+                "OXYGEN ATOM",
+                "oxidane",
+            ],
+            "all_keywords": [
+                "animals",
+                "Animals",
+                "EGG",
+                "Electrostatic Gravity Gradiometer",
+                "water",
+                "Water",
+                "DISORDERED SOLVENT",
+                "aqua",
+                "Wasser",
+                "dihydrogen oxide",
+                "OXYGEN ATOM",
+                "oxidane",
+                "eggs",
+                "animal",
+                "water"
+            ]
+        }
+
+    :reqheader presqt-source-token: User's ``Token`` for the source target
+    :statuscode 200: Keywords successfully fetched
+    :statuscode 400: The ``Source Target`` does not support the action ``keywords``
+    :statuscode 400: The ``resource type`` does not support ``keywords``
+    :statuscode 401: ``Source Token`` is invalid
+
+Upload Keywords to a Resource
++++++++++++++++++++++++++++++
+
+.. http:post:: /api_v1/targets/(str: target_name)/resources/(str: resource_id)/keywords/
+
+    Take a list of keywords and add them to the Resource's keywords both in the target and in
+    the PresQT FTS Metadata file. The returned payload will contain both the new keywords added
+    and the final full list of keywords in the target.
+
+    **Example request**:
+
+    .. sourcecode:: http
+
+        POST /api_v1/targets/OSF/resources/1234/keywords/ HTTP/1.1
+        Host: presqt-prod.crc.nd.edu
+        Accept: application/json
+
+        Example body json:
+            {
+                "keywords": ["cat", "water"]
+            }
+
+    **Example response**:
+
+    ..  sourcecode:: http
+
+        HTTP/1.1 202 Accepted
+        Content-Type: application/json
+
+        {
+            "keywords_added": [
+                "feline",
+                "aqua",
+                "dihydrogen oxide",
+                "DISORDERED SOLVENT",
+                "EGG",
+                "Electrostatic Gravity Gradiometer",
+                "oxidane",
+                "OXYGEN ATOM",
+                "Wasser",
+                "Water"
+            ],
+            "final_keywords": [
+                "feline",
+                "aqua",
+                "dihydrogen oxide",
+                "DISORDERED SOLVENT",
+                "EGG",
+                "eggs",
+                "Electrostatic Gravity Gradiometer",
+                "oxidane",
+                "OXYGEN ATOM",
+                "Wasser",
+                "water",
+                "Water"
+            ]
+        }
+
+    :reqheader presqt-source-token: User's ``Token`` for the source target
+    :jsonparam array keywords: An array of the ``keywords`` to upload
+    :statuscode 202: ``Keywords successfully uploaded``
+    :statuscode 400: The ``Source Target`` does not support the action ``keywords``
+    :statuscode 400: The ``Source Target`` does not support the action ``keywords_upload``
+    :statuscode 400: The ``resource type`` does not support ``keywords``
+    :statuscode 400: ``keywords`` is missing from the request body
+    :statuscode 400: ``keywords`` must be in list format
+    :statuscode 401: ``Source Token`` is invalid
+

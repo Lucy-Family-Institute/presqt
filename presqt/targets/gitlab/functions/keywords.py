@@ -1,8 +1,10 @@
+import base64
 import json
 import requests
 
 from rest_framework import status
 
+from presqt.targets.gitlab.utilities.validation_check import validation_check
 from presqt.utilities import PresQTResponseException
 
 
@@ -34,19 +36,37 @@ def gitlab_fetch_keywords(token, resource_id):
             ]
         }
     """
+    headers, user_id = validation_check(token)
+
     from presqt.targets.gitlab.functions.fetch import gitlab_fetch_resource
 
     resource = gitlab_fetch_resource(token, resource_id)
-
     if resource['kind_name'] in ['dir', 'file']:
         raise PresQTResponseException("GitLab directories and files do not have keywords.",
                                       status.HTTP_400_BAD_REQUEST)
 
-    if 'tag_list' in resource['extra'].keys():
-        return {
-            'tag_list': resource['extra']['tag_list'],
-            'keywords': resource['extra']['tag_list']
-        }
+    # LOOK INTO THE PROJECT FOR METADATA
+    metadata = None
+    metadata_url = "https://gitlab.com/api/v4/projects/{}/repository/files/PRESQT_FTS_METADATA.json?ref=master".format(
+        resource_id)
+    metadata_file_response = requests.get(metadata_url, headers=headers)
+
+    if metadata_file_response.status_code == 200:
+        base64_metadata = base64.b64decode(metadata_file_response.json()['content'])
+        metadata = json.loads(base64_metadata)
+
+    if metadata:
+        try:
+            keywords = list(set(resource['extra']['tag_list'] + metadata['allKeywords']))
+        except KeyError:
+            keywords = list(set(resource['extra']['tag_list']))
+    else:
+        keywords = list(set(resource['extra']['tag_list']))
+
+    return {
+        'tag_list': keywords,
+        'keywords': keywords
+    }
 
 
 def gitlab_upload_keywords(token, resource_id, keywords):

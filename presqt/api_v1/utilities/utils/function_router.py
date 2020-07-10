@@ -27,6 +27,12 @@ from presqt.targets.gitlab.functions.upload import gitlab_upload_resource
 from presqt.targets.gitlab.functions.upload_metadata import gitlab_upload_metadata
 from presqt.targets.gitlab.functions.keywords import gitlab_fetch_keywords, gitlab_upload_keywords
 
+from presqt.targets.figshare.functions.fetch import figshare_fetch_resources, figshare_fetch_resource
+from presqt.targets.figshare.functions.download import figshare_download_resource
+from presqt.targets.figshare.functions.upload import figshare_upload_resource
+from presqt.targets.figshare.functions.upload_metadata import figshare_upload_metadata
+from presqt.targets.figshare.functions.keywords import figshare_fetch_keywords, figshare_upload_keywords
+
 
 class FunctionRouter(object):
     """
@@ -95,3 +101,11 @@ class FunctionRouter(object):
     gitlab_metadata_upload = gitlab_upload_metadata
     gitlab_keywords = gitlab_fetch_keywords
     gitlab_keywords_upload = gitlab_upload_keywords
+
+    figshare_resource_collection = figshare_fetch_resources
+    figshare_resource_detail = figshare_fetch_resource
+    figshare_resource_download = figshare_download_resource
+    figshare_resource_upload = figshare_upload_resource
+    figshare_metadata_upload = figshare_upload_metadata
+    figshare_keywords = figshare_fetch_keywords
+    figshare_keywords_upload = figshare_upload_keywords

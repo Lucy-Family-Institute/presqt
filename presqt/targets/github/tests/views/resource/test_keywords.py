@@ -5,9 +5,6 @@ from unittest.mock import patch
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 from django.test import SimpleTestCase
-from django.utils.datastructures import MultiValueDict
-from django.utils.http import urlencode
-
 from config.settings.base import GITHUB_TEST_USER_TOKEN
 
 
@@ -21,7 +18,7 @@ class TestResourceKeywords(SimpleTestCase):
     def setUp(self):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}
-        self.keys = ['keywords', 'enhanced_keywords']
+        self.keys = ['keywords', 'enhanced_keywords', 'all_keywords']
 
     def test_success_project_keywords(self):
         """
@@ -39,6 +36,24 @@ class TestResourceKeywords(SimpleTestCase):
         self.assertIn('eggs', response.data['keywords'])
         self.assertIn('water', response.data['keywords'])
         self.assertIn('animals', response.data['keywords'])
+
+    def test_success_no_project_keywords_but_metadata_keywords(self):
+        """
+        If there's no keywords on the target itself we want to check that it's pulling them from
+        the metadata file.
+        """
+        resource_id = '209373761'
+        # Ensure no keywords for this project
+        url = reverse('resource', kwargs={'target_name': 'github',
+                                          'resource_id': resource_id})
+        response = self.client.get(url, **self.header)
+        self.assertEqual(response.data['extra']['topics'], [])
+
+        keywords_url = reverse('keywords', kwargs={'target_name': 'github',
+                                                   'resource_id': resource_id})
+        keywords_response = self.client.get(keywords_url, **self.header)
+    
+        self.assertGreater(keywords_response.data['keywords'], response.data['extra']['topics'])
 
     def test_error_project_keywords(self):
         """
@@ -65,7 +80,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
     def setUp(self):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}
-        self.keys = ['keywords_added', 'final_keywords']
+        self.keys = ['initial_keywords', 'keywords_added', 'final_keywords']
 
     def test_success_project_keywords(self):
         """

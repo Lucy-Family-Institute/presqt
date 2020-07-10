@@ -47,7 +47,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('ProjectNine', response.data['title'])
 
-        self.assertEqual(len(response.data['links']), 3)
+        self.assertEqual(len(response.data['links']), 4)
 
     def test_success_dir(self):
         """
@@ -67,7 +67,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('android', response.data['title'])
 
-        self.assertEqual(len(response.data['links']), 3)
+        self.assertEqual(len(response.data['links']), 4)
 
     def test_success_file(self):
         """
@@ -87,7 +87,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('README.md', response.data['title'])
         # Download Link
-        self.assertEqual(len(response.data['links']), 1)
+        self.assertEqual(len(response.data['links']), 2)
 
     def test_error_404_not_authorized(self):
         """
@@ -392,7 +392,7 @@ class TestResourcePOST(SimpleTestCase):
             mock_request.return_value = mock_req
             # Attempt to update the metadata, but the server is down!
             self.assertRaises(PresQTError, gitlab_upload_metadata, self.token, project_id,
-                              {"context": {}, "allEnhancedKeywords": [], "actions": []})
+                              {"context": {}, "allKeywords": [], "actions": []})
 
         # Delete upload folder and project
         delete_gitlab_project(project_id, GITLAB_UPLOAD_TEST_USER_TOKEN)

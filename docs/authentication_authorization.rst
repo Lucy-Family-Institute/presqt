@@ -180,5 +180,37 @@ GitLab
     :align:   center
     :scale: 40%
 
+FigShare
+""""""""
+1. Navigate to https://figshare.com/account/login and login to your account.
+
+.. figure::  images/qa/figshare/figshare1.png
+    :align:   center
+    :scale: 40%
+
+2. In the top right corner, select your username and then click on ``Applications``.
+
+.. figure::  images/qa/figshare/figshare2.png
+    :align:   center
+    :scale: 40%
+
+3. Scroll down to the bottom of the screen, and click ``Create Personal Token``.
+
+.. figure::  images/qa/figshare/figshare3.png
+    :align:   center
+    :scale: 40%
+
+4. Give the token a description (name), then click ``Save``.
+
+.. figure::  images/qa/figshare/figshare4.png
+    :align:   center
+    :scale: 35%
+
+5. Make sure you copy this token somewhere securely, this will be the only time it is shown to you.
+
+.. figure::  images/qa/figshare/figshare5.png
+    :align:   center
+    :scale: 40%
+
 .. toctree::
    :maxdepth: 3

@@ -73,6 +73,15 @@ class TestResourceCollection(SimpleTestCase):
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
         for data in response.data:
             self.assertListEqual(keys, list(data.keys()))
+        
+        # Search by Keywords
+        response = self.client.get(url + "?keywords=egg", **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 200)
+        # Verify the dict keys match what we expect
+        keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
+        for data in response.data:
+            self.assertListEqual(keys, list(data.keys()))
 
     def test_error_400_missing_token_zenodo(self):
         """
@@ -123,7 +132,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         self.hash_algorithm = 'md5'
         self.auth_params = {'access_token': self.token}
         self.metadata_dict = {
-            "allEnhancedKeywords": [],
+            "allKeywords": [],
             "actions": [
                 {
                     "id": "uuid",
@@ -133,7 +142,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
                     "destinationTargetName": "zenodo",
                     "sourceUsername": "TestUser",
                     "destinationUsername": "81621",
-                    "keywordEnhancements": {},
+                    "keywords": {},
                     "files": {
                         "created": [],
                         "updated": [],
@@ -195,10 +204,60 @@ class TestResourceCollectionPOST(SimpleTestCase):
         # Delete upload folder
         shutil.rmtree(self.ticket_path)
 
+    def test_uploading_to_exisitng_container_ignore(self):
+        """
+        If there is an ignored file from Zenodo when uploading to an existing container, we want 
+        to make the user aware.
+        """
+        # 202 when uploading a new top level repo
+        shared_upload_function_osf(self)
+
+        # Verify the new repo exists on the PresQT Resource Collection endpoint.
+        url = reverse('resource_collection', kwargs={'target_name': 'zenodo'})
+        response_json = self.client.get(
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': ZENODO_TEST_USER_TOKEN}).json()
+
+        repo_name_list = [repo['title'] for repo in response_json]
+        self.assertIn(self.project_title, repo_name_list)
+
+        # Delete upload folder
+        shutil.rmtree(self.ticket_path)
+
+        self.resource_id = [resource['id']
+                            for resource in response_json if resource['title'] == self.project_title][0]
+        self.duplicate_action = 'ignore'
+        self.url = reverse('resource', kwargs={
+                           'target_name': 'zenodo', 'resource_id': self.resource_id})
+        self.file = 'presqt/api_v1/tests/resources/upload/ProjectSingleFileToUpload.zip'
+
+        self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = 'ignore'
+        response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')},
+                                    **self.headers)
+
+        ticket_number = response.data['ticket_number']
+        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+
+        # Wait until the spawned off process finishes in the background
+        # to do validation on the resulting files
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        while process_info['status'] == 'in_progress':
+            try:
+                process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+
+        upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
+        self.assertEqual(upload_job_response.data['status_code'], '200')
+        self.assertEqual(upload_job_response.data['resources_ignored'], ['/NewProject/NewProject.presqt.zip'])
+
+        # Delete the upload folder
+        shutil.rmtree(ticket_path)
+
     def test_error_uploading_to_exisitng_container(self):
         """
         If there is an error response from Zenodo when uploading to an existing container, we want 
-        to mkae the user aware.
+        to make the user aware.
         """
         # 202 when uploading a new top level repo
         shared_upload_function_osf(self)
@@ -231,7 +290,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         with patch('requests.post') as fake_post:
             fake_post.return_value = mock_req
 
-            self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
+            self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = 'update'
             response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')},
                                         **self.headers)
 
@@ -252,6 +311,67 @@ class TestResourceCollectionPOST(SimpleTestCase):
             self.assertEqual(upload_job_response.data['status_code'], 400)
             self.assertEqual(upload_job_response.data['message'],
                              'Zenodo returned an error trying to upload NewProject.presqt.zip')
+
+            # Delete the upload folder
+            shutil.rmtree(ticket_path)
+
+    def test_error_uploading_to_exisitng_container_update(self):
+        """
+        If there is an error response from Zenodo when updating a file on an existing container, we 
+        want to make the user aware.
+        """
+        # 202 when uploading a new top level repo
+        shared_upload_function_osf(self)
+
+        # Verify the new repo exists on the PresQT Resource Collection endpoint.
+        url = reverse('resource_collection', kwargs={'target_name': 'zenodo'})
+        response_json = self.client.get(
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': ZENODO_TEST_USER_TOKEN}).json()
+
+        repo_name_list = [repo['title'] for repo in response_json]
+        self.assertIn(self.project_title, repo_name_list)
+
+        # Delete upload folder
+        shutil.rmtree(self.ticket_path)
+
+        # *Error* when uploading to an existing project.
+        class MockResponse:
+            def __init__(self, json_data, status_code):
+                self.json_data = json_data
+                self.status_code = status_code
+        mock_req = MockResponse({'error': 'The server is down.'}, 500)
+
+        self.resource_id = [resource['id']
+                            for resource in response_json if resource['title'] == self.project_title][0]
+        self.duplicate_action = 'ignore'
+        self.url = reverse('resource', kwargs={
+                           'target_name': 'zenodo', 'resource_id': self.resource_id})
+        self.file = 'presqt/api_v1/tests/resources/upload/ProjectSingleFileToUpload.zip'
+
+        with patch('requests.delete') as fake_post:
+            fake_post.return_value = mock_req
+
+            self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = 'update'
+            response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')},
+                                        **self.headers)
+
+            ticket_number = response.data['ticket_number']
+            ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+
+            # Wait until the spawned off process finishes in the background
+            # to do validation on the resulting files
+            process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+            while process_info['status'] == 'in_progress':
+                try:
+                    process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+                except json.decoder.JSONDecodeError:
+                    # Pass while the process_info file is being written to
+                    pass
+
+            upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
+            self.assertEqual(upload_job_response.data['status_code'], 400)
+            self.assertEqual(upload_job_response.data['message'],
+                             'Zenodo returned an error trying to update NewProject.presqt.zip')
 
             # Delete the upload folder
             shutil.rmtree(ticket_path)

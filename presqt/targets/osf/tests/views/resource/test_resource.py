@@ -70,7 +70,7 @@ class TestResourceGETJSON(SimpleTestCase):
                 self.assertEqual(link['method'], 'GET')
             if link['name'] == 'Upload':
                 self.assertEqual(link['method'], 'POST')
-        self.assertEqual(len(response.data['links']), 3)
+        self.assertEqual(len(response.data['links']), 4)
 
     def test_success_file(self):
         """
@@ -93,7 +93,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual('file', response.data['kind_name'])
         self.assertEqual('2017-01-27 PresQT Workshop Planning Meeting Items.docx',
                          response.data['title'])
-        self.assertEqual(len(response.data['links']), 1)
+        self.assertEqual(len(response.data['links']), 2)
         self.assertEqual(response.data['links'][0]['name'], 'Download')
 
     def test_success_file_no_format(self):
@@ -848,13 +848,12 @@ class TestResourcePOST(SimpleTestCase):
         self.url = reverse('resource', kwargs={
                            'target_name': 'osf', 'resource_id': self.resource_id})
         self.file = 'presqt/api_v1/tests/resources/upload/FolderBagItToUpload.zip'
-        self.resources_ignored = [
-            '/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
+        self.resources_ignored = ['/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
         self.resources_updated = []
         self.hash_algorithm = 'sha256'
         shared_upload_function_osf(self)
 
-        # # Verify files exist in OSF
+        # Verify files exist in OSF
         file_data = requests.get(folder_data['data'][0]['relationships']
                                  ['files']['links']['related']['href'], headers=headers).json()
         self.assertEqual(file_data['links']['meta']['total'], 2)
@@ -1059,7 +1058,7 @@ class TestResourcePOST(SimpleTestCase):
             mock_request.return_value = mock_req
             # Attempt to update the metadata, but the server is down!
             self.assertRaises(PresQTError, osf_upload_metadata, self.token, node_id,
-                              {"context": {}, "allEnhancedKeywords": [], "actions": []})
+                              {"context": {}, "allKeywords": [], "actions": []})
 
         # Delete corresponding folder
         shutil.rmtree(self.ticket_path)
@@ -1172,3 +1171,4 @@ class TestResourcePOST(SimpleTestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['error'], 'PresQT Error: Bag is not formatted properly.')
+

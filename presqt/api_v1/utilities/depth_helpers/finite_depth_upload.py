@@ -76,13 +76,14 @@ def finite_depth_upload_helper(instance):
 
     instance.action_metadata = {
         'id': str(uuid4()),
+        'details': instance.details,
         'actionDateTime': str(timezone.now()),
         'actionType': instance.action,
         'sourceTargetName': 'Server Created Zip',
         'sourceUsername': None,
         'destinationTargetName': instance.destination_target_name,
         'destinationUsername': None,
-        'keywordEnhancements': instance.action_metadata['keywordEnhancements'],
+        'keywords': instance.action_metadata['keywords'],
         'files': {
             'created': instance.new_fts_metadata_files,
             'updated': [],

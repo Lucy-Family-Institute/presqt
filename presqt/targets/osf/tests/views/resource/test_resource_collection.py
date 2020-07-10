@@ -2,7 +2,7 @@ from django.test import SimpleTestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
-from config.settings.base import OSF_PRESQT_FORK_TOKEN, OSF_TEST_USER_TOKEN, OSF_PRIVATE_USER_TOKEN
+from config.settings.base import OSF_PRESQT_FORK_TOKEN, OSF_TEST_USER_TOKEN
 
 
 class TestResourceCollection(SimpleTestCase):
@@ -68,6 +68,15 @@ class TestResourceCollection(SimpleTestCase):
         # Search By Author
         response = self.client.get(url+'?author=Prometheus', **self.header)
         # Verify the Status Code
+        self.assertEqual(response.status_code, 200)
+        # Verify the dict keys match what we expect
+        keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
+        for data in response.data:
+            self.assertListEqual(keys, list(data.keys()))
+
+        # Search by Keywords
+        response = self.client.get(url + "?keywords=egg", **self.header)
+        # Verify the status code
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
