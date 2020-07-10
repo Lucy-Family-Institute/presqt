@@ -339,13 +339,15 @@ class BaseResource(APIView):
             write_file('{}{}'.format(self.resource_main_dir, resource['path']), resource['file'])
 
         # Enhance the source keywords
+        keyword_dict = {}
+        if self.action == 'resource_transfer_in':
+            if self.supports_keywords:
+                if self.keyword_action == 'automatic':
+                    keyword_dict = automatic_keywords(self)
+                elif self.keyword_action == 'manual':
+                    keyword_dict = manual_keywords(self)
         self.keyword_enhancement_successful = True
-        if self.action == 'resource_transfer_in' and self.keyword_action == 'automatic' and self.supports_keywords:
-            keyword_dict = automatic_keywords(self)
-        elif self.action == 'resource_transfer_in' and self.keyword_action == 'manual' and self.supports_keywords:
-            keyword_dict = manual_keywords(self)
-        else:
-            keyword_dict = {}
+
 
         # Create PresQT action metadata
         self.source_username = func_dict['action_metadata']['sourceUsername']
