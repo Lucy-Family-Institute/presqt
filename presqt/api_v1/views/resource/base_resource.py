@@ -233,7 +233,7 @@ class BaseResource(APIView):
         self.process_info_obj = {
             'presqt-destination-token': hash_tokens(self.destination_token),
             'status': 'in_progress',
-            'expiration': str(timezone.now() + relativedelta(days=5)),
+            'expiration': str(timezone.now() + relativedelta(hours=5)),
             'message': 'Upload is being processed on the server',
             'status_code': None,
             'function_process_id': None
@@ -295,7 +295,7 @@ class BaseResource(APIView):
             if self.action == 'resource_transfer_in':
                 self.process_info_obj['download_status'] = 'failed'
             self.process_info_obj['message'] = e.data
-            # Update the expiration from 5 days to 1 hour from now. We can delete this faster because
+            # Update the expiration from 5 hours to 1 hour from now. We can delete this faster because
             # it's an incomplete/failed directory.
             self.process_info_obj['expiration'] = str(timezone.now() + relativedelta(hours=1))
             write_file(self.process_info_path, self.process_info_obj, True)
@@ -485,7 +485,7 @@ class BaseResource(APIView):
                 if self.action == 'resource_transfer_in':
                     self.process_info_obj['upload_status'] = 'failed'
                 self.process_info_obj['message'] = e.data
-                # Update the expiration from 5 days to 1 hour from now. We can delete this faster because
+                # Update the expiration from 5 hours to 1 hour from now. We can delete this faster because
                 # it's an incomplete/failed directory.
                 self.process_info_obj['expiration'] = str(timezone.now() + relativedelta(hours=1))
                 write_file(self.process_info_path, self.process_info_obj, True)
@@ -514,7 +514,7 @@ class BaseResource(APIView):
             if self.action == 'resource_transfer_in':
                 self.process_info_obj['upload_status'] = 'failed'
             self.process_info_obj['message'] = e.data
-            # Update the expiration from 5 days to 1 hour from now. We can delete this faster
+            # Update the expiration from 5 hours to 1 hour from now. We can delete this faster
             # because it's an incomplete/failed directory.
             self.process_info_obj['expiration'] = str(timezone.now() + relativedelta(hours=1))
             write_file(self.process_info_path, self.process_info_obj, True)
@@ -613,7 +613,7 @@ class BaseResource(APIView):
             'presqt-source-token': hash_tokens(self.source_token),
             'presqt-destination-token': hash_tokens(self.destination_token),
             'status': 'in_progress',
-            'expiration': str(timezone.now() + relativedelta(days=5)),
+            'expiration': str(timezone.now() + relativedelta(hours=5)),
             'message': 'Transfer is being processed on the server',
             'download_status': None,
             'upload_status': None,
