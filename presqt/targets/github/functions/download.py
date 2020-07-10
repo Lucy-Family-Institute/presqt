@@ -91,6 +91,7 @@ def github_download_resource(token, resource_id):
     except PresQTResponseException:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
+    print(resource_id)
     # Without a colon, we know this is a top level repo
     if ':' not in resource_id:
         project_url = 'https://api.github.com/repositories/{}'.format(resource_id)
@@ -124,7 +125,7 @@ def github_download_resource(token, resource_id):
     else:
         partitioned_id = resource_id.partition(':')
         repo_id = partitioned_id[0]
-        path_to_file = partitioned_id[2].replace('%2F', '/').replace('%2E', '.')
+        path_to_file = partitioned_id[2].replace('%2F', '/').replace('%2E', '.').replace('%252F', '/').replace('%252E', '.')
 
         # Get initial repo data for the resource requested
         repo_url = 'https://api.github.com/repositories/{}'.format(repo_id)
