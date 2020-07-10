@@ -91,7 +91,6 @@ def github_download_resource(token, resource_id):
     except PresQTResponseException:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
-    print(resource_id)
     # Without a colon, we know this is a top level repo
     if ':' not in resource_id:
         project_url = 'https://api.github.com/repositories/{}'.format(resource_id)
