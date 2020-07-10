@@ -202,7 +202,7 @@ class Resource(BaseResource):
         self.process_info_obj = {
             'presqt-source-token': hash_tokens(self.source_token),
             'status': 'in_progress',
-            'expiration': str(timezone.now() + relativedelta(days=5)),
+            'expiration': str(timezone.now() + relativedelta(hours=5)),
             'message': 'Download is being processed on the server',
             'status_code': None,
             'function_process_id': None
