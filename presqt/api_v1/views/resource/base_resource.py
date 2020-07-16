@@ -331,7 +331,6 @@ class BaseResource(APIView):
             if resource['title'] == 'PRESQT_FTS_METADATA.json':
                 is_valid = validate_metadata(self, resource)
                 if not is_valid:
-                    print('invalid')
                     resource['path'] = resource['path'].replace('PRESQT_FTS_METADATA.json',
                                                                 'INVALID_PRESQT_FTS_METADATA.json')
                     create_download_metadata(self, resource, fixity_obj)
