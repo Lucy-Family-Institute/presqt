@@ -327,11 +327,8 @@ class BaseResource(APIView):
             if not fixity_obj['fixity']:
                 self.download_failed_fixity.append(resource['path'])
 
-            #TODO: Remove logic from create_download_metadata and instead add an if statement
-            # that checks the resource['title'] == 'PRESQT_FTS_METADATA.json'
-
-            # Create metadata for this resource.
-            # Return True if a valid FTS metadata file is found.
+            # Create metadata for this resource,
+            # or validate the metadata file
             if resource['title'] == 'PRESQT_FTS_METADATA.json':
                 is_valid = validate_metadata(self, resource)
                 if not is_valid:
