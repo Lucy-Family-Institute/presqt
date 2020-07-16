@@ -24,6 +24,7 @@ from presqt.api_v1.utilities import (target_validation, transfer_target_validati
                                      automatic_keywords, update_targets_keywords, manual_keywords,
                                      get_target_data, get_keyword_support)
 from presqt.api_v1.utilities.fixity import download_fixity_checker
+from presqt.api_v1.utilities.metadata.download_metadata import validate_metadata
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
 from presqt.json_schemas.schema_handlers import schema_validator
@@ -331,12 +332,15 @@ class BaseResource(APIView):
 
             # Create metadata for this resource.
             # Return True if a valid FTS metadata file is found.
-            if create_download_metadata(self, resource, fixity_obj):
-                # Don't write valid FTS metadata file.
-                continue
-
-            # Save the file to the disk.
-            write_file('{}{}'.format(self.resource_main_dir, resource['path']), resource['file'])
+            if resource['title'] == 'PRESQT_FTS_METADATA.json':
+                is_valid = validate_metadata(self, resource)
+                if not is_valid:
+                    resource['path'] = resource['path'].replace('PRESQT_FTS_METADATA.json',
+                                                                'INVALID_PRESQT_FTS_METADATA.json')
+                    create_download_metadata(self, resource, fixity_obj)
+            else:
+                create_download_metadata(self, resource, fixity_obj)
+                write_file('{}{}'.format(self.resource_main_dir, resource['path']), resource['file'])
 
         # Enhance the source keywords
         keyword_dict = {}

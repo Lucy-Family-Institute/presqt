@@ -24,20 +24,7 @@ def create_download_metadata(instance, resource, fixity_obj):
     """
 
     # If this is the PresQT FTS Metadata file, don't write it to disk but get its contents
-    if resource['title'] == 'PRESQT_FTS_METADATA.json':
-        source_fts_metadata_content = json.loads(resource['file'].decode())
-        # If the metadata is valid then grab it's contents and don't save it
-        if schema_validator('presqt/json_schemas/metadata_schema.json',
-                            source_fts_metadata_content) is True:
-            instance.source_fts_metadata_actions = instance.source_fts_metadata_actions + \
-                                                   source_fts_metadata_content['actions']
-            instance.all_keywords = instance.all_keywords + \
-                                       source_fts_metadata_content['allKeywords']
-            return True
-        # If the metadata is invalid rename and write it. We don't want invalid contents.
-        else:
-            resource['path'] = resource['path'].replace('PRESQT_FTS_METADATA.json',
-                                                        'INVALID_PRESQT_FTS_METADATA.json')
+
     metadata = {
         'destinationPath': resource['path'],
         'destinationHashes': {},
@@ -61,3 +48,18 @@ def create_download_metadata(instance, resource, fixity_obj):
     instance.new_fts_metadata_files.append(metadata)
 
     return False
+
+
+
+def validate_metadata(instance, resource):
+    source_fts_metadata_content = json.loads(resource['file'].decode())
+    # If the metadata is valid then grab it's contents and don't save it
+    if schema_validator('presqt/json_schemas/metadata_schema.json', source_fts_metadata_content) is True:
+        instance.source_fts_metadata_actions = instance.source_fts_metadata_actions + \
+                                               source_fts_metadata_content['actions']
+        instance.all_keywords = instance.all_keywords + \
+                                source_fts_metadata_content['allKeywords']
+        return True
+    # If the metadata is invalid rename and write it. We don't want invalid contents.
+    else:
+        return False
