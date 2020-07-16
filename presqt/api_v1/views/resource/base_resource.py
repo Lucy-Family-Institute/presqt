@@ -327,8 +327,7 @@ class BaseResource(APIView):
             if not fixity_obj['fixity']:
                 self.download_failed_fixity.append(resource['path'])
 
-            # Create metadata for this resource,
-            # or validate the metadata file
+            # Create metadata for this resource or validate the metadata file
             if resource['title'] == 'PRESQT_FTS_METADATA.json':
                 is_valid = validate_metadata(self, resource)
                 if not is_valid:
@@ -348,7 +347,6 @@ class BaseResource(APIView):
                 elif self.keyword_action == 'manual':
                     keyword_dict = manual_keywords(self)
         self.keyword_enhancement_successful = True
-
 
         # Create PresQT action metadata
         self.source_username = func_dict['action_metadata']['sourceUsername']

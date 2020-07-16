@@ -22,9 +22,6 @@ def create_download_metadata(instance, resource, fixity_obj):
     True if the resource is a valid FTS metadata file.
     False if the resource is not a valid FTS metadata file.
     """
-
-    # If this is the PresQT FTS Metadata file, don't write it to disk but get its contents
-
     metadata = {
         'destinationPath': resource['path'],
         'destinationHashes': {},
