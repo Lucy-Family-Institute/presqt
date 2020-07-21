@@ -1,6 +1,8 @@
 QA Testing
 ==========
 
+`Click here <https://presqt-prod.crc.nd.edu />`_ to go to the testing site.
+
 Resources
 ---------
 We use the term ``resources`` for all content such as files, folders, projects, repos, items, etc.
@@ -60,6 +62,8 @@ Once logged in you can switch between targets without having to provide your key
 
 Navigate and Searching The Resource Collection
 ++++++++++++++++++++++++++++++++++++++++++++++
+`Click here <https://presqt-prod.crc.nd.edu />`_ to go to the testing site.
+
 1. After logging in you can navigate through your ``Resource Collection`` by clicking on the folders and files on the left.
 2. Clicking on a resource shows you the ``Resource Details`` on the right.
 
@@ -84,6 +88,8 @@ for this resource. If the button is disabled then that action isn't available fo
 
 Resource Download
 +++++++++++++++++
+`Click here <https://presqt-prod.crc.nd.edu />`_ to go to the testing site.
+
 1. To download a resource, first select the resource in the ``resource collection`` and then click
 the ``Download`` action button in the details section.
 
@@ -112,6 +118,7 @@ the ``data`` folder.
 
 Resource Upload
 +++++++++++++++
+`Click here <https://presqt-prod.crc.nd.edu />`_ to go to the testing site.
 
 Upload As A New Project
 +++++++++++++++++++++++
@@ -183,6 +190,8 @@ process went.
 
 Resource Transfer
 +++++++++++++++++
+`Click here <https://presqt-prod.crc.nd.edu />`_ to go to the testing site.
+
 1. To transfer a resource to another target, first select the resource in the ``resource collection``
 and then click the ``Transfer`` button in the details section.
 
@@ -289,6 +298,7 @@ in the transfer action entry instead of there being a new action entry for keywo
 
 Services
 --------
+`Click here <https://presqt-prod.crc.nd.edu />`_ to go to the testing site.
 
 Send a Proposal to EaaSI
 ++++++++++++++++++++++++
