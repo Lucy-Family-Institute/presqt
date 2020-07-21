@@ -113,6 +113,7 @@ def github_download_resource(token, resource_id):
         file_urls = [file['file'] for file in files]
 
         loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         download_data = loop.run_until_complete(async_main(file_urls, header))
 
         # Go through the file dictionaries and replace the file path with the binary_content

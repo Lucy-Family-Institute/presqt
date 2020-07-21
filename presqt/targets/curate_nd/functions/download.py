@@ -141,6 +141,7 @@ def curate_nd_download_resource(token, resource_id):
                 file_urls.append(file['downloadUrl'])
 
             loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
             download_data = loop.run_until_complete(async_main(file_urls, token))
 
             for file in download_data:

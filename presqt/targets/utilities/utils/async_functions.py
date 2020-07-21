@@ -23,6 +23,7 @@ def run_urls_async(self_instance, url_list):
     The data returned from the async call
     """
     loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     data = loop.run_until_complete(async_main(self_instance, url_list))
     return data
 
@@ -76,8 +77,11 @@ async def async_get(self_instance, url, session):
             assert response.status == 200
             return await response.json()
         except AssertionError:
-            raise PresQTValidationError("The source target API returned an error. Please try again.",
-                                        status.HTTP_500_INTERNAL_SERVER_ERROR)
+            if response.status == 403: #TODO: doing this to avoid private file errors look into it
+                pass
+            else:
+                raise PresQTValidationError("The source target API returned an error. Please try again.",
+                                            status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 async def async_main(self_instance, url_list):
