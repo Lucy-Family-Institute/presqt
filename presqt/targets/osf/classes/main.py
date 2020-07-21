@@ -113,21 +113,17 @@ class OSF(OSFBase):
         together by projects, then storages, then each storage's resources.
         """
         resources = []
-
         all_projects, top_level_projects = self.projects(url)
-
         # Add all top level projects and subprojects to the resources list
         self.iter_project_hierarchy(all_projects, top_level_projects, resources)
-
         # Add all storages to the resource list
         user_storages_links = self.iter_project_storages(all_projects, resources)
-
         # Get initial resources for all storages
         all_storages_resources = run_urls_async_with_pagination(self, user_storages_links)
         # Loop through the storage resources to either add them to the main resources list or
         # traverse further down the tree to get their children resources.
         for storage_resources in all_storages_resources:
-            if storage_resources['data']:
+            if storage_resources and storage_resources['data']: #TODO: First if check doing this to avoid private file errors look into it
                 # Calculate the given resource's container_id
                 parent_project_id = storage_resources['data'][0]['relationships']['node']['data']['id']
                 parent_storage = storage_resources['data'][0]['attributes']['provider']
