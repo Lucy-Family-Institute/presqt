@@ -73,12 +73,13 @@ class OSFBase(object):
         """
         url_list = []
         for data in data_list:
-            meta = data['links']['meta']
-            next_url = data['links']['next']
-            if next_url:
-                page_total = get_page_total(meta['total'], meta['per_page'])
-                [url_list.append('{}{}'.format(
-                    next_url[:-1], number)) for number in range(2, page_total + 1)]
+            if data: #ToDo: doing this to avoid private file errors look into it
+                meta = data['links']['meta']
+                next_url = data['links']['next']
+                if next_url:
+                    page_total = get_page_total(meta['total'], meta['per_page'])
+                    [url_list.append('{}{}'.format(
+                        next_url[:-1], number)) for number in range(2, page_total + 1)]
         return url_list
 
     def get(self, url, *args, **kwargs):

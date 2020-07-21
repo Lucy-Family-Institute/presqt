@@ -161,6 +161,7 @@ def figshare_download_resource(token, resource_id):
     if file_urls:
         # Start the async calls for project or article downloads
         loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         download_data = loop.run_until_complete(async_main(file_urls, headers))
 
         # Go through the file dictionaries and replace the file path with the binary_content
