@@ -53,3 +53,15 @@ html_theme = 'sphinx_rtd_theme'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = []
+
+# from http://jack.rosenth.al/hacking-docutils.html#external-links-in-new-tabs
+from sphinx.writers.html import HTMLTranslator
+class PatchedHTMLTranslator(HTMLTranslator):
+   def visit_reference(self, node):
+      if node.get('newtab') or not (node.get('target') or node.get('internal')
+         or 'refuri' not in node):
+            node['target'] = '_blank'
+            super().visit_reference(node)
+
+def setup(app):
+    app.set_translator('html', PatchedHTMLTranslator)
