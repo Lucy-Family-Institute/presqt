@@ -21,8 +21,12 @@ in BagIt format.
 Getting Authorization Tokens From Partner Sites
 -----------------------------------------------
 An ``Authorization Token`` is a unique identifier for a user requesting access to a service.
-`Click here <https://presqt.readthedocs.io/en/latest/authentication_authorization.html#taget-token-instructions>`_
-for instructions on how to get authorization tokens for each target.
+
+You can |auth_location_link| for instructions on how to get authorization tokens for each target.
+
+.. |auth_location_link| raw:: html
+
+   <a href="https://presqt.readthedocs.io/en/latest/authentication_authorization.html#taget-token-instructions" target="_blank">click here</a>
 
 Downloadable Bags
 -----------------
@@ -62,7 +66,11 @@ Once logged in you can switch between targets without having to provide your key
 
 Navigate and Searching The Resource Collection
 ++++++++++++++++++++++++++++++++++++++++++++++
-`Click here <https://presqt-prod.crc.nd.edu />`_ to go to the testing site.
+|qa_location_link| to go to the testing site.
+
+.. |qa_location_link| raw:: html
+
+   <a href="https://presqt-prod.crc.nd.edu" target="_blank">Click here</a>
 
 1. After logging in you can navigate through your ``Resource Collection`` by clicking on the folders and files on the left.
 2. Clicking on a resource shows you the ``Resource Details`` on the right.
@@ -88,7 +96,11 @@ for this resource. If the button is disabled then that action isn't available fo
 
 Resource Download
 +++++++++++++++++
-`Click here <https://presqt-prod.crc.nd.edu />`_ to go to the testing site.
+|qa_location_link| to go to the testing site.
+
+.. |qa_location_link| raw:: html
+
+   <a href="https://presqt-prod.crc.nd.edu" target="_blank">Click here</a>
 
 1. To download a resource, first select the resource in the ``resource collection`` and then click
 the ``Download`` action button in the details section.
@@ -118,7 +130,11 @@ the ``data`` folder.
 
 Resource Upload
 +++++++++++++++
-`Click here <https://presqt-prod.crc.nd.edu />`_ to go to the testing site.
+|qa_location_link| to go to the testing site.
+
+.. |qa_location_link| raw:: html
+
+   <a href="https://presqt-prod.crc.nd.edu" target="_blank">Click here</a>
 
 Upload As A New Project
 +++++++++++++++++++++++
@@ -190,7 +206,11 @@ process went.
 
 Resource Transfer
 +++++++++++++++++
-`Click here <https://presqt-prod.crc.nd.edu />`_ to go to the testing site.
+|qa_location_link| to go to the testing site.
+
+.. |qa_location_link| raw:: html
+
+   <a href="https://presqt-prod.crc.nd.edu" target="_blank">Click here</a>
 
 1. To transfer a resource to another target, first select the resource in the ``resource collection``
 and then click the ``Transfer`` button in the details section.
@@ -298,7 +318,11 @@ in the transfer action entry instead of there being a new action entry for keywo
 
 Services
 --------
-`Click here <https://presqt-prod.crc.nd.edu />`_ to go to the testing site.
+|qa_location_link| to go to the testing site.
+
+.. |qa_location_link| raw:: html
+
+   <a href="https://presqt-prod.crc.nd.edu" target="_blank">Click here</a>
 
 Send a Proposal to EaaSI
 ++++++++++++++++++++++++
