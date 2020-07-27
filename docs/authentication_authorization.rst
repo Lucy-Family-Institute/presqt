@@ -10,7 +10,11 @@ Target Token Instructions
 
 Open Science Framework
 """"""""""""""""""""""
-1. Navigate to https://osf.io/ and login to your account.
+1. Navigate to |osf_link| and login to your account.
+
+.. |osf_link| raw:: html
+
+   <a href="https://osf.io/" target="_blank">https://osf.io/</a>
 
 .. figure::  images/qa/osf/osf_step_1.png
     :align:   center
@@ -48,7 +52,11 @@ Open Science Framework
 
 CurateND
 """"""""
-1. Navigate to https://curate.nd.edu and login to your account.
+1. Navigate to |curate_link| and login to your account.
+
+.. |curate_link| raw:: html
+
+   <a href="https://curate.nd.edu" target="_blank">https://curate.nd.edu</a>
 
 .. figure::  images/qa/curate_nd/curate_nd_step_1.png
     :align:   center
@@ -74,7 +82,11 @@ CurateND
 
 GitHub
 """"""
-1. Navigate to https://github.com and login to your account.
+1. Navigate to |github_link| and login to your account.
+
+.. |github_link| raw:: html
+
+   <a href="https://github.com" target="_blank">https://github.com</a>
 
 .. figure::  images/qa/github/github_step_1.png
     :align:   center
@@ -118,7 +130,11 @@ GitHub
 
 Zenodo
 """"""
-1. Navigate to https://zenodo.org and login to your account.
+1. Navigate to |zenodo_link| and login to your account.
+
+.. |zenodo_link| raw:: html
+
+   <a href="https://zenodo.org" target="_blank">https://zenodo.org</a>
 
 .. figure::  images/qa/zenodo/zenodo_step_1.png
     :align:   center
@@ -150,7 +166,11 @@ Zenodo
 
 GitLab
 """"""
-1. Navigate to https://gitlab.com and login to your account.
+1. Navigate to |gitlab_link| and login to your account.
+
+.. |gitlab_link| raw:: html
+
+   <a href="https://gitlab.com" target="_blank">https://gitlab.com</a>
 
 .. figure::  images/qa/gitlab/gitlab_step_1.png
     :align:   center
@@ -182,7 +202,11 @@ GitLab
 
 FigShare
 """"""""
-1. Navigate to https://figshare.com/account/login and login to your account.
+1. Navigate to |figshare_link| and login to your account.
+
+.. |figshare_link| raw:: html
+
+   <a href="https://figshare.com/account/login" target="_blank">https://figshare.com/account/login</a>
 
 .. figure::  images/qa/figshare/figshare1.png
     :align:   center
