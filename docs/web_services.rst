@@ -7,8 +7,17 @@ Fixity
 Tools
 +++++
 
-* Python Hashlib Library https://docs.python.org/3/library/hashlib.html
-* BagIt Python Validation https://github.com/LibraryOfCongress/bagit-python#validation
+* Python Hashlib Library |python_link|
+
+.. |python_link| raw:: html
+
+   <a href="https://docs.python.org/3/library/hashlib.html" target="_blank">https://docs.python.org/3/library/hashlib.html</a>
+
+* BagIt Python Validation |bagit_link|
+
+.. |bagit_link| raw:: html
+
+   <a href="https://github.com/LibraryOfCongress/bagit-python#validation" target="_blank">https://github.com/LibraryOfCongress/bagit-python#validation</a>
 
 PresQT Supported Hash Algorithms
 ++++++++++++++++++++++++++++++++
