@@ -1,7 +1,11 @@
 QA Testing
 ==========
 
-`Click here <https://presqt-prod.crc.nd.edu />`_ to go to the testing site.
+|qa_location_link| to go to the testing site.
+
+.. |qa_location_link| raw:: html
+
+   <a href="https://presqt-prod.crc.nd.edu" target="_blank">Click here</a>
 
 Resources
 ---------
