@@ -37,7 +37,7 @@ def zenodo_fetch_resources(token, search_parameter):
         raise PresQTValidationError("Token is invalid. Response returned a 401 status code.",
                                     status.HTTP_401_UNAUTHORIZED)
     # Let's build them resources
-    if search_parameter:
+    if search_parameter and 'page' not in search_parameter:
         if 'title' in search_parameter:
             search_parameters = search_parameter['title'].replace(' ', '+')
             base_url = 'https://zenodo.org/api/records?q=title:"{}"&sort=most_recent'.format(
@@ -58,7 +58,10 @@ def zenodo_fetch_resources(token, search_parameter):
         is_record = True
 
     else:
-        base_url = "https://zenodo.org/api/deposit/depositions"
+        if 'page' in search_parameter:
+            base_url = "https://zenodo.org/api/deposit/depositions?page={}".format(search_parameter['page'])
+        else:
+            base_url = "https://zenodo.org/api/deposit/depositions?page=1"
         zenodo_projects = requests.get(base_url, params=auth_parameter).json()
         is_record = False
 
