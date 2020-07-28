@@ -58,8 +58,9 @@ def zenodo_fetch_resources(token, query_parameter):
         is_record = True
 
     else:
-        if 'page' in query_parameter:
-            base_url = "https://zenodo.org/api/deposit/depositions?page={}".format(query_parameter['page'])
+        if query_parameter:
+            if 'page' in query_parameter:
+                base_url = "https://zenodo.org/api/deposit/depositions?page={}".format(query_parameter['page'])
         else:
             base_url = "https://zenodo.org/api/deposit/depositions?page=1"
         zenodo_projects = requests.get(base_url, params=auth_parameter).json()
