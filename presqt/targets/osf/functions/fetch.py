@@ -7,7 +7,7 @@ from presqt.utilities import PresQTResponseException, PresQTInvalidTokenError, P
 from presqt.targets.osf.classes.main import OSF
 
 
-def osf_fetch_resources(token, search_parameter):
+def osf_fetch_resources(token, query_parameter):
     """
     Fetch all OSF resources for the user connected to the given token.
 
@@ -15,7 +15,7 @@ def osf_fetch_resources(token, search_parameter):
     ----------
     token : str
         User's OSF token
-    search_parameter : dict
+    query_parameter : dict
         The search parameter passed to the API View
         Gets passed formatted as {'title': 'search_info'}
 
@@ -37,29 +37,33 @@ def osf_fetch_resources(token, search_parameter):
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
-    if search_parameter:
-        if 'title' in search_parameter:
+    if query_parameter:
+        if 'title' in query_parameter:
             # Format the search that is coming in to be passed to the OSF API
-            search_parameters = search_parameter['title'].replace(' ', '+')
-            url = 'https://api.osf.io/v2/nodes/?filter[title]={}'.format(search_parameters)
+            query_parameters = query_parameter['title'].replace(' ', '+')
+            url = 'https://api.osf.io/v2/nodes/?filter[title]={}'.format(query_parameters)
 
-        elif 'id' in search_parameter:
-            url = 'https://api.osf.io/v2/nodes/?filter[id]={}'.format(search_parameter['id'])
+        elif 'id' in query_parameter:
+            url = 'https://api.osf.io/v2/nodes/?filter[id]={}'.format(query_parameter['id'])
 
-        elif 'author' in search_parameter:
-            search_parameters = search_parameter['author'].replace(' ', '+')
-            user_url = 'https://api.osf.io/v2/users/?filter[full_name]={}'.format(search_parameters)
+        elif 'author' in query_parameter:
+            query_parameters = query_parameter['author'].replace(' ', '+')
+            user_url = 'https://api.osf.io/v2/users/?filter[full_name]={}'.format(query_parameters)
             user_data = requests.get(user_url, headers={'Authorization': 'Bearer {}'.format(token)})
             if user_data.status_code != 200 or len(user_data.json()['data']) == 0:
                 return []
             else:
-                url = user_data.json()['data'][0]['relationships']['nodes']['links']['related']['href']
+                url = user_data.json()[
+                    'data'][0]['relationships']['nodes']['links']['related']['href']
 
-        elif 'keywords' in search_parameter:
-            search_parameters = search_parameter['keywords'].replace(' ', '+')
-            url = 'https://api.osf.io/v2/nodes/?filter[tags][icontains]={}'.format(search_parameters)
+        elif 'keywords' in query_parameter:
+            query_parameters = query_parameter['keywords'].replace(' ', '+')
+            url = 'https://api.osf.io/v2/nodes/?filter[tags][icontains]={}'.format(query_parameters)
+
+        elif 'page' in query_parameter:
+            url = 'https://api.osf.io/v2/users/me/nodes?page={}'.format(query_parameter['page'])
     else:
-        url = None
+        url = "https://api.osf.io/v2/users/me/nodes?page=1"
     try:
         resources = osf_instance.get_resources(url)
     except PresQTValidationError as e:

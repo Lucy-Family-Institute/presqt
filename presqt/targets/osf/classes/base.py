@@ -45,16 +45,17 @@ class OSFBase(object):
         meta = response_json['links']['meta']
 
         # Calculate pagination pages
-        if '?filter' in url:
-            page_total = 2
+        if '?filter' in url or '?page' in url:
+            # We already have all the data we need for this request
+            return data
         else:
             page_total = get_page_total(meta['total'], meta['per_page'])
-
-        url_list = ['{}?page={}'.format(url, number) for number in range(2, page_total + 1)]
+            url_list = ['{}?page={}'.format(url, number) for number in range(2, page_total + 1)]
 
         # Call all pagination pages asynchronously
         children_data = run_urls_async(self, url_list)
         [data.extend(child['data']) for child in children_data]
+
         return data
 
     @staticmethod
