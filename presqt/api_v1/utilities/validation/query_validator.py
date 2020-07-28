@@ -25,13 +25,13 @@ def query_validator(query_parameter, target_name):
         try:
             int(list(query_parameter.values())[0])
         except ValueError:
-            raise PresQTResponseException('PresQT Error: The page query is not formatted correctly.',
+            raise PresQTResponseException('PresQT Error: The page query is not formatted correctly. Page specified must be a number.',
                                           status.HTTP_400_BAD_REQUEST)
         else:
             return list(query_parameter.values())[0]
     else:
         target_data = get_target_data(target_name)
-        list_of_search_params = target_data['query_parameters']
+        list_of_search_params = target_data['search_parameters']
         # Check that the query parameter is in list of accepted searches
         if list(query_parameter.keys())[0] not in list_of_search_params:
             raise PresQTResponseException('PresQT Error: {} does not support {} as a search parameter.'.format(
