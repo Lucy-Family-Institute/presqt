@@ -2,7 +2,7 @@ from rest_framework.response import Response
 
 from presqt.api_v1.serializers.resource import ResourcesSerializer
 from presqt.api_v1.utilities import (
-    target_validation, FunctionRouter, get_source_token, search_validator)
+    target_validation, FunctionRouter, get_source_token, query_validator)
 from presqt.api_v1.views.resource.base_resource import BaseResource
 from presqt.utilities import PresQTValidationError, PresQTResponseException
 
@@ -97,8 +97,7 @@ class ResourceCollection(BaseResource):
         # Validate the search query if there is one.
         if query_params != {}:
             try:
-                search_validator(query_params, target_name)
-                query_params_value = list(query_params.values())[0]
+                query_params_value = query_validator(query_params, target_name)
                 if query_params_value.isspace() or query_params_value == '':
                     # If title is empty, we want to only return user resources.
                     query_params = {}
