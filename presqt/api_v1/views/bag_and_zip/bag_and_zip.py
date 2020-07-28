@@ -6,7 +6,6 @@ import bagit
 from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
 
 from presqt.api_v1.utilities.validation.file_validation import file_validation
 from presqt.utilities import PresQTValidationError, zip_directory
@@ -39,6 +38,7 @@ class BagAndZip(APIView):
         }
 
         """
+        ignore_list = ['.DS_Store', '__MACOSX', 'thumbs.db', 'desktop.ini']
         try:
             request_file = file_validation(request)
         except PresQTValidationError as e:
@@ -51,7 +51,10 @@ class BagAndZip(APIView):
         # Extract each file in the zip file to disk
         with zipfile.ZipFile(request_file) as myzip:
             file_name = myzip.filename
-            myzip.extractall(data_path)
+            for name in myzip.namelist():
+                if name.partition('/')[0] in ignore_list or name.rpartition('/')[2] in ignore_list:
+                    continue
+                myzip.extract(name, data_path)
 
         # Make a BagIt 'bag' of the resources.
         bagit.make_bag(data_path, checksums=['md5', 'sha1', 'sha256', 'sha512'])

@@ -1,4 +1,4 @@
-FROM python:3.7-alpine
+FROM python:3.7.1-alpine
 LABEL purpose="Python container for CRON, logging and Django"
 
 ARG BUILD_ENVIRONMENT

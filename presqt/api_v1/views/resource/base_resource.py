@@ -24,6 +24,7 @@ from presqt.api_v1.utilities import (target_validation, transfer_target_validati
                                      automatic_keywords, update_targets_keywords, manual_keywords,
                                      get_target_data, get_keyword_support)
 from presqt.api_v1.utilities.fixity import download_fixity_checker
+from presqt.api_v1.utilities.metadata.download_metadata import validate_metadata
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
 from presqt.json_schemas.schema_handlers import schema_validator
@@ -233,7 +234,7 @@ class BaseResource(APIView):
         self.process_info_obj = {
             'presqt-destination-token': hash_tokens(self.destination_token),
             'status': 'in_progress',
-            'expiration': str(timezone.now() + relativedelta(days=5)),
+            'expiration': str(timezone.now() + relativedelta(hours=5)),
             'message': 'Upload is being processed on the server',
             'status_code': None,
             'function_process_id': None
@@ -288,6 +289,8 @@ class BaseResource(APIView):
                     'PresQT Error: PresQT FTS metadata cannot not be transferred by itself.',
                     status.HTTP_400_BAD_REQUEST)
         except PresQTResponseException as e:
+            #TODO: Functionalize this error section
+
             # Catch any errors that happen within the target fetch.
             # Update the server process_info file appropriately.
             self.process_info_obj['status_code'] = e.status_code
@@ -295,7 +298,7 @@ class BaseResource(APIView):
             if self.action == 'resource_transfer_in':
                 self.process_info_obj['download_status'] = 'failed'
             self.process_info_obj['message'] = e.data
-            # Update the expiration from 5 days to 1 hour from now. We can delete this faster because
+            # Update the expiration from 5 hours to 1 hour from now. We can delete this faster because
             # it's an incomplete/failed directory.
             self.process_info_obj['expiration'] = str(timezone.now() + relativedelta(hours=1))
             write_file(self.process_info_path, self.process_info_obj, True)
@@ -324,22 +327,27 @@ class BaseResource(APIView):
             if not fixity_obj['fixity']:
                 self.download_failed_fixity.append(resource['path'])
 
-            # Create metadata for this resource. Return True if a valid FTS metadata file is found.
-            if create_download_metadata(self, resource, fixity_obj):
-                # Don't write valid FTS metadata file.
-                continue
-
-            # Save the file to the disk.
-            write_file('{}{}'.format(self.resource_main_dir, resource['path']), resource['file'])
+            # Create metadata for this resource or validate the metadata file
+            if resource['title'] == 'PRESQT_FTS_METADATA.json':
+                is_valid = validate_metadata(self, resource)
+                if not is_valid:
+                    resource['path'] = resource['path'].replace('PRESQT_FTS_METADATA.json',
+                                                                'INVALID_PRESQT_FTS_METADATA.json')
+                    create_download_metadata(self, resource, fixity_obj)
+                    write_file('{}{}'.format(self.resource_main_dir, resource['path']), resource['file'])
+            else:
+                create_download_metadata(self, resource, fixity_obj)
+                write_file('{}{}'.format(self.resource_main_dir, resource['path']), resource['file'])
 
         # Enhance the source keywords
+        keyword_dict = {}
+        if self.action == 'resource_transfer_in':
+            if self.supports_keywords:
+                if self.keyword_action == 'automatic':
+                    keyword_dict = automatic_keywords(self)
+                elif self.keyword_action == 'manual':
+                    keyword_dict = manual_keywords(self)
         self.keyword_enhancement_successful = True
-        if self.action == 'resource_transfer_in' and self.keyword_action == 'automatic' and self.supports_keywords:
-            keyword_dict = automatic_keywords(self)
-        elif self.action == 'resource_transfer_in' and self.keyword_action == 'manual' and self.supports_keywords:
-            keyword_dict = manual_keywords(self)
-        else:
-            keyword_dict = {}
 
         # Create PresQT action metadata
         self.source_username = func_dict['action_metadata']['sourceUsername']
@@ -369,7 +377,9 @@ class BaseResource(APIView):
             }
         }
 
-        # Write empty containers to disk
+        #TODO: Move this up to make it occur after we loop through func_dict['resources'] and write
+        # resources
+        #Write empty containers to disk
         for container_path in func_dict['empty_containers']:
             # Make sure the container_path has a '/' and the beginning and end
             if container_path[-1] != '/':
@@ -485,7 +495,7 @@ class BaseResource(APIView):
                 if self.action == 'resource_transfer_in':
                     self.process_info_obj['upload_status'] = 'failed'
                 self.process_info_obj['message'] = e.data
-                # Update the expiration from 5 days to 1 hour from now. We can delete this faster because
+                # Update the expiration from 5 hours to 1 hour from now. We can delete this faster because
                 # it's an incomplete/failed directory.
                 self.process_info_obj['expiration'] = str(timezone.now() + relativedelta(hours=1))
                 write_file(self.process_info_path, self.process_info_obj, True)
@@ -514,7 +524,7 @@ class BaseResource(APIView):
             if self.action == 'resource_transfer_in':
                 self.process_info_obj['upload_status'] = 'failed'
             self.process_info_obj['message'] = e.data
-            # Update the expiration from 5 days to 1 hour from now. We can delete this faster
+            # Update the expiration from 5 hours to 1 hour from now. We can delete this faster
             # because it's an incomplete/failed directory.
             self.process_info_obj['expiration'] = str(timezone.now() + relativedelta(hours=1))
             write_file(self.process_info_path, self.process_info_obj, True)
@@ -613,7 +623,7 @@ class BaseResource(APIView):
             'presqt-source-token': hash_tokens(self.source_token),
             'presqt-destination-token': hash_tokens(self.destination_token),
             'status': 'in_progress',
-            'expiration': str(timezone.now() + relativedelta(days=5)),
+            'expiration': str(timezone.now() + relativedelta(hours=5)),
             'message': 'Transfer is being processed on the server',
             'download_status': None,
             'upload_status': None,

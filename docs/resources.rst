@@ -4,12 +4,41 @@ This page contains all relevant resources used during development
 
 Links
 -----
-* `PresQT Website <https://presqt.crc.nd.edu/ />`_
-* `OSF Implementation Effort <https://osf.io/pn2ec/ />`_
-* `Github Code Repo <https://github.com/ndlib/presqt />`_
-* `Docker Hub Image <https://hub.docker.com/r/presqt/presqt />`_
-* `Endpoint Videos <https://drive.google.com/drive/folders/1FxFYatauUq5swIlPHwm4hAnlSBB41c7u?usp=sharing />`_
-* `EaaSI Website <https://www.softwarepreservationnetwork.org/eaasi/ />`_
+* |presqt_link|
+
+.. |presqt_link| raw:: html
+
+   <a href="https://presqt.crc.nd.edu/" target="_blank">PresQT Website</a>
+
+* |osf_imp_link| 
+
+.. |osf_imp_link| raw:: html
+
+   <a href="https://osf.io/pn2ec/" target="_blank">OSF Implementation Effort</a>
+
+* |github_code_link| 
+
+.. |github_code_link| raw:: html
+
+   <a href="https://github.com/ndlib/presqt" target="_blank">Github Code Repo</a>
+
+* |dockerhub_link| 
+
+.. |dockerhub_link| raw:: html
+
+   <a href="https://hub.docker.com/r/presqt/presqt" target="_blank">Docker Hub Image</a>
+
+* |video_link| 
+
+.. |video_link| raw:: html
+
+   <a href="https://drive.google.com/drive/folders/1FxFYatauUq5swIlPHwm4hAnlSBB41c7u?usp=sharing" target="_blank">Endpoint Videos</a>
+
+* |eaasi_link| 
+
+.. |eaasi_link| raw:: html
+
+   <a href="https://www.softwarepreservationnetwork.org/eaasi/" target="_blank">EaaSI Website</a>
 
 Example BagIts
 --------------

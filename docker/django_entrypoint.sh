@@ -16,5 +16,5 @@ elif [ "$ENVIRONMENT" = "ci" ]
 then
 python manage.py test
 else
-gunicorn config.wsgi:application --bind 0.0.0.0:8000
+gunicorn config.wsgi:application --bind 0.0.0.0:8000 --timeout 600
 fi

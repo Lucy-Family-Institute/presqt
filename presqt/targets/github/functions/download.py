@@ -113,6 +113,7 @@ def github_download_resource(token, resource_id):
         file_urls = [file['file'] for file in files]
 
         loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         download_data = loop.run_until_complete(async_main(file_urls, header))
 
         # Go through the file dictionaries and replace the file path with the binary_content
@@ -124,7 +125,7 @@ def github_download_resource(token, resource_id):
     else:
         partitioned_id = resource_id.partition(':')
         repo_id = partitioned_id[0]
-        path_to_file = partitioned_id[2].replace('%2F', '/').replace('%2E', '.')
+        path_to_file = partitioned_id[2].replace('%2F', '/').replace('%2E', '.').replace('%252F', '/').replace('%252E', '.')
 
         # Get initial repo data for the resource requested
         repo_url = 'https://api.github.com/repositories/{}'.format(repo_id)

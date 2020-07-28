@@ -137,6 +137,7 @@ def osf_download_resource(token, resource_id):
         # Asynchronously make all download requests
         file_urls = [file['file'].download_url for file in files]
         loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         download_data = loop.run_until_complete(async_main(file_urls, token))
 
         # Go through the file dictionaries and replace the file class with the binary_content
