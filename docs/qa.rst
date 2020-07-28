@@ -44,6 +44,11 @@ Here are some pre-made ZIP files that are in BagIt format that can be downloaded
 
 :download:`presqt_MixedFileTypes.zip <qa_bagits/presqt_MixedFileTypes.zip>`
 
+Known Bugs And Issues
+---------------------
+* Resource Collection is running slow for large amount of projects.
+* Resource Collection may timeout if loading takes too long.
+
 Testing Instructions
 --------------------
 
