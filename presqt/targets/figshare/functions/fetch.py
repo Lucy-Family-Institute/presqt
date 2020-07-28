@@ -39,18 +39,20 @@ def figshare_fetch_resources(token, search_parameter):
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
-    if search_parameter:
+    if search_parameter and 'page' not in search_parameter:
         if 'id' in search_parameter:
             response = requests.get("{}projects/{}".format(base_url, search_parameter['id']))
-
-        if response.status_code != 200:
-            raise PresQTResponseException("Project with id, {}, can not be found.".format(search_parameter['id']),
-                                          status.HTTP_404_NOT_FOUND)
+            if response.status_code != 200:
+                raise PresQTResponseException("Project with id, {}, can not be found.".format(search_parameter['id']),
+                                            status.HTTP_404_NOT_FOUND)
         return get_search_project_data(response.json(), headers, [])
 
     else:
-        response_data = requests.get("{}account/projects".format(base_url),
-                                     headers=headers).json()
+        if 'page' in search_parameter:
+            url = "{}account/projects?page={}".format(base_url, search_parameter['page'])
+        else:
+            url = "{}account/projects".format(base_url)
+        response_data = requests.get(url, headers=headers).json()
 
     return get_figshare_project_data(response_data, headers, [])
 
