@@ -7,7 +7,7 @@ from presqt.targets.github.utilities.helpers.github_file_data import get_github_
 from presqt.utilities import PresQTResponseException
 
 
-def github_fetch_resources(token, query_parameter):
+def github_fetch_resources(token, query_parameter, process_info_path):
     """
     Fetch all users resources from GitHub.
 
@@ -18,6 +18,8 @@ def github_fetch_resources(token, query_parameter):
     query_parameter : dict
         The search parameter passed to the API View
         Gets passed formatted as {'title': 'search_info'}
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
@@ -78,7 +80,7 @@ def github_fetch_resources(token, query_parameter):
     else:
         data = github_paginated_data(token, '1')
 
-    return get_github_repository_data(data, header, [])
+    return get_github_repository_data(data, header, process_info_path, [])
 
 
 def github_fetch_resource(token, resource_id):
