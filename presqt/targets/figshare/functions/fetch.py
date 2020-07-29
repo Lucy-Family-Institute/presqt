@@ -38,6 +38,14 @@ def figshare_fetch_resources(token, query_parameter):
     except PresQTResponseException:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
+    
+    pages = {
+        "first_page": '1',
+        "previous_page": None,
+        "next_page": None,
+        "last_page": '1',
+        "total_pages": '1',
+        "per_page": 10}
 
     if query_parameter and 'page' not in query_parameter:
         if 'id' in query_parameter:
@@ -55,7 +63,7 @@ def figshare_fetch_resources(token, query_parameter):
         
         response_data = requests.get(url, headers=headers).json()
 
-    return get_figshare_project_data(response_data, headers, [])
+    return get_figshare_project_data(response_data, headers, []), pages
 
 
 def figshare_fetch_resource(token, resource_id):
