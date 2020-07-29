@@ -1,7 +1,9 @@
 import urllib.parse
 
+from presqt.utilities import update_process_info, increment_process_info
 
-def get_gitlab_project_data(initial_data, headers, resources):
+
+def get_gitlab_project_data(initial_data, headers, resources, process_info_path):
     """
     Get all directories and files of given projects.
 
@@ -10,9 +12,11 @@ def get_gitlab_project_data(initial_data, headers, resources):
     initial_data: list
         List of all top level projects
     headers: dict
-        The authorizaion header that GitLab expects
+        The authorization header that GitLab expects
     resources: list
         A lis of resources to append to
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
@@ -21,7 +25,14 @@ def get_gitlab_project_data(initial_data, headers, resources):
     """
     from presqt.targets.gitlab.utilities.gitlab_paginated_data import gitlab_paginated_data
 
+    # Add the total number of projects to the process info file.
+    # This is necessary to keep track of the progress of the request.
+    update_process_info(process_info_path, len(initial_data))
+
     for project in initial_data:
+        # Increment the number of files done in the process info file.
+        increment_process_info(process_info_path)
+
         if ('marked_for_deletion_at' in project.keys() and not project['marked_for_deletion_at']) or (
                 'marked_for_deletion_at' not in project.keys()):
             tree_url = 'https://gitlab.com/api/v4/projects/{}/repository/tree?recursive=1'.format(
