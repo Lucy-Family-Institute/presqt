@@ -7,7 +7,7 @@ from presqt.targets.github.utilities.helpers.github_file_data import get_github_
 from presqt.utilities import PresQTResponseException
 
 
-def github_fetch_resources(token, search_parameter):
+def github_fetch_resources(token, query_parameter):
     """
     Fetch all users resources from GitHub.
 
@@ -15,7 +15,7 @@ def github_fetch_resources(token, search_parameter):
     ----------
     token : str
         User's GitHub token
-    search_parameter : dict
+    query_parameter : dict
         The search parameter passed to the API View
         Gets passed formatted as {'title': 'search_info'}
 
@@ -39,41 +39,44 @@ def github_fetch_resources(token, search_parameter):
 
     header['Accept'] = 'application/vnd.github.mercy-preview+json'
 
-    if search_parameter:
-        if 'author' in search_parameter:
-            search_url = "https://api.github.com/users/{}/repos".format(search_parameter['author'])
+    if query_parameter:
+        if 'author' in query_parameter:
+            search_url = "https://api.github.com/users/{}/repos".format(query_parameter['author'])
             initial_data = requests.get(search_url, headers=header)
             if initial_data.status_code != 200:
                 return []
             data = initial_data.json()
 
-        elif 'general' in search_parameter:
+        elif 'general' in query_parameter:
             search_url = "https://api.github.com/search/repositories?q={}".format(
-                search_parameter['general'])
+                query_parameter['general'])
             data = requests.get(search_url, headers=header).json()['items']
 
-        elif 'id' in search_parameter:
-            search_parameters = search_parameter['id']
-            search_url = "https://api.github.com/repositories/{}".format(search_parameters)
+        elif 'id' in query_parameter:
+            query_parameters = query_parameter['id']
+            search_url = "https://api.github.com/repositories/{}".format(query_parameters)
             data = requests.get(search_url, headers=header)
             if data.status_code != 200:
                 return []
             data = [data.json()]
 
-        elif 'title' in search_parameter:
-            search_parameters = search_parameter['title'].replace(' ', '+')
+        elif 'title' in query_parameter:
+            query_parameters = query_parameter['title'].replace(' ', '+')
             search_url = "https://api.github.com/search/repositories?q={}+in:name+sort:updated".format(
-                search_parameters)
+                query_parameters)
             data = requests.get(search_url, headers=header).json()['items']
 
-        elif 'keywords' in search_parameter:
-            search_parameters = search_parameter['keywords'].replace(' ', '+')
+        elif 'keywords' in query_parameter:
+            query_parameters = query_parameter['keywords'].replace(' ', '+')
             search_url = "https://api.github.com/search/repositories?q={}+in:topics+sort:updated".format(
-                search_parameters)
+                query_parameters)
             data = requests.get(search_url, headers=header).json()['items']
+
+        elif 'page' in query_parameter:
+            data = github_paginated_data(token, query_parameter['page'])
 
     else:
-        data = github_paginated_data(token)
+        data = github_paginated_data(token, '1')
 
     return get_github_repository_data(data, header, [])
 

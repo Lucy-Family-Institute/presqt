@@ -7,7 +7,7 @@ from presqt.targets.curate_nd.classes.main import CurateND
 from presqt.targets.curate_nd.utilities import get_curate_nd_resource, get_curate_nd_resources_by_id
 
 
-def curate_nd_fetch_resources(token, search_parameter):
+def curate_nd_fetch_resources(token, query_parameter):
     """
     Fetch all CurateND resources for the user connected to the given token.
 
@@ -15,7 +15,7 @@ def curate_nd_fetch_resources(token, search_parameter):
     ----------
     token : str
         User's CurateND token
-    search_parameter : dict
+    query_parameter : dict
         The search parameter passed to the API View
         Gets passed formatted as {'title': 'search_info'}
 
@@ -38,27 +38,33 @@ def curate_nd_fetch_resources(token, search_parameter):
             "Token is invalid. Response returned a 401 status code.",
             status.HTTP_401_UNAUTHORIZED)
 
-    if search_parameter:
-        if 'title' in search_parameter:
+    if query_parameter:
+        if 'title' in query_parameter:
             # Format the search that is coming in to be passed to the Curate API
-            search_parameters = search_parameter['title'].replace(' ', '+')
-            search_url = 'https://curate.nd.edu/api/items?q={}&search_fields=title'.format(search_parameters)
+            query_parameters = query_parameter['title'].replace(' ', '+')
+            search_url = 'https://curate.nd.edu/api/items?q={}&search_fields=title'.format(
+                query_parameters)
             try:
                 resources = curate_instance.get_resources(search_url)
             except PresQTValidationError as e:
                 raise e
 
-        elif 'general' in search_parameter:
-            search_url = 'https://curate.nd.edu/api/items?q={}'.format(search_parameter['general'])
+        elif 'general' in query_parameter:
+            search_url = 'https://curate.nd.edu/api/items?q={}'.format(query_parameter['general'])
             try:
                 resources = curate_instance.get_resources(search_url)
             except PresQTValidationError as e:
                 raise e
 
-        elif 'id' in search_parameter:
-            resources = get_curate_nd_resources_by_id(token, search_parameter['id'])
+        elif 'id' in query_parameter:
+            resources = get_curate_nd_resources_by_id(token, query_parameter['id'])
+
+        elif 'page' in query_parameter:
+            resources = curate_instance.get_resources(
+                'https://curate.nd.edu/api/items?editor=self&page={}'.format(query_parameter['page']))
     else:
-        resources = curate_instance.get_resources()
+        resources = curate_instance.get_resources(
+            'https://curate.nd.edu/api/items?editor=self&page=1')
     return resources
 
 

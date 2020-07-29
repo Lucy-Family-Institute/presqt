@@ -7,7 +7,7 @@ from presqt.targets.zenodo.utilities import (
 from presqt.utilities import PresQTValidationError, PresQTResponseException
 
 
-def zenodo_fetch_resources(token, search_parameter):
+def zenodo_fetch_resources(token, query_parameter):
     """
     Fetch all users repos from Zenodo.
 
@@ -15,7 +15,7 @@ def zenodo_fetch_resources(token, search_parameter):
     ----------
     token : str
         User's Zenodo token
-    search_parameter : dict
+    query_parameter : dict
         The search parameter passed to the API View
         Gets passed formatted as {'title': 'search_info'}
 
@@ -37,28 +37,34 @@ def zenodo_fetch_resources(token, search_parameter):
         raise PresQTValidationError("Token is invalid. Response returned a 401 status code.",
                                     status.HTTP_401_UNAUTHORIZED)
     # Let's build them resources
-    if search_parameter:
-        if 'title' in search_parameter:
-            search_parameters = search_parameter['title'].replace(' ', '+')
+    if query_parameter and 'page' not in query_parameter:
+        if 'title' in query_parameter:
+            search_parameters = query_parameter['title'].replace(' ', '+')
             base_url = 'https://zenodo.org/api/records?q=title:"{}"&sort=most_recent'.format(
                 search_parameters)
 
-        elif 'id' in search_parameter:
-            base_url = 'https://zenodo.org/api/records?q=conceptrecid:{}'.format(search_parameter['id'])
+        elif 'id' in query_parameter:
+            base_url = 'https://zenodo.org/api/records?q=conceptrecid:{}'.format(
+                query_parameter['id'])
 
-        elif 'general' in search_parameter:
-            search_parameters = search_parameter['general'].replace(' ', '+')
+        elif 'general' in query_parameter:
+            search_parameters = query_parameter['general'].replace(' ', '+')
             base_url = 'https://zenodo.org/api/records?q={}'.format(search_parameters)
 
-        elif 'keywords' in search_parameter:
-            search_parameters = search_parameter['keywords'].replace(' ', '+')
+        elif 'keywords' in query_parameter:
+            search_parameters = query_parameter['keywords'].replace(' ', '+')
             base_url = 'https://zenodo.org/api/records?q=keywords:{}'.format(search_parameters)
 
         zenodo_projects = requests.get(base_url, params=auth_parameter).json()['hits']['hits']
         is_record = True
 
     else:
-        base_url = "https://zenodo.org/api/deposit/depositions"
+        if query_parameter and 'page' in query_parameter:
+            base_url = "https://zenodo.org/api/deposit/depositions?page={}".format(query_parameter['page'])
+
+        else:
+            base_url = "https://zenodo.org/api/deposit/depositions?page=1"
+        
         zenodo_projects = requests.get(base_url, params=auth_parameter).json()
         is_record = False
 

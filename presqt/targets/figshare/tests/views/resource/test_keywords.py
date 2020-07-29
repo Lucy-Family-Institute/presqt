@@ -50,7 +50,7 @@ class TestResourceKeywords(SimpleTestCase):
         self.assertEqual(response.status_code, 400)
         # Verify the error message
         self.assertEqual(response.data['error'],
-                         "FigShare projects/files do no have keywords.")
+                         "FigShare files do not have keywords.")
 
     def test_bad_token(self):
         """
