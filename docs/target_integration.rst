@@ -126,6 +126,17 @@ structure on the front end.
                 id        str ID of the resource
                 title     str Title of the resource
                 ========= === =============================================================================================================
+            
+            **Page dictionary details:**
+
+                ============= === ================================
+                first_page    str The first page number
+                previous_page str The previous page number
+                next_page     str The next page number
+                last_page     str The last page number
+                total_pages   str The total amount of pages
+                per_page      str The amount of resources per page
+                ============= === ================================
 
     **Example Resource Collection Function:**
 
