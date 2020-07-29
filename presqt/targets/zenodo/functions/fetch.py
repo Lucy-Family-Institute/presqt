@@ -7,7 +7,7 @@ from presqt.targets.zenodo.utilities import (
 from presqt.utilities import PresQTValidationError, PresQTResponseException
 
 
-def zenodo_fetch_resources(token, query_parameter):
+def zenodo_fetch_resources(token, query_parameter, process_info_path):
     """
     Fetch all users repos from Zenodo.
 
@@ -18,6 +18,8 @@ def zenodo_fetch_resources(token, query_parameter):
     query_parameter : dict
         The search parameter passed to the API View
         Gets passed formatted as {'title': 'search_info'}
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
@@ -68,7 +70,7 @@ def zenodo_fetch_resources(token, query_parameter):
         zenodo_projects = requests.get(base_url, params=auth_parameter).json()
         is_record = False
 
-    resources = zenodo_fetch_resources_helper(zenodo_projects, auth_parameter, is_record)
+    resources = zenodo_fetch_resources_helper(zenodo_projects, auth_parameter, is_record, process_info_path)
 
     return resources
 
