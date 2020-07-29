@@ -29,6 +29,7 @@ def gitlab_paginated_data(headers, user_id, url=None, page_number=None):
         if response.status_code != 200:
             return data
         data.extend(response.json())
+        print(response.headers)
     else:
         response = requests.get(url, headers=headers)
         if response.status_code != 200:
