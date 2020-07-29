@@ -4,6 +4,18 @@ import math
 
 def get_page_numbers(url, token):
     """
+    Get the pagination information for the request.
+
+    Parameters
+    ----------
+    url : str
+        The OSF url
+    token : str
+        OSF authorization token
+
+    Returns
+    -------
+    A dictionary of page numbers
     """
     headers = {"Authorization": "Bearer {}".format(token)}
 

@@ -3,6 +3,18 @@ import requests
 
 def get_page_numbers(url, token):
     """
+    Get the pagination information for the request.
+
+    Parameters
+    ----------
+    url : str
+        The CurateND url
+    token : str
+        The CurateND token
+
+    Returns
+    -------
+    A dictionary of page numbers
     """
     headers = {"X-Api-Token": token}
 
@@ -27,4 +39,5 @@ def get_page_numbers(url, token):
         "total_pages": total_pages,
         "per_page": 12
     }
+
     return pages

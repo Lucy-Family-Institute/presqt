@@ -3,6 +3,18 @@ import requests
 
 def get_page_numbers(url, headers):
     """
+    Get the pagination information for the request.
+
+    Parameters
+    ----------
+    url : str
+        The GitLab url
+    headers : str
+        GitLab authorization headers
+
+    Returns
+    -------
+    A dictionary of page numbers
     """
     page_info = requests.get(url, headers=headers).headers
 
