@@ -30,6 +30,16 @@ def zenodo_fetch_resources(token, query_parameter):
             "container": "None",
             "title": "Folder Name"
         }
+    We are also returning a dictionary of pagination information.
+    Dictionary must be in the following format:
+        {
+            "first_page": '1',
+            "previous_page": None,
+            "next_page": None,
+            "last_page": '1',
+            "total_pages": '1',
+            "per_page": 10
+        }
     """
     try:
         auth_parameter = zenodo_validation_check(token)
