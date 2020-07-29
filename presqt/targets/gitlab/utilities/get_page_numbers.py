@@ -20,8 +20,8 @@ def get_page_numbers(url, headers):
 
     if not page_info['X-Prev-Page']:
         page_info['X-Prev-Page'] = None
-    if not page_info['X-Prev-Page']:
-        page_info['X-Prev-Page'] = None
+    if not page_info['X-Next-Page']:
+        page_info['X-Next-Page'] = None
 
     pages = {
         "first_page": '1',
