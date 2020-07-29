@@ -97,15 +97,16 @@ structure on the front end.
 
     * The function must have the following parameters **in this order**:
 
-        ================ === ===========================================
+        ================ === ==========================================
         token            str User's token for the target
-        search_parameter str The search parameter passed to the API View
-        ================ === ===========================================
+        query_parameter  str The query parameter passed to the API View
+        ================ === ==========================================
 
     * The function must return the following **in this order**:
 
         ========= ==== =============================================
         resources list list of Python dictionaries for each resource
+        pages     dict dictionary of pagination details
         ========= ==== =============================================
 
             **Resource dictionary details:**
@@ -150,7 +151,16 @@ structure on the front end.
                         'title': 'TheFile.jpg'
                     }
                 ]
-                return resources
+                # Process to obtain page numbers
+                pages = {
+                    "first_page": '1',
+                    "previous_page": None,
+                    "next_page": None,
+                    "last_page": '1',
+                    "total_pages": '1',
+                    "per_page": 10
+                }
+                return resources, pages
 
 3. Add the resource collection function to ``presqt/api_v1/utilities/utils/function_router.py``
 
