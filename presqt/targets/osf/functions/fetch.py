@@ -7,7 +7,7 @@ from presqt.utilities import PresQTResponseException, PresQTInvalidTokenError, P
 from presqt.targets.osf.classes.main import OSF
 
 
-def osf_fetch_resources(token, query_parameter):
+def osf_fetch_resources(token, query_parameter, process_info_path):
     """
     Fetch all OSF resources for the user connected to the given token.
 
@@ -18,6 +18,8 @@ def osf_fetch_resources(token, query_parameter):
     query_parameter : dict
         The search parameter passed to the API View
         Gets passed formatted as {'title': 'search_info'}
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
@@ -65,7 +67,7 @@ def osf_fetch_resources(token, query_parameter):
     else:
         url = "https://api.osf.io/v2/users/me/nodes?page=1"
     try:
-        resources = osf_instance.get_resources(url)
+        resources = osf_instance.get_resources(process_info_path, url)
     except PresQTValidationError as e:
         raise e
     return resources

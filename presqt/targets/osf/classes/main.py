@@ -9,7 +9,8 @@ from rest_framework import status
 
 from presqt.targets.utilities import run_urls_async_with_pagination, get_duplicate_title
 from presqt.utilities import (PresQTResponseException, PresQTInvalidTokenError,
-                              get_dictionary_from_list, list_differences, write_file)
+                              get_dictionary_from_list, list_differences, write_file,
+                              update_process_info, increment_process_info)
 from presqt.targets.osf.classes.base import OSFBase
 from presqt.targets.osf.classes.file import File
 from presqt.targets.osf.classes.project import Project
@@ -107,7 +108,7 @@ class OSF(OSFBase):
             project for project in projects if project.parent_node_id in unique_project_ids]
         return projects, top_level_projects
 
-    def get_resources(self, url=None):
+    def get_resources(self, process_info_path, url=None):
         """
         Get all of the user's resources. To batch calls together asynchronously we will group calls
         together by projects, then storages, then each storage's resources.
@@ -120,9 +121,17 @@ class OSF(OSFBase):
         user_storages_links = self.iter_project_storages(all_projects, resources)
         # Get initial resources for all storages
         all_storages_resources = run_urls_async_with_pagination(self, user_storages_links)
+
+        # Add the total number of storages to the process info file.
+        # This is necessary to keep track of the progress of the request.
+        update_process_info(process_info_path, len(all_storages_resources))
+
         # Loop through the storage resources to either add them to the main resources list or
         # traverse further down the tree to get their children resources.
         for storage_resources in all_storages_resources:
+            # Increment the number of files done in the process info file.
+            increment_process_info(process_info_path)
+
             if storage_resources and storage_resources['data']: #TODO: First if check doing this to avoid private file errors look into it
                 # Calculate the given resource's container_id
                 parent_project_id = storage_resources['data'][0]['relationships']['node']['data']['id']
