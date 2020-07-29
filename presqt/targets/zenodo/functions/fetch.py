@@ -44,7 +44,8 @@ def zenodo_fetch_resources(token, query_parameter):
                 search_parameters)
 
         elif 'id' in query_parameter:
-            base_url = 'https://zenodo.org/api/records?q=conceptrecid:{}'.format(query_parameter['id'])
+            base_url = 'https://zenodo.org/api/records?q=conceptrecid:{}'.format(
+                query_parameter['id'])
 
         elif 'general' in query_parameter:
             search_parameters = query_parameter['general'].replace(' ', '+')
@@ -58,11 +59,12 @@ def zenodo_fetch_resources(token, query_parameter):
         is_record = True
 
     else:
-        if query_parameter:
-            if 'page' in query_parameter:
-                base_url = "https://zenodo.org/api/deposit/depositions?page={}".format(query_parameter['page'])
+        if query_parameter and 'page' in query_parameter:
+            base_url = "https://zenodo.org/api/deposit/depositions?page={}".format(query_parameter['page'])
+
         else:
             base_url = "https://zenodo.org/api/deposit/depositions?page=1"
+        
         zenodo_projects = requests.get(base_url, params=auth_parameter).json()
         is_record = False
 

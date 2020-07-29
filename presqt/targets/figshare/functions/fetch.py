@@ -48,11 +48,11 @@ def figshare_fetch_resources(token, query_parameter):
         return get_search_project_data(response.json(), headers, [])
 
     else:
-        if query_parameter:
-            if 'page' in query_parameter:
-                url = "{}account/projects?page={}".format(base_url, query_parameter['page'])
+        if query_parameter and 'page' in query_parameter:
+            url = "{}account/projects?page={}".format(base_url, query_parameter['page'])
         else:
-            url = "{}account/projects".format(base_url)
+            url = "{}account/projects?page=1".format(base_url)
+        
         response_data = requests.get(url, headers=headers).json()
 
     return get_figshare_project_data(response_data, headers, [])
