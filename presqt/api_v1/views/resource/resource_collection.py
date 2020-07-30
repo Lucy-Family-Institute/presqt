@@ -2,7 +2,7 @@ from rest_framework.response import Response
 
 from presqt.api_v1.serializers.resource import ResourcesSerializer
 from presqt.api_v1.utilities import (
-    target_validation, FunctionRouter, get_source_token, query_validator)
+    target_validation, FunctionRouter, get_source_token, query_validator, page_links)
 from presqt.api_v1.views.resource.base_resource import BaseResource
 from presqt.utilities import PresQTValidationError, PresQTResponseException
 
@@ -109,7 +109,7 @@ class ResourceCollection(BaseResource):
 
         # Fetch the target's resources
         try:
-            resources = func(token, query_params)
+            resources, pages = func(token, query_params)
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch
             return Response(data={'error': e.data}, status=e.status_code)
@@ -117,5 +117,6 @@ class ResourceCollection(BaseResource):
         serializer = ResourcesSerializer(instance=resources, many=True, context={
                                          'target_name': target_name,
                                          'request': request})
+        linked_pages = page_links(self, target_name, pages)
 
-        return Response(serializer.data)
+        return Response({"resources": serializer.data, "pages": linked_pages})

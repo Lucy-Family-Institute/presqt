@@ -3,6 +3,7 @@ import requests
 from rest_framework import status
 
 from presqt.targets.osf.utilities import get_osf_resource
+from presqt.targets.osf.utilities.utils.get_page_numbers import get_page_numbers
 from presqt.utilities import PresQTResponseException, PresQTInvalidTokenError, PresQTValidationError
 from presqt.targets.osf.classes.main import OSF
 
@@ -30,12 +31,30 @@ def osf_fetch_resources(token, query_parameter):
             "container": "None",
             "title": "Folder Name",
         }
+    We are also returning a dictionary of pagination information.
+    Dictionary must be in the following format:
+        {
+            "first_page": '1',
+            "previous_page": None,
+            "next_page": None,
+            "last_page": '1',
+            "total_pages": '1',
+            "per_page": 10
+        }
     """
     try:
         osf_instance = OSF(token)
     except PresQTInvalidTokenError:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
+
+    pages = {
+        "first_page": '1',
+        "previous_page": None,
+        "next_page": None,
+        "last_page": '1',
+        "total_pages": '1',
+        "per_page": 10}
 
     if query_parameter:
         if 'title' in query_parameter:
@@ -62,13 +81,16 @@ def osf_fetch_resources(token, query_parameter):
 
         elif 'page' in query_parameter:
             url = 'https://api.osf.io/v2/users/me/nodes?page={}'.format(query_parameter['page'])
+            pages = get_page_numbers(url, token)
     else:
         url = "https://api.osf.io/v2/users/me/nodes?page=1"
+        pages = get_page_numbers(url, token)
     try:
         resources = osf_instance.get_resources(url)
     except PresQTValidationError as e:
         raise e
-    return resources
+
+    return resources, pages
 
 
 def osf_fetch_resource(token, resource_id):

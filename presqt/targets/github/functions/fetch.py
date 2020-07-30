@@ -4,6 +4,7 @@ from rest_framework import status
 
 from presqt.targets.github.utilities import validation_check, github_paginated_data
 from presqt.targets.github.utilities.helpers.github_file_data import get_github_repository_data
+from presqt.targets.github.utilities.helpers.get_page_numbers import get_page_numbers
 from presqt.utilities import PresQTResponseException
 
 
@@ -30,6 +31,16 @@ def github_fetch_resources(token, query_parameter):
             "container": "None",
             "title": "Folder Name",
         }
+    We are also returning a dictionary of pagination information.
+    Dictionary must be in the following format:
+        {
+            "first_page": '1',
+            "previous_page": None,
+            "next_page": None,
+            "last_page": '1',
+            "total_pages": '1',
+            "per_page": 30
+        }
     """
     try:
         header, username = validation_check(token)
@@ -38,6 +49,14 @@ def github_fetch_resources(token, query_parameter):
                                       status.HTTP_401_UNAUTHORIZED)
 
     header['Accept'] = 'application/vnd.github.mercy-preview+json'
+
+    pages = {
+        "first_page": '1',
+        "previous_page": None,
+        "next_page": None,
+        "last_page": '1',
+        "total_pages": '1',
+        "per_page": 30}
 
     if query_parameter:
         if 'author' in query_parameter:
@@ -74,11 +93,15 @@ def github_fetch_resources(token, query_parameter):
 
         elif 'page' in query_parameter:
             data = github_paginated_data(token, query_parameter['page'])
+            pages = get_page_numbers(
+                "https://api.github.com/user/repos?page={}".format(query_parameter['page']),
+                header, query_parameter['page'])
 
     else:
         data = github_paginated_data(token, '1')
+        pages = get_page_numbers("https://api.github.com/user/repos?page=1", header, '1')
 
-    return get_github_repository_data(data, header, [])
+    return get_github_repository_data(data, header, []), pages
 
 
 def github_fetch_resource(token, resource_id):
