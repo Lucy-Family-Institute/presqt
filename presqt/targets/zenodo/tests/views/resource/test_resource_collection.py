@@ -34,13 +34,27 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
+            self.assertEqual(len(data['links']), 1)
             self.assertListEqual(keys, list(data.keys()))
         # Verify the count of resource objects is what we expect.
-        self.assertEqual(len(response.data), 6)
+        self.assertEqual(len(response.data['resources']), 6)
 
-        for data in response.data:
+    def test_success_zenodo_page_1(self):
+        """
+        Return a 200 if the GET method is successful when grabbing Zenodo resources.
+        """
+        url = reverse('resource_collection', kwargs={'target_name': 'zenodo'})
+        response = self.client.get(url + "?page=1", **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 200)
+        # Verify the dict keys match what we expect
+        keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
+        for data in response.data['resources']:
             self.assertEqual(len(data['links']), 1)
+            self.assertListEqual(keys, list(data.keys()))
+        # Verify the count of resource objects is what we expect.
+        self.assertEqual(response.data['pages']['total_pages'], '1')
 
     def test_success_zenodo_with_search(self):
         """
@@ -52,7 +66,7 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
 
         # Search by ID
@@ -61,9 +75,8 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
-
 
         # Search by General
         response = self.client.get(url + "?general=eggs", **self.header)
@@ -71,16 +84,16 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
-        
+
         # Search by Keywords
         response = self.client.get(url + "?keywords=egg", **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
 
     def test_error_400_missing_token_zenodo(self):
@@ -172,7 +185,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         url = reverse('resource_collection', kwargs={'target_name': 'zenodo'})
         response_json = self.client.get(
-            url, **{'HTTP_PRESQT_SOURCE_TOKEN': ZENODO_TEST_USER_TOKEN}).json()
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': ZENODO_TEST_USER_TOKEN}).json()['resources']
 
         repo_name_list = [repo['title'] for repo in response_json]
         self.assertIn(self.project_title, repo_name_list)
@@ -215,7 +228,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         url = reverse('resource_collection', kwargs={'target_name': 'zenodo'})
         response_json = self.client.get(
-            url, **{'HTTP_PRESQT_SOURCE_TOKEN': ZENODO_TEST_USER_TOKEN}).json()
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': ZENODO_TEST_USER_TOKEN}).json()['resources']
 
         repo_name_list = [repo['title'] for repo in response_json]
         self.assertIn(self.project_title, repo_name_list)
@@ -249,7 +262,8 @@ class TestResourceCollectionPOST(SimpleTestCase):
 
         upload_job_response = self.client.get(response.data['upload_job'], **self.headers)
         self.assertEqual(upload_job_response.data['status_code'], '200')
-        self.assertEqual(upload_job_response.data['resources_ignored'], ['/NewProject/NewProject.presqt.zip'])
+        self.assertEqual(upload_job_response.data['resources_ignored'], [
+                         '/NewProject/NewProject.presqt.zip'])
 
         # Delete the upload folder
         shutil.rmtree(ticket_path)
@@ -265,7 +279,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         url = reverse('resource_collection', kwargs={'target_name': 'zenodo'})
         response_json = self.client.get(
-            url, **{'HTTP_PRESQT_SOURCE_TOKEN': ZENODO_TEST_USER_TOKEN}).json()
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': ZENODO_TEST_USER_TOKEN}).json()['resources']
 
         repo_name_list = [repo['title'] for repo in response_json]
         self.assertIn(self.project_title, repo_name_list)
@@ -326,7 +340,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         url = reverse('resource_collection', kwargs={'target_name': 'zenodo'})
         response_json = self.client.get(
-            url, **{'HTTP_PRESQT_SOURCE_TOKEN': ZENODO_TEST_USER_TOKEN}).json()
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': ZENODO_TEST_USER_TOKEN}).json()['resources']
 
         repo_name_list = [repo['title'] for repo in response_json]
         self.assertIn(self.project_title, repo_name_list)
@@ -514,7 +528,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         url = reverse('resource_collection', kwargs={'target_name': 'zenodo'})
         response_json = self.client.get(
-            url, **{'HTTP_PRESQT_SOURCE_TOKEN': ZENODO_TEST_USER_TOKEN}).json()
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': ZENODO_TEST_USER_TOKEN}).json()['resources']
         self.resource_id = [resource['id']
                             for resource in response_json if resource['title'] == self.project_title][0]
         # Delete upload folder
