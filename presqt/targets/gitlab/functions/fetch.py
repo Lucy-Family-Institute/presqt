@@ -62,7 +62,7 @@ def gitlab_fetch_resources(token, query_parameter):
             author_url = "{}users?username={}".format(base_url, query_parameter['author'])
             author_response_json = requests.get(author_url, headers=headers).json()
             if not author_response_json:
-                return []
+                return [], pages
             data = requests.get(
                 "https://gitlab.com/api/v4/users/{}/projects".format(author_response_json[0]['id']),
                 headers=headers).json()
@@ -77,7 +77,7 @@ def gitlab_fetch_resources(token, query_parameter):
             project_response = requests.get(project_url, headers=headers)
 
             if project_response.status_code == 404:
-                return []
+                return [], pages
             data = [project_response.json()]
 
         elif 'title' in query_parameter:
