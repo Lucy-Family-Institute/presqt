@@ -22,7 +22,7 @@ def create_project(project_title, headers, token):
     """
     from presqt.targets.figshare.functions.fetch import figshare_fetch_resources
     # Get all the project titles
-    figshare_resources = figshare_fetch_resources(token, None)
+    figshare_resources, pages = figshare_fetch_resources(token, None)
 
     titles = [data['title'] for data in figshare_resources if data['kind_name'] == 'project']
     title = get_duplicate_title(project_title, titles, '(PresQT*)')

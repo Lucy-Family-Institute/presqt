@@ -52,14 +52,18 @@ def figshare_fetch_keywords(token, resource_id):
         # FTS metadata file if it exists
 
         # We need to check for a metadata article.
-        article_list = requests.get(
+        article_response = requests.get(
             "https://api.figshare.com/v2/account/projects/{}/articles".format(split_id[0]),
-            headers=headers).json()
+            headers=headers)
+        if article_response.status_code != 200:
+            raise PresQTResponseException("Project with id, {}, not found for requesting user.".format(resource_id),
+                                          status.HTTP_400_BAD_REQUEST)
         keywords = []
-        for article in article_list:
+        for article in article_response.json():
             if article['title'] == "PRESQT_FTS_METADATA":
                 # Check for metadata file
-                project_files = requests.get("{}/files".format(article['url']), headers=headers).json()
+                project_files = requests.get(
+                    "{}/files".format(article['url']), headers=headers).json()
                 for file in project_files:
                     if file['name'] == "PRESQT_FTS_METADATA.json":
                         # Download file, delete old file, mixem up, have a time.
