@@ -7,7 +7,7 @@ from presqt.targets.figshare.utilities.get_figshare_project_data import (
 from presqt.utilities import PresQTResponseException
 
 
-def figshare_fetch_resources(token, query_parameter):
+def figshare_fetch_resources(token, query_parameter, process_info_path):
     """
     Fetch all users projects from FigShare.
 
@@ -18,6 +18,8 @@ def figshare_fetch_resources(token, query_parameter):
     query_parameter : dict
         The search parameter passed to the API View
         Gets passed formatted as {'title': 'search_info'}
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
@@ -73,7 +75,7 @@ def figshare_fetch_resources(token, query_parameter):
 
         response_data = requests.get(url, headers=headers).json()
 
-    return get_figshare_project_data(response_data, headers, []), pages
+    return get_figshare_project_data(response_data, headers, [], process_info_path), pages
 
 
 def figshare_fetch_resource(token, resource_id):
