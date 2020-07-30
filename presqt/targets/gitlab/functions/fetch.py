@@ -8,7 +8,7 @@ from presqt.targets.gitlab.utilities.get_page_numbers import get_page_numbers
 from presqt.utilities import PresQTResponseException
 
 
-def gitlab_fetch_resources(token, query_parameter):
+def gitlab_fetch_resources(token, query_parameter, process_info_path):
     """
     Fetch all users projects from GitLab.
 
@@ -19,6 +19,8 @@ def gitlab_fetch_resources(token, query_parameter):
     query_parameter : dict
         The search parameter passed to the API View
         Gets passed formatted as {'title': 'search_info'}
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
@@ -91,7 +93,7 @@ def gitlab_fetch_resources(token, query_parameter):
         data = gitlab_paginated_data(headers, user_id, page_number='1')
         pages = get_page_numbers("https://gitlab.com/api/v4/users/{}/projects".format(user_id), headers)
 
-    return get_gitlab_project_data(data, headers, []), pages
+    return get_gitlab_project_data(data, headers, [], process_info_path), pages
 
 
 def gitlab_fetch_resource(token, resource_id):

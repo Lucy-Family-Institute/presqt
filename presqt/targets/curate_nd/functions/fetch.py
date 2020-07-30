@@ -7,7 +7,7 @@ from presqt.targets.curate_nd.classes.main import CurateND
 from presqt.targets.curate_nd.utilities import get_curate_nd_resource, get_curate_nd_resources_by_id, get_page_numbers
 
 
-def curate_nd_fetch_resources(token, query_parameter):
+def curate_nd_fetch_resources(token, query_parameter, process_info_path):
     """
     Fetch all CurateND resources for the user connected to the given token.
 
@@ -18,6 +18,8 @@ def curate_nd_fetch_resources(token, query_parameter):
     query_parameter : dict
         The search parameter passed to the API View
         Gets passed formatted as {'title': 'search_info'}
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
@@ -63,14 +65,14 @@ def curate_nd_fetch_resources(token, query_parameter):
             search_url = 'https://curate.nd.edu/api/items?q={}&search_fields=title'.format(
                 query_parameters)
             try:
-                resources = curate_instance.get_resources(search_url)
+                resources = curate_instance.get_resources(process_info_path, search_url)
             except PresQTValidationError as e:
                 raise e
 
         elif 'general' in query_parameter:
             search_url = 'https://curate.nd.edu/api/items?q={}'.format(query_parameter['general'])
             try:
-                resources = curate_instance.get_resources(search_url)
+                resources = curate_instance.get_resources(process_info_path, search_url)
             except PresQTValidationError as e:
                 raise e
 
@@ -79,11 +81,11 @@ def curate_nd_fetch_resources(token, query_parameter):
 
         elif 'page' in query_parameter:
             url = 'https://curate.nd.edu/api/items?editor=self&page={}'.format(query_parameter['page'])
-            resources = curate_instance.get_resources(url)
+            resources = curate_instance.get_resources(process_info_path, url)
             pages = get_page_numbers(url, token)
     else:
         url = 'https://curate.nd.edu/api/items?editor=self&page=1'
-        resources = curate_instance.get_resources(url)
+        resources = curate_instance.get_resources(process_info_path, url)
         pages = get_page_numbers(url, token)
 
     return resources, pages
