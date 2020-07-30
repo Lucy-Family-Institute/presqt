@@ -37,7 +37,7 @@ def get_page_numbers(url, token):
         "previous_page": previous_page,
         "next_page": next_page,
         "last_page": str(total_pages),
-        "total_pages": total_pages,
+        "total_pages": str(total_pages),
         "per_page": pagination_info['meta']['per_page']}
 
     return pages
