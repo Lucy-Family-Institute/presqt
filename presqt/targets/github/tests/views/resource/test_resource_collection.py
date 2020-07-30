@@ -35,11 +35,25 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
-
-        for data in response.data:
             self.assertEqual(len(data['links']), 1)
+
+    def test_success_github_page_2(self):
+        """
+        Return a 200 if the GET method is successful when grabbing GitHub resources.
+        """
+        url = reverse('resource_collection', kwargs={'target_name': 'github'})
+        response = self.client.get(url + "?page=2", **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 200)
+        # Verify the dict keys match what we expect
+        keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
+        for data in response.data['resources']:
+            self.assertListEqual(keys, list(data.keys()))
+            self.assertEqual(len(data['links']), 1)
+        # Page 2 check
+        self.assertEqual(response.data['pages']['total_pages'], '2')
 
     def test_success_github_with_search(self):
         """
@@ -52,7 +66,7 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
 
         ###### Search by ID #######
@@ -61,7 +75,7 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
 
         #### Search by Author ####
@@ -70,7 +84,7 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
 
         ### Search by General ###
@@ -79,7 +93,7 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
 
         # Search by Keywords
@@ -88,7 +102,7 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
 
     def test_error_400_missing_token_github(self):
@@ -145,13 +159,13 @@ class TestResourceCollection(SimpleTestCase):
         # NO AUTHOR FOUND
         response = self.client.get(
             url + '?author=378rFDsahfojIO2QDJOgibberishauthor', **self.header)
-        self.assertEqual(response.data, [])
+        self.assertEqual(response.data['resources'], [])
 
         # NO ID FOUND
         response = self.client.get(url + '?id=248593331', **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data, [])
+        self.assertEqual(response.data['resources'], [])
 
 
 class TestResourceCollectionPOST(SimpleTestCase):
@@ -200,7 +214,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         response_json = self.client.get(
             url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
 
-        repo_name_list = [repo['title'] for repo in response_json]
+        repo_name_list = [repo['title'] for repo in response_json['resources']]
         self.assertIn(self.repo_title, repo_name_list)
         # Delete upload folder
         shutil.rmtree(self.ticket_path)
@@ -253,7 +267,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         response_json = self.client.get(
             url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
 
-        repo_name_list = [repo['title'] for repo in response_json]
+        repo_name_list = [repo['title'] for repo in response_json['resources']]
         self.assertNotIn(duplicate_title, repo_name_list)
 
         # Delete upload folder
@@ -281,7 +295,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         updated_response_json = self.client.get(
             url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
 
-        updated_repo_name_list = [repo['title'] for repo in updated_response_json]
+        updated_repo_name_list = [repo['title'] for repo in updated_response_json['resources']]
         self.assertIn(duplicate_title, updated_repo_name_list)
 
         # Delete upload folder
@@ -309,7 +323,8 @@ class TestResourceCollectionPOST(SimpleTestCase):
         more_updated_response_json = self.client.get(
             url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
 
-        another_updated_repo_name_list = [repo['title'] for repo in more_updated_response_json]
+        another_updated_repo_name_list = [repo['title']
+                                          for repo in more_updated_response_json['resources']]
         self.assertIn(second_duplicate_title, another_updated_repo_name_list)
 
         delete_github_repo('presqt-test-user', duplicate_title,

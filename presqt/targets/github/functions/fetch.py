@@ -63,7 +63,7 @@ def github_fetch_resources(token, query_parameter):
             search_url = "https://api.github.com/users/{}/repos".format(query_parameter['author'])
             initial_data = requests.get(search_url, headers=header)
             if initial_data.status_code != 200:
-                return []
+                return [], pages
             data = initial_data.json()
 
         elif 'general' in query_parameter:
@@ -76,7 +76,7 @@ def github_fetch_resources(token, query_parameter):
             search_url = "https://api.github.com/repositories/{}".format(query_parameters)
             data = requests.get(search_url, headers=header)
             if data.status_code != 200:
-                return []
+                return [], pages
             data = [data.json()]
 
         elif 'title' in query_parameter:
