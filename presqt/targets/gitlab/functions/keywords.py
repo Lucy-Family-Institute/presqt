@@ -50,6 +50,7 @@ def gitlab_fetch_keywords(token, resource_id):
     metadata_url = "https://gitlab.com/api/v4/projects/{}/repository/files/PRESQT_FTS_METADATA.json?ref=master".format(
         resource_id)
     metadata_file_response = requests.get(metadata_url, headers=headers)
+    print(metadata_file_response.status_code)
 
     if metadata_file_response.status_code == 200:
         base64_metadata = base64.b64decode(metadata_file_response.json()['content'])
@@ -57,7 +58,7 @@ def gitlab_fetch_keywords(token, resource_id):
 
     if metadata:
         try:
-            keywords = list(set(resource['extra']['tag_list'] + metadata['allKeywords']))
+            keywords = list(set(resource['extra']['tag_list'] + metadata['allEnhancedKeywords']))
         except KeyError:
             keywords = list(set(resource['extra']['tag_list']))
     else:
