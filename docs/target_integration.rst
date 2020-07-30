@@ -97,10 +97,11 @@ structure on the front end.
 
     * The function must have the following parameters **in this order**:
 
-        ================ === ===========================================
-        token            str User's token for the target
-        search_parameter str The search parameter passed to the API View
-        ================ === ===========================================
+        ================= === =======================================================================
+        token             str User's token for the target
+        query_parameter   str The query_parameter parameters passed to the API View
+        process_info_path str Path to the process info file that keeps track of the action's progress
+        ================= === =======================================================================
 
     * The function must return the following **in this order**:
 
@@ -126,30 +127,32 @@ structure on the front end.
                 title     str Title of the resource
                 ========= === =============================================================================================================
 
+    * If you want to keep track of the progress of the collection there are two functions available
+      to do so. ``update_process_info()`` is for updating the total number of resources in the collection
+      and ``increment_process_info()`` is for updating the number of resources gathered thus far.
+
     **Example Resource Collection Function:**
 
         .. code-block:: python
 
-            def <your_target_name>_fetch_resources(token, search_parameter):
+            def <your_target_name>_fetch_resources(token, query_parameter, process_info_path):
                 # Process to obtain resource collection IF search_parameter goes here.
                 # Process to obtain resource collection goes here.
                 # Variables below are defined here to show examples of structure.
-                resources = [
-                    {
+                target_resources = get_target_resources()
+                update_process_info(process_info_path, len(target_resources))
+
+                resources = []
+                for resource in target_resources:
+                    increment_process_info(process_info_path)
+                       resource.append({
                         'kind': 'container',
                         'kind_name': 'Project',
-                        'id': '12345',
+                        'id': resource.id,
                         'container': None,
-                        'title': 'New Project
-                    },
-                    {
-                        'kind': 'item',
-                        'kind_name': 'file',
-                        'id': '34567,
-                        'container': '12345',
-                        'title': 'TheFile.jpg'
-                    }
-                ]
+                        'title': resource.title
+                    })
+
                 return resources
 
 3. Add the resource collection function to ``presqt/api_v1/utilities/utils/function_router.py``

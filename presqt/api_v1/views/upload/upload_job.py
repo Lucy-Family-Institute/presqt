@@ -9,7 +9,7 @@ from rest_framework.response import Response
 
 from presqt.api_v1.utilities import (get_destination_token, get_process_info_data,
                                      process_token_validation, hash_tokens)
-from presqt.utilities import PresQTValidationError, write_file, read_file
+from presqt.utilities import PresQTValidationError, write_file
 
 
 class UploadJob(APIView):
