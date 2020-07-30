@@ -71,18 +71,18 @@ class TestResourceGETJSON(SimpleTestCase):
         # Verify the status code
         self.assertEqual(response.status_code, 200)
     
-    def test_success_big_file(self):
-        """
-        Returns a 200 if the GET method is successful when getting a GitHub `file` larger than 100MB.
-        """
-        resource_id = '266134247:Media_Files%2F20180726_174402%252Emp4'
+    # def test_success_big_file(self):
+    #     """
+    #     Returns a 200 if the GET method is successful when getting a GitHub `file` larger than 100MB.
+    #     """
+    #     resource_id = '266134247:Media_Files%2F20180726_174402%252Emp4'
 
-        url = reverse('resource', kwargs={'target_name': 'github',
-                                          'resource_id': resource_id,
-                                          'resource_format': 'json'})
-        response = self.client.get(url, **self.header)
-        # Verify the status code
-        self.assertEqual(response.status_code, 200)
+    #     url = reverse('resource', kwargs={'target_name': 'github',
+    #                                       'resource_id': resource_id,
+    #                                       'resource_format': 'json'})
+    #     response = self.client.get(url, **self.header)
+    #     # Verify the status code
+    #     self.assertEqual(response.status_code, 200)
 
     def test_bad_repo_id_file(self):
         """
@@ -192,7 +192,7 @@ class TestResourcePOST(SimpleTestCase):
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         response_json = self.client.get(
-            self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
+            self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()['resources']
 
         repo_exists = False
         repo_id = None
@@ -299,7 +299,7 @@ class TestResourcePOST(SimpleTestCase):
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         response_json = self.client.get(
-            self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
+            self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()['resources']
 
         repo_exists = False
         repo_id = None
@@ -351,7 +351,7 @@ class TestResourcePOST(SimpleTestCase):
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         response_json = self.client.get(
-            self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
+            self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()['resources']
 
         for repo in response_json:
             if repo['title'] == self.repo_title:
@@ -391,7 +391,7 @@ class TestResourcePOST(SimpleTestCase):
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         response_json = self.client.get(
-            self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
+            self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()['resources']
 
         for repo in response_json:
             if repo['title'] == self.repo_title:
@@ -435,7 +435,7 @@ class TestResourcePOST(SimpleTestCase):
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         response_json = self.client.get(
-            self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
+            self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()['resources']
 
         for repo in response_json:
             if repo['title'] == self.repo_title:
@@ -487,7 +487,7 @@ class TestResourcePOST(SimpleTestCase):
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         response_json = self.client.get(
-            self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
+            self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()['resources']
 
         repo_exists = False
         repo_id = None
