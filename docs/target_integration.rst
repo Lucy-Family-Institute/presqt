@@ -107,6 +107,7 @@ structure on the front end.
 
         ========= ==== =============================================
         resources list list of Python dictionaries for each resource
+        pages     dict dictionary of pagination details
         ========= ==== =============================================
 
             **Resource dictionary details:**
@@ -126,6 +127,17 @@ structure on the front end.
                 id        str ID of the resource
                 title     str Title of the resource
                 ========= === =============================================================================================================
+
+            **Page dictionary details:**
+
+                ============= === ================================
+                first_page    str The first page number
+                previous_page str The previous page number
+                next_page     str The next page number
+                last_page     str The last page number
+                total_pages   str The total amount of pages
+                per_page      str The amount of resources per page
+                ============= === ================================
 
     * If you want to keep track of the progress of the collection there are two functions available
       to do so. ``update_process_info()`` is for updating the total number of resources in the collection
@@ -153,7 +165,16 @@ structure on the front end.
                         'title': resource.title
                     })
 
-                return resources
+                # Process to obtain page numbers goes here
+                pages = {
+                    "first_page": '1',
+                    "previous_page": None,
+                    "next_page": None,
+                    "last_page": '1',
+                    "total_pages": '1',
+                    "per_page": 10
+                }
+                return resources, pages
 
 3. Add the resource collection function to ``presqt/api_v1/utilities/utils/function_router.py``
 

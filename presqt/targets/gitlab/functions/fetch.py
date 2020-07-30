@@ -4,6 +4,7 @@ from rest_framework import status
 from presqt.targets.gitlab.utilities.gitlab_paginated_data import gitlab_paginated_data
 from presqt.targets.gitlab.utilities.validation_check import validation_check
 from presqt.targets.gitlab.utilities.get_gitlab_project_data import get_gitlab_project_data
+from presqt.targets.gitlab.utilities.get_page_numbers import get_page_numbers
 from presqt.utilities import PresQTResponseException
 
 
@@ -32,6 +33,16 @@ def gitlab_fetch_resources(token, query_parameter, process_info_path):
             "container": "None",
             "title": "Folder Name",
         }
+    We are also returning a dictionary of pagination information.
+    Dictionary must be in the following format:
+        {
+            "first_page": '1',
+            "previous_page": None,
+            "next_page": None,
+            "last_page": '1',
+            "total_pages": '1',
+            "per_page": 20
+        }
     """
     base_url = "https://gitlab.com/api/v4/"
     try:
@@ -39,6 +50,14 @@ def gitlab_fetch_resources(token, query_parameter, process_info_path):
     except PresQTResponseException:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
+
+    pages = {
+        "first_page": '1',
+        "previous_page": None,
+        "next_page": None,
+        "last_page": '1',
+        "total_pages": '1',
+        "per_page": 20}
 
     if query_parameter:
         if 'author' in query_parameter:
@@ -69,11 +88,12 @@ def gitlab_fetch_resources(token, query_parameter, process_info_path):
 
         elif 'page' in query_parameter:
             data = gitlab_paginated_data(headers, user_id, page_number=query_parameter['page'])
-
+            pages = get_page_numbers("https://gitlab.com/api/v4/users/{}/projects".format(user_id), headers)
     else:
         data = gitlab_paginated_data(headers, user_id, page_number='1')
+        pages = get_page_numbers("https://gitlab.com/api/v4/users/{}/projects".format(user_id), headers)
 
-    return get_gitlab_project_data(data, headers, [], process_info_path)
+    return get_gitlab_project_data(data, headers, [], process_info_path), pages
 
 
 def gitlab_fetch_resource(token, resource_id):

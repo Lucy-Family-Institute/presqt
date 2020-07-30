@@ -31,3 +31,4 @@ from presqt.api_v1.utilities.keyword_enhancement.automatic_keywords import autom
 from presqt.api_v1.utilities.keyword_enhancement.update_targets_keywords import update_targets_keywords
 from presqt.api_v1.utilities.keyword_enhancement.manual_keywords import manual_keywords
 from presqt.api_v1.utilities.validation.get_keyword_support import get_keyword_support
+from presqt.api_v1.utilities.utils.page_links import page_links

@@ -4,7 +4,7 @@ from rest_framework import status
 
 from presqt.utilities import PresQTResponseException, PresQTInvalidTokenError, PresQTValidationError
 from presqt.targets.curate_nd.classes.main import CurateND
-from presqt.targets.curate_nd.utilities import get_curate_nd_resource, get_curate_nd_resources_by_id
+from presqt.targets.curate_nd.utilities import get_curate_nd_resource, get_curate_nd_resources_by_id, get_page_numbers
 
 
 def curate_nd_fetch_resources(token, query_parameter, process_info_path):
@@ -32,6 +32,16 @@ def curate_nd_fetch_resources(token, query_parameter, process_info_path):
             "container": "None",
             "title": "Folder Name",
         }
+    We are also returning a dictionary of pagination information.
+    Dictionary must be in the following format:
+        {
+            "first_page": '1',
+            "previous_page": None,
+            "next_page": None,
+            "last_page": '1',
+            "total_pages": '1',
+            "per_page": 12
+        }
     """
     try:
         curate_instance = CurateND(token)
@@ -39,6 +49,14 @@ def curate_nd_fetch_resources(token, query_parameter, process_info_path):
         raise PresQTResponseException(
             "Token is invalid. Response returned a 401 status code.",
             status.HTTP_401_UNAUTHORIZED)
+
+    pages = {
+        "first_page": '1',
+        "previous_page": None,
+        "next_page": None,
+        "last_page": '1',
+        "total_pages": '1',
+        "per_page": 12}
 
     if query_parameter:
         if 'title' in query_parameter:
@@ -62,15 +80,15 @@ def curate_nd_fetch_resources(token, query_parameter, process_info_path):
             resources = get_curate_nd_resources_by_id(token, query_parameter['id'])
 
         elif 'page' in query_parameter:
-            resources = curate_instance.get_resources(
-                process_info_path,
-                'https://curate.nd.edu/api/items?editor=self&page={}'.format(query_parameter['page']))
+            url = 'https://curate.nd.edu/api/items?editor=self&page={}'.format(query_parameter['page'])
+            resources = curate_instance.get_resources(process_info_path, url)
+            pages = get_page_numbers(url, token)
     else:
-        resources = curate_instance.get_resources(
-            process_info_path,
-            'https://curate.nd.edu/api/items?editor=self&page=1')
+        url = 'https://curate.nd.edu/api/items?editor=self&page=1'
+        resources = curate_instance.get_resources(process_info_path, url)
+        pages = get_page_numbers(url, token)
 
-    return resources
+    return resources, pages
 
 
 def curate_nd_fetch_resource(token, resource_id):
