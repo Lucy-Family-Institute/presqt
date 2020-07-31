@@ -1,10 +1,13 @@
+import os
+import uuid
+
 from rest_framework.response import Response
 
 from presqt.api_v1.serializers.resource import ResourcesSerializer
 from presqt.api_v1.utilities import (
-    target_validation, FunctionRouter, get_source_token, search_validator)
+    target_validation, FunctionRouter, get_source_token, query_validator, hash_tokens, page_links)
 from presqt.api_v1.views.resource.base_resource import BaseResource
-from presqt.utilities import PresQTValidationError, PresQTResponseException
+from presqt.utilities import PresQTValidationError, PresQTResponseException, write_file
 
 
 class ResourceCollection(BaseResource):
@@ -97,20 +100,34 @@ class ResourceCollection(BaseResource):
         # Validate the search query if there is one.
         if query_params != {}:
             try:
-                search_validator(query_params, target_name)
-                query_params_value = list(query_params.values())[0]
+                query_params_value = query_validator(query_params, target_name)
                 if query_params_value.isspace() or query_params_value == '':
                     # If title is empty, we want to only return user resources.
                     query_params = {}
             except PresQTResponseException as e:
                 # Catch any errors that happen within the search validation
                 return Response(data={'error': e.data}, status=e.status_code)
+
+        # Create a ticket_number directory for progress check-ins
+        ticket_number = uuid.uuid4()
+        ticket_path = os.path.join('mediafiles', 'collection', str(ticket_number))
+
+        # Create directory and process_info json file
+        process_info_obj = {
+            'presqt-source-token': hash_tokens(token),
+            'total_files': 0,
+            'files_finished': 0
+        }
+
+        process_info_path = os.path.join(str(ticket_path), 'process_info.json')
+        write_file(process_info_path, process_info_obj, True)
+
         # Fetch the proper function to call
         func = FunctionRouter.get_function(target_name, action)
 
         # Fetch the target's resources
         try:
-            resources = func(token, query_params)
+            resources, pages = func(token, query_params, process_info_path)
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch
             return Response(data={'error': e.data}, status=e.status_code)
@@ -118,5 +135,6 @@ class ResourceCollection(BaseResource):
         serializer = ResourcesSerializer(instance=resources, many=True, context={
                                          'target_name': target_name,
                                          'request': request})
+        linked_pages = page_links(self, target_name, pages)
 
-        return Response(serializer.data)
+        return Response({"resources": serializer.data, "pages": linked_pages})

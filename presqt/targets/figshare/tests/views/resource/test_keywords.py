@@ -50,7 +50,7 @@ class TestResourceKeywords(SimpleTestCase):
         self.assertEqual(response.status_code, 400)
         # Verify the error message
         self.assertEqual(response.data['error'],
-                         "FigShare projects/files do no have keywords.")
+                         "FigShare files do not have keywords.")
 
     def test_bad_token(self):
         """
@@ -129,7 +129,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         """
         Returns a 400 if the POST method is unsuccessful when getting a FigShare `project` keywords.
         """
-        resource_id = "17993268"
+        resource_id = "7099786765098"
         url = reverse('keywords', kwargs={'target_name': 'figshare',
                                           'resource_id': resource_id})
         response = self.client.post(
@@ -138,7 +138,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         self.assertEqual(response.status_code, 400)
         # Verify the error message
         self.assertEqual(response.data['error'],
-                         "FigShare projects/files do no have keywords.")
+                         "Project with id, 7099786765098, not found for requesting user.")
 
     def test_failed_update_keywords(self):
         # Mock a server error for when a put request is made.

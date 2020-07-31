@@ -1,7 +1,9 @@
 import requests
 
+from presqt.utilities import update_process_info, increment_process_info
 
-def get_figshare_project_data(initial_data, headers, resources):
+
+def get_figshare_project_data(initial_data, headers, resources, process_info_path):
     """
     Get all directories and files of given projects.
 
@@ -13,12 +15,21 @@ def get_figshare_project_data(initial_data, headers, resources):
         The authorizaion header that Figshare expects
     resources: list
         A list of resources to append to
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
     A list of resources.
     """
+    # Add the total number of articles to the process info file.
+    # This is necessary to keep track of the progress of the request.
+    update_process_info(process_info_path, len(initial_data))
+
     for project in initial_data:
+        # Increment the number of files done in the process info file.
+        increment_process_info(process_info_path)
+
         resources.append({
             "kind": "container",
             "kind_name": "project",
@@ -51,7 +62,7 @@ def get_figshare_project_data(initial_data, headers, resources):
     return resources
 
 
-def get_search_project_data(initial_data, headers, resources):
+def get_search_project_data(initial_data, headers, resources, process_info_path):
     """
     Get all directories and files of a given project.
 
@@ -63,6 +74,8 @@ def get_search_project_data(initial_data, headers, resources):
         The authorizaion header that Figshare expects
     resources: list
         A list of resources to append to
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
@@ -79,7 +92,14 @@ def get_search_project_data(initial_data, headers, resources):
     article_get = requests.get("https://api.figshare.com/v2/projects/{}/articles".format(
         initial_data['id']), headers=headers).json()
 
+    # Add the total number of articles to the process info file.
+    # This is necessary to keep track of the progress of the request.
+    update_process_info(process_info_path, len(article_get))
+
     for article in article_get:
+        # Increment the number of files done in the process info file.
+        increment_process_info(process_info_path)
+
         resources.append({
             "kind": "container",
             "kind_name": article['defined_type_name'],

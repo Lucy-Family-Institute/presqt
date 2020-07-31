@@ -7,7 +7,7 @@ import requests
 from rest_framework import status
 
 from presqt.targets.github.utilities import (
-    validation_check, github_paginated_data, download_content, download_directory, download_file)
+    validation_check, download_content, download_directory, download_file)
 from presqt.utilities import PresQTResponseException, get_dictionary_from_list
 
 
@@ -125,7 +125,8 @@ def github_download_resource(token, resource_id):
     else:
         partitioned_id = resource_id.partition(':')
         repo_id = partitioned_id[0]
-        path_to_file = partitioned_id[2].replace('%2F', '/').replace('%2E', '.').replace('%252F', '/').replace('%252E', '.')
+        path_to_file = partitioned_id[2].replace(
+            '%2F', '/').replace('%2E', '.').replace('%252F', '/').replace('%252E', '.')
 
         # Get initial repo data for the resource requested
         repo_url = 'https://api.github.com/repositories/{}'.format(repo_id)
@@ -151,7 +152,8 @@ def github_download_resource(token, resource_id):
             for tree in trees_response.json()['tree']:
                 if path_to_file == tree['path']:
                     file_sha = tree['sha']
-            git_blob_url = 'https://api.github.com/repos/{}/git/blobs/{}'.format(repo_data['full_name'], file_sha)
+            git_blob_url = 'https://api.github.com/repos/{}/git/blobs/{}'.format(
+                repo_data['full_name'], file_sha)
             file_get = requests.get(git_blob_url, headers=header)
             resource_data = file_get.json()
             resource_data['name'] = path_to_file.rpartition('/')[2]

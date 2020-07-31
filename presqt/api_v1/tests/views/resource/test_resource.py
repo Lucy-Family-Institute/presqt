@@ -553,7 +553,7 @@ class TestResourcePOSTWithBody(SimpleTestCase):
             "source_target_name": "osf",
             "source_resource_id": "dj52w379504"}, **self.headers, format='json')
         # Verify the error status code and message
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(
             response.data, {'error': "PresQT Error: keywords was not found in the request body."})
 
@@ -567,6 +567,6 @@ class TestResourcePOSTWithBody(SimpleTestCase):
             "source_resource_id": "dj52w379504",
             "keywords": "oops"}, **self.headers, format='json')
         # Verify the error status code and message
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(
             response.data, {'error': "PresQT Error: keywords must be in list format."})

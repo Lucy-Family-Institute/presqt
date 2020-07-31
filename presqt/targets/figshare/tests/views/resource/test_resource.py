@@ -756,7 +756,7 @@ class TestResourcePost(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Make a list of titles
         project_titles = [project['title']
-                          for project in response.data if project['kind_name'] == 'project']
+                          for project in response.data['resources'] if project['kind_name'] == 'project']
 
         self.assertIn('NewProject(PresQT1)', project_titles)
 

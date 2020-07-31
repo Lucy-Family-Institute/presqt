@@ -24,10 +24,11 @@ from presqt.api_v1.utilities.validation.transfer_post_body_validation import \
 from presqt.api_v1.utilities.utils.hash_tokens import hash_tokens
 from presqt.api_v1.utilities.depth_helpers.finite_depth_upload import finite_depth_upload_helper
 from presqt.api_v1.utilities.validation.structure_validation import structure_validation
-from presqt.api_v1.utilities.validation.search_validator import search_validator
+from presqt.api_v1.utilities.validation.query_validator import query_validator
 from presqt.api_v1.utilities.utils.keyword_enhancer import keyword_enhancer
 from presqt.api_v1.utilities.validation.keyword_action_validation import keyword_action_validation
 from presqt.api_v1.utilities.keyword_enhancement.automatic_keywords import automatic_keywords
 from presqt.api_v1.utilities.keyword_enhancement.update_targets_keywords import update_targets_keywords
 from presqt.api_v1.utilities.keyword_enhancement.manual_keywords import manual_keywords
 from presqt.api_v1.utilities.validation.get_keyword_support import get_keyword_support
+from presqt.api_v1.utilities.utils.page_links import page_links

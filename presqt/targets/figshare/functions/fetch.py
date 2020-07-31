@@ -7,7 +7,7 @@ from presqt.targets.figshare.utilities.get_figshare_project_data import (
 from presqt.utilities import PresQTResponseException
 
 
-def figshare_fetch_resources(token, search_parameter):
+def figshare_fetch_resources(token, query_parameter, process_info_path):
     """
     Fetch all users projects from FigShare.
 
@@ -15,9 +15,11 @@ def figshare_fetch_resources(token, search_parameter):
     ----------
     token : str
         User's FigShare token
-    search_parameter : dict
+    query_parameter : dict
         The search parameter passed to the API View
         Gets passed formatted as {'title': 'search_info'}
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
@@ -30,6 +32,16 @@ def figshare_fetch_resources(token, search_parameter):
             "container": "None",
             "title": "Folder Name",
         }
+    We are also returning a dictionary of pagination information.
+    Dictionary must be in the following format:
+        {
+            "first_page": '1',
+            "previous_page": None,
+            "next_page": None,
+            "last_page": '1',
+            "total_pages": '1',
+            "per_page": 10
+        }
     """
     base_url = "https://api.figshare.com/v2/"
 
@@ -39,20 +51,31 @@ def figshare_fetch_resources(token, search_parameter):
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
-    if search_parameter:
-        if 'id' in search_parameter:
-            response = requests.get("{}projects/{}".format(base_url, search_parameter['id']))
+    pages = {
+        "first_page": '1',
+        "previous_page": None,
+        "next_page": None,
+        "last_page": '1',
+        "total_pages": '1',
+        "per_page": 10}
 
-        if response.status_code != 200:
-            raise PresQTResponseException("Project with id, {}, can not be found.".format(search_parameter['id']),
-                                          status.HTTP_404_NOT_FOUND)
-        return get_search_project_data(response.json(), headers, [])
+    if query_parameter and 'page' not in query_parameter:
+        if 'id' in query_parameter:
+            response = requests.get("{}projects/{}".format(base_url, query_parameter['id']))
+            if response.status_code != 200:
+                raise PresQTResponseException("Project with id, {}, can not be found.".format(query_parameter['id']),
+                                              status.HTTP_404_NOT_FOUND)
+        return get_search_project_data(response.json(), headers, []), pages
 
     else:
-        response_data = requests.get("{}account/projects".format(base_url),
-                                     headers=headers).json()
+        if query_parameter and 'page' in query_parameter:
+            url = "{}account/projects?page={}".format(base_url, query_parameter['page'])
+        else:
+            url = "{}account/projects?page=1".format(base_url)
 
-    return get_figshare_project_data(response_data, headers, [])
+        response_data = requests.get(url, headers=headers).json()
+
+    return get_figshare_project_data(response_data, headers, [], process_info_path), pages
 
 
 def figshare_fetch_resource(token, resource_id):

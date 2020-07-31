@@ -1,6 +1,7 @@
 from django.urls import path
 
 from presqt.api_v1.views.bag_and_zip.bag_and_zip import BagAndZip
+from presqt.api_v1.views.collection.collection_job import CollectionJob
 from presqt.api_v1.views.status.status import StatusCollection
 from presqt.api_v1 import api_root
 from presqt.api_v1.views.download.download_job import DownloadJob
@@ -33,6 +34,8 @@ api_v1_endpoints = [
          Resource.as_view(), name="resource"),
     path('targets/<str:target_name>/resources/<str:resource_id>/keywords/',
          ResourceKeywords.as_view(), name="keywords"),
+    # Collection Job
+    path('collection/<str:ticket_number>/', CollectionJob.as_view(), name='collection_job'),
 
     # Downloads
     path('downloads/<str:ticket_number>.<str:response_format>/',

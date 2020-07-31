@@ -4,10 +4,11 @@ from rest_framework import status
 
 from presqt.targets.github.utilities import validation_check, github_paginated_data
 from presqt.targets.github.utilities.helpers.github_file_data import get_github_repository_data
+from presqt.targets.github.utilities.helpers.get_page_numbers import get_page_numbers
 from presqt.utilities import PresQTResponseException
 
 
-def github_fetch_resources(token, search_parameter):
+def github_fetch_resources(token, query_parameter, process_info_path):
     """
     Fetch all users resources from GitHub.
 
@@ -15,9 +16,11 @@ def github_fetch_resources(token, search_parameter):
     ----------
     token : str
         User's GitHub token
-    search_parameter : dict
+    query_parameter : dict
         The search parameter passed to the API View
         Gets passed formatted as {'title': 'search_info'}
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
@@ -30,6 +33,16 @@ def github_fetch_resources(token, search_parameter):
             "container": "None",
             "title": "Folder Name",
         }
+    We are also returning a dictionary of pagination information.
+    Dictionary must be in the following format:
+        {
+            "first_page": '1',
+            "previous_page": None,
+            "next_page": None,
+            "last_page": '1',
+            "total_pages": '1',
+            "per_page": 30
+        }
     """
     try:
         header, username = validation_check(token)
@@ -39,43 +52,58 @@ def github_fetch_resources(token, search_parameter):
 
     header['Accept'] = 'application/vnd.github.mercy-preview+json'
 
-    if search_parameter:
-        if 'author' in search_parameter:
-            search_url = "https://api.github.com/users/{}/repos".format(search_parameter['author'])
+    pages = {
+        "first_page": '1',
+        "previous_page": None,
+        "next_page": None,
+        "last_page": '1',
+        "total_pages": '1',
+        "per_page": 30}
+
+    if query_parameter:
+        if 'author' in query_parameter:
+            search_url = "https://api.github.com/users/{}/repos".format(query_parameter['author'])
             initial_data = requests.get(search_url, headers=header)
             if initial_data.status_code != 200:
-                return []
+                return [], pages
             data = initial_data.json()
 
-        elif 'general' in search_parameter:
+        elif 'general' in query_parameter:
             search_url = "https://api.github.com/search/repositories?q={}".format(
-                search_parameter['general'])
+                query_parameter['general'])
             data = requests.get(search_url, headers=header).json()['items']
 
-        elif 'id' in search_parameter:
-            search_parameters = search_parameter['id']
-            search_url = "https://api.github.com/repositories/{}".format(search_parameters)
+        elif 'id' in query_parameter:
+            query_parameters = query_parameter['id']
+            search_url = "https://api.github.com/repositories/{}".format(query_parameters)
             data = requests.get(search_url, headers=header)
             if data.status_code != 200:
-                return []
+                return [], pages
             data = [data.json()]
 
-        elif 'title' in search_parameter:
-            search_parameters = search_parameter['title'].replace(' ', '+')
+        elif 'title' in query_parameter:
+            query_parameters = query_parameter['title'].replace(' ', '+')
             search_url = "https://api.github.com/search/repositories?q={}+in:name+sort:updated".format(
-                search_parameters)
+                query_parameters)
             data = requests.get(search_url, headers=header).json()['items']
 
-        elif 'keywords' in search_parameter:
-            search_parameters = search_parameter['keywords'].replace(' ', '+')
+        elif 'keywords' in query_parameter:
+            query_parameters = query_parameter['keywords'].replace(' ', '+')
             search_url = "https://api.github.com/search/repositories?q={}+in:topics+sort:updated".format(
-                search_parameters)
+                query_parameters)
             data = requests.get(search_url, headers=header).json()['items']
+
+        elif 'page' in query_parameter:
+            data = github_paginated_data(token, query_parameter['page'])
+            pages = get_page_numbers(
+                "https://api.github.com/user/repos?page={}".format(query_parameter['page']),
+                header, query_parameter['page'])
 
     else:
-        data = github_paginated_data(token)
+        data = github_paginated_data(token, '1')
+        pages = get_page_numbers("https://api.github.com/user/repos?page=1", header, '1')
 
-    return get_github_repository_data(data, header, [])
+    return get_github_repository_data(data, header, process_info_path, []), pages
 
 
 def github_fetch_resource(token, resource_id):

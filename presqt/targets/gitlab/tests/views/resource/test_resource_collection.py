@@ -37,13 +37,25 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
-        # Verify the count of resource objects is what we expect.
-        self.assertEqual(len(response.data), 42)
-
-        for data in response.data:
             self.assertEqual(len(data['links']), 1)
+        self.assertEqual(response.data['pages']['total_pages'], '2')
+
+    def test_success_gitlab_page_2(self):
+        """
+        Return a 200 if the GET method is successful when grabbing GitLab resources.
+        """
+        url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
+        response = self.client.get(url + "?page=2", **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 200)
+        # Verify the dict keys match what we expect
+        keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
+        for data in response.data['resources']:
+            self.assertListEqual(keys, list(data.keys()))
+            self.assertEqual(len(data['links']), 1)
+        self.assertEqual(response.data['pages']['total_pages'], '2')
 
     def test_success_gitlab_with_search(self):
         """
@@ -56,9 +68,8 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
-
 
         ###### Search by ID #######
         response = self.client.get(url + '?id=17990806', **self.header)
@@ -66,7 +77,7 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
 
         #### Search by Author ####
@@ -75,7 +86,7 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
 
         ### Search by General ###
@@ -84,7 +95,7 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
 
     def test_error_400_missing_token_gitlab(self):
@@ -119,19 +130,22 @@ class TestResourceCollection(SimpleTestCase):
         # TOO MANY KEYS
         response = self.client.get(url + '?title=hat&spaghetti=egg', **self.header)
 
-        self.assertEqual(response.data['error'], 'PresQT Error: The search query is not formatted correctly.')
+        self.assertEqual(response.data['error'],
+                         'PresQT Error: The search query is not formatted correctly.')
         self.assertEqual(response.status_code, 400)
 
         # BAD KEY
         response = self.client.get(url + '?spaghetti=egg', **self.header)
 
-        self.assertEqual(response.data['error'], 'PresQT Error: GitLab does not support spaghetti as a search parameter.')
+        self.assertEqual(
+            response.data['error'], 'PresQT Error: GitLab does not support spaghetti as a search parameter.')
         self.assertEqual(response.status_code, 400)
 
         # SPECIAL CHARACTERS IN REQUEST
         response = self.client.get(url + '?title=egg:boi', **self.header)
 
-        self.assertEqual(response.data['error'], 'PresQT Error: The search query is not formatted correctly.')
+        self.assertEqual(response.data['error'],
+                         'PresQT Error: The search query is not formatted correctly.')
         self.assertEqual(response.status_code, 400)
 
     def test_for_id_search_no_results_gitlab(self):
@@ -142,7 +156,7 @@ class TestResourceCollection(SimpleTestCase):
         response = self.client.get(url + '?id=supasupabadid', **self.header)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data, [])
+        self.assertEqual(response.data['resources'], [])
 
     def test_for_author_search_no_results_gitlab(self):
         """
@@ -152,7 +166,7 @@ class TestResourceCollection(SimpleTestCase):
         response = self.client.get(url + '?author=XxsupasupasupasupabadauthorxX', **self.header)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data, [])
+        self.assertEqual(response.data['resources'], [])
 
 
 class TestResourceCollectionPOST(SimpleTestCase):
@@ -163,6 +177,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
 
     Testing GitLab integration.
     """
+
     def setUp(self):
         self.client = APIClient()
         self.token = GITLAB_UPLOAD_TEST_USER_TOKEN
@@ -176,7 +191,6 @@ class TestResourceCollectionPOST(SimpleTestCase):
         self.resources_updated = []
         self.hash_algorithm = 'sha256'
         self.success_message = 'Upload successful.'
-
 
     def test_success_202_upload(self):
         """
@@ -192,7 +206,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
 
         # Delete upload folder and project
         shutil.rmtree(self.ticket_path)
-        delete_gitlab_project(response_json[0]['id'], GITLAB_UPLOAD_TEST_USER_TOKEN)
+        delete_gitlab_project(response_json['resources'][0]['id'], GITLAB_UPLOAD_TEST_USER_TOKEN)
 
     def test_presqt_fts_metadata(self):
         """
@@ -205,7 +219,8 @@ class TestResourceCollectionPOST(SimpleTestCase):
             url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()
 
         # On the project that was just created, we need to get the contents of the metadata file.
-        metadata_link = 'https://gitlab.com/api/v4/projects/{}/repository/files/PRESQT_FTS_METADATA%2Ejson?ref=master'.format(response_json[0]['id'])
+        metadata_link = 'https://gitlab.com/api/v4/projects/{}/repository/files/PRESQT_FTS_METADATA%2Ejson?ref=master'.format(
+            response_json['resources'][0]['id'])
 
         # Get the metadata json
         response = requests.get(metadata_link, headers={"Private-Token": "{}".format(self.token)})
@@ -227,7 +242,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
 
         # Delete upload folder
         shutil.rmtree(self.ticket_path)
-        delete_gitlab_project(response_json[0]['id'], GITLAB_UPLOAD_TEST_USER_TOKEN)
+        delete_gitlab_project(response_json['resources'][0]['id'], GITLAB_UPLOAD_TEST_USER_TOKEN)
 
     def test_bad_metadata_request(self):
         """
@@ -266,7 +281,8 @@ class TestResourceCollectionPOST(SimpleTestCase):
             url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()
 
         # On the project that was just created, we need to get the contents of the metadata file.
-        metadata_link = 'https://gitlab.com/api/v4/projects/{}/repository/files/INVALID_PRESQT_FTS_METADATA%2Ejson?ref=master'.format(response_json[0]['id'])
+        metadata_link = 'https://gitlab.com/api/v4/projects/{}/repository/files/INVALID_PRESQT_FTS_METADATA%2Ejson?ref=master'.format(
+            response_json['resources'][0]['id'])
 
         # Get the metadata json
         response = requests.get(metadata_link, headers={"Private-Token": "{}".format(self.token)})
@@ -274,7 +290,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
 
         self.assertEqual(invalid_metadata_file, {'invalid_metadata': 'no bueno'})
 
-        delete_gitlab_project(response_json[0]['id'], GITLAB_UPLOAD_TEST_USER_TOKEN)
+        delete_gitlab_project(response_json['resources'][0]['id'], GITLAB_UPLOAD_TEST_USER_TOKEN)
         # Delete upload folder
         shutil.rmtree(ticket_path)
 
@@ -298,15 +314,16 @@ class TestResourceCollectionPOST(SimpleTestCase):
             url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()
 
         # On the project that was just created, we need to get the contents of the metadata file.
-        metadata_link = 'https://gitlab.com/api/v4/projects/{}/repository/files/PRESQT_FTS_METADATA%2Ejson?ref=master'.format(response_json[0]['id'])
+        metadata_link = 'https://gitlab.com/api/v4/projects/{}/repository/files/PRESQT_FTS_METADATA%2Ejson?ref=master'.format(
+            response_json['resources'][0]['id'])
 
         # Get the metadata json
         response = requests.get(metadata_link, headers={"Private-Token": "{}".format(self.token)})
         valid_metadata_file = json.loads(base64.b64decode(response.json()['content']))
 
-        self.assertEqual(len(valid_metadata_file['actions']), 2)
+        self.assertEqual(len(valid_metadata_file['actions']), 1)
 
-        delete_gitlab_project(response_json[0]['id'], GITLAB_UPLOAD_TEST_USER_TOKEN)
+        delete_gitlab_project(response_json['resources'][0]['id'], GITLAB_UPLOAD_TEST_USER_TOKEN)
         # Delete upload folder
         shutil.rmtree(ticket_path)
 
@@ -407,8 +424,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
         response_json = self.client.get(
             url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()
-        delete_gitlab_project(response_json[0]['id'], GITLAB_UPLOAD_TEST_USER_TOKEN)
+        delete_gitlab_project(response_json['resources'][0]['id'], GITLAB_UPLOAD_TEST_USER_TOKEN)
 
         # Delete upload folder
         shutil.rmtree(ticket_path)
-

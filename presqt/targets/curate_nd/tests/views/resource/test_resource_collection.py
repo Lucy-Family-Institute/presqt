@@ -29,10 +29,10 @@ class TestResourceCollection(SimpleTestCase):
         # Verify the dict keys match what we expect,
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
         # Verify the count of resource objects is what we expect.
-        self.assertEqual(37, len(response.data))
+        self.assertEqual(37, len(response.data['resources']))
         for data in response.data:
             self.assertEqual(len(data['links']), 1)
 

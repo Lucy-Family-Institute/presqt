@@ -4,10 +4,11 @@ from rest_framework import status
 from presqt.targets.gitlab.utilities.gitlab_paginated_data import gitlab_paginated_data
 from presqt.targets.gitlab.utilities.validation_check import validation_check
 from presqt.targets.gitlab.utilities.get_gitlab_project_data import get_gitlab_project_data
+from presqt.targets.gitlab.utilities.get_page_numbers import get_page_numbers
 from presqt.utilities import PresQTResponseException
 
 
-def gitlab_fetch_resources(token, search_parameter):
+def gitlab_fetch_resources(token, query_parameter, process_info_path):
     """
     Fetch all users projects from GitLab.
 
@@ -15,9 +16,11 @@ def gitlab_fetch_resources(token, search_parameter):
     ----------
     token : str
         User's GitLab token
-    search_parameter : dict
+    query_parameter : dict
         The search parameter passed to the API View
         Gets passed formatted as {'title': 'search_info'}
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
@@ -30,6 +33,16 @@ def gitlab_fetch_resources(token, search_parameter):
             "container": "None",
             "title": "Folder Name",
         }
+    We are also returning a dictionary of pagination information.
+    Dictionary must be in the following format:
+        {
+            "first_page": '1',
+            "previous_page": None,
+            "next_page": None,
+            "last_page": '1',
+            "total_pages": '1',
+            "per_page": 20
+        }
     """
     base_url = "https://gitlab.com/api/v4/"
     try:
@@ -38,37 +51,49 @@ def gitlab_fetch_resources(token, search_parameter):
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
-    if search_parameter:
-        if 'author' in search_parameter:
-            author_url = "{}users?username={}".format(base_url, search_parameter['author'])
+    pages = {
+        "first_page": '1',
+        "previous_page": None,
+        "next_page": None,
+        "last_page": '1',
+        "total_pages": '1',
+        "per_page": 20}
+
+    if query_parameter:
+        if 'author' in query_parameter:
+            author_url = "{}users?username={}".format(base_url, query_parameter['author'])
             author_response_json = requests.get(author_url, headers=headers).json()
             if not author_response_json:
-                return []
+                return [], pages
             data = requests.get(
                 "https://gitlab.com/api/v4/users/{}/projects".format(author_response_json[0]['id']),
                 headers=headers).json()
 
-        elif 'general' in search_parameter:
+        elif 'general' in query_parameter:
             search_url = "{}search?scope=projects&search={}".format(
-                base_url, search_parameter['general'])
+                base_url, query_parameter['general'])
             data = requests.get(search_url, headers=headers).json()
 
-        elif 'id' in search_parameter:
-            project_url = "{}projects/{}".format(base_url, search_parameter['id'])
+        elif 'id' in query_parameter:
+            project_url = "{}projects/{}".format(base_url, query_parameter['id'])
             project_response = requests.get(project_url, headers=headers)
 
             if project_response.status_code == 404:
-                return []
+                return [], pages
             data = [project_response.json()]
 
-        elif 'title' in search_parameter:
-            title_url = "{}/projects?search={}".format(base_url, search_parameter['title'])
+        elif 'title' in query_parameter:
+            title_url = "{}/projects?search={}".format(base_url, query_parameter['title'])
             data = requests.get(title_url, headers=headers).json()
 
+        elif 'page' in query_parameter:
+            data = gitlab_paginated_data(headers, user_id, page_number=query_parameter['page'])
+            pages = get_page_numbers("https://gitlab.com/api/v4/users/{}/projects".format(user_id), headers)
     else:
-        data = gitlab_paginated_data(headers, user_id)
+        data = gitlab_paginated_data(headers, user_id, page_number='1')
+        pages = get_page_numbers("https://gitlab.com/api/v4/users/{}/projects".format(user_id), headers)
 
-    return get_gitlab_project_data(data, headers, [])
+    return get_gitlab_project_data(data, headers, [], process_info_path), pages
 
 
 def gitlab_fetch_resource(token, resource_id):

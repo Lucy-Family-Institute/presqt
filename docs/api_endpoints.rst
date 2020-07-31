@@ -133,6 +133,39 @@ Target Collection
 
     :statuscode 200: ``Targets`` successfully retrieved
 
+Collection Job
+++++++++++++++
+
+.. http:get::  /api_v1/collection/(str: ticket_number)/
+
+    Get the progress of the ``Collection Process`` for the given ``ticket_number``.
+
+    **Example request**:
+
+    .. sourcecode:: http
+
+        GET /api_v1/collection/c24442a7-fead-4fb8-b56e-d4196ad55482/ HTTP/1.1
+        Host: presqt-prod.crc.nd.edu
+        Accept: application/json
+
+    **Example response**:
+
+    .. sourcecode:: http
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json
+
+        {
+            "total_files": 28,
+            "files_finished": 22
+        }
+
+    :reqheader presqt-source-token: User's ``Token`` for the source target
+    :statuscode 200: ``Collection`` progress successfully retrieved
+    :statuscode 400: ``presqt-source-token`` missing in the request headers
+    :statuscode 401: Header ``presqt-source-token`` does not match the ``presqt-source-token`` for this server process
+    :statuscode 404: Invalid ``Ticket Number``
+
 Target Details
 ++++++++++++++
 
