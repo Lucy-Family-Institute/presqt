@@ -13,12 +13,22 @@ def get_page_numbers(url, headers, page_number):
         GitHub authorization headers
     page_number : str
         The page number of the initial request
-    
+
     Returns
     -------
     A dictionary of page numbers
     """
-    pagination_info = requests.get(url, headers=headers).headers['Link']
+    try:
+        pagination_info = requests.get(url, headers=headers).headers['Link']
+    except KeyError:
+        return {
+            "first_page": '1',
+            "previous_page": None,
+            "next_page": None,
+            "last_page": '1',
+            "total_pages": '1',
+            "per_page": 30
+        }
 
     previous_page = None
     next_page = None
