@@ -65,14 +65,14 @@ def figshare_fetch_resources(token, query_parameter, process_info_path):
             if response.status_code != 200:
                 raise PresQTResponseException("Project with id, {}, can not be found.".format(query_parameter['id']),
                                               status.HTTP_404_NOT_FOUND)
-        return get_search_project_data(response.json(), headers, [], process_info_path)
+        return get_search_project_data(response.json(), headers, []), pages
 
     else:
         if query_parameter and 'page' in query_parameter:
             url = "{}account/projects?page={}".format(base_url, query_parameter['page'])
         else:
             url = "{}account/projects?page=1".format(base_url)
-        
+
         response_data = requests.get(url, headers=headers).json()
 
     return get_figshare_project_data(response_data, headers, [], process_info_path), pages
