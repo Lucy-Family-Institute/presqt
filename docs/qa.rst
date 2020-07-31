@@ -7,6 +7,12 @@ QA Testing
 
    <a href="https://presqt-prod.crc.nd.edu" target="_blank">Click here</a>
 
+|training_link|
+
+.. |training_link| raw:: html
+
+   <a href="https://drive.google.com/drive/folders/1FxFYatauUq5swIlPHwm4hAnlSBB41c7u?usp=sharing" target="_blank">Demo Videos</a>
+
 Resources
 ---------
 We use the term ``resources`` for all content such as files, folders, projects, repos, items, etc.
@@ -81,6 +87,12 @@ Navigate and Searching The Resource Collection
 
    <a href="https://presqt-prod.crc.nd.edu" target="_blank">Click here</a>
 
+|training_link|
+
+.. |training_link| raw:: html
+
+   <a href="https://drive.google.com/drive/folders/1FxFYatauUq5swIlPHwm4hAnlSBB41c7u?usp=sharing" target="_blank">Demo Videos</a>
+
 1. After logging in you can navigate through your ``Resource Collection`` by clicking on the folders and files on the left.
 2. Clicking on a resource shows you the ``Resource Details`` on the right.
 
@@ -110,6 +122,12 @@ Resource Download
 .. |qa_location_link| raw:: html
 
    <a href="https://presqt-prod.crc.nd.edu" target="_blank">Click here</a>
+
+|training_link|
+
+.. |training_link| raw:: html
+
+   <a href="https://drive.google.com/drive/folders/1FxFYatauUq5swIlPHwm4hAnlSBB41c7u?usp=sharing" target="_blank">Demo Videos</a>
 
 1. To download a resource, first select the resource in the ``resource collection`` and then click
 the ``Download`` action button in the details section.
@@ -144,6 +162,12 @@ Resource Upload
 .. |qa_location_link| raw:: html
 
    <a href="https://presqt-prod.crc.nd.edu" target="_blank">Click here</a>
+
+|training_link|
+
+.. |training_link| raw:: html
+
+   <a href="https://drive.google.com/drive/folders/1FxFYatauUq5swIlPHwm4hAnlSBB41c7u?usp=sharing" target="_blank">Demo Videos</a>
 
 Upload As A New Project
 +++++++++++++++++++++++
@@ -220,6 +244,12 @@ Resource Transfer
 .. |qa_location_link| raw:: html
 
    <a href="https://presqt-prod.crc.nd.edu" target="_blank">Click here</a>
+
+|training_link|
+
+.. |training_link| raw:: html
+
+   <a href="https://drive.google.com/drive/folders/1FxFYatauUq5swIlPHwm4hAnlSBB41c7u?usp=sharing" target="_blank">Demo Videos</a>
 
 1. To transfer a resource to another target, first select the resource in the ``resource collection``
 and then click the ``Transfer`` button in the details section.
@@ -332,6 +362,12 @@ Services
 .. |qa_location_link| raw:: html
 
    <a href="https://presqt-prod.crc.nd.edu" target="_blank">Click here</a>
+
+|training_link|
+
+.. |training_link| raw:: html
+
+   <a href="https://drive.google.com/drive/folders/1FxFYatauUq5swIlPHwm4hAnlSBB41c7u?usp=sharing" target="_blank">Demo Videos</a>
 
 Send a Proposal to EaaSI
 ++++++++++++++++++++++++
