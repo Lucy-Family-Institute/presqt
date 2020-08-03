@@ -107,8 +107,6 @@ class ResourceCollection(BaseResource):
             except PresQTResponseException as e:
                 # Catch any errors that happen within the search validation
                 return Response(data={'error': e.data}, status=e.status_code)
-            else:
-                query_params = {}
 
         # Create a ticket_number directory for progress check-ins
         ticket_number = uuid.uuid4()

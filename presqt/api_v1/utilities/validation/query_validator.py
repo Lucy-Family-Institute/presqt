@@ -22,7 +22,7 @@ def query_validator(query_parameter, target_name):
         The search value and the page number.
     """
     # Check that the search query only has max of two keys.
-    if len(query_parameter.keys()) > 1:
+    if len(query_parameter.keys()) > 2:
         raise PresQTResponseException('PresQT Error: The search query is not formatted correctly.',
                                       status.HTTP_400_BAD_REQUEST)
 
@@ -46,8 +46,11 @@ def query_validator(query_parameter, target_name):
     if query_parameter:
         target_data = get_target_data(target_name)
         list_of_search_params = target_data['search_parameters']
+        
         # Check that the query parameter is in list of accepted searches
         for key in query_parameter.keys():
+            if key == 'page':
+                continue
             if key not in list_of_search_params:
                 raise PresQTResponseException('PresQT Error: {} does not support {} as a search parameter.'.format(
                     target_data['readable_name'], key),
