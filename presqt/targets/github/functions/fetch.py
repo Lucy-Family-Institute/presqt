@@ -61,17 +61,32 @@ def github_fetch_resources(token, query_parameter, process_info_path):
         "per_page": 30}
 
     if query_parameter:
+        page_number = '1'
+
         if 'author' in query_parameter:
             search_url = "https://api.github.com/users/{}/repos".format(query_parameter['author'])
+            if 'page' in query_parameter:
+                # Add page number to our url
+                search_url = "https://api.github.com/users/{}/repos?page={}".format(
+                    query_parameter['author'], query_parameter['page'])
+                page_number = query_parameter['page']
             initial_data = requests.get(search_url, headers=header)
+
             if initial_data.status_code != 200:
                 return [], pages
+
             data = initial_data.json()
+            pages = get_page_numbers(search_url, header, page_number)
 
         elif 'general' in query_parameter:
             search_url = "https://api.github.com/search/repositories?q={}".format(
                 query_parameter['general'])
+            if 'page' in query_parameter:
+                search_url = "https://api.github.com/search/repositories?q={}&page={}".format(
+                    query_parameter['general'], query_parameter['page'])
             data = requests.get(search_url, headers=header).json()['items']
+
+            pages = get_page_numbers(search_url, header, page_number)
 
         elif 'id' in query_parameter:
             query_parameters = query_parameter['id']
@@ -85,13 +100,21 @@ def github_fetch_resources(token, query_parameter, process_info_path):
             query_parameters = query_parameter['title'].replace(' ', '+')
             search_url = "https://api.github.com/search/repositories?q={}+in:name+sort:updated".format(
                 query_parameters)
+            if 'page' in query_parameter:
+                search_url = search_url = "https://api.github.com/search/repositories?q={}+in:name+sort:updated&page={}".format(
+                    query_parameters, query_parameter['page'])
             data = requests.get(search_url, headers=header).json()['items']
+            pages = get_page_numbers(search_url, header, page_number)
 
         elif 'keywords' in query_parameter:
             query_parameters = query_parameter['keywords'].replace(' ', '+')
             search_url = "https://api.github.com/search/repositories?q={}+in:topics+sort:updated".format(
                 query_parameters)
+            if 'page' in query_parameter:
+                search_url = "https://api.github.com/search/repositories?q={}+in:topics+sort:updated&page={}".format(
+                    query_parameters, query_parameter['page'])
             data = requests.get(search_url, headers=header).json()['items']
+            pages = get_page_numbers(search_url, header, page_number)
 
         elif 'page' in query_parameter:
             data = github_paginated_data(token, query_parameter['page'])
@@ -184,7 +207,8 @@ def github_fetch_resource(token, resource_id):
         # This initial request will get the repository, which we need to get the proper contents url
         # The contents url contains a username and project name which we don't have readily available
         # to us.
-        initial_repo_get = requests.get('https://api.github.com/repositories/{}'.format(repo_id), headers=header)
+        initial_repo_get = requests.get(
+            'https://api.github.com/repositories/{}'.format(repo_id), headers=header)
         repo_data = initial_repo_get.json()
         if initial_repo_get.status_code != 200:
             raise PresQTResponseException("The resource could not be found by the requesting user.",
@@ -201,7 +225,8 @@ def github_fetch_resource(token, resource_id):
             for tree in trees_response.json()['tree']:
                 if path_to_resource == tree['path']:
                     file_sha = tree['sha']
-            git_blob_url = 'https://api.github.com/repos/{}/git/blobs/{}'.format(repo_data['full_name'], file_sha)
+            git_blob_url = 'https://api.github.com/repos/{}/git/blobs/{}'.format(
+                repo_data['full_name'], file_sha)
             file_get = requests.get(git_blob_url, headers=header)
             file_json = file_get.json()
             file_json['name'] = path_to_resource.rpartition('/')[2]
