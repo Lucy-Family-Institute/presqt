@@ -76,16 +76,13 @@ def gitlab_fetch_resources(token, query_parameter, process_info_path):
                     return [], pages
                 url = "https://gitlab.com/api/v4/users/{}/projects".format(
                     author_response_json[0]['id'])
-                if 'pages' in query_parameter:
+                if 'page' in query_parameter:
                     url = "https://gitlab.com/api/v4/users/{}/projects?page={}".format(
                         author_response_json[0]['id'], query_parameter['page'])
 
             elif 'general' in query_parameter:
                 url = "{}/projects?search={}".format(
                     base_url, query_parameter['general'])
-                if 'page' in query_parameter:
-                    url = "{}/projects?search={}&page={}".format(
-                        base_url, query_parameter['general'], query_parameter['page'])
 
             elif 'id' in query_parameter:
                 project_url = "{}projects/{}".format(base_url, query_parameter['id'])
@@ -97,10 +94,10 @@ def gitlab_fetch_resources(token, query_parameter, process_info_path):
 
             elif 'title' in query_parameter:
                 url = "{}/projects?search={}".format(base_url, query_parameter['title'])
-                if 'page' in query_parameter:
-                    url = "{}/projects?search={}&page={}".format(
-                        base_url, query_parameter['title'], query_parameter['page'])
 
+            if 'page' in query_parameter and 'page' not in url:
+                url = '{}&page={}'.format(url, query_parameter['page'])
+    
             data = requests.get(url, headers=headers).json()
             pages = get_page_numbers(url, headers)
 
