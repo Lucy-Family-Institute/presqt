@@ -59,53 +59,50 @@ def gitlab_fetch_resources(token, query_parameter, process_info_path):
         "total_pages": '1',
         "per_page": 20}
 
-    if query_parameter:
-        if 'author' in query_parameter:
-            author_url = "{}users?username={}".format(base_url, query_parameter['author'])
-            if 'page' in query_parameter:
-                author_url = "{}users?username={}&page={}".format(
-                    base_url, query_parameter['author'], query_parameter['page'])
-            author_response_json = requests.get(author_url, headers=headers).json()
-            if not author_response_json:
-                return [], pages
-            data = requests.get(
-                "https://gitlab.com/api/v4/users/{}/projects".format(author_response_json[0]['id']),
-                headers=headers).json()
-            pages = get_page_numbers(author_url, headers)
-
-        elif 'general' in query_parameter:
-            search_url = "{}/projects?search={}".format(
-                base_url, query_parameter['general'])
-            if 'page' in query_parameter:
-                search_url = "{}/projects?search={}&page={}".format(
-                    base_url, query_parameter['general'], query_parameter['page'])
-            data = requests.get(search_url, headers=headers).json()
-            pages = get_page_numbers(search_url, headers)
-
-        elif 'id' in query_parameter:
-            project_url = "{}projects/{}".format(base_url, query_parameter['id'])
-            project_response = requests.get(project_url, headers=headers)
-
-            if project_response.status_code == 404:
-                return [], pages
-            data = [project_response.json()]
-
-        elif 'title' in query_parameter:
-            title_url = "{}/projects?search={}".format(base_url, query_parameter['title'])
-            if 'page' in query_parameter:
-                title_url = "{}/projects?search={}&page={}".format(
-                    base_url, query_parameter['title'], query_parameter['page'])
-            data = requests.get(title_url, headers=headers).json()
-            pages = get_page_numbers(title_url, headers)
-
-        elif 'page' in query_parameter:
-            data = gitlab_paginated_data(headers, user_id, page_number=query_parameter['page'])
-            pages = get_page_numbers(
-                "https://gitlab.com/api/v4/users/{}/projects".format(user_id), headers)
-    else:
-        data = gitlab_paginated_data(headers, user_id, page_number='1')
+    if len(query_parameter.keys()) == 1 and 'page' in query_parameter:
+        data = gitlab_paginated_data(headers, user_id, page_number=query_parameter['page'])
         pages = get_page_numbers(
             "https://gitlab.com/api/v4/users/{}/projects".format(user_id), headers)
+    else:
+        if not query_parameter:
+            data = gitlab_paginated_data(headers, user_id, page_number='1')
+            pages = get_page_numbers(
+                "https://gitlab.com/api/v4/users/{}/projects".format(user_id), headers)
+        else:
+            if 'author' in query_parameter:
+                author_url = "{}users?username={}".format(base_url, query_parameter['author'])
+                author_response_json = requests.get(author_url, headers=headers).json()
+                if not author_response_json:
+                    return [], pages
+                url = "https://gitlab.com/api/v4/users/{}/projects".format(
+                    author_response_json[0]['id'])
+                if 'pages' in query_parameter:
+                    url = "https://gitlab.com/api/v4/users/{}/projects?page={}".format(
+                        author_response_json[0]['id'], query_parameter['page'])
+
+            elif 'general' in query_parameter:
+                url = "{}/projects?search={}".format(
+                    base_url, query_parameter['general'])
+                if 'page' in query_parameter:
+                    url = "{}/projects?search={}&page={}".format(
+                        base_url, query_parameter['general'], query_parameter['page'])
+
+            elif 'id' in query_parameter:
+                project_url = "{}projects/{}".format(base_url, query_parameter['id'])
+                project_response = requests.get(project_url, headers=headers)
+
+                if project_response.status_code == 404:
+                    return [], pages
+                return get_gitlab_project_data([project_response.json()], headers, [], process_info_path), pages
+
+            elif 'title' in query_parameter:
+                url = "{}/projects?search={}".format(base_url, query_parameter['title'])
+                if 'page' in query_parameter:
+                    url = "{}/projects?search={}&page={}".format(
+                        base_url, query_parameter['title'], query_parameter['page'])
+
+            data = requests.get(url, headers=headers).json()
+            pages = get_page_numbers(url, headers)
 
     return get_gitlab_project_data(data, headers, [], process_info_path), pages
 
