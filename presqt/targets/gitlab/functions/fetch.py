@@ -62,17 +62,25 @@ def gitlab_fetch_resources(token, query_parameter, process_info_path):
     if query_parameter:
         if 'author' in query_parameter:
             author_url = "{}users?username={}".format(base_url, query_parameter['author'])
+            if 'page' in query_parameter:
+                author_url = "{}users?username={}&page={}".format(
+                    base_url, query_parameter['author'], query_parameter['page'])
             author_response_json = requests.get(author_url, headers=headers).json()
             if not author_response_json:
                 return [], pages
             data = requests.get(
                 "https://gitlab.com/api/v4/users/{}/projects".format(author_response_json[0]['id']),
                 headers=headers).json()
+            pages = get_page_numbers(author_url, headers)
 
         elif 'general' in query_parameter:
             search_url = "{}search?scope=projects&search={}".format(
                 base_url, query_parameter['general'])
+            if 'page' in query_parameter:
+                search_url = "{}search?scope=projects&search={}&page={}".format(
+                    base_url, query_parameter['general'], query_parameter['page'])
             data = requests.get(search_url, headers=headers).json()
+            pages = get_page_numbers(search_url, headers)
 
         elif 'id' in query_parameter:
             project_url = "{}projects/{}".format(base_url, query_parameter['id'])
@@ -84,14 +92,20 @@ def gitlab_fetch_resources(token, query_parameter, process_info_path):
 
         elif 'title' in query_parameter:
             title_url = "{}/projects?search={}".format(base_url, query_parameter['title'])
+            if 'page' in query_parameter:
+                title_url = "{}/projects?search={}&page={}".format(
+                    base_url, query_parameter['title'], query_parameter['page'])
             data = requests.get(title_url, headers=headers).json()
+            pages = get_page_numbers(title_url, headers)
 
         elif 'page' in query_parameter:
             data = gitlab_paginated_data(headers, user_id, page_number=query_parameter['page'])
-            pages = get_page_numbers("https://gitlab.com/api/v4/users/{}/projects".format(user_id), headers)
+            pages = get_page_numbers(
+                "https://gitlab.com/api/v4/users/{}/projects".format(user_id), headers)
     else:
         data = gitlab_paginated_data(headers, user_id, page_number='1')
-        pages = get_page_numbers("https://gitlab.com/api/v4/users/{}/projects".format(user_id), headers)
+        pages = get_page_numbers(
+            "https://gitlab.com/api/v4/users/{}/projects".format(user_id), headers)
 
     return get_gitlab_project_data(data, headers, [], process_info_path), pages
 
