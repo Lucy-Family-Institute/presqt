@@ -1,15 +1,11 @@
-import fnmatch
 import json
-import re
 import requests
-
-from natsort import natsorted
 
 from rest_framework import status
 
 from presqt.targets.utilities import run_urls_async_with_pagination, get_duplicate_title
 from presqt.utilities import (PresQTResponseException, PresQTInvalidTokenError,
-                              get_dictionary_from_list, list_differences, write_file,
+                              get_dictionary_from_list, list_differences,
                               update_process_info, increment_process_info)
 from presqt.targets.osf.classes.base import OSFBase
 from presqt.targets.osf.classes.file import File
