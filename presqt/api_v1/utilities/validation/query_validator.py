@@ -28,6 +28,7 @@ def query_validator(query_parameter, target_name):
 
     page_number = '1'
     search_value = ''
+    search_params = {}
 
     try:
         list(query_parameter.keys()).index('page')
@@ -59,6 +60,8 @@ def query_validator(query_parameter, target_name):
                 if (regex.search(query_parameter['title']) is not None):
                     raise PresQTResponseException('PresQT Error: The search query is not formatted correctly.',
                                                   status.HTTP_400_BAD_REQUEST)
+            key = key
             search_value = query_parameter[key]
+            search_params = {key: search_value}
 
-    return search_value, page_number
+    return search_value, page_number, search_params

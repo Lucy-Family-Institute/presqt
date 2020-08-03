@@ -100,7 +100,7 @@ class ResourceCollection(BaseResource):
         # Validate the search query if there is one.
         if query_params != {}:
             try:
-                search_value, page_number = query_validator(query_params, target_name)
+                search_value, page_number, search_params = query_validator(query_params, target_name)
                 if search_value.isspace() or search_value == '' and page_number == '1':
                     # If title is empty, we want to only return user resources.
                     query_params = {}
@@ -137,6 +137,6 @@ class ResourceCollection(BaseResource):
         serializer = ResourcesSerializer(instance=resources, many=True, context={
                                          'target_name': target_name,
                                          'request': request})
-        linked_pages = page_links(self, target_name, pages)
+        linked_pages = page_links(self, target_name, search_params, pages)
 
         return Response({"resources": serializer.data, "pages": linked_pages})
