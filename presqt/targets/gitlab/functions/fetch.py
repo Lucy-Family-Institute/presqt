@@ -74,10 +74,10 @@ def gitlab_fetch_resources(token, query_parameter, process_info_path):
             pages = get_page_numbers(author_url, headers)
 
         elif 'general' in query_parameter:
-            search_url = "{}search?scope=projects&search={}".format(
+            search_url = "{}/projects?search={}".format(
                 base_url, query_parameter['general'])
             if 'page' in query_parameter:
-                search_url = "{}search?scope=projects&search={}&page={}".format(
+                search_url = "{}/projects?search={}&page={}".format(
                     base_url, query_parameter['general'], query_parameter['page'])
             data = requests.get(search_url, headers=headers).json()
             pages = get_page_numbers(search_url, headers)
