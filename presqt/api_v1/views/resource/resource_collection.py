@@ -100,13 +100,15 @@ class ResourceCollection(BaseResource):
         # Validate the search query if there is one.
         if query_params != {}:
             try:
-                query_params_value = query_validator(query_params, target_name)
-                if query_params_value.isspace() or query_params_value == '':
+                search_value, page_number = query_validator(query_params, target_name)
+                if search_value.isspace() or search_value == '' and page_number == '1':
                     # If title is empty, we want to only return user resources.
                     query_params = {}
             except PresQTResponseException as e:
                 # Catch any errors that happen within the search validation
                 return Response(data={'error': e.data}, status=e.status_code)
+            else:
+                query_params = {}
 
         # Create a ticket_number directory for progress check-ins
         ticket_number = uuid.uuid4()
