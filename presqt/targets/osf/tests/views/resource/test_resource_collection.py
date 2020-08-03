@@ -39,7 +39,7 @@ class TestResourceCollection(SimpleTestCase):
         Return a 200 if the GET method is successful when grabbing OSF resources with a search query.
         """
         url = reverse('resource_collection', kwargs={'target_name': 'osf'})
-        response = self.client.get(url+'?title=hcv+and+nhl+risk', **self.header)
+        response = self.client.get(url+'?title=hcv+and+nhl+risk&page=1', **self.header)
         # Verify the Status Code
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
@@ -66,7 +66,7 @@ class TestResourceCollection(SimpleTestCase):
             self.assertListEqual(keys, list(data.keys()))
 
         # Search By Author
-        response = self.client.get(url+'?author=Prometheus', **self.header)
+        response = self.client.get(url+'?author=Prometheus&page=1', **self.header)
         # Verify the Status Code
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
@@ -117,7 +117,7 @@ class TestResourceCollection(SimpleTestCase):
         """
         url = reverse('resource_collection', kwargs={'target_name': 'osf'})
         # TOO MANY KEYS
-        response = self.client.get(url + '?title=hat&spaghetti=egg', **self.header)
+        response = self.client.get(url + '?title=hat&spaghetti=egg&banana=TRUE', **self.header)
 
         self.assertEqual(response.data['error'],
                          'PresQT Error: The search query is not formatted correctly.')
