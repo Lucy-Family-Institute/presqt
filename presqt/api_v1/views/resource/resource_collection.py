@@ -97,6 +97,7 @@ class ResourceCollection(BaseResource):
             return Response(data={'error': e.data}, status=e.status_code)
 
         query_params = request.query_params
+        search_params = {}
         # Validate the search query if there is one.
         if query_params != {}:
             try:
