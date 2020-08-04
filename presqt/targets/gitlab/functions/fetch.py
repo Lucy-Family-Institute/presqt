@@ -59,6 +59,7 @@ def gitlab_fetch_resources(token, query_parameter, process_info_path):
         "total_pages": '1',
         "per_page": 20}
 
+    # If there's only one query parameter and the key is page
     if len(query_parameter.keys()) == 1 and 'page' in query_parameter:
         data = gitlab_paginated_data(headers, user_id, page_number=query_parameter['page'])
         pages = get_page_numbers(
