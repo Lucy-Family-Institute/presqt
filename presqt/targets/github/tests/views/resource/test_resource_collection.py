@@ -61,7 +61,7 @@ class TestResourceCollection(SimpleTestCase):
         parameters.
         """
         url = reverse('resource_collection', kwargs={'target_name': 'github'})
-        response = self.client.get(url + '?title=automated+nhl+goal+light', **self.header)
+        response = self.client.get(url + '?title=automated+nhl+goal+light&page=1', **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
@@ -79,7 +79,7 @@ class TestResourceCollection(SimpleTestCase):
             self.assertListEqual(keys, list(data.keys()))
 
         #### Search by Author ####
-        response = self.client.get(url + '?author=eikonomega', **self.header)
+        response = self.client.get(url + '?author=eikonomega&page=1', **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
@@ -88,7 +88,7 @@ class TestResourceCollection(SimpleTestCase):
             self.assertListEqual(keys, list(data.keys()))
 
         ### Search by General ###
-        response = self.client.get(url + '?general=egg', **self.header)
+        response = self.client.get(url + '?general=egg&page=2', **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
@@ -134,7 +134,7 @@ class TestResourceCollection(SimpleTestCase):
         """
         url = reverse('resource_collection', kwargs={'target_name': 'github'})
         # TOO MANY KEYS
-        response = self.client.get(url + '?title=hat&spaghetti=egg', **self.header)
+        response = self.client.get(url + '?title=hat&spaghetti=egg&banana=TRUE', **self.header)
 
         self.assertEqual(response.data['error'],
                          'PresQT Error: The search query is not formatted correctly.')

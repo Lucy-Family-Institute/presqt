@@ -97,11 +97,12 @@ class ResourceCollection(BaseResource):
             return Response(data={'error': e.data}, status=e.status_code)
 
         query_params = request.query_params
+        search_params = {}
         # Validate the search query if there is one.
         if query_params != {}:
             try:
-                query_params_value = query_validator(query_params, target_name)
-                if query_params_value.isspace() or query_params_value == '':
+                search_value, page_number, search_params = query_validator(query_params, target_name)
+                if search_value.isspace() or search_value == '' and page_number == '1':
                     # If title is empty, we want to only return user resources.
                     query_params = {}
             except PresQTResponseException as e:
@@ -135,6 +136,6 @@ class ResourceCollection(BaseResource):
         serializer = ResourcesSerializer(instance=resources, many=True, context={
                                          'target_name': target_name,
                                          'request': request})
-        linked_pages = page_links(self, target_name, pages)
+        linked_pages = page_links(self, target_name, search_params, pages)
 
         return Response({"resources": serializer.data, "pages": linked_pages})
