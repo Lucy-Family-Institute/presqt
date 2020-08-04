@@ -97,7 +97,7 @@ def gitlab_fetch_resources(token, query_parameter, process_info_path):
 
             if 'page' in query_parameter and 'page' not in url:
                 url = '{}&page={}'.format(url, query_parameter['page'])
-    
+
             data = requests.get(url, headers=headers).json()
             pages = get_page_numbers(url, headers)
 
