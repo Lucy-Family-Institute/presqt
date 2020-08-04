@@ -60,8 +60,7 @@ def github_fetch_resources(token, query_parameter, process_info_path):
         "total_pages": '1',
         "per_page": 30}
 
-    data = None
-
+    # If there's only one query parameter and the key is page
     if len(query_parameter.keys()) == 1 and 'page' in query_parameter:
         page_number = query_parameter['page']
         data = github_paginated_data(token, page_number)
@@ -87,6 +86,7 @@ def github_fetch_resources(token, query_parameter, process_info_path):
             page_number = query_parameter['page']
             url = "https://api.github.com/search/repositories?q={}&page={}".format(
                 query_parameter['general'], page_number)
+        data = requests.get(url, headers=header).json()['items']
 
     elif 'id' in query_parameter:
         query_parameters = query_parameter['id']
@@ -104,6 +104,7 @@ def github_fetch_resources(token, query_parameter, process_info_path):
             page_number = query_parameter['page']
             url = "https://api.github.com/search/repositories?q={}+in:name+sort:updated&page={}".format(
                 query_parameters, page_number)
+        data = requests.get(url, headers=header).json()['items']
 
     elif 'keywords' in query_parameter:
         query_parameters = query_parameter['keywords'].replace(' ', '+')
@@ -113,12 +114,12 @@ def github_fetch_resources(token, query_parameter, process_info_path):
             page_number = query_parameter['page']
             url = "https://api.github.com/search/repositories?q={}+in:topics+sort:updated&page={}".format(
                 query_parameters, page_number)
+        data = requests.get(url, headers=header).json()['items']
+
     else:
         data = github_paginated_data(token, '1')
         url = "https://api.github.com/user/repos?page=1"
 
-    if not data:
-        data = requests.get(url, headers=header).json()['items']
     pages = get_page_numbers(url, header, page_number)
 
     return get_github_repository_data(data, header, process_info_path, []), pages

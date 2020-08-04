@@ -16,7 +16,7 @@ def query_validator(query_parameter, target_name):
         The query parameter passed to the view.
     target_name : str
         The name of the target.
-    
+
     Returns
     -------
         The search value and the page number.
@@ -26,15 +26,12 @@ def query_validator(query_parameter, target_name):
         raise PresQTResponseException('PresQT Error: The search query is not formatted correctly.',
                                       status.HTTP_400_BAD_REQUEST)
 
+    # Set defaults to be used if function returns nothing
     page_number = '1'
     search_value = ''
     search_params = {}
 
-    try:
-        list(query_parameter.keys()).index('page')
-    except ValueError:
-        pass
-    else:
+    if 'page' in query_parameter:
         try:
             int(query_parameter['page'])
         except ValueError:
@@ -43,28 +40,26 @@ def query_validator(query_parameter, target_name):
         else:
             page_number = query_parameter['page']
 
-    if query_parameter:
-        target_data = get_target_data(target_name)
-        list_of_search_params = target_data['search_parameters']
-        
-        # Check that the query parameter is in list of accepted searches
-        for key in query_parameter.keys():
-            if key == 'page':
-                continue
-            if key not in list_of_search_params:
-                raise PresQTResponseException('PresQT Error: {} does not support {} as a search parameter.'.format(
-                    target_data['readable_name'], key),
-                    status.HTTP_400_BAD_REQUEST)
+    target_data = get_target_data(target_name)
+    list_of_search_params = target_data['search_parameters']
 
-            # Ensure that there are no special characters in the search.
-            regex = re.compile('[@_!#$%^&*()<>?/\|}{~:]')
+    # Check that the query parameter is in list of accepted searches
+    for key in query_parameter.keys():
+        if key == 'page':
+            continue
+        if key not in list_of_search_params:
+            raise PresQTResponseException('PresQT Error: {} does not support {} as a search parameter.'.format(
+                target_data['readable_name'], key),
+                status.HTTP_400_BAD_REQUEST)
 
-            if 'title' in query_parameter:
-                if (regex.search(query_parameter['title']) is not None):
-                    raise PresQTResponseException('PresQT Error: The search query is not formatted correctly.',
-                                                  status.HTTP_400_BAD_REQUEST)
-            key = key
-            search_value = query_parameter[key]
-            search_params = {key: search_value}
+        # Ensure that there are no special characters in the search.
+        regex = re.compile('[@_!#$%^&*()<>?/\|}{~:]')
+
+        if 'title' in query_parameter:
+            if (regex.search(query_parameter['title']) is not None):
+                raise PresQTResponseException('PresQT Error: The search query is not formatted correctly.',
+                                              status.HTTP_400_BAD_REQUEST)
+        search_value = query_parameter[key]
+        search_params = {key: search_value}
 
     return search_value, page_number, search_params
