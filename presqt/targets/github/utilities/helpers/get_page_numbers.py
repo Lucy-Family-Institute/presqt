@@ -39,10 +39,10 @@ def get_page_numbers(url, headers, page_number):
         previous_page = int(page_number) - 1
 
     if '; rel="last"' in pagination_info:
-        last_page = pagination_info.rpartition(', ')[2].rpartition('>')[0].rpartition('=')[2]
+        last_page = pagination_info.partition('>; rel="last')[0].rpartition('=')[2]
 
     if '; rel="next"' in pagination_info:
-        next_page = pagination_info.partition('>')[0].rpartition('=')[2]
+        next_page = pagination_info.partition('>; rel="next')[0].rpartition('=')[2]
 
     pages = {
         "first_page": '1',
