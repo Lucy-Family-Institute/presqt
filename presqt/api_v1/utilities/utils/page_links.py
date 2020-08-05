@@ -20,6 +20,7 @@ def page_links(self, target_name, search_params, pages):
     """
     reversed_url = reverse('resource_collection', kwargs={'target_name': target_name})
     base_url = self.request.build_absolute_uri(reversed_url).rpartition('/')[0]
+    base_page = "{}?page=".format(base_url)
 
     # Set previous and next page variables pulling from passed in pages dict
     previous_page = pages['previous_page']
@@ -28,6 +29,7 @@ def page_links(self, target_name, search_params, pages):
     if search_params:
         search_key = list(search_params.keys())[0]
         search_value = list(search_params.values())[0]
+        base_page = "{}?{}={}&page=".format(base_url, search_key, search_value)
 
         # Check for no values
         if previous_page:
@@ -53,8 +55,9 @@ def page_links(self, target_name, search_params, pages):
         "previous_page": previous_page,
         "next_page": next_page,
         "last_page": last_page,
-        "total_pages": pages['total_pages'],
-        "per_page": pages['per_page']
+        "total_pages": int(pages['total_pages']),
+        "per_page": int(pages['per_page']),
+        "base_page": base_page
     }
 
     return linked_pages
