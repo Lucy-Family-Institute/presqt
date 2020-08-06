@@ -50,14 +50,14 @@ class TestDownload(SimpleTestCase):
         # Verify the fixity file is empty as there was nothing to check.
         with zip_file.open('github_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
-            self.assertEqual(len(zip_json), 2)
+            self.assertEqual(len(zip_json), 1)
 
         file_path = "{}_download_{}/data/PrivateProject/README.md".format(
             self.target_name, resource_id)
         # Verify that the folder exists
         self.assertIn(file_path, zip_file.namelist())
 
-        # Verify there is only two entry that contains this folder
+        # Verify there is only one entry that contains this folder
         count_of_file_references = zip_file.namelist().count(file_path)
         self.assertEqual(count_of_file_references, 1)
 

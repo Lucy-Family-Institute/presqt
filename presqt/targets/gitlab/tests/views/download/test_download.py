@@ -45,12 +45,13 @@ class TestDownload(SimpleTestCase):
         # Verify content type
         self.assertEqual(response._headers['content-type'][1], 'application/zip')
         # Verify the number of resources in the zip is correct
+        print(zip_file.namelist())
         self.assertEqual(len(zip_file.namelist()), 13)
 
         # Verify the fixity file is empty as there was nothing to check.
         with zip_file.open('gitlab_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
-            self.assertEqual(len(zip_json), 1)
+            self.assertEqual(len(zip_json), 2)
 
         file_path = "{}_download_{}/data/Test Project/README.md".format(
            self.target_name, resource_id)
