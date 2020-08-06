@@ -27,6 +27,8 @@ def get_page_numbers(url, token):
     # If there is only 1 page of results, instead of a number Curate returns 'self'
     if total_pages == 'self':
         total_pages = '1'
+    if total_pages == '':
+        total_pages = '1'
 
     # We are using partitions to pull the page numbers out of the links that Curate is returning
     if 'previousPage' in pagination_info.keys():
