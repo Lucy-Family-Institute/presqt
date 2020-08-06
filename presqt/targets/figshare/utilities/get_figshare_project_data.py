@@ -22,9 +22,10 @@ def get_figshare_project_data(initial_data, headers, resources, process_info_pat
     -------
     A list of resources.
     """
-    # Add the total number of articles to the process info file.
-    # This is necessary to keep track of the progress of the request.
-    update_process_info(process_info_path, len(initial_data))
+    if process_info_path:
+        # Add the total number of articles to the process info file.
+        # This is necessary to keep track of the progress of the request.
+        update_process_info(process_info_path, len(initial_data))
 
     for project in initial_data:
         # Increment the number of files done in the process info file.
@@ -99,8 +100,9 @@ def get_search_project_data(initial_data, headers, resources, process_info_path)
         update_process_info(process_info_path, len(article_get))
 
     for article in article_get:
-        # Increment the number of files done in the process info file.
-        increment_process_info(process_info_path)
+        if process_info_path:
+            # Increment the number of files done in the process info file.
+            increment_process_info(process_info_path)
 
         resources.append({
             "kind": "container",
