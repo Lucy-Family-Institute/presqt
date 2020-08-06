@@ -7,7 +7,7 @@ from presqt.targets.figshare.utilities.get_figshare_project_data import (
 from presqt.utilities import PresQTResponseException
 
 
-def figshare_fetch_resources(token, query_parameter, process_info_path):
+def figshare_fetch_resources(token, query_parameter, process_info_path=None):
     """
     Fetch all users projects from FigShare.
 
