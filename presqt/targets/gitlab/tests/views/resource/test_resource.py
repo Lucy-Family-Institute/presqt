@@ -2,6 +2,7 @@ import json
 import shutil
 import base64
 import requests
+from time import sleep
 from unittest.mock import patch
 
 from rest_framework.reverse import reverse
@@ -180,6 +181,9 @@ class TestResourcePOST(SimpleTestCase):
          `api_v1/targets/{target_name}/resources/`
 
     Testing Gitlab integration.
+
+    NOTE: An 8 second sleep timer was added before every upload call, as GitLabs server can be a bit
+          laggy while processing deletions.
     """
 
     def setUp(self):
@@ -200,6 +204,7 @@ class TestResourcePOST(SimpleTestCase):
         """
         Test that we can successfully upload to existing containers in Gitlab.
         """
+        sleep(8)
         shared_upload_function_gitlab(self)
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
@@ -211,6 +216,7 @@ class TestResourcePOST(SimpleTestCase):
         # Upload to existing repo
         self.resource_id = project_id
         self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': project_id})
+        sleep(8)
         shared_upload_function_gitlab(self)
         shutil.rmtree(self.ticket_path)
 
@@ -219,6 +225,7 @@ class TestResourcePOST(SimpleTestCase):
         self.resources_ignored = [
             '/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
         self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': project_id})
+        sleep(8)
         shared_upload_function_gitlab(self)
         shutil.rmtree(self.ticket_path)
 
@@ -228,6 +235,7 @@ class TestResourcePOST(SimpleTestCase):
         self.resources_ignored = []
         self.url = reverse('resource', kwargs={
                            'target_name': 'gitlab', 'resource_id': self.resource_id})
+        sleep(8)
         shared_upload_function_gitlab(self)
         shutil.rmtree(self.ticket_path)
 
@@ -238,6 +246,7 @@ class TestResourcePOST(SimpleTestCase):
         """
         Test that we will get an error when attempting to upload to a file.
         """
+        sleep(8)
         shared_upload_function_gitlab(self)
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
@@ -284,6 +293,7 @@ class TestResourcePOST(SimpleTestCase):
 
     def test_duplicate_update(self):
         self.file = 'presqt/api_v1/tests/resources/upload/ProjectSingleFileToUpload.zip'
+        sleep(8)
         shared_upload_function_gitlab(self)
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
@@ -298,6 +308,7 @@ class TestResourcePOST(SimpleTestCase):
         self.resources_updated = ['/Screen Shot 2019-07-15 at 3.51.13 PM.png']
         self.url = reverse('resource', kwargs={
                            'target_name': 'gitlab', 'resource_id': self.resource_id})
+        sleep(8)
         shared_upload_function_gitlab(self)
         shutil.rmtree(self.ticket_path)
 
@@ -336,6 +347,7 @@ class TestResourcePOST(SimpleTestCase):
         """
         If a project has invalid metadata, we need to change the name and create a new metadata file.
         """
+        sleep(8)
         shared_upload_function_gitlab(self)
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
@@ -361,6 +373,7 @@ class TestResourcePOST(SimpleTestCase):
         self.resource_id = project_id
         self.url = reverse('resource', kwargs={
                            'target_name': 'gitlab', 'resource_id': self.resource_id})
+        sleep(8)
         shared_upload_function_gitlab(self)
 
         shutil.rmtree(self.ticket_path)
@@ -378,6 +391,7 @@ class TestResourcePOST(SimpleTestCase):
                 self.status_code = status_code
         mock_req = MockResponse({'error': 'The server is down.'}, 500)
 
+        sleep(8)
         shared_upload_function_gitlab(self)
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
@@ -408,6 +422,7 @@ class TestResourcePOST(SimpleTestCase):
                 self.status_code = status_code
         mock_req = MockResponse({'error': 'The server is down.'}, 500)
 
+        sleep(8)
         shared_upload_function_gitlab(self)
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
@@ -442,6 +457,7 @@ class TestResourcePOST(SimpleTestCase):
         delete_gitlab_project(project_id, GITLAB_UPLOAD_TEST_USER_TOKEN)
 
     def test_try_upload_same_duplicate(self):
+        sleep(8)
         shared_upload_function_gitlab(self)
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
@@ -452,6 +468,7 @@ class TestResourcePOST(SimpleTestCase):
         shutil.rmtree(self.ticket_path)
 
         self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': self.resource_id})
+        sleep(8)
         shared_upload_function_gitlab(self)
 
         shutil.rmtree(self.ticket_path)
@@ -459,6 +476,7 @@ class TestResourcePOST(SimpleTestCase):
         self.duplicate_action = 'update'
         self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': self.resource_id})
         self.resources_ignored = ["/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png"]
+        sleep(8)
         shared_upload_function_gitlab(self)
         shutil.rmtree(self.ticket_path)
 
@@ -471,6 +489,7 @@ class TestResourcePOST(SimpleTestCase):
         made aware.
         """
         # 202 when uploading a new top level repo
+        sleep(8)
         shared_upload_function_gitlab(self)
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
@@ -483,6 +502,7 @@ class TestResourcePOST(SimpleTestCase):
         self.resources_ignored = ['/Egg/Empty_Folder']
         self.resource_id = project_id
         self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': self.resource_id})
+        sleep(8)
         shared_upload_function_gitlab(self)
 
         # Delete upload folder
@@ -500,6 +520,7 @@ class TestResourcePOST(SimpleTestCase):
         mock_req = MockResponse({'error': 'The server is down.'}, 500)
 
         # 202 when uploading a new top level repo
+        sleep(8)
         shared_upload_function_gitlab(self)
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
