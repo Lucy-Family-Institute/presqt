@@ -675,7 +675,7 @@ class TestTransferJobGET(SimpleTestCase):
 
         response = self.client.post(url, {
             "source_target_name": "osf",
-            "source_resource_id": '5db34c37af84c3000ee1487d', "keywords": []},
+            "source_resource_id": '5db70f51f3bb87000c853575', "keywords": []},
             **headers, format='json')
 
         ticket_number = response.data['ticket_number']
