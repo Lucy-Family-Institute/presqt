@@ -182,7 +182,7 @@ class TestResourcePOST(SimpleTestCase):
 
     Testing Gitlab integration.
 
-    NOTE: An 8 second sleep timer was added before every upload call, as GitLabs server can be a bit
+    NOTE: A sleep timer was added before every upload call, as GitLabs server can be a bit
           laggy while processing deletions.
     """
 

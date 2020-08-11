@@ -51,7 +51,6 @@ class TestResourceKeywords(SimpleTestCase):
         keywords_url = reverse('keywords', kwargs={'target_name': 'gitlab',
                                                    'resource_id': resource_id})
         keywords_response = self.client.get(keywords_url, **self.header)
-        print(keywords_response.data)
         self.assertGreater(keywords_response.data['keywords'], response.data['extra']['tag_list'])
 
     def test_error_project_keywords(self):

@@ -45,7 +45,6 @@ class TestDownload(SimpleTestCase):
         # Verify content type
         self.assertEqual(response._headers['content-type'][1], 'application/zip')
         # Verify the number of resources in the zip is correct
-        print(zip_file.namelist())
         self.assertEqual(len(zip_file.namelist()), 13)
 
         # Verify the fixity file is empty as there was nothing to check.
