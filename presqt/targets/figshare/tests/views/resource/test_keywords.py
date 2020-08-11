@@ -50,7 +50,7 @@ class TestResourceKeywords(SimpleTestCase):
         self.assertEqual(response.status_code, 400)
         # Verify the error message
         self.assertEqual(response.data['error'],
-                         "FigShare files do not have keywords.")
+                         "On FigShare only projects have keywords, not files, therefore PresQT keyword features are not supported at FigShare's file level.")
 
     def test_bad_token(self):
         """
