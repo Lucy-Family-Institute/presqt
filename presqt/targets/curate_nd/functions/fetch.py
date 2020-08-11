@@ -64,6 +64,10 @@ def curate_nd_fetch_resources(token, query_parameter, process_info_path):
             query_parameters = query_parameter['title'].replace(' ', '+')
             search_url = 'https://curate.nd.edu/api/items?q={}&search_fields=title'.format(
                 query_parameters)
+            if 'page' in query_parameter:
+                search_url = 'https://curate.nd.edu/api/items?q={}&search_fields=title&page={}'.format(
+                    query_parameters, query_parameter['page'])
+            pages = get_page_numbers(search_url, token)
             try:
                 resources = curate_instance.get_resources(process_info_path, search_url)
             except PresQTValidationError as e:
@@ -71,6 +75,10 @@ def curate_nd_fetch_resources(token, query_parameter, process_info_path):
 
         elif 'general' in query_parameter:
             search_url = 'https://curate.nd.edu/api/items?q={}'.format(query_parameter['general'])
+            if 'page' in query_parameter:
+                search_url = 'https://curate.nd.edu/api/items?q={}&page={}'.format(
+                    query_parameter['general'], query_parameter['page'])
+            pages = get_page_numbers(search_url, token)
             try:
                 resources = curate_instance.get_resources(process_info_path, search_url)
             except PresQTValidationError as e:
@@ -80,7 +88,8 @@ def curate_nd_fetch_resources(token, query_parameter, process_info_path):
             resources = get_curate_nd_resources_by_id(token, query_parameter['id'])
 
         elif 'page' in query_parameter:
-            url = 'https://curate.nd.edu/api/items?editor=self&page={}'.format(query_parameter['page'])
+            url = 'https://curate.nd.edu/api/items?editor=self&page={}'.format(
+                query_parameter['page'])
             resources = curate_instance.get_resources(process_info_path, url)
             pages = get_page_numbers(url, token)
     else:

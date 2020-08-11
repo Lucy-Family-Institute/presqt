@@ -57,38 +57,47 @@ def osf_fetch_resources(token, query_parameter, process_info_path):
         "last_page": '1',
         "total_pages": '1',
         "per_page": 10}
+        
+    if 'title' in query_parameter:
+        # Format the search that is coming in to be passed to the OSF API
+        query_parameters = query_parameter['title'].replace(' ', '+')
+        url = 'https://api.osf.io/v2/nodes/?filter[title]={}'.format(query_parameters)
+        if 'page' in query_parameter:
+            url = 'https://api.osf.io/v2/nodes/?filter[title]={}&page={}'.format(
+                query_parameters, query_parameter['page'])
 
-    if query_parameter:
-        if 'title' in query_parameter:
-            # Format the search that is coming in to be passed to the OSF API
-            query_parameters = query_parameter['title'].replace(' ', '+')
-            url = 'https://api.osf.io/v2/nodes/?filter[title]={}'.format(query_parameters)
+    elif 'id' in query_parameter:
+        url = 'https://api.osf.io/v2/nodes/?filter[id]={}'.format(query_parameter['id'])
 
-        elif 'id' in query_parameter:
-            url = 'https://api.osf.io/v2/nodes/?filter[id]={}'.format(query_parameter['id'])
+    elif 'author' in query_parameter:
+        query_parameters = query_parameter['author'].replace(' ', '+')
+        user_url = 'https://api.osf.io/v2/users/?filter[full_name]={}'.format(query_parameters)
+        if 'page' in query_parameter:
+            user_url = 'https://api.osf.io/v2/users/?filter[full_name]={}&page={}'.format(
+                query_parameters, query_parameter['page'])
+        user_data = requests.get(user_url, headers={'Authorization': 'Bearer {}'.format(token)})
+        if user_data.status_code != 200 or len(user_data.json()['data']) == 0:
+            return [], pages
+        else:
+            url = user_data.json()[
+                'data'][0]['relationships']['nodes']['links']['related']['href']
 
-        elif 'author' in query_parameter:
-            query_parameters = query_parameter['author'].replace(' ', '+')
-            user_url = 'https://api.osf.io/v2/users/?filter[full_name]={}'.format(query_parameters)
-            user_data = requests.get(user_url, headers={'Authorization': 'Bearer {}'.format(token)})
-            if user_data.status_code != 200 or len(user_data.json()['data']) == 0:
-                return []
-            else:
-                url = user_data.json()[
-                    'data'][0]['relationships']['nodes']['links']['related']['href']
+    elif 'keywords' in query_parameter:
+        query_parameters = query_parameter['keywords'].replace(' ', '+')
+        url = 'https://api.osf.io/v2/nodes/?filter[tags][icontains]={}'.format(query_parameters)
+        if 'page' in query_parameter:
+            url = 'https://api.osf.io/v2/nodes/?filter[tags][icontains]={}&page={}'.format(
+                query_parameters, query_parameter['page'])
 
-        elif 'keywords' in query_parameter:
-            query_parameters = query_parameter['keywords'].replace(' ', '+')
-            url = 'https://api.osf.io/v2/nodes/?filter[tags][icontains]={}'.format(query_parameters)
+    elif 'page' in query_parameter:
+        url = 'https://api.osf.io/v2/users/me/nodes?page={}'.format(query_parameter['page'])
 
-        elif 'page' in query_parameter:
-            url = 'https://api.osf.io/v2/users/me/nodes?page={}'.format(query_parameter['page'])
-            pages = get_page_numbers(url, token)
     else:
         url = "https://api.osf.io/v2/users/me/nodes?page=1"
-        pages = get_page_numbers(url, token)
+    
     try:
         resources = osf_instance.get_resources(process_info_path, url)
+        pages = get_page_numbers(url, token)
     except PresQTValidationError as e:
         raise e
 

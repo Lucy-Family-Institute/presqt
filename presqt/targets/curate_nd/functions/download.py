@@ -100,9 +100,11 @@ def curate_nd_download_resource(token, resource_id):
     files = []
     empty_containers = []
     if resource.kind_name == 'file':
+        title_url = resource.extra['isPartOf']
+        if type(title_url) is list:
+            title_url = resource.extra['isPartOf'][0]
         # Get the title of the Project to add to sourcePath
-        project_title = requests.get(resource.extra['isPartOf'],
-                                     headers={'X-Api-Token': '{}'.format(token)}).json()['title']
+        project_title = requests.get(title_url, headers={'X-Api-Token': '{}'.format(token)}).json()['title']
 
         # This is so we aren't missing the few extra keys that are pulled out for the PresQT payload
         resource.extra.update({"id": resource.id, "date_submitted": resource.date_submitted})

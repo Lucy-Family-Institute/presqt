@@ -41,18 +41,7 @@ class CurateNDBase(object):
         # Get initial data
         response_json = self._json(self.get(url))
         data = response_json['results']
-        pagination = response_json['pagination']
 
-        # Calculate pagination pages
-        if "?q=" in url:
-            page_total = 2
-        else:
-            page_total = get_page_total(pagination['totalResults'], pagination['itemsPerPage'])
-        url_list = ['{}&page={}'.format(url, number) for number in range(2, page_total)]
-
-        # Call all pagination pages asynchronously
-        children_data = run_urls_async(self, url_list)           
-        [data.extend(child['results']) for child in children_data]
         return data
 
     def get(self, url, *args, **kwargs):

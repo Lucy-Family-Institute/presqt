@@ -19,7 +19,7 @@ Searching Resource Collections
 ------------------------------
 Search results are ordered by date modified unless the target does not support it.
 
-Only a single filter can be used at a time.
+Only a single search filter can be used at a time.
 
 Search Filters
 ++++++++++++++
@@ -33,6 +33,17 @@ Search by project 'id': ``resources/?id=123456``
 Search by project 'author': ``resources/?author=bfox6``
 
 Search by project 'keywords': ``resources/?keywords=cat``
+
+Paginating Resource Collections
+-------------------------------
+
+Pagination has been added at the collection level to improve load times. Targets now return Pagination
+information for users resources, as well as searched resources.
+
+Page Parameter
+++++++++++++++
+
+Pagination across all available targets: ``resources/?page=page_number``
 
 Target Endpoints
 ----------------
@@ -263,70 +274,89 @@ Resource Collection
         HTTP/1.1 200 OK
         Content-Type: application/json
 
-        [
-            {
-                "kind": "container",
-                "kind_name": "project",
-                "id": "cmn5z",
-                "container": null,
-                "title": "Test Project",
-                "links": [
-                    {
-                        "name": "Detail",
-                        "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/cmn5z/",
-                        "method": "GET"
-                    }
-                ]
-            },
-            {
-                "kind": "container",
-                "kind_name": "storage",
-                "id": "cmn5z:osfstorage",
-                "container": "cmn5z",
-                "title": "osfstorage",
-                "links": [
-                    {
-                        "name": "Detail",
-                        "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/cmn5z:osfstorage/",
-                        "method": "GET"
-                    }
-                ]
-            },
-            {
-                "kind": "container",
-                "kind_name": "folder",
-                "id": "5cd9832cf244ec0021e5f245",
-                "container": "cmn5z:osfstorage",
-                "title": "Images",
-                "links": [
-                    {
-                        "name": "Detail",
-                        "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/5cd9832cf244ec0021e5f245/",
-                        "method": "GET"
-                    }
-                ]
-            },
-            {
-                "kind": "item",
-                "kind_name": "file",
-                "id": "5cd98510f244ec001fe5632f",
-                "container": "5cd9832cf244ec0021e5f245",
-                "title": "22776439564_7edbed7e10_o.jpg",
-                "links": [
-                    {
-                        "name": "Detail",
-                        "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/5cd98510f244ec001fe5632f/",
-                        "method": "GET"
-                    }
-                ]
+        {
+            "resources": [
+                {
+                    "kind": "container",
+                    "kind_name": "project",
+                    "id": "cmn5z",
+                    "container": null,
+                    "title": "Test Project",
+                    "links": [
+                        {
+                            "name": "Detail",
+                            "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/cmn5z/",
+                            "method": "GET"
+                        }
+                    ]
+                },
+                {
+                    "kind": "container",
+                    "kind_name": "storage",
+                    "id": "cmn5z:osfstorage",
+                    "container": "cmn5z",
+                    "title": "osfstorage",
+                    "links": [
+                        {
+                            "name": "Detail",
+                            "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/cmn5z:osfstorage/",
+                            "method": "GET"
+                        }
+                    ]
+                },
+                {
+                    "kind": "container",
+                    "kind_name": "folder",
+                    "id": "5cd9832cf244ec0021e5f245",
+                    "container": "cmn5z:osfstorage",
+                    "title": "Images",
+                    "links": [
+                        {
+                            "name": "Detail",
+                            "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/5cd9832cf244ec0021e5f245/",
+                            "method": "GET"
+                        }
+                    ]
+                },
+                {
+                    "kind": "item",
+                    "kind_name": "file",
+                    "id": "5cd98510f244ec001fe5632f",
+                    "container": "5cd9832cf244ec0021e5f245",
+                    "title": "22776439564_7edbed7e10_o.jpg",
+                    "links": [
+                        {
+                            "name": "Detail",
+                            "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/5cd98510f244ec001fe5632f/",
+                            "method": "GET"
+                        }
+                    ]
+                }
+            ],
+            "pages": {
+                "first_page": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources?page=1",
+                "previous_page": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources?page=5",
+                "next_page": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources?page=7",
+                "last_page": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources?page=30",
+                "total_pages": 30,
+                "per_page": 10,
+                "base_page": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources?page="
             }
-        ]
+        }
     
     **Example request w/ search parameter**:
 
     .. sourcecode:: http
 
         GET /api_v1/targets/OSF/resources?title=egg/ HTTP/1.1
+        Host: presqt-prod.crc.nd.edu
+        Accept: application/json
+    
+    **Example request w/ search parameter and page parameter**:
+
+    .. sourcecode:: http
+
+        GET /api_v1/targets/OSF/resources?title=egg&page=3/ HTTP/1.1
         Host: presqt-prod.crc.nd.edu
         Accept: application/json
 

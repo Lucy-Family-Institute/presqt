@@ -84,7 +84,8 @@ class TestResourceKeywords(SimpleTestCase):
         # Verify the status code
         self.assertEqual(response.status_code, 400)
         # Verify the error message
-        self.assertEqual(response.data['error'], "OSF Storages do not have keywords.")
+        self.assertEqual(response.data['error'],
+                         "On OSF only projects, folders and files have keywords, not storages, therefore PresQT keyword features are not supported at OSF's storage level.")
 
     def test_invalid_token(self):
         """
@@ -124,7 +125,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
     def setUp(self):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN}
-        self.keys = ['keywords_added', 'final_keywords']
+        self.keys = ['initial_keywords', 'keywords_added', 'final_keywords']
 
     def test_invalid_token(self):
         """
@@ -147,12 +148,18 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         Returns a 202 if the POST method is successful when updating a OSF `project` keywords.
         """
         resource_id = 'cmn5z'
-        url = reverse('keywords', kwargs={'target_name': 'osf',
-                                          'resource_id': resource_id})
+        url = reverse('keywords', kwargs={'target_name': 'osf', 'resource_id': resource_id})
         # First check the initial keywords.
         get_response = self.client.get(url, **self.header)
         # Get the count of the initial keywords
         initial_keywords = len(get_response.data['keywords'])
+
+        # Get the contents of  the FTS_METADATA file
+        metadata_url = 'https://api.osf.io/v2/files/5f29c2b55f705a0257619e71/'
+        metadata_headers = {'Authorization': 'Bearer {}'.format(OSF_TEST_USER_TOKEN)}
+        metadata_json = requests.get(metadata_url, headers=metadata_headers).json()
+        metadata_contents = requests.get(
+            metadata_json['data']['links']['move'], headers=metadata_headers).content
 
         response = self.client.post(
             url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
@@ -161,7 +168,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         # Verify the dict keys match what we expect
         self.assertListEqual(self.keys, list(response.data.keys()))
         # Ensure the new list is equal to the initial one
-        self.assertEqual(len(response.data['final_keywords']), initial_keywords)
+        self.assertGreater(len(response.data['final_keywords']), initial_keywords)
 
         # Set the project keywords back to what they were.
         headers = {'Authorization': 'Bearer {}'.format(OSF_TEST_USER_TOKEN),
@@ -171,8 +178,12 @@ class TestResourceKeywordsPOST(SimpleTestCase):
             "tags": ['eggs', 'water', 'animals']}}}
 
         response = requests.patch(patch_url, headers=headers, data=json.dumps(data))
-
         self.assertEqual(response.status_code, 200)
+
+        # Set the metadata back to what it was.
+        metadata_response = requests.put(metadata_json['data']['links']['upload'], headers=metadata_headers, params={
+                                         'kind': 'file'}, data=metadata_contents)
+        self.assertEqual(metadata_response.status_code, 200)
 
     def test_success_file_keywords(self):
         """
@@ -183,8 +194,16 @@ class TestResourceKeywordsPOST(SimpleTestCase):
                                           'resource_id': resource_id})
         # First check the initial tags.
         get_response = self.client.get(url, **self.header)
-        # Get the ount of the initial keywords
+
+        # Get the count of the initial keywords
         initial_keywords = len(get_response.data['keywords'])
+
+        # Get the contents of  the FTS_METADATA file
+        metadata_url = 'https://api.osf.io/v2/files/5f29c2b55f705a0257619e71/'
+        metadata_headers = {'Authorization': 'Bearer {}'.format(OSF_TEST_USER_TOKEN)}
+        metadata_json = requests.get(metadata_url, headers=metadata_headers).json()
+        metadata_contents = requests.get(
+            metadata_json['data']['links']['move'], headers=metadata_headers).content
 
         response = self.client.post(
             url, {"keywords": ["h20", "aqua", "breakfast", "spaghetti", "wood"]}, **self.header, format='json')
@@ -203,8 +222,12 @@ class TestResourceKeywordsPOST(SimpleTestCase):
             "tags": ['eggs', 'water', 'animals', 'PresQT']}}}
 
         response = requests.patch(patch_url, headers=headers, data=json.dumps(data))
-
         self.assertEqual(response.status_code, 200)
+
+        # Set the metadata back to what it was.
+        metadata_response = requests.put(metadata_json['data']['links']['upload'], headers=metadata_headers, params={
+                                         'kind': 'file'}, data=metadata_contents)
+        self.assertEqual(metadata_response.status_code, 200)
 
     def test_error_storage_keywords(self):
         """
@@ -218,7 +241,8 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         # Verify the status code
         self.assertEqual(response.status_code, 400)
         # Verify the error message
-        self.assertEqual(response.data['error'], "OSF Storages do not have keywords.")
+        self.assertEqual(response.data['error'],
+                         "On OSF only projects, folders and files have keywords, not storages, therefore PresQT keyword features are not supported at OSF's storage level.")
 
     def test_error_no_keywords(self):
         """
@@ -247,7 +271,8 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         # Verify the status code
         self.assertEqual(response.status_code, 400)
         # Verify the error message
-        self.assertEqual(response.data['error'], 'PresQT Error: keywords is missing from the request body.')
+        self.assertEqual(response.data['error'],
+                         'PresQT Error: keywords is missing from the request body.')
 
     def test_no_token(self):
         resource_id = '5cd98b0af244ec0021e5f8dd'
