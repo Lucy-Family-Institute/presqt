@@ -145,6 +145,39 @@ class JobStatus(APIView):
 
         return Response(status=http_status, data=data)
 
+    def transfer_get(self):
+        # Perform token validation. Read data from the process_info file.
+        try:
+            destination_token = get_destination_token(self.request)
+            source_token = get_source_token(self.request)
+            self.ticket_number = '{}_{}'.format(hash_tokens(source_token),
+                                                hash_tokens(destination_token))
+            self.process_data = get_process_info_data('jobs', self.ticket_number)
+        except PresQTValidationError as e:
+            return Response(data={'error': e.data}, status=e.status_code)
+
+        transfer_process_data = self.process_data['resource_transfer_in']
+        transfer_status = transfer_process_data['status']
+        data = {'status_code': transfer_process_data['status_code'],
+                'message': transfer_process_data['message']}
+
+        if transfer_status == 'finished':
+            http_status = status.HTTP_200_OK
+            data['failed_fixity'] = transfer_process_data['failed_fixity']
+            data['resources_ignored'] = transfer_process_data['resources_ignored']
+            data['resources_updated'] = transfer_process_data['resources_updated']
+            data['enhanced_keywords'] = transfer_process_data['enhanced_keywords']
+            data['initial_keywords'] = transfer_process_data['initial_keywords']
+            data['source_resource_id'] = transfer_process_data['source_resource_id']
+            data['destination_resource_id'] = transfer_process_data['destination_resource_id']
+        else:
+            if transfer_status == 'in_progress':
+                http_status = status.HTTP_202_ACCEPTED
+            else:
+                http_status = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+        return Response(status=http_status, data=data)
+
     def patch(self, request, action, response_format=None):
         self.response_format = response_format
 
@@ -222,7 +255,6 @@ class JobStatus(APIView):
 
         upload_process_data = self.process_data['resource_upload']
 
-
         # If upload is still in progress then cancel the subprocess
         if upload_process_data['status'] == 'in_progress':
             for process in multiprocessing.active_children():
@@ -241,4 +273,45 @@ class JobStatus(APIView):
         else:
             return Response(
                 data={'status_code': upload_process_data['status_code'], 'message': upload_process_data['message']},
+                status=status.HTTP_406_NOT_ACCEPTABLE)
+
+    def transfer_patch(self):
+        # Perform token validation. Read data from the process_info file.
+        try:
+            destination_token = get_destination_token(self.request)
+            source_token = get_source_token(self.request)
+            self.ticket_number = '{}_{}'.format(hash_tokens(source_token),
+                                                hash_tokens(destination_token))
+            process_data = get_process_info_data('jobs', self.ticket_number)
+        except PresQTValidationError as e:
+            return Response(data={'error': e.data}, status=e.status_code)
+
+        # Wait until the spawned off process has started to cancel the transfer
+        while process_data['function_process_id'] is None:
+            try:
+                process_data = get_process_info_data('jobs', self.ticket_number)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+
+        transfer_process_data = self.process_data['resource_transfer_in']
+
+        # If transfer is still in progress then cancel the subprocess
+        if transfer_process_data['status'] == 'in_progress':
+            for process in multiprocessing.active_children():
+                if process.pid == transfer_process_data['function_process_id']:
+                    process.kill()
+                    process.join()
+                    transfer_process_data['status'] = 'failed'
+                    transfer_process_data['message'] = 'Transfer was cancelled by the user'
+                    transfer_process_data['status_code'] = '499'
+                    transfer_process_data['expiration'] = str(timezone.now() + relativedelta(hours=1))
+                    update_or_create_process_info(transfer_process_data, 'resource_transfer_in', self.ticket_number)
+                    return Response(
+                        data={'status_code': process_data['status_code'], 'message': process_data['message']},
+                        status=status.HTTP_200_OK)
+        # If transfer is finished then don't attempt to cancel subprocess
+        else:
+            return Response(
+                data={'status_code': process_data['status_code'], 'message': process_data['message']},
                 status=status.HTTP_406_NOT_ACCEPTABLE)

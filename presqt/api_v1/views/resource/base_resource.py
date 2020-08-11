@@ -200,10 +200,6 @@ class BaseResource(APIView):
         # Save files to disk and check their fixity integrity. If BagIt validation fails, attempt
         # to save files to disk again. If BagIt validation fails after 3 attempts return an error.
         for index in range(3):
-            # Generate ticket number
-            # ticket_number = uuid4()
-            # self.ticket_path = os.path.join("mediafiles", "uploads", str(ticket_number))
-
             # Extract each file in the zip file to disk
             with zipfile.ZipFile(resource) as myzip:
                 myzip.extractall(self.ticket_path)
@@ -622,8 +618,8 @@ class BaseResource(APIView):
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Generate ticket number
-        ticket_number = uuid4()
-        self.ticket_path = os.path.join("mediafiles", "transfers", str(ticket_number))
+        self.ticket_number = '{}_{}'.format(hash_tokens(self.source_token), hash_tokens(self.destination_token))
+        self.ticket_path = os.path.join("mediafiles", "jobs", str(self.ticket_number))
 
         # Create directory and process_info json file
         self.process_info_obj = {
@@ -637,21 +633,20 @@ class BaseResource(APIView):
             'status_code': None,
             'function_process_id': None
         }
-        self.process_info_path = os.path.join(self.ticket_path, "process_info.json")
-        write_file(self.process_info_path, self.process_info_obj, True)
+        self.process_info_path = update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
 
         self.base_directory_name = '{}_{}_transfer_{}'.format(self.source_target_name,
                                                               self.destination_target_name,
                                                               self.source_resource_id)
 
         # Spawn the transfer_resource method separate from the request server by using multiprocess.
-        spawn_action_process(self, self._transfer_resource)
+        spawn_action_process(self, self._transfer_resource, self.action)
 
-        reversed_url = reverse('transfer_job', kwargs={'ticket_number': ticket_number})
+        reversed_url = reverse('job_status', kwargs={'action': 'transfer'})
         transfer_hyperlink = self.request.build_absolute_uri(reversed_url)
 
         return Response(status=status.HTTP_202_ACCEPTED,
-                        data={'ticket_number': ticket_number,
+                        data={'ticket_number': self.ticket_number,
                               'message': 'The server is processing the request.',
                               'transfer_job': transfer_hyperlink})
 
@@ -661,7 +656,7 @@ class BaseResource(APIView):
         """
         # Write the process id to the process_info file
         self.process_info_obj['function_process_id'] = self.function_process.pid
-        write_file(self.process_info_path, self.process_info_obj, True)
+        update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
 
         ####### DOWNLOAD THE RESOURCES #######
         download_status = self._download_resource()
@@ -710,6 +705,6 @@ class BaseResource(APIView):
         self.process_info_obj['message'] = get_action_message(
             self, 'Transfer', transfer_fixity, self.metadata_validation, self.action_metadata)
 
-        write_file(self.process_info_path, self.process_info_obj, True)
+        update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
 
         return
