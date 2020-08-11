@@ -84,7 +84,8 @@ class TestResourceKeywords(SimpleTestCase):
         # Verify the status code
         self.assertEqual(response.status_code, 400)
         # Verify the error message
-        self.assertEqual(response.data['error'], "OSF Storages do not have keywords.")
+        self.assertEqual(response.data['error'],
+                         "On OSF only projects, folders and files have keywords, not storages, therefore PresQT keyword features are not supported at OSF's storage level.")
 
     def test_invalid_token(self):
         """
@@ -157,7 +158,8 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         metadata_url = 'https://api.osf.io/v2/files/5f29c2b55f705a0257619e71/'
         metadata_headers = {'Authorization': 'Bearer {}'.format(OSF_TEST_USER_TOKEN)}
         metadata_json = requests.get(metadata_url, headers=metadata_headers).json()
-        metadata_contents = requests.get(metadata_json['data']['links']['move'], headers=metadata_headers).content
+        metadata_contents = requests.get(
+            metadata_json['data']['links']['move'], headers=metadata_headers).content
 
         response = self.client.post(
             url, {"keywords": ["h20", "aqua", "breakfast"]}, **self.header, format='json')
@@ -179,7 +181,8 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
 
         # Set the metadata back to what it was.
-        metadata_response = requests.put(metadata_json['data']['links']['upload'], headers=metadata_headers, params={'kind': 'file'}, data=metadata_contents)
+        metadata_response = requests.put(metadata_json['data']['links']['upload'], headers=metadata_headers, params={
+                                         'kind': 'file'}, data=metadata_contents)
         self.assertEqual(metadata_response.status_code, 200)
 
     def test_success_file_keywords(self):
@@ -199,7 +202,8 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         metadata_url = 'https://api.osf.io/v2/files/5f29c2b55f705a0257619e71/'
         metadata_headers = {'Authorization': 'Bearer {}'.format(OSF_TEST_USER_TOKEN)}
         metadata_json = requests.get(metadata_url, headers=metadata_headers).json()
-        metadata_contents = requests.get(metadata_json['data']['links']['move'], headers=metadata_headers).content
+        metadata_contents = requests.get(
+            metadata_json['data']['links']['move'], headers=metadata_headers).content
 
         response = self.client.post(
             url, {"keywords": ["h20", "aqua", "breakfast", "spaghetti", "wood"]}, **self.header, format='json')
@@ -221,7 +225,8 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
 
         # Set the metadata back to what it was.
-        metadata_response = requests.put(metadata_json['data']['links']['upload'], headers=metadata_headers, params={'kind': 'file'}, data=metadata_contents)
+        metadata_response = requests.put(metadata_json['data']['links']['upload'], headers=metadata_headers, params={
+                                         'kind': 'file'}, data=metadata_contents)
         self.assertEqual(metadata_response.status_code, 200)
 
     def test_error_storage_keywords(self):
@@ -236,7 +241,8 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         # Verify the status code
         self.assertEqual(response.status_code, 400)
         # Verify the error message
-        self.assertEqual(response.data['error'], "OSF Storages do not have keywords.")
+        self.assertEqual(response.data['error'],
+                         "On OSF only projects, folders and files have keywords, not storages, therefore PresQT keyword features are not supported at OSF's storage level.")
 
     def test_error_no_keywords(self):
         """
@@ -265,7 +271,8 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         # Verify the status code
         self.assertEqual(response.status_code, 400)
         # Verify the error message
-        self.assertEqual(response.data['error'], 'PresQT Error: keywords is missing from the request body.')
+        self.assertEqual(response.data['error'],
+                         'PresQT Error: keywords is missing from the request body.')
 
     def test_no_token(self):
         resource_id = '5cd98b0af244ec0021e5f8dd'
