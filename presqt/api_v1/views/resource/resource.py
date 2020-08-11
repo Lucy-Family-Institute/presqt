@@ -11,7 +11,6 @@ from presqt.api_v1.serializers.resource import ResourceSerializer
 from presqt.api_v1.utilities import (get_source_token, target_validation, FunctionRouter,
                                      spawn_action_process, hash_tokens,
                                      update_or_create_process_info)
-from presqt.utilities import write_file
 from presqt.api_v1.views.resource.base_resource import BaseResource
 from presqt.utilities import PresQTValidationError, PresQTResponseException
 

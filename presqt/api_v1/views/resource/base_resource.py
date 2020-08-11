@@ -194,12 +194,15 @@ class BaseResource(APIView):
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
+        self.ticket_number = hash_tokens(self.destination_token)
+        self.ticket_path = os.path.join('mediafiles', 'jobs', str(self.ticket_number))
+
         # Save files to disk and check their fixity integrity. If BagIt validation fails, attempt
         # to save files to disk again. If BagIt validation fails after 3 attempts return an error.
         for index in range(3):
             # Generate ticket number
-            ticket_number = uuid4()
-            self.ticket_path = os.path.join("mediafiles", "uploads", str(ticket_number))
+            # ticket_number = uuid4()
+            # self.ticket_path = os.path.join("mediafiles", "uploads", str(ticket_number))
 
             # Extract each file in the zip file to disk
             with zipfile.ZipFile(resource) as myzip:
@@ -240,8 +243,9 @@ class BaseResource(APIView):
             'status_code': None,
             'function_process_id': None
         }
-        self.process_info_path = os.path.join(self.ticket_path, 'process_info.json')
-        write_file(self.process_info_path, self.process_info_obj, True)
+        # self.process_info_path = os.path.join(self.ticket_path, 'process_info.json')
+        # write_file(self.process_info_path, self.process_info_obj, True)
+        self.process_info_path = update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
 
         # Create a hash dictionary to compare with the hashes returned from the target after upload
         # If the destination target supports a hash provided by the bag then use those hashes
@@ -249,13 +253,13 @@ class BaseResource(APIView):
         self.file_hashes, self.hash_algorithm = get_or_create_hashes_from_bag(self)
 
         # Spawn the upload_resource method separate from the request server by using multiprocess.
-        spawn_action_process(self, self._upload_resource)
+        spawn_action_process(self, self._upload_resource, 'resource_upload')
 
-        reversed_url = reverse('upload_job', kwargs={'ticket_number': ticket_number})
+        reversed_url = reverse('job_status', kwargs={'action': 'upload'})
         upload_hyperlink = self.request.build_absolute_uri(reversed_url)
 
         return Response(status=status.HTTP_202_ACCEPTED,
-                        data={'ticket_number': ticket_number,
+                        data={'ticket_number': self.ticket_number,
                               'message': 'The server is processing the request.',
                               'upload_job': upload_hyperlink})
 
@@ -431,7 +435,6 @@ class BaseResource(APIView):
             self.process_info_obj['status'] = 'finished'
             self.process_info_obj['zip_name'] = '{}.zip'.format(self.base_directory_name)
             self.process_info_obj['failed_fixity'] = self.download_failed_fixity
-
             update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
 
         return True
@@ -446,7 +449,7 @@ class BaseResource(APIView):
         self.keyword_enhancement_successful = True
         # Write the process id to the process_info file
         self.process_info_obj['function_process_id'] = self.function_process.pid
-        write_file(self.process_info_path, self.process_info_obj, True)
+        update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
 
         # Data directory in the bag
         self.data_directory = '{}/data'.format(self.resource_main_dir)
@@ -502,7 +505,7 @@ class BaseResource(APIView):
                 # Update the expiration from 5 hours to 1 hour from now. We can delete this faster because
                 # it's an incomplete/failed directory.
                 self.process_info_obj['expiration'] = str(timezone.now() + relativedelta(hours=1))
-                write_file(self.process_info_path, self.process_info_obj, True)
+                update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
                 return False
 
         # Fetch the proper function to call
@@ -531,7 +534,7 @@ class BaseResource(APIView):
             # Update the expiration from 5 hours to 1 hour from now. We can delete this faster
             # because it's an incomplete/failed directory.
             self.process_info_obj['expiration'] = str(timezone.now() + relativedelta(hours=1))
-            write_file(self.process_info_path, self.process_info_obj, True)
+            update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
             return False
 
         # Check if fixity has failed on any files during a transfer. If so, update the
@@ -590,9 +593,9 @@ class BaseResource(APIView):
             self.process_info_obj['status'] = 'finished'
             self.process_info_obj['hash_algorithm'] = self.hash_algorithm
             self.process_info_obj['failed_fixity'] = self.upload_failed_fixity
-            write_file(self.process_info_path, self.process_info_obj, True)
-
+            update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
             self.process_info_obj['upload_status'] = upload_message
+
         return True
 
     def transfer_post(self):

@@ -12,7 +12,6 @@ from presqt.api_v1.views.target.target import TargetCollection, Target
 from presqt.api_v1.views.service.service import ServiceCollection, Service
 from presqt.api_v1.views.service.eaasi.download import EaasiDownload
 from presqt.api_v1.views.transfer.transfer_job import TransferJob
-from presqt.api_v1.views.upload.upload_job import UploadJob
 
 api_v1_endpoints = [
     path('', api_root, name='api_root'),
@@ -33,9 +32,6 @@ api_v1_endpoints = [
          Resource.as_view(), name="resource"),
     path('targets/<str:target_name>/resources/<str:resource_id>/keywords/',
          ResourceKeywords.as_view(), name="keywords"),
-
-    # Uploads
-    path('uploads/<str:ticket_number>/', UploadJob.as_view(), name='upload_job'),
 
     # Transfers
     path('transfers/<str:ticket_number>/', TransferJob.as_view(), name='transfer_job'),

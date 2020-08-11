@@ -10,7 +10,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from presqt.api_v1.utilities import (get_source_token, get_process_info_data, hash_tokens,
-                                     update_or_create_process_info)
+                                     update_or_create_process_info, get_destination_token,
+                                     process_token_validation)
 from presqt.utilities import PresQTValidationError, write_file
 
 
@@ -49,6 +50,14 @@ class JobStatus(APIView):
         """
         self.response_format = response_format
 
+        try:
+            func = getattr(self, '{}_get'.format(action))
+        except AttributeError:
+            return Response(data={"error": "PresQT Error: {} is not a valid acton.".format(action)}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return func()
+
+    def collection_get(self):
         # Perform token validation. Read data from the process_info file.
         try:
             source_token = get_source_token(self.request)
@@ -57,21 +66,21 @@ class JobStatus(APIView):
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
-        try:
-            func = getattr(self, action)
-        except AttributeError:
-            return Response(data={"error": "PresQT Error: {} is not a valid acton.".format(action)}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return func()
-
-    def collection(self):
         data = {
             'total_files': self.process_data['resource_collection']['total_files'],
             'files_finished': self.process_data['resource_collection']['files_finished']
         }
         return Response(status=status.HTTP_200_OK, data=data)
 
-    def download(self):
+    def download_get(self):
+        # Perform token validation. Read data from the process_info file.
+        try:
+            source_token = get_source_token(self.request)
+            self.ticket_number = hash_tokens(source_token)
+            self.process_data = get_process_info_data('jobs', self.ticket_number)
+        except PresQTValidationError as e:
+            return Response(data={'error': e.data}, status=e.status_code)
+
         # Verify that the only acceptable response format was provided.
         if self.response_format and self.response_format not in ['json', 'zip']:
             return Response(
@@ -109,16 +118,35 @@ class JobStatus(APIView):
             return Response(status=http_status,
                             data={'status_code': status_code, 'message': message})
 
-    def patch(self, request, action, response_format=None):
-        self.response_format = response_format
-
+    def upload_get(self):
         # Perform token validation. Read data from the process_info file.
         try:
-            source_token = get_source_token(request)
-            self.ticket_number = hash_tokens(source_token)
+            destination_token = get_destination_token(self.request)
+            self.ticket_number = hash_tokens(destination_token)
             self.process_data = get_process_info_data('jobs', self.ticket_number)
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
+
+        upload_process_data = self.process_data['resource_upload']
+
+        upload_status = upload_process_data['status']
+        data = {'status_code': upload_process_data['status_code'], 'message': upload_process_data['message']}
+
+        if upload_status == 'finished':
+            http_status = status.HTTP_200_OK
+            data['failed_fixity'] = upload_process_data['failed_fixity']
+            data['resources_ignored'] = upload_process_data['resources_ignored']
+            data['resources_updated'] = upload_process_data['resources_updated']
+        else:
+            if upload_status == 'in_progress':
+                http_status = status.HTTP_202_ACCEPTED
+            else:
+                http_status = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+        return Response(status=http_status, data=data)
+
+    def patch(self, request, action, response_format=None):
+        self.response_format = response_format
 
         try:
             func = getattr(self, '{}_patch'.format(action))
@@ -128,6 +156,14 @@ class JobStatus(APIView):
             return func()
 
     def download_patch(self):
+        # Perform token validation. Read data from the process_info file.
+        try:
+            source_token = get_source_token(self.request)
+            self.ticket_number = hash_tokens(source_token)
+            self.process_data = get_process_info_data('jobs', self.ticket_number)
+        except PresQTValidationError as e:
+            return Response(data={'error': e.data}, status=e.status_code)
+
         # Verify that the only acceptable response format was provided
         if self.response_format and self.response_format != 'json':
             return Response(
@@ -165,4 +201,44 @@ class JobStatus(APIView):
         else:
             return Response(
                 data={'status_code': download_process_data['status_code'], 'message': download_process_data['message']},
+                status=status.HTTP_406_NOT_ACCEPTABLE)
+
+    def upload_patch(self):
+        # Perform token validation. Read data from the process_info file.
+        try:
+            destination_token = get_destination_token(self.request)
+            self.ticket_number = hash_tokens(destination_token)
+            self.process_data = get_process_info_data('jobs', self.ticket_number)
+        except PresQTValidationError as e:
+            return Response(data={'error': e.data}, status=e.status_code)
+
+        # Wait until the spawned off process has started to cancel the upload
+        while self.process_data['resource_upload']['function_process_id'] is None:
+            try:
+                self.process_data = get_process_info_data('jobs', self.ticket_number)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+
+        upload_process_data = self.process_data['resource_upload']
+
+
+        # If upload is still in progress then cancel the subprocess
+        if upload_process_data['status'] == 'in_progress':
+            for process in multiprocessing.active_children():
+                if process.pid == upload_process_data['function_process_id']:
+                    process.kill()
+                    process.join()
+                    upload_process_data['status'] = 'failed'
+                    upload_process_data['message'] = 'Upload was cancelled by the user'
+                    upload_process_data['status_code'] = '499'
+                    upload_process_data['expiration'] = str(timezone.now() + relativedelta(hours=1))
+                    update_or_create_process_info(upload_process_data, 'resource_upload', self.ticket_number)
+                    return Response(
+                        data={'status_code': upload_process_data['status_code'], 'message': upload_process_data['message']},
+                        status=status.HTTP_200_OK)
+        # If upload is finished then don't attempt to cancel subprocess
+        else:
+            return Response(
+                data={'status_code': upload_process_data['status_code'], 'message': upload_process_data['message']},
                 status=status.HTTP_406_NOT_ACCEPTABLE)
