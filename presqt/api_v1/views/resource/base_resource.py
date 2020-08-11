@@ -22,7 +22,8 @@ from presqt.api_v1.utilities import (target_validation, transfer_target_validati
                                      finite_depth_upload_helper, structure_validation,
                                      keyword_action_validation,
                                      automatic_keywords, update_targets_keywords, manual_keywords,
-                                     get_target_data, get_keyword_support)
+                                     get_target_data, get_keyword_support,
+                                     update_or_create_process_info)
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.metadata.download_metadata import validate_metadata
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
@@ -267,7 +268,8 @@ class BaseResource(APIView):
 
         # Write the process id to the process_info file
         self.process_info_obj['function_process_id'] = self.function_process.pid
-        write_file(self.process_info_path, self.process_info_obj, True)
+        update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
+
 
         # Fetch the proper function to call
         func = FunctionRouter.get_function(self.source_target_name, action)
@@ -301,7 +303,8 @@ class BaseResource(APIView):
             # Update the expiration from 5 hours to 1 hour from now. We can delete this faster because
             # it's an incomplete/failed directory.
             self.process_info_obj['expiration'] = str(timezone.now() + relativedelta(hours=1))
-            write_file(self.process_info_path, self.process_info_obj, True)
+            update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
+
             return False
 
         # The directory all files should be saved in.
@@ -429,8 +432,9 @@ class BaseResource(APIView):
             self.process_info_obj['zip_name'] = '{}.zip'.format(self.base_directory_name)
             self.process_info_obj['failed_fixity'] = self.download_failed_fixity
 
-            write_file(self.process_info_path, self.process_info_obj, True)
-            return True
+            update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
+
+        return True
 
     def _upload_resource(self):
         """
