@@ -24,7 +24,7 @@ def structure_validation(instance):
 
     if len(files) > 0 and instance.destination_resource_id is None and instance.action == 'resource_upload':
         raise PresQTResponseException(
-            "PresQT Error: Repository is not formatted correctly.",
+            "PresQT Error: Repository is not formatted correctly. Files exist at the top level.",
             status.HTTP_400_BAD_REQUEST)
 
     if len(files) > 0 and instance.destination_resource_id is None and instance.action == 'resource_transfer_in':
