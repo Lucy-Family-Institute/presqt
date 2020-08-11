@@ -65,7 +65,7 @@ class TestResourceKeywords(SimpleTestCase):
         self.assertEqual(response.status_code, 400)
         # Verify the error message
         self.assertEqual(response.data['error'],
-                         "GitLab directories and files do not have keywords.")
+                         "On GitLab only projects have keywords, not files or directories, therefore PresQT keyword features are not supported at GitLab's file or directory levels.")
 
 
 class TestResourceKeywordsPOST(SimpleTestCase):
@@ -131,7 +131,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         self.assertEqual(response.status_code, 400)
         # Verify the error message
         self.assertEqual(response.data['error'],
-                         "GitLab directories and files do not have keywords.")
+                         "On GitLab only projects have keywords, not files or directories, therefore PresQT keyword features are not supported at GitLab's file or directory levels.")
 
     def test_failed_update_keywords(self):
         # Mock a server error for when a put request is made.

@@ -45,8 +45,9 @@ def figshare_fetch_keywords(token, resource_id):
     split_id = resource_id.split(":")
     if len(split_id) == 3:
         # Resource is a file
-        raise PresQTResponseException("FigShare files do not have keywords.",
-                                      status.HTTP_400_BAD_REQUEST)
+        raise PresQTResponseException(
+            "On FigShare only projects have keywords, not files, therefore PresQT keyword features are not supported at FigShare's file level.",
+            status.HTTP_400_BAD_REQUEST)
     elif len(split_id) == 1:
         # Resource is a project. Projects don't have keywords but we can get the keywords from the
         # FTS metadata file if it exists

@@ -42,8 +42,9 @@ def gitlab_fetch_keywords(token, resource_id):
 
     resource = gitlab_fetch_resource(token, resource_id)
     if resource['kind_name'] in ['dir', 'file']:
-        raise PresQTResponseException("GitLab directories and files do not have keywords.",
-                                      status.HTTP_400_BAD_REQUEST)
+        raise PresQTResponseException(
+            "On GitLab only projects have keywords, not files or directories, therefore PresQT keyword features are not supported at GitLab's file or directory levels.",
+            status.HTTP_400_BAD_REQUEST)
 
     # LOOK INTO THE PROJECT FOR METADATA
     metadata = None

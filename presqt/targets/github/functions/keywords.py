@@ -44,8 +44,9 @@ def github_fetch_keywords(token, resource_id):
 
     resource = github_fetch_resource(token, resource_id)
     if resource['kind_name'] in ['dir', 'file']:
-        raise PresQTResponseException("GitHub directories and files do not have keywords.",
-                                      status.HTTP_400_BAD_REQUEST)
+        raise PresQTResponseException(
+            "Only Github repositories have keywords, not files or directories, therefore PresQT keyword features are not supported at Github's file or directory level.",
+            status.HTTP_400_BAD_REQUEST)
 
     # See if a metadata file exists
     metadata = None
