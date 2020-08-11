@@ -765,7 +765,7 @@ class TestResourcePost(SimpleTestCase):
         Ensure that an error is returned if Figshare doesn't return a 201 status code.
         """
         self.assertRaises(PresQTError, create_project, "Title", {"bad": "nope"}, self.token)
-    
+
     def test_bad_create_article_request(self):
         """
         Ensure that an error is returned if Figshare doesn't return a 201 status code.

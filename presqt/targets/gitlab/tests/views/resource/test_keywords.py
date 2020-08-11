@@ -44,15 +44,13 @@ class TestResourceKeywords(SimpleTestCase):
         """
         resource_id = '17990894'
         # Ensure there are no keywords for this project
-        url = reverse('resource', kwargs={'target_name': 'gitlab',
-                                          'resource_id': resource_id})
+        url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': resource_id})
         response = self.client.get(url, **self.header)
         self.assertEqual(response.data['extra']['tag_list'], [])
 
         keywords_url = reverse('keywords', kwargs={'target_name': 'gitlab',
                                                    'resource_id': resource_id})
         keywords_response = self.client.get(keywords_url, **self.header)
-
         self.assertGreater(keywords_response.data['keywords'], response.data['extra']['tag_list'])
 
     def test_error_project_keywords(self):
@@ -80,7 +78,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
     def setUp(self):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_TEST_USER_TOKEN}
-        self.keys = ['keywords_added', 'final_keywords']
+        self.keys = ['initial_keywords', 'keywords_added', 'final_keywords']
 
     def test_success_project_keywords(self):
         """
@@ -91,7 +89,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
                                           'resource_id': resource_id})
         # First check the initial tags.
         get_response = self.client.get(url, **self.header)
-        # Get the ount of the initial keywords
+        # Get the count of the initial keywords
         initial_keywords = len(get_response.data['keywords'])
 
         response = self.client.post(

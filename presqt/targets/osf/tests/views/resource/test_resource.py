@@ -94,7 +94,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual('2017-01-27 PresQT Workshop Planning Meeting Items.docx',
                          response.data['title'])
         self.assertEqual(len(response.data['links']), 2)
-        self.assertEqual(response.data['links'][0]['name'], 'Download')
+        self.assertEqual(response.data['links'][0]['name'], 'Detail')
 
     def test_success_file_no_format(self):
         """
@@ -716,7 +716,7 @@ class TestResourceGETZip(SimpleTestCase):
         self.assertEqual(2, len(metadata_json['actions']))
 
         for action in metadata_json['actions']:
-            if action['id'] == 'd1b9df10-d7d4-4223-b49b-efa51bca16e1':
+            if action['id'] == '2d5a7159-e03b-4931-99b9-8f8bddb490c2':
                 self.assertEqual({"created": [], "updated": [], "ignored": []}, action['files'])
             else:
                 self.assertEqual(57, len(action['files']['created']))

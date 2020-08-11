@@ -38,7 +38,7 @@ class TestResourceCollection(SimpleTestCase):
             self.assertEqual(len(data['links']), 1)
             self.assertListEqual(keys, list(data.keys()))
         # Verify the count of resource objects is what we expect.
-        self.assertEqual(len(response.data['resources']), 6)
+        self.assertEqual(len(response.data['resources']), 7)
 
     def test_success_zenodo_page_1(self):
         """

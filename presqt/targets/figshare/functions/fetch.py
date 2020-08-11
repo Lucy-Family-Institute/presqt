@@ -7,7 +7,7 @@ from presqt.targets.figshare.utilities.get_figshare_project_data import (
 from presqt.utilities import PresQTResponseException
 
 
-def figshare_fetch_resources(token, query_parameter, process_info_path):
+def figshare_fetch_resources(token, query_parameter, process_info_path=None):
     """
     Fetch all users projects from FigShare.
 
@@ -65,7 +65,7 @@ def figshare_fetch_resources(token, query_parameter, process_info_path):
             if response.status_code != 200:
                 raise PresQTResponseException("Project with id, {}, can not be found.".format(query_parameter['id']),
                                               status.HTTP_404_NOT_FOUND)
-        return get_search_project_data(response.json(), headers, []), pages
+        return get_search_project_data(response.json(), headers, [], process_info_path), pages
 
     else:
         if query_parameter and 'page' in query_parameter:

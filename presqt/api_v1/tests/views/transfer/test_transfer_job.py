@@ -210,7 +210,7 @@ class TestTransferJobGET(SimpleTestCase):
         osf_headers = {'HTTP_PRESQT_SOURCE_TOKEN': self.destination_token}
         osf_collection_response = self.client.get(self.url, **osf_headers)
         self.assertEqual(osf_collection_response.status_code, 200)
-        osf_id = osf_collection_response.data[0]['id']
+        osf_id = osf_collection_response.data['resources'][0]['id']
         # Get project details
         osf_detail_response = self.client.get(
             reverse('resource', kwargs={"target_name": "osf", "resource_id": osf_id}), **osf_headers)
@@ -321,7 +321,7 @@ class TestTransferJobGET(SimpleTestCase):
         osf_headers = {'HTTP_PRESQT_SOURCE_TOKEN': self.destination_token}
         osf_collection_response = self.client.get(self.url, **osf_headers)
         self.assertEqual(osf_collection_response.status_code, 200)
-        osf_id = osf_collection_response.data[0]['id']
+        osf_id = osf_collection_response.data['resources'][0]['id']
         # Get project details
         osf_detail_response = self.client.get(
             reverse('resource', kwargs={"target_name": "osf", "resource_id": osf_id}), **osf_headers)
@@ -675,7 +675,7 @@ class TestTransferJobGET(SimpleTestCase):
 
         response = self.client.post(url, {
             "source_target_name": "osf",
-            "source_resource_id": '5db34c37af84c3000ee1487d', "keywords": []},
+            "source_resource_id": '5db70f51f3bb87000c853575', "keywords": []},
             **headers, format='json')
 
         ticket_number = response.data['ticket_number']
