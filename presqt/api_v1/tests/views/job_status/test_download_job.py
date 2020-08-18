@@ -35,8 +35,7 @@ class TestDownloadJobGET(SimpleTestCase):
         """
         shared_call_get_resource_zip(self, self.resource_id)
 
-        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number,
-                                              'response_format': 'zip'})
+        url = reverse('job_status', kwargs={'action': 'download', 'response_format': 'zip'})
         response = self.client.get(url, **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
@@ -74,7 +73,7 @@ class TestDownloadJobGET(SimpleTestCase):
             self.assertEqual(fixity['fixity'], True)
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
     def test_success_200_json(self):
         """
@@ -82,8 +81,7 @@ class TestDownloadJobGET(SimpleTestCase):
         """
         shared_call_get_resource_zip(self, self.resource_id)
 
-        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number,
-                                              'response_format': 'json'})
+        url = reverse('job_status', kwargs={'action': 'download', 'response_format': 'json'})
         response = self.client.get(url, **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
@@ -94,7 +92,7 @@ class TestDownloadJobGET(SimpleTestCase):
         self.assertEqual(response.data['failed_fixity'], [])
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
     def test_success_202(self):
         """
@@ -105,7 +103,7 @@ class TestDownloadJobGET(SimpleTestCase):
         # Update the fixity_info.json to say the resource hasn't finished processing
         write_file(self.process_info_path, self.initial_process_info, True)
 
-        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
+        url = reverse('job_status', kwargs={'action': 'download'})
         response = self.client.get(url, **self.header)
 
         # Verify the status code and content
@@ -115,10 +113,10 @@ class TestDownloadJobGET(SimpleTestCase):
 
         # Verify the status of the process_info file is 'in_progress'
         process_info = read_file(self.process_info_path, True)
-        self.assertEqual(process_info['status'], 'in_progress')
+        self.assertEqual(process_info['resource_download']['status'], 'in_progress')
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
     def test_error_400(self):
         """
@@ -127,7 +125,7 @@ class TestDownloadJobGET(SimpleTestCase):
         shared_call_get_resource_zip(self, self.resource_id)
 
         header = {}
-        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
+        url = reverse('job_status', kwargs={'action': 'download'})
         response = self.client.get(url, **header)
 
         # Verify the status code and content
@@ -136,7 +134,7 @@ class TestDownloadJobGET(SimpleTestCase):
                          "PresQT Error: 'presqt-source-token' missing in the request headers.")
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
     def test_success_400_bad_format(self):
         """
@@ -144,7 +142,7 @@ class TestDownloadJobGET(SimpleTestCase):
         """
         shared_call_get_resource_zip(self, self.resource_id)
 
-        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number,
+        url = reverse('job_status', kwargs={'action': 'download',
                                               'response_format': 'bad_format'})
         response = self.client.get(url, **self.header)
         # Verify the status code
@@ -155,27 +153,8 @@ class TestDownloadJobGET(SimpleTestCase):
                          'PresQT Error: bad_format is not a valid format for this endpoint.')
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
-    def test_error_401(self):
-        """
-        Return a 401 if the 'presqt-source-token' provided in the header does not match
-        the 'presqt-source-token' in the process_info file.
-        """
-        shared_call_get_resource_zip(self, self.resource_id)
-
-        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
-        headers = {'HTTP_PRESQT_SOURCE_TOKEN': '1234'}
-        response = self.client.get(url, **headers)
-
-        # Verify the status code and content
-        self.assertEqual(response.status_code, 401)
-        self.assertEqual(response.data['error'],
-                         "PresQT Error: Header 'presqt-source-token' does not match the 'presqt-source-token' "
-                         "for this server process.")
-
-        # Delete corresponding folder
-        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
 
     def test_error_404(self):
         """
@@ -183,7 +162,7 @@ class TestDownloadJobGET(SimpleTestCase):
         """
         shared_call_get_resource_zip(self, self.resource_id)
 
-        url = reverse('download_job', kwargs={'ticket_number': 'bad_ticket'})
+        url = reverse('job_status', kwargs={'action': 'bad_ticket'})
         response = self.client.get(url, **self.header)
 
         # Verify the status code and content
@@ -191,7 +170,7 @@ class TestDownloadJobGET(SimpleTestCase):
         self.assertEqual(response.data['error'], "PresQT Error: Invalid ticket number, 'bad_ticket'.")
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
     def test_error_500_401_token_invalid(self):
         """
@@ -200,7 +179,7 @@ class TestDownloadJobGET(SimpleTestCase):
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': '1234'}
         shared_call_get_resource_zip(self, self.resource_id)
 
-        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
+        url = reverse('job_status', kwargs={'action': 'download'})
         response = self.client.get(url, **self.header)
 
         self.assertEqual(response.status_code, 500)
@@ -209,7 +188,7 @@ class TestDownloadJobGET(SimpleTestCase):
                           'status_code': 401})
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
     def test_error_500_403_unauthorized_container_resource(self):
         """
@@ -218,7 +197,7 @@ class TestDownloadJobGET(SimpleTestCase):
         self.resource_id = 'q5xmw'
         shared_call_get_resource_zip(self, self.resource_id)
 
-        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number})
+        url = reverse('job_status', kwargs={'action': 'download'})
         response = self.client.get(url, **self.header)
 
         self.assertEqual(response.status_code, 500)
@@ -227,7 +206,7 @@ class TestDownloadJobGET(SimpleTestCase):
                           'status_code': 403})
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
     def test_error_500_403_unauthorized_item_resource(self):
         """
