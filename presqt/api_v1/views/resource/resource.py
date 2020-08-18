@@ -1,4 +1,5 @@
 import os
+import shutil
 from uuid import uuid4
 
 from dateutil.relativedelta import relativedelta
@@ -211,15 +212,21 @@ class Resource(BaseResource):
 
         self.base_directory_name = '{}_download_{}'.format(self.source_target_name,
                                                            self.source_resource_id)
+
+        # Remove any resources that already exist in this user's job directory
+        resource_dir = os.path.join(self.ticket_path, self.base_directory_name)
+        if os.path.exists(resource_dir):
+            shutil.rmtree(resource_dir)
+
         # Spawn the upload_resource method separate from the request server by using multiprocess.
         spawn_action_process(self, self._download_resource, 'resource_download')
 
         # Get the download url for zip format
-        reversed_url = reverse('job_status', kwargs={'action': 'resource_download', 'response_format': 'zip'})
+        reversed_url = reverse('job_status', kwargs={'action': 'download', 'response_format': 'zip'})
         download_zip_hyperlink = self.request.build_absolute_uri(reversed_url)
 
         # Get the download url for json format
-        reversed_url = reverse('job_status', kwargs={'action': 'resource_download', 'response_format': 'json'})
+        reversed_url = reverse('job_status', kwargs={'action': 'download', 'response_format': 'json'})
         download_json_hyperlink = self.request.build_absolute_uri(reversed_url)
 
         return Response(status=status.HTTP_202_ACCEPTED,

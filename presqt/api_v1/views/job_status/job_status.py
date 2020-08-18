@@ -286,15 +286,16 @@ class JobStatus(APIView):
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
+
         # Wait until the spawned off process has started to cancel the transfer
-        while process_data['function_process_id'] is None:
+        while process_data['resource_transfer_in']['function_process_id'] is None:
             try:
                 process_data = get_process_info_data('jobs', self.ticket_number)
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
 
-        transfer_process_data = self.process_data['resource_transfer_in']
+        transfer_process_data = process_data['resource_transfer_in']
 
         # If transfer is still in progress then cancel the subprocess
         if transfer_process_data['status'] == 'in_progress':
@@ -308,10 +309,10 @@ class JobStatus(APIView):
                     transfer_process_data['expiration'] = str(timezone.now() + relativedelta(hours=1))
                     update_or_create_process_info(transfer_process_data, 'resource_transfer_in', self.ticket_number)
                     return Response(
-                        data={'status_code': process_data['status_code'], 'message': process_data['message']},
+                        data={'status_code': transfer_process_data['status_code'], 'message': transfer_process_data['message']},
                         status=status.HTTP_200_OK)
         # If transfer is finished then don't attempt to cancel subprocess
         else:
             return Response(
-                data={'status_code': process_data['status_code'], 'message': process_data['message']},
+                data={'status_code': transfer_process_data['status_code'], 'message': transfer_process_data['message']},
                 status=status.HTTP_406_NOT_ACCEPTABLE)

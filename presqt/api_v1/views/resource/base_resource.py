@@ -639,6 +639,11 @@ class BaseResource(APIView):
                                                               self.destination_target_name,
                                                               self.source_resource_id)
 
+        # Remove any resources that already exist in this user's job directory
+        resource_dir = os.path.join(self.ticket_path, self.base_directory_name)
+        if os.path.exists(resource_dir):
+            shutil.rmtree(resource_dir)
+
         # Spawn the transfer_resource method separate from the request server by using multiprocess.
         spawn_action_process(self, self._transfer_resource, self.action)
 
