@@ -53,7 +53,7 @@ class JobStatus(APIView):
         try:
             func = getattr(self, '{}_get'.format(action))
         except AttributeError:
-            return Response(data={"error": "PresQT Error: {} is not a valid acton.".format(action)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data={"error": "PresQT Error: '{}' is not a valid acton.".format(action)}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return func()
 

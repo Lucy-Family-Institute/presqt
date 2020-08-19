@@ -81,7 +81,7 @@ class TestUploadJobGET(SimpleTestCase):
         self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
         self.call_upload_resources()
 
-        url = reverse('upload_job', kwargs={'ticket_number': self.ticket_number})
+        url = reverse('job_status', kwargs={'action': 'upload'})
         response = self.client.get(url, **self.headers)
         ticket_one = self.ticket_number
         # Verify the status code and data

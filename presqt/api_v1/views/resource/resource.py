@@ -230,7 +230,6 @@ class Resource(BaseResource):
         download_json_hyperlink = self.request.build_absolute_uri(reversed_url)
 
         return Response(status=status.HTTP_202_ACCEPTED,
-                        data={'ticket_number': self.ticket_number,
-                              'message': 'The server is processing the request.',
+                        data={'message': 'The server is processing the request.',
                               'download_job_zip': download_zip_hyperlink,
                               'download_job_json': download_json_hyperlink})

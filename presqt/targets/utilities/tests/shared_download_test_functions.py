@@ -139,7 +139,6 @@ def shared_call_get_resource_zip(test_case_instance, resource_id):
     response = test_case_instance.client.get(url, **test_case_instance.header)
     # Verify the status code
     test_case_instance.assertEqual(response.status_code, 202)
-    test_case_instance.ticket_number = response.data['ticket_number']
     test_case_instance.process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(
         test_case_instance.ticket_number)
     process_info = read_file(test_case_instance.process_info_path, True)
