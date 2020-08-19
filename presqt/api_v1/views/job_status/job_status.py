@@ -21,6 +21,7 @@ class JobStatus(APIView):
 
     * Get: Retrieve the status of a job
     """
+
     def get(self, request, action, response_format=None):
         """
         Retrieve the status of a job
@@ -66,9 +67,31 @@ class JobStatus(APIView):
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
+        if 'error' in self.process_data['resource_collection']:
+            return Response(data={'error': self.process_data['resource_collection']['error']},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        total_files = self.process_data['resource_collection']['total_files']
+        files_finished = self.process_data['resource_collection']['files_finished']
+
+        job_percentage = 0
+        if total_files != 0 and files_finished != 0:
+            job_percentage = round(files_finished / total_files * 100)
+
+        # Little bit of a hack here, the front end doesn't build resources as fast as they are returned
+        # so to get around the FE hanging on 100% for a few seconds, we'll display 99.
+        if job_percentage == 100:
+            job_percentage = 99
+
+        job_status = 'in_progress'
+        if job_percentage == 99:
+            job_status = 'finished'
+
         data = {
-            'total_files': self.process_data['resource_collection']['total_files'],
-            'files_finished': self.process_data['resource_collection']['files_finished']
+            'status': job_status,
+            'total_files': total_files,
+            'files_finished': files_finished,
+            'job_percentage': job_percentage
         }
         return Response(status=status.HTTP_200_OK, data=data)
 
@@ -130,7 +153,8 @@ class JobStatus(APIView):
         upload_process_data = self.process_data['resource_upload']
 
         upload_status = upload_process_data['status']
-        data = {'status_code': upload_process_data['status_code'], 'message': upload_process_data['message']}
+        data = {'status_code': upload_process_data['status_code'],
+                'message': upload_process_data['message']}
 
         if upload_status == 'finished':
             http_status = status.HTTP_200_OK
@@ -223,17 +247,20 @@ class JobStatus(APIView):
                     download_process_data['status'] = 'failed'
                     download_process_data['message'] = 'Download was cancelled by the user'
                     download_process_data['status_code'] = '499'
-                    download_process_data['expiration'] = str(timezone.now() + relativedelta(hours=1))
-                    update_or_create_process_info(download_process_data, 'resource_download', self.ticket_number)
-
+                    download_process_data['expiration'] = str(
+                        timezone.now() + relativedelta(hours=1))
+                    update_or_create_process_info(
+                        download_process_data, 'resource_download', self.ticket_number)
 
                 return Response(
-                        data={'status_code': download_process_data['status_code'], 'message': download_process_data['message']},
-                        status=status.HTTP_200_OK)
+                    data={
+                        'status_code': download_process_data['status_code'], 'message': download_process_data['message']},
+                    status=status.HTTP_200_OK)
         # If download is finished then don't attempt to cancel subprocess
         else:
             return Response(
-                data={'status_code': download_process_data['status_code'], 'message': download_process_data['message']},
+                data={
+                    'status_code': download_process_data['status_code'], 'message': download_process_data['message']},
                 status=status.HTTP_406_NOT_ACCEPTABLE)
 
     def upload_patch(self):
@@ -265,14 +292,17 @@ class JobStatus(APIView):
                     upload_process_data['message'] = 'Upload was cancelled by the user'
                     upload_process_data['status_code'] = '499'
                     upload_process_data['expiration'] = str(timezone.now() + relativedelta(hours=1))
-                    update_or_create_process_info(upload_process_data, 'resource_upload', self.ticket_number)
+                    update_or_create_process_info(
+                        upload_process_data, 'resource_upload', self.ticket_number)
                     return Response(
-                        data={'status_code': upload_process_data['status_code'], 'message': upload_process_data['message']},
+                        data={
+                            'status_code': upload_process_data['status_code'], 'message': upload_process_data['message']},
                         status=status.HTTP_200_OK)
         # If upload is finished then don't attempt to cancel subprocess
         else:
             return Response(
-                data={'status_code': upload_process_data['status_code'], 'message': upload_process_data['message']},
+                data={'status_code': upload_process_data['status_code'],
+                      'message': upload_process_data['message']},
                 status=status.HTTP_406_NOT_ACCEPTABLE)
 
     def transfer_patch(self):
@@ -285,7 +315,6 @@ class JobStatus(APIView):
             process_data = get_process_info_data('jobs', self.ticket_number)
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
-
 
         # Wait until the spawned off process has started to cancel the transfer
         while process_data['resource_transfer_in']['function_process_id'] is None:
@@ -306,13 +335,17 @@ class JobStatus(APIView):
                     transfer_process_data['status'] = 'failed'
                     transfer_process_data['message'] = 'Transfer was cancelled by the user'
                     transfer_process_data['status_code'] = '499'
-                    transfer_process_data['expiration'] = str(timezone.now() + relativedelta(hours=1))
-                    update_or_create_process_info(transfer_process_data, 'resource_transfer_in', self.ticket_number)
+                    transfer_process_data['expiration'] = str(
+                        timezone.now() + relativedelta(hours=1))
+                    update_or_create_process_info(
+                        transfer_process_data, 'resource_transfer_in', self.ticket_number)
                     return Response(
-                        data={'status_code': transfer_process_data['status_code'], 'message': transfer_process_data['message']},
+                        data={
+                            'status_code': transfer_process_data['status_code'], 'message': transfer_process_data['message']},
                         status=status.HTTP_200_OK)
         # If transfer is finished then don't attempt to cancel subprocess
         else:
             return Response(
-                data={'status_code': transfer_process_data['status_code'], 'message': transfer_process_data['message']},
+                data={
+                    'status_code': transfer_process_data['status_code'], 'message': transfer_process_data['message']},
                 status=status.HTTP_406_NOT_ACCEPTABLE)
