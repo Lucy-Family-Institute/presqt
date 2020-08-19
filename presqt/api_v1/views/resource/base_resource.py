@@ -197,6 +197,11 @@ class BaseResource(APIView):
         self.ticket_number = hash_tokens(self.destination_token)
         self.ticket_path = os.path.join('mediafiles', 'jobs', str(self.ticket_number))
 
+        # Remove any resources that already exist in this user's job directory
+        if os.path.exists(self.ticket_path):
+            for folder in next(os.walk(self.ticket_path))[1]:
+                shutil.rmtree(os.path.join(self.ticket_path, folder))
+
         # Save files to disk and check their fixity integrity. If BagIt validation fails, attempt
         # to save files to disk again. If BagIt validation fails after 3 attempts return an error.
         for index in range(3):
@@ -229,6 +234,7 @@ class BaseResource(APIView):
                 get_upload_source_metadata(self, self.bag)
                 # If the bag validated successfully then break from the loop
                 break
+
 
         # Write process_info.json file
         self.process_info_obj = {
@@ -640,9 +646,9 @@ class BaseResource(APIView):
                                                               self.source_resource_id)
 
         # Remove any resources that already exist in this user's job directory
-        resource_dir = os.path.join(self.ticket_path, self.base_directory_name)
-        if os.path.exists(resource_dir):
-            shutil.rmtree(resource_dir)
+        if os.path.exists(self.ticket_path):
+            for folder in next(os.walk(self.ticket_path))[1]:
+                shutil.rmtree(os.path.join(self.ticket_path, folder))
 
         # Spawn the transfer_resource method separate from the request server by using multiprocess.
         spawn_action_process(self, self._transfer_resource, self.action)

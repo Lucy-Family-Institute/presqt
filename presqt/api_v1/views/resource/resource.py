@@ -214,9 +214,9 @@ class Resource(BaseResource):
                                                            self.source_resource_id)
 
         # Remove any resources that already exist in this user's job directory
-        resource_dir = os.path.join(self.ticket_path, self.base_directory_name)
-        if os.path.exists(resource_dir):
-            shutil.rmtree(resource_dir)
+        if os.path.exists(self.ticket_path):
+            for folder in next(os.walk(self.ticket_path))[1]:
+                shutil.rmtree(os.path.join(self.ticket_path, folder))
 
         # Spawn the upload_resource method separate from the request server by using multiprocess.
         spawn_action_process(self, self._download_resource, 'resource_download')
