@@ -27,11 +27,11 @@ def get_gitlab_project_data(initial_data, headers, resources, process_info_path)
 
     # Add the total number of projects to the process info file.
     # This is necessary to keep track of the progress of the request.
-    update_process_info(process_info_path, len(initial_data))
+    update_process_info(process_info_path, len(initial_data), 'resource_collection')
 
     for project in initial_data:
         # Increment the number of files done in the process info file.
-        increment_process_info(process_info_path)
+        increment_process_info(process_info_path, 'resource_collection')
 
         if ('marked_for_deletion_at' in project.keys() and not project['marked_for_deletion_at']) or (
                 'marked_for_deletion_at' not in project.keys()):

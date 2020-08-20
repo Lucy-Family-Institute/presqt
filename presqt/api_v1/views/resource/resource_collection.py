@@ -126,6 +126,9 @@ class ResourceCollection(BaseResource):
         try:
             resources, pages = func(token, query_params, process_info_path)
         except PresQTResponseException as e:
+            # Update the process_obj for the error
+            process_obj = {"error": "PresQT Error: Bad token provided"}
+            update_or_create_process_info(process_obj, action, ticket_number)
             # Catch any errors that happen within the target fetch
             return Response(data={'error': e.data}, status=e.status_code)
 

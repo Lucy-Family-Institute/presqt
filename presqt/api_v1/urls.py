@@ -2,10 +2,8 @@ from django.urls import path
 
 from presqt.api_v1.views.job_status.job_status import JobStatus
 from presqt.api_v1.views.bag_and_zip.bag_and_zip import BagAndZip
-from presqt.api_v1.views.collection.collection_job import CollectionJob
 from presqt.api_v1.views.status.status import StatusCollection
 from presqt.api_v1 import api_root
-from presqt.api_v1.views.download.download_job import DownloadJob
 from presqt.api_v1.views.resource.resource import Resource
 from presqt.api_v1.views.resource.resource_keywords import ResourceKeywords
 from presqt.api_v1.views.resource.resource_collection import ResourceCollection
@@ -13,8 +11,6 @@ from presqt.api_v1.views.service.eaasi.proposal import Proposals, Proposal
 from presqt.api_v1.views.target.target import TargetCollection, Target
 from presqt.api_v1.views.service.service import ServiceCollection, Service
 from presqt.api_v1.views.service.eaasi.download import EaasiDownload
-from presqt.api_v1.views.transfer.transfer_job import TransferJob
-from presqt.api_v1.views.upload.upload_job import UploadJob
 
 api_v1_endpoints = [
     path('', api_root, name='api_root'),
@@ -35,19 +31,6 @@ api_v1_endpoints = [
          Resource.as_view(), name="resource"),
     path('targets/<str:target_name>/resources/<str:resource_id>/keywords/',
          ResourceKeywords.as_view(), name="keywords"),
-    # Collection Job
-    path('collection/<str:ticket_number>/', CollectionJob.as_view(), name='collection_job'),
-
-    # Downloads
-    path('downloads/<str:ticket_number>.<str:response_format>/',
-         DownloadJob.as_view(), name='download_job'),
-    path('downloads/<str:ticket_number>/', DownloadJob.as_view(), name='download_job'),
-
-    # Uploads
-    path('uploads/<str:ticket_number>/', UploadJob.as_view(), name='upload_job'),
-
-    # Transfers
-    path('transfers/<str:ticket_number>/', TransferJob.as_view(), name='transfer_job'),
 
     # Services
     path('services/', ServiceCollection.as_view(), name='service_collection'),
@@ -61,5 +44,7 @@ api_v1_endpoints = [
     # BagIt and Zip Tool
     path('bag_and_zip/', BagAndZip.as_view(), name='bag_and_zip'),
 
+    # Job Status
+    path('job_status/<str:action>.<str:response_format>/', JobStatus.as_view(), name='job_status'),
     path('job_status/<str:action>/', JobStatus.as_view(), name='job_status')
 ]

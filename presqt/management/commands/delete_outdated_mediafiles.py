@@ -19,9 +19,7 @@ class Command(BaseCommand):
             print('***delete_outdated_mediafiles is running in development mode.***')
 
         directories_list = [
-            '/usr/src/app/mediafiles/downloads/*/',
-            '/usr/src/app/mediafiles/uploads/*/',
-            '/usr/src/app/mediafiles/transfers/*/',
+            '/usr/src/app/mediafiles/jobs/*/',
             '/usr/src/app/mediafiles/bag_tool/*/'
         ]
         directories = []

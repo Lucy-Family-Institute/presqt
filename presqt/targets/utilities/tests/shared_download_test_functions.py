@@ -139,8 +139,7 @@ def shared_call_get_resource_zip(test_case_instance, resource_id):
     response = test_case_instance.client.get(url, **test_case_instance.header)
     # Verify the status code
     test_case_instance.assertEqual(response.status_code, 202)
-    test_case_instance.ticket_number = response.data['ticket_number']
-    test_case_instance.process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(
+    test_case_instance.process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(
         test_case_instance.ticket_number)
     process_info = read_file(test_case_instance.process_info_path, True)
 
@@ -148,10 +147,10 @@ def shared_call_get_resource_zip(test_case_instance, resource_id):
     test_case_instance.initial_process_info = process_info
 
     # Wait until the spawned off process finishes in the background
-    while process_info['status'] == 'in_progress':
+    while process_info['resource_download']['status'] == 'in_progress':
         try:
             process_info = read_file(test_case_instance.process_info_path, True)
         except json.decoder.JSONDecodeError:
             # Pass while the process_info file is being written to
             pass
-    test_case_instance.assertNotEqual(process_info['status'], 'in_progress')
+    test_case_instance.assertNotEqual(process_info['resource_download']['status'], 'in_progress')
