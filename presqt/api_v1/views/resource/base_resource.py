@@ -226,6 +226,7 @@ class BaseResource(APIView):
                 if index == 2:
                     return Response(data={'error': 'PresQT Error: {}'.format(e.data)}, status=e.status_code)
             except bagit.BagError as e:
+                shutil.rmtree(self.ticket_path)
                 # If we've reached the maximum number of attempts then return an error response
                 if index == 2:
                     return Response(data={'error': 'PresQT Error: {}'.format(e.args[0])}, status=status.HTTP_400_BAD_REQUEST)
