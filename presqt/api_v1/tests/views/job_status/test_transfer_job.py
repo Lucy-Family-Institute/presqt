@@ -20,7 +20,7 @@ from presqt.targets.osf.utilities import delete_users_projects
 
 class TestTransferJobGET(SimpleTestCase):
     """
-    Test the `api_v1/transfer/<ticket_id>/` endpoint's GET method.
+    Test the `api_v1/job_status/transfer/` endpoint's GET method.
 
     Testing only PresQT core code.
     """
@@ -747,7 +747,7 @@ class TestTransferJobGET(SimpleTestCase):
 
 class TestTransferJobPATCH(SimpleTestCase):
     """
-    Test the `api_v1/transfer/<ticket_id>/` endpoint's PATCH method.
+    Test the `api_v1/job_status/transfer/` endpoint's PATCH method.
 
     Testing only PresQT core code.
     """
@@ -774,7 +774,7 @@ class TestTransferJobPATCH(SimpleTestCase):
             "keywords": []}, **self.headers, format='json')
 
         ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
-        print(ticket_path)
+
         # Verify process_info file status is 'in_progress' initially
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         self.assertEqual(process_info['resource_transfer_in']['status'], 'in_progress')
@@ -844,24 +844,27 @@ class TestTransferJobPATCH(SimpleTestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
-    # def test_get_error_400(self):
-    #     """
-    #     Return a 400 if the `presqt-destination-token` is missing in the headers.
-    #     """
-    #     self.client.post(self.url, {
-    #         "source_target_name": "github",
-    #         "source_resource_id": self.resource_id,
-    #         "keywords": []},
-    #         **self.headers, format='json')
-    #
-    #     url = reverse('job_status', kwargs={'action': 'transfer'})
-    #     headers = {'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
-    #     response = self.client.patch(url, **headers)
-    #
-    #     # Verify the status code and content
-    #     self.assertEqual(response.status_code, 400)
-    #     self.assertEqual(response.data['error'],
-    #                      "PresQT Error: 'presqt-destination-token' missing in the request headers.")
-    #
-    #     # Delete corresponding folder
-    #     shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
+    def test_get_error_400(self):
+        """
+        Return a 400 if the `presqt-destination-token` is missing in the headers.
+        """
+        self.client.post(self.url, {
+            "source_target_name": "github",
+            "source_resource_id": self.resource_id,
+            "keywords": []},
+            **self.headers, format='json')
+
+        url = reverse('job_status', kwargs={'action': 'transfer'})
+        headers = {'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+        response = self.client.patch(url, **headers)
+        correct_cancel_response = self.client.patch(url, **self.headers)
+
+        # Verify the status code and content
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['error'],
+                         "PresQT Error: 'presqt-destination-token' missing in the request headers.")
+
+        self.assertEqual(correct_cancel_response.status_code, 200)
+
+        # Delete corresponding folder
+        shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
