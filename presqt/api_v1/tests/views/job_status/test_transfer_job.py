@@ -20,7 +20,7 @@ from presqt.targets.osf.utilities import delete_users_projects
 
 class TestTransferJobGET(SimpleTestCase):
     """
-    Test the `api_v1/transfer/<ticket_id>/` endpoint's GET method.
+    Test the `api_v1/job_status/transfer/` endpoint's GET method.
 
     Testing only PresQT core code.
     """
@@ -469,9 +469,9 @@ class TestTransferJobGET(SimpleTestCase):
             "source_target_name": "github",
             "source_resource_id": self.resource_id, "keywords": []},
             **self.headers, format='json')
+        self.ticket_number = '{}_{}'.format(hash_tokens(self.source_token), hash_tokens('bad_token'))
         process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(self.ticket_number)
         process_info = read_file(process_info_path, True)
-
         url = reverse('job_status', kwargs={'action': 'transfer'})
 
         while process_info['resource_transfer_in']['status'] == 'in_progress':
@@ -610,9 +610,10 @@ class TestTransferJobGET(SimpleTestCase):
                    'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN,
                    'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
                    'HTTP_PRESQT_KEYWORD_ACTION': 'automatic'}
+        self.ticket_number = '{}_{}'.format(hash_tokens(OSF_TEST_USER_TOKEN), hash_tokens(GITHUB_TEST_USER_TOKEN))
         url = reverse('resource_collection', kwargs={'target_name': 'github'})
 
-        response = self.client.post(url, {
+        self.client.post(url, {
             "source_target_name": "osf",
             "source_resource_id": '5db70f51f3bb87000c853575', "keywords": []},
             **headers, format='json')
@@ -746,7 +747,7 @@ class TestTransferJobGET(SimpleTestCase):
 
 class TestTransferJobPATCH(SimpleTestCase):
     """
-    Test the `api_v1/transfer/<ticket_id>/` endpoint's PATCH method.
+    Test the `api_v1/job_status/transfer/` endpoint's PATCH method.
 
     Testing only PresQT core code.
     """
@@ -755,6 +756,7 @@ class TestTransferJobPATCH(SimpleTestCase):
         self.client = APIClient()
         self.destination_token = OSF_UPLOAD_TEST_USER_TOKEN
         self.source_token = GITHUB_TEST_USER_TOKEN
+        self.ticket_number = '{}_{}'.format(hash_tokens(self.source_token), hash_tokens(self.destination_token))
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.destination_token,
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
@@ -766,26 +768,26 @@ class TestTransferJobPATCH(SimpleTestCase):
         """
         Return a 200 for successful cancelled transfer process.
         """
-        transfer_response = self.client.post(self.url, {
+        self.client.post(self.url, {
             "source_target_name": "github",
             "source_resource_id": self.resource_id,
             "keywords": []}, **self.headers, format='json')
 
-        ticket_number = transfer_response.data['ticket_number']
-        ticket_path = 'mediafiles/transfers/{}'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
+
         # Verify process_info file status is 'in_progress' initially
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        self.assertEqual(process_info['status'], 'in_progress')
+        self.assertEqual(process_info['resource_transfer_in']['status'], 'in_progress')
 
         # Wait until the spawned off process has a function_process_id to cancel the transfer
-        while not process_info['function_process_id']:
+        while not process_info['resource_transfer_in']['function_process_id']:
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
 
-        transfer_patch_url = reverse('transfer_job', kwargs={'ticket_number': ticket_number})
+        transfer_patch_url = reverse('job_status', kwargs={'action': 'transfer'})
         transfers_patch_url_response = self.client.patch(transfer_patch_url, **self.headers)
 
         self.assertEquals(transfers_patch_url_response.status_code, 200)
@@ -795,36 +797,37 @@ class TestTransferJobPATCH(SimpleTestCase):
 
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
 
-        self.assertEquals(process_info['message'], 'Transfer was cancelled by the user')
-        self.assertEquals(process_info['status'], 'failed')
-        self.assertEquals(process_info['status_code'], '499')
+        self.assertEquals(process_info['resource_transfer_in']['message'], 'Transfer was cancelled by the user')
+        self.assertEquals(process_info['resource_transfer_in']['status'], 'failed')
+        self.assertEquals(process_info['resource_transfer_in']['status_code'], '499')
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/transfers/{}'.format(ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
     def test_success_406(self):
         """
         Return a 406 for unsuccessful cancel because the transfer finished already.
         """
-        transfer_response = self.client.post(self.url, {
+        self.client.post(self.url, {
             "source_target_name": "github",
             "source_resource_id": self.resource_id,
             "keywords": []}, **self.headers, format='json')
-        ticket_number = transfer_response.data['ticket_number']
-        ticket_path = 'mediafiles/transfers/{}'.format(ticket_number)
+
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
+
         # Verify process_info file status is 'in_progress' initially
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        self.assertEqual(process_info['status'], 'in_progress')
+        self.assertEqual(process_info['resource_transfer_in']['status'], 'in_progress')
 
         # Wait until the spawned off process finishes to attempt to cancel transfer
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_transfer_in']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
 
-        transfer_patch_url = reverse('transfer_job', kwargs={'ticket_number': ticket_number})
+        transfer_patch_url = reverse('job_status', kwargs={'action': 'transfer'})
         transfers_patch_url_response = self.client.patch(transfer_patch_url, **self.headers)
 
         self.assertEquals(transfers_patch_url_response.status_code, 406)
@@ -833,33 +836,35 @@ class TestTransferJobPATCH(SimpleTestCase):
 
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
 
-        self.assertEquals(process_info['message'],
+        self.assertEquals(process_info['resource_transfer_in']['message'],
                           "Transfer successful. Fixity can't be determined because GitHub may not have provided a file checksum. See PRESQT_FTS_METADATA.json for more details.")
-        self.assertEquals(process_info['status'], 'finished')
-        self.assertEquals(process_info['status_code'], '200')
+        self.assertEquals(process_info['resource_transfer_in']['status'], 'finished')
+        self.assertEquals(process_info['resource_transfer_in']['status_code'], '200')
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/transfers/{}'.format(ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
     def test_get_error_400(self):
         """
         Return a 400 if the `presqt-destination-token` is missing in the headers.
         """
-        response = self.client.post(self.url, {
+        self.client.post(self.url, {
             "source_target_name": "github",
             "source_resource_id": self.resource_id,
             "keywords": []},
             **self.headers, format='json')
-        ticket_number = response.data['ticket_number']
 
-        url = reverse('transfer_job', kwargs={'ticket_number': ticket_number})
+        url = reverse('job_status', kwargs={'action': 'transfer'})
         headers = {'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
         response = self.client.patch(url, **headers)
+        correct_cancel_response = self.client.patch(url, **self.headers)
 
         # Verify the status code and content
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['error'],
                          "PresQT Error: 'presqt-destination-token' missing in the request headers.")
 
+        self.assertEqual(correct_cancel_response.status_code, 200)
+
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/transfers/{}'.format(ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))

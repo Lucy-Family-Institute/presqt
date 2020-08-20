@@ -20,16 +20,22 @@ class JobStatus(APIView):
     **Supported HTTP Methods**
 
     * Get: Retrieve the status of a job
+    * Patch: Cancel a job
     """
 
     def get(self, request, action, response_format=None):
         """
-        Retrieve the status of a job
+        Retrieve the status of a job.
+
+        Handler for all action status jobs...will route to the correct action class method
+        depending on the action url parameter, 'action'.
 
         Path Parameters
         ---------------
         action: str
             The action to get the status of
+        response_format:
+            Optional parameter for specifying the response format for downloads
 
         Returns
         -------
@@ -43,6 +49,10 @@ class JobStatus(APIView):
         or
         {
             "error": "PresQT Error: {} is not a valid acton."
+        }
+        or
+        {
+            "error": 'PresQT Error: Bad token provided'
         }
         404  Not Found
         {
@@ -59,6 +69,9 @@ class JobStatus(APIView):
             return func()
 
     def collection_get(self):
+        """
+        Get the status of a collection job.
+        """
         # Perform token validation. Read data from the process_info file.
         try:
             source_token = get_source_token(self.request)
@@ -93,6 +106,12 @@ class JobStatus(APIView):
         return Response(status=status.HTTP_200_OK, data=data)
 
     def download_get(self):
+        """
+        Get the status of a download job.
+
+        Will return either a json object or a file bytes depending on the 'resource_format' url
+        parameter
+        """
         # Perform token validation. Read data from the process_info file.
         try:
             source_token = get_source_token(self.request)
@@ -139,6 +158,9 @@ class JobStatus(APIView):
                             data={'status_code': status_code, 'message': message})
 
     def upload_get(self):
+        """
+        Get the status of an upload job.
+        """
         # Perform token validation. Read data from the process_info file.
         try:
             destination_token = get_destination_token(self.request)
@@ -167,6 +189,9 @@ class JobStatus(APIView):
         return Response(status=http_status, data=data)
 
     def transfer_get(self):
+        """
+        Get the status of a transfer job.
+        """
         # Perform token validation. Read data from the process_info file.
         try:
             destination_token = get_destination_token(self.request)
@@ -200,6 +225,41 @@ class JobStatus(APIView):
         return Response(status=http_status, data=data)
 
     def patch(self, request, action, response_format=None):
+        """
+        Cancel a job
+
+        Handler for all action status jobs...will route to the correct action class method
+        depending on the action url parameter, 'action'.
+
+        Path Parameters
+        ---------------
+        action: str
+            The action to get the status of
+        response_format:
+            Optional parameter for specifying the response format for downloads
+
+        Returns
+        -------
+        200: OK
+        A dictionary like JSON representation of the requested job status
+
+        400: Bad Request
+        {
+            "error": "PresQT Error: 'presqt-source-token' missing in the request headers."
+        }
+        or
+        {
+            "error": "PresQT Error: {} is not a valid acton."
+        }
+        or
+        {
+            "error": 'PresQT Error: Bad token provided'
+        }
+        404  Not Found
+        {
+            "error": "PresQT Error: Invalid ticket number, '1234'."
+        }
+        """
         self.response_format = response_format
 
         try:
@@ -210,6 +270,9 @@ class JobStatus(APIView):
             return func()
 
     def download_patch(self):
+        """
+        Attempt to cancel a download job.
+        """
         # Perform token validation. Read data from the process_info file.
         try:
             source_token = get_source_token(self.request)
@@ -261,6 +324,9 @@ class JobStatus(APIView):
                 status=status.HTTP_406_NOT_ACCEPTABLE)
 
     def upload_patch(self):
+        """
+        Attempt to cancel an upload job.
+        """
         # Perform token validation. Read data from the process_info file.
         try:
             destination_token = get_destination_token(self.request)
@@ -303,6 +369,9 @@ class JobStatus(APIView):
                 status=status.HTTP_406_NOT_ACCEPTABLE)
 
     def transfer_patch(self):
+        """
+        Attempt to cancel a transfer job.
+        """
         # Perform token validation. Read data from the process_info file.
         try:
             destination_token = get_destination_token(self.request)

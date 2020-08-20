@@ -316,8 +316,7 @@ class TestDownloadJobPATCH(SimpleTestCase):
         download_patch_url_response = self.client.patch(download_patch_url, **self.header)
 
         self.assertEquals(download_patch_url_response.status_code, 200)
-        self.assertEquals(download_patch_url_response.data['message'],
-                          'Download was cancelled by the user')
+        self.assertEquals(download_patch_url_response.data['message'], 'Download was cancelled by the user')
 
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         download_process_info = process_info['resource_download']
