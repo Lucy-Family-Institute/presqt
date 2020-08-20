@@ -40,8 +40,6 @@ class TestDeleteMediaFiles(SimpleTestCase):
             # Ensure that the folder and files have been retained
             data_post_command = glob.glob('mediafiles/jobs/test_command/')
             self.assertEqual(len(data_post_command), 1)
-            print(data_post_command)
-            print("WHY DOES THIS WORK")
 
         # Test in development mode.....all mediafiles should be deleted.
         data_pre_command = glob.glob('mediafiles/jobs/test_command/process_info.json')
