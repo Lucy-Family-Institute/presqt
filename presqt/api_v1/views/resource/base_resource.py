@@ -245,8 +245,6 @@ class BaseResource(APIView):
             'status_code': None,
             'function_process_id': None
         }
-        # self.process_info_path = os.path.join(self.ticket_path, 'process_info.json')
-        # write_file(self.process_info_path, self.process_info_obj, True)
         self.process_info_path = update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
 
         # Create a hash dictionary to compare with the hashes returned from the target after upload
