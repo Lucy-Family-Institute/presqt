@@ -75,17 +75,14 @@ class JobStatus(APIView):
         files_finished = self.process_data['resource_collection']['files_finished']
 
         job_percentage = 0
+        job_status = 'in_progress'
         if total_files != 0 and files_finished != 0:
             job_percentage = round(files_finished / total_files * 100)
-
-        # Little bit of a hack here, the front end doesn't build resources as fast as they are returned
-        # so to get around the FE hanging on 100% for a few seconds, we'll display 99.
-        if job_percentage == 100:
-            job_percentage = 99
-
-        job_status = 'in_progress'
-        if job_percentage == 99:
-            job_status = 'finished'
+            # Little bit of a hack here, the front end doesn't build resources as fast as they are 
+            # returned so to get around the FE hanging on 100% for a few seconds, we'll display 99.
+            if job_percentage == 100:
+                job_percentage = 99
+                job_status = 'finished'
 
         data = {
             'status': job_status,
