@@ -33,7 +33,6 @@ class Command(BaseCommand):
                 print('{} has been deleted. No process_info.json file found'.format(directory))
             else:
                 for key, value in data.items():
-                    print(key, value)
                     if 'expiration' in value.keys():
                         if parse(value['expiration']) <= timezone.now() or os.environ['ENVIRONMENT'] == 'development':
                             shutil.rmtree(directory)
