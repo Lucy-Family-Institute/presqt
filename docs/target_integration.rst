@@ -152,11 +152,11 @@ structure on the front end.
                 # Process to obtain resource collection goes here.
                 # Variables below are defined here to show examples of structure.
                 target_resources = get_target_resources()
-                update_process_info(process_info_path, len(target_resources))
+                update_process_info(process_info_path, len(target_resources), 'resource_collection')
 
                 resources = []
                 for resource in target_resources:
-                    increment_process_info(process_info_path)
+                    increment_process_info(process_info_path, 'resource_collection')
                        resource.append({
                         'kind': 'container',
                         'kind_name': 'Project',

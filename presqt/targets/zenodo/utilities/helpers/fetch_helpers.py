@@ -24,12 +24,12 @@ def zenodo_fetch_resources_helper(zenodo_projects, auth_parameter, is_record, pr
     """
     # Add the total number of projects to the process info file.
     # This is necessary to keep track of the progress of the request.
-    update_process_info(process_info_path, len(zenodo_projects))
+    update_process_info(process_info_path, len(zenodo_projects), 'resource_collection')
 
     resources = []
     for entry in zenodo_projects:
         # Increment the number of files done in the process info file.
-        increment_process_info(process_info_path)
+        increment_process_info(process_info_path, 'resource_collection')
 
         # This will determine if it's a record or a deposition
         if is_record is True:
