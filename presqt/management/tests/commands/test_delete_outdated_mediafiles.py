@@ -18,10 +18,11 @@ class TestDeleteMediaFiles(SimpleTestCase):
         self.directory = 'mediafiles/jobs/test_command/'
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
-        self.data = ({"presqt-source-token": "blahblah", "status": "in_progress",
-                      "expiration": str(timezone.now()+relativedelta(days=5)),
-                      "message": "Download successful", "status_code": "200",
-                      "zip_name": "test.zip"})
+        self.data = (
+            {'resource_upload': {"presqt-source-token": "blahblah", "status": "in_progress",
+                                 "expiration": str(timezone.now()+relativedelta(days=5)),
+                                 "message": "Download successful", "status_code": "200",
+                                 "zip_name": "test.zip"}})
         with open('{}process_info.json'.format(self.directory), 'w+') as file:
             json.dump(self.data, file)
 
@@ -39,7 +40,9 @@ class TestDeleteMediaFiles(SimpleTestCase):
             # Ensure that the folder and files have been retained
             data_post_command = glob.glob('mediafiles/jobs/test_command/')
             self.assertEqual(len(data_post_command), 1)
-        
+            print(data_post_command)
+            print("WHY DOES THIS WORK")
+
         # Test in development mode.....all mediafiles should be deleted.
         data_pre_command = glob.glob('mediafiles/jobs/test_command/process_info.json')
         self.assertEqual(len(data_pre_command), 1)
@@ -60,7 +63,7 @@ class TestDeleteMediaFiles(SimpleTestCase):
             data = read_file('{}process_info.json'.format(self.directory), True)
 
             # Set the expiration date to be yesterday
-            data['expiration'] = str(timezone.now() - relativedelta(days=1))
+            data['resource_upload']['expiration'] = str(timezone.now() - relativedelta(days=1))
 
             # Write the data JSON back to the process_info file
             write_file('{}process_info.json'.format(self.directory), data, True)
