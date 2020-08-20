@@ -30,9 +30,6 @@ def get_github_repository_data(initial_data, header, process_info_path, resource
     update_process_info(process_info_path, len(initial_data))
 
     for repo in initial_data:
-        # Increment the number of files done in the process info file.
-        increment_process_info(process_info_path)
-
         resources.append({
             "kind": "container",
             "kind_name": "repo",
@@ -72,4 +69,7 @@ def get_github_repository_data(initial_data, header, process_info_path, resource
                         "id": formatted_id,
                         "title": title
                     })
+        # Increment the number of files done in the process info file.
+        increment_process_info(process_info_path)
+
     return resources

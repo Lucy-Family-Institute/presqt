@@ -261,8 +261,7 @@ class BaseResource(APIView):
         upload_hyperlink = self.request.build_absolute_uri(reversed_url)
 
         return Response(status=status.HTTP_202_ACCEPTED,
-                        data={'ticket_number': self.ticket_number,
-                              'message': 'The server is processing the request.',
+                        data={'message': 'The server is processing the request.',
                               'upload_job': upload_hyperlink})
 
     def _download_resource(self):
@@ -657,8 +656,7 @@ class BaseResource(APIView):
         transfer_hyperlink = self.request.build_absolute_uri(reversed_url)
 
         return Response(status=status.HTTP_202_ACCEPTED,
-                        data={'ticket_number': self.ticket_number,
-                              'message': 'The server is processing the request.',
+                        data={'message': 'The server is processing the request.',
                               'transfer_job': transfer_hyperlink})
 
     def _transfer_resource(self):
