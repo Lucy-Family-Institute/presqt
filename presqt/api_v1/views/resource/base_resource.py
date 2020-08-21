@@ -248,6 +248,7 @@ class BaseResource(APIView):
             'total_files': 0,
             'files_finished': 0
         }
+
         self.process_info_path = update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
 
         # Create a hash dictionary to compare with the hashes returned from the target after upload
@@ -541,6 +542,8 @@ class BaseResource(APIView):
             self.process_info_obj['expiration'] = str(timezone.now() + relativedelta(hours=1))
             update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
             return False
+
+        self.process_info_obj = read_file(self.process_info_path, True)[self.action]
 
         # Check if fixity has failed on any files during a transfer. If so, update the
         # process_info_data file.
