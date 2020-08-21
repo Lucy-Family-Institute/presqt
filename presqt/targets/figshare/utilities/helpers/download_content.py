@@ -12,7 +12,7 @@ def download_project(username, url, headers, project_name, files):
         The user's FigShare username.
     url : str
         The url of the project's contents
-    header: dict
+    headers: dict
         API header expected by FigShare
     project_name : str
         The name of the project that is being downloaded
@@ -58,7 +58,7 @@ def download_article(username, url, headers, project_name, files):
         The user's FigShare username.
     url : str
         The url of the project's contents
-    header: dict
+    headers: dict
         API header expected by FigShare
     project_name : str
         The name of the project that is being downloaded

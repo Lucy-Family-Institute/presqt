@@ -11,7 +11,7 @@ from rest_framework.response import Response
 
 from presqt.api_v1.utilities import (get_source_token, get_process_info_data, hash_tokens,
                                      update_or_create_process_info, get_destination_token,
-                                     process_token_validation)
+                                     process_token_validation, calculate_job_percentage)
 from presqt.utilities import PresQTValidationError, write_file
 
 
@@ -87,15 +87,10 @@ class JobStatus(APIView):
         total_files = self.process_data['resource_collection']['total_files']
         files_finished = self.process_data['resource_collection']['files_finished']
 
-        job_percentage = 0
         job_status = 'in_progress'
-        if total_files != 0 and files_finished != 0:
-            job_percentage = round(files_finished / total_files * 100)
-            # Little bit of a hack here, the front end doesn't build resources as fast as they are 
-            # returned so to get around the FE hanging on 100% for a few seconds, we'll display 99.
-            if job_percentage == 100:
-                job_percentage = 99
-                job_status = 'finished'
+        job_percentage = calculate_job_percentage(total_files, files_finished)
+        if job_percentage == 99:
+            job_status = 'finished'
 
         data = {
             'status': job_status,
@@ -132,6 +127,10 @@ class JobStatus(APIView):
         message = download_process_data['message']
         status_code = download_process_data['status_code']
 
+        total_files = download_process_data['total_files']
+        files_finished = download_process_data['files_finished']
+        job_percentage = calculate_job_percentage(total_files, files_finished)
+
         # Return the file to download if it has finished.
         if download_status == 'finished':
             if self.response_format == 'zip':
@@ -145,7 +144,10 @@ class JobStatus(APIView):
                 response = Response(data={'status_code': status_code,
                                           'message': message,
                                           'zip_name': download_process_data['zip_name'],
-                                          'failed_fixity': download_process_data['failed_fixity']},
+                                          'failed_fixity': download_process_data['failed_fixity'],
+                                          'job_percentage': job_percentage,
+                                          'status': download_status
+                                          },
                                     status=status.HTTP_200_OK)
             return response
         else:
@@ -155,7 +157,11 @@ class JobStatus(APIView):
                 http_status = status.HTTP_500_INTERNAL_SERVER_ERROR
 
             return Response(status=http_status,
-                            data={'status_code': status_code, 'message': message})
+                            data={'job_percentage': job_percentage,
+                                  'status': download_status,
+                                  'status_code': status_code,
+                                  'message': message
+                                  })
 
     def upload_get(self):
         """
