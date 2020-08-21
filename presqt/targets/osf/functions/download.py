@@ -147,13 +147,13 @@ def osf_download_resource(token, resource_id, process_info_path):
                 path_to_strip = resource.materialized_path[:-(len(resource.title) + 2)]
                 file['path'] = file['file'].materialized_path[len(path_to_strip):]
 
-        # Asynchronously make all download requests
         file_urls = [file['file'].download_url for file in files]
 
         # Add the total number of projects to the process info file.
         # This is necessary to keep track of the progress of the request.
         update_process_info(process_info_path, len(file_urls), 'resource_download')
 
+        # Asynchronously make all download requests
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         download_data = loop.run_until_complete(async_main(file_urls, token, process_info_path))
