@@ -30,7 +30,7 @@ from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
 from presqt.json_schemas.schema_handlers import schema_validator
 from presqt.utilities import (PresQTValidationError, PresQTResponseException, write_file,
-                              zip_directory)
+                              zip_directory, read_file)
 
 
 class BaseResource(APIView):
@@ -287,7 +287,7 @@ class BaseResource(APIView):
         #       'action_metadata': action_metadata
         #   }
         try:
-            func_dict = func(self.source_token, self.source_resource_id)
+            func_dict = func(self.source_token, self.source_resource_id, self.process_info_path)
             # If the resource is being transferred, has only one file, and that file is the
             # PresQT metadata then raise an error.
             if self.action == 'resource_transfer_in' and \
@@ -298,7 +298,6 @@ class BaseResource(APIView):
                     status.HTTP_400_BAD_REQUEST)
         except PresQTResponseException as e:
             #TODO: Functionalize this error section
-
             # Catch any errors that happen within the target fetch.
             # Update the server process_info file appropriately.
             self.process_info_obj['status_code'] = e.status_code
@@ -312,6 +311,9 @@ class BaseResource(APIView):
             update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
 
             return False
+
+        # Get the latest contents of the job's process_info.json file
+        self.process_info_obj = read_file(self.process_info_path, True)[self.action]
 
         # The directory all files should be saved in.
         self.resource_main_dir = os.path.join(self.ticket_path, self.base_directory_name)

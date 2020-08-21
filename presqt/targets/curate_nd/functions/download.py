@@ -8,10 +8,10 @@ from rest_framework import status
 from presqt.targets.curate_nd.utilities import get_curate_nd_resource
 from presqt.targets.curate_nd.classes.main import CurateND
 from presqt.utilities import (PresQTInvalidTokenError, PresQTValidationError,
-                              get_dictionary_from_list)
+                              get_dictionary_from_list, update_process_info, increment_process_info)
 
 
-async def async_get(url, session, token):
+async def async_get(url, session, token, process_info_path):
     """
     Coroutine that uses aiohttp to make a GET request. This is the method that will be called
     asynchronously with other GETs.
@@ -24,6 +24,8 @@ async def async_get(url, session, token):
         aiohttp ClientSession Object
     token: str
         User's CurateND token
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
@@ -32,10 +34,12 @@ async def async_get(url, session, token):
     async with session.get(url, headers={'X-Api-Token': token}) as response:
         assert response.status == 200
         content = await response.read()
+        # Increment the number of files done in the process info file.
+        increment_process_info(process_info_path, 'resource_download')
         return {'url': url, 'binary_content': content}
 
 
-async def async_main(url_list, token):
+async def async_main(url_list, token, process_info_path):
     """
     Main coroutine method that will gather the url calls to be made and will make them
     asynchronously.
@@ -46,16 +50,18 @@ async def async_main(url_list, token):
         List of urls to call
     token: str
         User's CurateND token
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
     List of data brought back from each coroutine called.
     """
     async with aiohttp.ClientSession() as session:
-        return await asyncio.gather(*[async_get(url, session, token) for url in url_list])
+        return await asyncio.gather(*[async_get(url, session, token, process_info_path) for url in url_list])
 
 
-def curate_nd_download_resource(token, resource_id):
+def curate_nd_download_resource(token, resource_id, process_info_path):
     """
     Fetch the requested resource from CurateND along with its hash information.
 
@@ -65,6 +71,8 @@ def curate_nd_download_resource(token, resource_id):
         User's CurateND token
     resource_id : str
         ID of the resource requested
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
@@ -109,6 +117,10 @@ def curate_nd_download_resource(token, resource_id):
         # This is so we aren't missing the few extra keys that are pulled out for the PresQT payload
         resource.extra.update({"id": resource.id, "date_submitted": resource.date_submitted})
 
+        # Add the total number of items to the process info file.
+        # This is necessary to keep track of the progress of the request.
+        update_process_info(process_info_path, 1, 'resource_download')
+
         binary_file, curate_hash = resource.download()
 
         files.append({
@@ -120,10 +132,17 @@ def curate_nd_download_resource(token, resource_id):
             'source_path': '/{}/{}'.format(project_title, resource.title),
             'extra_metadata': resource.extra})
 
+        # Increment the number of files done in the process info file.
+        increment_process_info(process_info_path, 'resource_download')
+
     else:
         if not resource.extra['containedFiles']:
             empty_containers.append('{}'.format(resource.title))
         else:
+            # Add the total number of items to the process info file.
+            # This is necessary to keep track of the progress of the request.
+            update_process_info(process_info_path, len(resource.extra['containedFiles']), 'resource_download')
+
             title_helper = {}
             hash_helper = {}
             file_urls = []
@@ -144,7 +163,7 @@ def curate_nd_download_resource(token, resource_id):
 
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-            download_data = loop.run_until_complete(async_main(file_urls, token))
+            download_data = loop.run_until_complete(async_main(file_urls, token, process_info_path))
 
             for file in download_data:
                 title = title_helper[file['url']]

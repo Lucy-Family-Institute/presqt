@@ -6,10 +6,12 @@ from rest_framework import status
 
 from presqt.targets.figshare.utilities.validation_check import validation_check
 from presqt.targets.figshare.utilities.helpers.download_content import download_project, download_article
-from presqt.utilities import PresQTResponseException, get_dictionary_from_list
+from presqt.utilities import (PresQTResponseException, get_dictionary_from_list,
+                              update_process_info,
+                              increment_process_info)
 
 
-async def async_get(url, session, header):
+async def async_get(url, session, header, process_info_path):
     """
     Coroutine that uses aiohttp to make a GET request. This is the method that will be called
     asynchronously with other GETs.
@@ -22,6 +24,8 @@ async def async_get(url, session, header):
         aiohttp ClientSession Object
     header: str
         Header for request
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
@@ -30,10 +34,12 @@ async def async_get(url, session, header):
     async with session.get(url, headers=header) as response:
         assert response.status == 200
         content = await response.read()
+        # Increment the number of files done in the process info file.
+        increment_process_info(process_info_path, 'resource_download')
         return {'url': url, 'binary_content': content}
 
 
-async def async_main(url_list, header):
+async def async_main(url_list, header, process_info_path):
     """
     Main coroutine method that will gather the url calls to be made and will make them
     asynchronously.
@@ -44,16 +50,18 @@ async def async_main(url_list, header):
         List of urls to call
     header: str
         Header for request
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
     List of data brought back from each coroutine called.
     """
     async with aiohttp.ClientSession() as session:
-        return await asyncio.gather(*[async_get(url, session, header) for url in url_list])
+        return await asyncio.gather(*[async_get(url, session, header, process_info_path) for url in url_list])
 
 
-def figshare_download_resource(token, resource_id):
+def figshare_download_resource(token, resource_id, process_info_path):
     """
     Fetch the requested resource from FigShare along with its hash information.
 
@@ -63,6 +71,8 @@ def figshare_download_resource(token, resource_id):
         User's FigShare token
     resource_id : str
         ID of the resource requested
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
@@ -139,6 +149,10 @@ def figshare_download_resource(token, resource_id):
             file_urls = [file['file'] for file in files]
 
         elif len(split_id) == 3:
+            # Add the total number of articles to the process info file.
+            # This is necessary to keep track of the progress of the request.
+            update_process_info(process_info_path, 1, 'resource_download')
+
             # Single file download.
             data = response.json()
             for file in data['files']:
@@ -151,6 +165,9 @@ def figshare_download_resource(token, resource_id):
                         "source_path": "/{}/{}/{}".format(project_name, data['title'], file['name']),
                         "extra_metadata": {"size": file['size']}
                     }]
+                    # Increment the number of files done in the process info file.
+                    increment_process_info(process_info_path, 'resource_download')
+
                     empty_containers = []
                     action_metadata = {"sourceUsername": username}
             if not files:
@@ -158,10 +175,14 @@ def figshare_download_resource(token, resource_id):
                 raise PresQTResponseException("The resource could not be found by the requesting user.",
                                               status.HTTP_404_NOT_FOUND)
     if file_urls:
+        # Add the total number of articles to the process info file.
+        # This is necessary to keep track of the progress of the request.
+        update_process_info(process_info_path, len(file_urls), 'resource_download')
+
         # Start the async calls for project or article downloads
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        download_data = loop.run_until_complete(async_main(file_urls, headers))
+        download_data = loop.run_until_complete(async_main(file_urls, headers, process_info_path))
 
         # Go through the file dictionaries and replace the file path with the binary_content
         for file in files:

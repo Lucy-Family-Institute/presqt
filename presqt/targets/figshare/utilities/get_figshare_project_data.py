@@ -12,7 +12,7 @@ def get_figshare_project_data(initial_data, headers, resources, process_info_pat
     initial_data: list
         List of all top level projects
     headers: dict
-        The authorizaion header that Figshare expects
+        The authorization header that Figshare expects
     resources: list
         A list of resources to append to
     process_info_path: str
