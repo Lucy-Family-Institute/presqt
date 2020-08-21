@@ -1,5 +1,3 @@
-import requests
-
 from rest_framework import status
 
 from presqt.utilities import PresQTResponseException, PresQTInvalidTokenError, PresQTValidationError
