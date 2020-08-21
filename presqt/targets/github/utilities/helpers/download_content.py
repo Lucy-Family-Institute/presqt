@@ -5,7 +5,7 @@ import requests
 from presqt.utilities import increment_process_info, update_process_info
 
 
-def download_content(username, url, header, repo_name, files, process_info_path):
+def download_content(username, url, header, repo_name, files):
     """
     Recursive function to extract all files from a given repo.
 
@@ -21,8 +21,6 @@ def download_content(username, url, header, repo_name, files, process_info_path)
         The name of the repo that is being downloaded
     files : list
         A list of dictionaries with file information
-    process_info_path: str
-        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
@@ -46,10 +44,8 @@ def download_content(username, url, header, repo_name, files, process_info_path)
                 'path': '/{}/{}'.format(repo_name, data['path']),
                 'source_path': '/{}/{}'.format(repo_name, data['path']),
                 'extra_metadata': file_metadata})
-            # Increment the number of files done in the process info file.
-            increment_process_info(process_info_path, 'resource_download')
         else:
-            download_content(username, data['url'], header, repo_name, files, process_info_path)
+            download_content(username, data['url'], header, repo_name, files)
 
     return files, [], action_metadata
 

@@ -8,10 +8,10 @@ from rest_framework import status
 from presqt.targets.github.utilities import (
     validation_check, download_content, download_directory, download_file)
 from presqt.utilities import (PresQTResponseException, get_dictionary_from_list,
-                              update_process_info)
+                              update_process_info, increment_process_info)
 
 
-async def async_get(url, session, header):
+async def async_get(url, session, header, process_info_path):
     """
     Coroutine that uses aiohttp to make a GET request. This is the method that will be called
     asynchronously with other GETs.
@@ -24,6 +24,8 @@ async def async_get(url, session, header):
         aiohttp ClientSession Object
     header: str
         Header for request
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
@@ -32,10 +34,12 @@ async def async_get(url, session, header):
     async with session.get(url, headers=header) as response:
         assert response.status == 200
         content = await response.read()
+        # Increment the number of files done in the process info file.
+        increment_process_info(process_info_path, 'resource_download')
         return {'url': url, 'binary_content': content}
 
 
-async def async_main(url_list, header):
+async def async_main(url_list, header, process_info_path):
     """
     Main coroutine method that will gather the url calls to be made and will make them
     asynchronously.
@@ -46,13 +50,15 @@ async def async_main(url_list, header):
         List of urls to call
     header: str
         Header for request
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
     List of data brought back from each coroutine called.
     """
     async with aiohttp.ClientSession() as session:
-        return await asyncio.gather(*[async_get(url, session, header) for url in url_list])
+        return await asyncio.gather(*[async_get(url, session, header, process_info_path) for url in url_list])
 
 
 def github_download_resource(token, resource_id, process_info_path):
@@ -112,21 +118,18 @@ def github_download_resource(token, resource_id, process_info_path):
         # https://api.github.com/repos/eggyboi/djangoblog/contents
         contents_url = data['contents_url'].partition('/{+path}')[0]
 
-        # Get tree info
-        tree_data = requests.get('{}/master?recursive=1'.format(data['trees_url'].partition('{/sha}')[0]),
-                                 headers=header).json()
-        total_files = len([file for file in tree_data['tree'] if file['type'] == 'blob'])
-        # Add the total number of repository to the process info file.
-        # This is necessary to keep track of the progress of the request.
-        update_process_info(process_info_path, total_files, 'resource_download')
 
         files, empty_containers, action_metadata = download_content(
-            username, contents_url, header, repo_name, [], process_info_path)
+            username, contents_url, header, repo_name, [])
         file_urls = [file['file'] for file in files]
+
+        # Add the total number of repository to the process info file.
+        # This is necessary to keep track of the progress of the request.
+        update_process_info(process_info_path, len(file_urls), 'resource_download')
 
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        download_data = loop.run_until_complete(async_main(file_urls, header))
+        download_data = loop.run_until_complete(async_main(file_urls, header, process_info_path))
 
         # Go through the file dictionaries and replace the file path with the binary_content
         for file in files:
