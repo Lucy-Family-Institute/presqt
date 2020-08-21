@@ -1,5 +1,4 @@
 import asyncio
-import base64
 
 import aiohttp
 import requests
@@ -8,7 +7,8 @@ from rest_framework import status
 
 from presqt.targets.github.utilities import (
     validation_check, download_content, download_directory, download_file)
-from presqt.utilities import PresQTResponseException, get_dictionary_from_list
+from presqt.utilities import (PresQTResponseException, get_dictionary_from_list,
+                              update_process_info)
 
 
 async def async_get(url, session, header):
@@ -55,7 +55,7 @@ async def async_main(url_list, header):
         return await asyncio.gather(*[async_get(url, session, header) for url in url_list])
 
 
-def github_download_resource(token, resource_id):
+def github_download_resource(token, resource_id, process_info_path):
     """
     Fetch the requested resource from GitHub along with its hash information.
 
@@ -65,6 +65,9 @@ def github_download_resource(token, resource_id):
         User's GitHub token
     resource_id : str
         ID of the resource requested
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
+
 
     Returns
     -------
@@ -91,6 +94,7 @@ def github_download_resource(token, resource_id):
     except PresQTResponseException:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
+
     # Without a colon, we know this is a top level repo
     if ':' not in resource_id:
         project_url = 'https://api.github.com/repositories/{}'.format(resource_id)
@@ -108,8 +112,16 @@ def github_download_resource(token, resource_id):
         # https://api.github.com/repos/eggyboi/djangoblog/contents
         contents_url = data['contents_url'].partition('/{+path}')[0]
 
+        # Get tree info
+        tree_data = requests.get('{}/master?recursive=1'.format(data['trees_url'].partition('{/sha}')[0]),
+                                 headers=header).json()
+        total_files = len([file for file in tree_data['tree'] if file['type'] == 'blob'])
+        # Add the total number of repository to the process info file.
+        # This is necessary to keep track of the progress of the request.
+        update_process_info(process_info_path, total_files, 'resource_download')
+
         files, empty_containers, action_metadata = download_content(
-            username, contents_url, header, repo_name, [])
+            username, contents_url, header, repo_name, [], process_info_path)
         file_urls = [file['file'] for file in files]
 
         loop = asyncio.new_event_loop()
@@ -166,10 +178,11 @@ def github_download_resource(token, resource_id):
 
         # If the resource to get is a folder
         if isinstance(resource_data, list):
-            files = download_directory(header, path_to_file, repo_data)
+            files = download_directory(header, path_to_file, repo_data, process_info_path)
         # If the resource to get is a file
         elif resource_data['type'] == 'file':
-            files = download_file(repo_data, resource_data)
+            update_process_info(process_info_path, 1, 'resource_download')
+            files = download_file(repo_data, resource_data, process_info_path)
 
         empty_containers = []
         action_metadata = {"sourceUsername": username}
