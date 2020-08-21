@@ -178,17 +178,27 @@ class JobStatus(APIView):
         upload_process_data = self.process_data['resource_upload']
 
         upload_status = upload_process_data['status']
-        data = {'status_code': upload_process_data['status_code'],
-                'message': upload_process_data['message']}
+        total_files = upload_process_data['total_files']
+        files_finished = upload_process_data['files_finished']
+
+        job_percentage = calculate_job_percentage(total_files, files_finished)
+        data = {
+                'status_code': upload_process_data['status_code'],
+                'message': upload_process_data['message'],
+                'status': 'in_progress'
+                }
 
         if upload_status == 'finished':
             http_status = status.HTTP_200_OK
+            data['status'] = upload_status
             data['failed_fixity'] = upload_process_data['failed_fixity']
             data['resources_ignored'] = upload_process_data['resources_ignored']
             data['resources_updated'] = upload_process_data['resources_updated']
+            data['job_percentage'] = 99
         else:
             if upload_status == 'in_progress':
                 http_status = status.HTTP_202_ACCEPTED
+                data['job_percentage'] = job_percentage
             else:
                 http_status = status.HTTP_500_INTERNAL_SERVER_ERROR
 
