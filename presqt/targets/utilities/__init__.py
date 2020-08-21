@@ -9,4 +9,5 @@ from presqt.targets.utilities.tests.shared_download_test_functions import (
 from presqt.targets.utilities.tests.shared_upload_test_functions import (shared_upload_function_osf,
                                                                          shared_upload_function_github,
                                                                          process_wait)
+from presqt.targets.utilities.utils.upload_total_files import upload_total_files
 
