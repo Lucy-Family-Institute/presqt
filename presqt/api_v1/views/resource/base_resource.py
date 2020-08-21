@@ -244,7 +244,9 @@ class BaseResource(APIView):
             'expiration': str(timezone.now() + relativedelta(hours=5)),
             'message': 'Upload is being processed on the server',
             'status_code': None,
-            'function_process_id': None
+            'function_process_id': None,
+            'total_files': 0,
+            'files_finished': 0
         }
         self.process_info_path = update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
 
@@ -522,7 +524,8 @@ class BaseResource(APIView):
         try:
             structure_validation(self)
             func_dict = func(self.destination_token, self.destination_resource_id,
-                             self.data_directory, self.hash_algorithm, self.file_duplicate_action)
+                             self.data_directory, self.hash_algorithm, self.file_duplicate_action,
+                             self.process_info_path)
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch.
             # Update the server process_info file appropriately.

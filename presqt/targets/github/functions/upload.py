@@ -7,9 +7,10 @@ from rest_framework import status
 
 from presqt.targets.github.utilities import validation_check, create_repository
 from presqt.utilities import PresQTResponseException
+from presqt.utilities import update_process_info, increment_process_info
 
 
-def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm, file_duplicate_action):
+def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm, file_duplicate_action, process_info_path):
     """
     Upload the files found in the resource_main_dir to the target.
 
@@ -25,6 +26,8 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         Hash algorithm we are using to check for fixity.
     file_duplicate_action : str
         The action to take when a duplicate file is found
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
@@ -59,6 +62,9 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                                       status.HTTP_401_UNAUTHORIZED)
 
     os_path = next(os.walk(resource_main_dir))
+    # Get total amount of files
+    total_files = len([files for path, subdirs, files in os.walk(resource_main_dir)])
+    update_process_info(process_info_path, total_files, 'resource_upload')
 
     # Upload a new repository
     if not resource_id:
@@ -99,6 +105,8 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                     "content": encoded_file}
 
                 requests.put(put_url, headers=header, data=json.dumps(data))
+                # Increment the file counter
+                increment_process_info(process_info_path, 'resource_upload')
     else:
         # Upload to an existing repository
         if ':' not in resource_id:
@@ -186,6 +194,8 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                     raise PresQTResponseException(
                         'Upload failed with a status code of {}'.format(upload_response.status_code),
                         status.HTTP_400_BAD_REQUEST)
+                # Increment the file counter
+                increment_process_info(process_info_path, 'resource_upload')
 
     return {
         'resources_ignored': resources_ignored,
