@@ -14,4 +14,5 @@ def upload_total_files(resource_main_dir):
     -------
         The number of files to be uploaded.
     """
-    return len([os.path.join(path, name) for path, subdirs, files in os.walk(resource_main_dir) for name in files])
+    # We add one to account for the PRESQT_FTS_METADATA.json file that is created at the end of the upload process
+    return len([os.path.join(path, name) for path, subdirs, files in os.walk(resource_main_dir) for name in files]) + 1
