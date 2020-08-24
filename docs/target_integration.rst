@@ -383,6 +383,7 @@ Resource Upload Endpoint
         file_duplicate_action str The action to take when a duplicate file is found
 
                                   Options: [ignore, update]
+        process_info_path     str The path to this download's process_info_path
         ===================== === ==========================================================================
 
     * The function must return a **dictionary** with the following keys:
