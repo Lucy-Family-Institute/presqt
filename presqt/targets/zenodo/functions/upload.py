@@ -65,7 +65,7 @@ def zenodo_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
     os_path = next(os.walk(resource_main_dir))
     total_files = upload_total_files(resource_main_dir)
     # Update process info file
-    update_process_info(process_info_path, total_files, 'resourcee_upload')
+    update_process_info(process_info_path, total_files, 'resource_upload')
 
     # Since Zenodo is a finite depth target, the checks for path validity have already been done.
     if resource_id:
