@@ -10,11 +10,11 @@ from presqt.targets.figshare.utilities.validation_check import validation_check
 from presqt.targets.figshare.utilities.helpers.create_project import create_project
 from presqt.targets.figshare.utilities.helpers.create_article import create_article
 from presqt.targets.figshare.utilities.helpers.upload_helpers import figshare_file_upload_process
-from presqt.utilities import PresQTResponseException
-from presqt.targets.utilities import get_duplicate_title
+from presqt.utilities import PresQTResponseException, update_process_info, increment_process_info
+from presqt.targets.utilities import get_duplicate_title, upload_total_files
 
 
-def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorithm, file_duplicate_action):
+def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorithm, file_duplicate_action, process_info_path):
     """
     Upload the files found in the resource_main_dir to the target.
 
@@ -30,6 +30,8 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
         Hash algorithm we are using to check for fixity.
     file_duplicate_action : str
         The action to take when a duplicate file is found
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
@@ -70,6 +72,10 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
                                       status.HTTP_401_UNAUTHORIZED)
 
     os_path = next(os.walk(resource_main_dir))
+    total_files = upload_total_files(resource_main_dir)
+    # Update process info file
+    update_process_info(process_info_path, total_files, 'resourcee_upload')
+
     resources_ignored = []
     resources_updated = []
     file_metadata_list = []
@@ -135,6 +141,7 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
                 'destinationPath': '/{}/{}/{}'.format(project_title, article_title, name),
                 'title': name,
                 'destinationHash': zip_hash})
+            increment_process_info(process_info_path, 'resource_upload')
 
     return {
         "resources_ignored": resources_ignored,
