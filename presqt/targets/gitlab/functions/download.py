@@ -9,7 +9,8 @@ from presqt.targets.gitlab.utilities import (
     validation_check, gitlab_paginated_data, download_content)
 from presqt.utilities import (PresQTResponseException, get_dictionary_from_list,
                               update_process_info,
-                              increment_process_info)
+                              increment_process_info,
+                              update_process_info_message)
 
 
 async def async_get(url, session, header, process_info_path):
@@ -103,6 +104,8 @@ def gitlab_download_resource(token, resource_id, process_info_path):
     except PresQTResponseException:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
+    
+    update_process_info_message(process_info_path, 'resource_download', 'Downloading files from GitLab...')
     # Get the user's GitLab username for action metadata
     username = requests.get("https://gitlab.com/api/v4/user", headers=header).json()['username']
 

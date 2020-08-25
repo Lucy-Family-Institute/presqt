@@ -8,7 +8,7 @@ from presqt.targets.figshare.utilities.validation_check import validation_check
 from presqt.targets.figshare.utilities.helpers.download_content import download_project, download_article
 from presqt.utilities import (PresQTResponseException, get_dictionary_from_list,
                               update_process_info,
-                              increment_process_info)
+                              increment_process_info, update_process_info_message)
 
 
 async def async_get(url, session, header, process_info_path):
@@ -100,6 +100,7 @@ def figshare_download_resource(token, resource_id, process_info_path):
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
+    update_process_info_message(process_info_path, 'resource_download', 'Downloading files from FigShare...')
     split_id = str(resource_id).split(":")
 
     # But first we need to see whether it is a public project, or a private project.

@@ -8,7 +8,7 @@ from rest_framework import status
 from presqt.targets.github.utilities import (
     validation_check, download_content, download_directory, download_file)
 from presqt.utilities import (PresQTResponseException, get_dictionary_from_list,
-                              update_process_info, increment_process_info)
+                              update_process_info, increment_process_info, update_process_info_message)
 
 
 async def async_get(url, session, header, process_info_path):
@@ -100,6 +100,8 @@ def github_download_resource(token, resource_id, process_info_path):
     except PresQTResponseException:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
+    
+    update_process_info_message(process_info_path, 'resource_download', 'Downloading files from GitHub...')
 
     # Without a colon, we know this is a top level repo
     if ':' not in resource_id:

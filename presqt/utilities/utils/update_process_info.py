@@ -35,3 +35,21 @@ def increment_process_info(process_info_path, action):
     process_info_data[action]['files_finished'] = process_info_data[action]['files_finished'] + 1
     write_file(process_info_path, process_info_data, True)
     return
+
+def update_process_info_message(process_info_path, action, message):
+    """
+    Update the process_info.json file with the number of total files involved in the action
+
+    Parameters
+    ----------
+    process_info_path: str
+        Path to the process_info.json file to update
+    action: str
+        The action to update in the process_info.json object
+    message: str
+        The message to add to the process_info file
+    """
+    process_info_data = read_file(process_info_path, True)
+    process_info_data[action]['message'] = message
+    write_file(process_info_path, process_info_data, True)
+    return

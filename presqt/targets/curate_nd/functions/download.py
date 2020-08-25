@@ -8,7 +8,8 @@ from rest_framework import status
 from presqt.targets.curate_nd.utilities import get_curate_nd_resource
 from presqt.targets.curate_nd.classes.main import CurateND
 from presqt.utilities import (PresQTInvalidTokenError, PresQTValidationError,
-                              get_dictionary_from_list, update_process_info, increment_process_info)
+                              get_dictionary_from_list, update_process_info, increment_process_info,
+                              update_process_info_message)
 
 
 async def async_get(url, session, token, process_info_path):
@@ -99,6 +100,8 @@ def curate_nd_download_resource(token, resource_id, process_info_path):
     except PresQTInvalidTokenError:
         raise PresQTValidationError("Token is invalid. Response returned a 401 status code.",
                                     status.HTTP_401_UNAUTHORIZED)
+    
+    update_process_info_message(process_info_path, 'resource_download', 'Downloading files from CurateND...')
 
     # Get the resource
     resource = get_curate_nd_resource(resource_id, curate_instance)

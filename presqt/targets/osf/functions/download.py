@@ -6,7 +6,8 @@ from rest_framework import status
 
 from presqt.targets.osf.utilities import get_osf_resource, osf_download_metadata
 from presqt.utilities import (PresQTResponseException, PresQTInvalidTokenError,
-                              get_dictionary_from_list, update_process_info, increment_process_info)
+                              get_dictionary_from_list, update_process_info, increment_process_info,
+                              update_process_info_message)
 from presqt.targets.osf.classes.main import OSF
 
 
@@ -99,6 +100,8 @@ def osf_download_resource(token, resource_id, process_info_path):
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
+    update_process_info_message(process_info_path, 'resource_download',
+                                    'Downloading files from OSF...')
     # Get contributor name
     contributor_name = requests.get('https://api.osf.io/v2/users/me/',
                                     headers={'Authorization': 'Bearer {}'.format(token)}).json()[
@@ -161,8 +164,8 @@ def osf_download_resource(token, resource_id, process_info_path):
         # Go through the file dictionaries and replace the file class with the binary_content
         for file in files:
             file['source_path'] = '/{}/{}{}'.format(project.title,
-                                                   file['file'].provider,
-                                                   file['file'].materialized_path)
+                                                    file['file'].provider,
+                                                    file['file'].materialized_path)
             file['file'] = get_dictionary_from_list(
                 download_data, 'url', file['file'].download_url)['binary_content']
 
