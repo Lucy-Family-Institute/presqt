@@ -104,6 +104,8 @@ def gitlab_download_resource(token, resource_id, process_info_path):
     except PresQTResponseException:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
+    
+    update_process_info_message(process_info_path, 'resource_download', 'Downloading files from GitLab...')
     # Get the user's GitLab username for action metadata
     username = requests.get("https://gitlab.com/api/v4/user", headers=header).json()['username']
 
@@ -144,7 +146,6 @@ def gitlab_download_resource(token, resource_id, process_info_path):
         # Add the total number of projects to the process info file.
         # This is necessary to keep track of the progress of the request.
         update_process_info(process_info_path, 1, 'resource_download')
-        update_process_info_message(process_info_path, 'resource_download', 'Downloading file from GitLab...')
 
         # This is a single file
         data = requests.get('https://gitlab.com/api/v4/projects/{}/repository/files/{}?ref=master'.format(
@@ -174,7 +175,6 @@ def gitlab_download_resource(token, resource_id, process_info_path):
     # Add the total number of projects to the process info file.
     # This is necessary to keep track of the progress of the request.
     update_process_info(process_info_path, len(file_urls), 'resource_download')
-    update_process_info_message(process_info_path, 'resource_download', 'Downloading files from GitLab...')
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)

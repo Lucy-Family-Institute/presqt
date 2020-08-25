@@ -100,6 +100,8 @@ def osf_download_resource(token, resource_id, process_info_path):
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
+    update_process_info_message(process_info_path, 'resource_download',
+                                    'Downloading files from OSF...')
     # Get contributor name
     contributor_name = requests.get('https://api.osf.io/v2/users/me/',
                                     headers={'Authorization': 'Bearer {}'.format(token)}).json()[
@@ -117,8 +119,6 @@ def osf_download_resource(token, resource_id, process_info_path):
         # Add the total number of projects to the process info file.
         # This is necessary to keep track of the progress of the request.
         update_process_info(process_info_path, 1, 'resource_download')
-        update_process_info_message(process_info_path, 'resource_download',
-                                    'Downloading file from OSF...')
 
         project = osf_instance.project(resource.parent_project_id)
         files.append({
@@ -155,8 +155,6 @@ def osf_download_resource(token, resource_id, process_info_path):
         # Add the total number of projects to the process info file.
         # This is necessary to keep track of the progress of the request.
         update_process_info(process_info_path, len(file_urls), 'resource_download')
-        update_process_info_message(process_info_path, 'resource_download',
-                                    'Downloading files from OSF...')
 
         # Asynchronously make all download requests
         loop = asyncio.new_event_loop()

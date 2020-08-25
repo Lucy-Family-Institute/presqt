@@ -100,6 +100,8 @@ def curate_nd_download_resource(token, resource_id, process_info_path):
     except PresQTInvalidTokenError:
         raise PresQTValidationError("Token is invalid. Response returned a 401 status code.",
                                     status.HTTP_401_UNAUTHORIZED)
+    
+    update_process_info_message(process_info_path, 'resource_download', 'Downloading files from CurateND...')
 
     # Get the resource
     resource = get_curate_nd_resource(resource_id, curate_instance)
@@ -121,7 +123,6 @@ def curate_nd_download_resource(token, resource_id, process_info_path):
         # Add the total number of items to the process info file.
         # This is necessary to keep track of the progress of the request.
         update_process_info(process_info_path, 1, 'resource_download')
-        update_process_info_message(process_info_path, 'resource_download', 'Downloading file from CurateND...')
 
         binary_file, curate_hash = resource.download()
 
@@ -144,7 +145,6 @@ def curate_nd_download_resource(token, resource_id, process_info_path):
             # Add the total number of items to the process info file.
             # This is necessary to keep track of the progress of the request.
             update_process_info(process_info_path, len(resource.extra['containedFiles']), 'resource_download')
-            update_process_info_message(process_info_path, 'resource_download', 'Downloading files from CurateND...')
 
             title_helper = {}
             hash_helper = {}

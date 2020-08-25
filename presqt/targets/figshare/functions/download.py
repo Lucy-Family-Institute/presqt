@@ -100,6 +100,7 @@ def figshare_download_resource(token, resource_id, process_info_path):
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
+    update_process_info_message(process_info_path, 'resource_download', 'Downloading files from FigShare...')
     split_id = str(resource_id).split(":")
 
     # But first we need to see whether it is a public project, or a private project.
@@ -152,7 +153,6 @@ def figshare_download_resource(token, resource_id, process_info_path):
             # Add the total number of articles to the process info file.
             # This is necessary to keep track of the progress of the request.
             update_process_info(process_info_path, 1, 'resource_download')
-            update_process_info_message(process_info_path, 'resource_download', 'Downloading file from FigShare...')
 
             # Single file download.
             data = response.json()
@@ -179,7 +179,6 @@ def figshare_download_resource(token, resource_id, process_info_path):
         # Add the total number of articles to the process info file.
         # This is necessary to keep track of the progress of the request.
         update_process_info(process_info_path, len(file_urls), 'resource_download')
-        update_process_info_message(process_info_path, 'resource_download', 'Downloading files from FigShare...')
 
         # Start the async calls for project or article downloads
         loop = asyncio.new_event_loop()

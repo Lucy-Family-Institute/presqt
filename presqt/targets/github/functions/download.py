@@ -100,6 +100,8 @@ def github_download_resource(token, resource_id, process_info_path):
     except PresQTResponseException:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
+    
+    update_process_info_message(process_info_path, 'resource_download', 'Downloading files from GitHub...')
 
     # Without a colon, we know this is a top level repo
     if ':' not in resource_id:
@@ -126,7 +128,6 @@ def github_download_resource(token, resource_id, process_info_path):
         # Add the total number of repository to the process info file.
         # This is necessary to keep track of the progress of the request.
         update_process_info(process_info_path, len(file_urls), 'resource_download')
-        update_process_info_message(process_info_path, 'resource_download', 'Downloading files from GitHub...')
 
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -186,7 +187,6 @@ def github_download_resource(token, resource_id, process_info_path):
         # If the resource to get is a file
         elif resource_data['type'] == 'file':
             update_process_info(process_info_path, 1, 'resource_download')
-            update_process_info_message(process_info_path, 'resource_download', 'Downloading file from GitHub...')
             files = download_file(repo_data, resource_data, process_info_path)
 
         empty_containers = []

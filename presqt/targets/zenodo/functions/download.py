@@ -7,7 +7,7 @@ from rest_framework import status
 from presqt.targets.zenodo.utilities import zenodo_download_helper, zenodo_validation_check
 from presqt.utilities import (PresQTResponseException, get_dictionary_from_list,
                               update_process_info,
-                              increment_process_info)
+                              increment_process_info, update_process_info_message)
 
 
 async def async_get(url, session, params, process_info_path):
@@ -103,6 +103,8 @@ def zenodo_download_resource(token, resource_id, process_info_path):
         raise PresQTResponseException('Token is invalid. Response returned a 401 status code.',
                                       status.HTTP_401_UNAUTHORIZED)
 
+    update_process_info_message(process_info_path, 'resource_download',
+                                    'Downloading files from Zenodo...')
     files = []
     empty_containers = []
     base_url = None
