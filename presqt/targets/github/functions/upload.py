@@ -6,7 +6,7 @@ import requests
 from rest_framework import status
 
 from presqt.targets.github.utilities import validation_check, create_repository
-from presqt.utilities import PresQTResponseException, update_process_info, increment_process_info
+from presqt.utilities import PresQTResponseException, update_process_info, increment_process_info, update_process_info_message
 from presqt.targets.utilities import upload_total_files
 
 
@@ -65,6 +65,7 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
     # Get total amount of files
     total_files = upload_total_files(resource_main_dir)
     update_process_info(process_info_path, total_files, 'resource_upload')
+    update_process_info_message(process_info_path, 'resource_upload', "Uploading files to GitHub...")
 
     # Upload a new repository
     if not resource_id:

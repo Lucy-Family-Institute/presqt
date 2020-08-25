@@ -10,7 +10,7 @@ from presqt.targets.figshare.utilities.validation_check import validation_check
 from presqt.targets.figshare.utilities.helpers.create_project import create_project
 from presqt.targets.figshare.utilities.helpers.create_article import create_article
 from presqt.targets.figshare.utilities.helpers.upload_helpers import figshare_file_upload_process
-from presqt.utilities import PresQTResponseException, update_process_info, increment_process_info
+from presqt.utilities import PresQTResponseException, update_process_info, increment_process_info, update_process_info_message
 from presqt.targets.utilities import get_duplicate_title, upload_total_files
 
 
@@ -75,6 +75,7 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
     total_files = upload_total_files(resource_main_dir)
     # Update process info file
     update_process_info(process_info_path, total_files, 'resource_upload')
+    update_process_info_message(process_info_path, 'resource_upload', "Uploading files to FigShare...")
 
     resources_ignored = []
     resources_updated = []

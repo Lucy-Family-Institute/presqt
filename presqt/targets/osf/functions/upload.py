@@ -5,7 +5,7 @@ from rest_framework import status
 
 from presqt.targets.osf.utilities import get_osf_resource
 from presqt.utilities import (
-    PresQTInvalidTokenError, PresQTResponseException, update_process_info, increment_process_info)
+    PresQTInvalidTokenError, PresQTResponseException, update_process_info, increment_process_info, update_process_info_message)
 from presqt.targets.osf.classes.main import OSF
 from presqt.targets.utilities import upload_total_files
 
@@ -76,6 +76,7 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
     # Get total amount of files
     total_files = upload_total_files(resource_main_dir)
     update_process_info(process_info_path, total_files, 'resource_upload')
+    update_process_info_message(process_info_path, 'resource_upload', "Uploading files to OSF...")
 
     # If we are uploading to an existing container
     if resource_id:
