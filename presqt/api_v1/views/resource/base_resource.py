@@ -202,6 +202,21 @@ class BaseResource(APIView):
             for folder in next(os.walk(self.ticket_path))[1]:
                 shutil.rmtree(os.path.join(self.ticket_path, folder))
 
+        # Write process_info.json file
+        self.process_info_obj = {
+            'presqt-destination-token': hash_tokens(self.destination_token),
+            'status': 'in_progress',
+            'expiration': str(timezone.now() + relativedelta(hours=5)),
+            'message': 'Saving files to server and validating bag...',
+            'status_code': None,
+            'function_process_id': None,
+            'total_files': 0,
+            'files_finished': 0
+        }
+
+        self.process_info_path = update_or_create_process_info(
+            self.process_info_obj, self.action, self.ticket_number)
+
         # Save files to disk and check their fixity integrity. If BagIt validation fails, attempt
         # to save files to disk again. If BagIt validation fails after 3 attempts return an error.
         for index in range(3):
@@ -235,21 +250,6 @@ class BaseResource(APIView):
                 get_upload_source_metadata(self, self.bag)
                 # If the bag validated successfully then break from the loop
                 break
-
-        # Write process_info.json file
-        self.process_info_obj = {
-            'presqt-destination-token': hash_tokens(self.destination_token),
-            'status': 'in_progress',
-            'expiration': str(timezone.now() + relativedelta(hours=5)),
-            'message': 'Upload is being processed on the server',
-            'status_code': None,
-            'function_process_id': None,
-            'total_files': 0,
-            'files_finished': 0
-        }
-
-        self.process_info_path = update_or_create_process_info(
-            self.process_info_obj, self.action, self.ticket_number)
 
         # Create a hash dictionary to compare with the hashes returned from the target after upload
         # If the destination target supports a hash provided by the bag then use those hashes
@@ -467,6 +467,7 @@ class BaseResource(APIView):
         # If we are uploading (not transferring) then create the initial metadata based on the
         # zipped bag provided.
         if self.action == 'resource_upload':
+            update_process_info_message(self.process_info_path, self.action, "Creating PRESQT_FTS_METADATA...")
             self.new_fts_metadata_files = []
             for path, subdirs, files in os.walk(self.data_directory):
                 for name in files:
