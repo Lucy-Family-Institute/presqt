@@ -7,11 +7,11 @@ from rest_framework import status
 from presqt.api_v1.utilities import hash_generator
 from presqt.targets.gitlab.utilities import gitlab_paginated_data
 from presqt.targets.gitlab.utilities.validation_check import validation_check
-from presqt.targets.utilities import get_duplicate_title
-from presqt.utilities import PresQTResponseException
+from presqt.targets.utilities import get_duplicate_title, upload_total_files
+from presqt.utilities import PresQTResponseException, update_process_info, increment_process_info, update_process_info_message
 
 
-def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm, file_duplicate_action):
+def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm, file_duplicate_action, process_info_path):
     """
     Upload the files found in the resource_main_dir to the target.
 
@@ -27,6 +27,8 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         Hash algorithm we are using to check for fixity.
     file_duplicate_action : str
         The action to take when a duplicate file is found
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
@@ -65,6 +67,11 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
     action_metadata = {"destinationUsername": username}
 
     os_path = next(os.walk(resource_main_dir))
+    # Get total amount of files
+    total_files = upload_total_files(resource_main_dir)
+    update_process_info(process_info_path, total_files, 'resource_upload')
+    update_process_info_message(process_info_path, 'resource_upload', "Uploading files to GitLab...")
+
     resources_ignored = []
     resources_updated = []
     file_metadata_list = []
@@ -75,7 +82,8 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
     if not resource_id:
         project_title = os_path[1][0]
         titles = [data['name'] for data in gitlab_paginated_data(headers, user_id)]
-        title = get_duplicate_title(project_title, titles, '-PresQT*-').replace('(', '-').replace(')', '-')
+        title = get_duplicate_title(project_title, titles,
+                                    '-PresQT*-').replace('(', '-').replace(')', '-')
         response = requests.post('{}projects?name={}&visibility=public'.format(
             base_url, title), headers=headers)
         if response.status_code == 201:
@@ -115,6 +123,8 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                 # Get the file hash
                 file_json = requests.get("{}{}?ref=master".format(base_repo_path, encoded_file_path),
                                          headers=headers)
+                # Increment files finished
+                increment_process_info(process_info_path, 'resource_upload')
 
                 file_metadata_list.append({
                     "actionRootPath": os.path.join(path, name),
@@ -132,21 +142,25 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         else:
             partitioned_id = resource_id.partition(':')
             project_id = partitioned_id[0]
-            base_repo_url = "{}projects/{}/repository/files/{}".format(base_url, project_id, partitioned_id[2])
+            base_repo_url = "{}projects/{}/repository/files/{}".format(
+                base_url, project_id, partitioned_id[2])
             string_path_to_resource = partitioned_id[2].replace('%2F', '/').replace('%2E', '.')
 
         # Check if the resource_id belongs to a file
-        tree_url = 'https://gitlab.com/api/v4/projects/{}/repository/tree?recursive=1'.format(project_id)
+        tree_url = 'https://gitlab.com/api/v4/projects/{}/repository/tree?recursive=1'.format(
+            project_id)
         file_data = gitlab_paginated_data(headers, None, tree_url)
         for data in file_data:
             if data['path'] == string_path_to_resource:
                 if data['type'] == 'blob':
-                    raise PresQTResponseException("Resource with id, {}, belongs to a file.".format(resource_id), status.HTTP_400_BAD_REQUEST)
+                    raise PresQTResponseException("Resource with id, {}, belongs to a file.".format(
+                        resource_id), status.HTTP_400_BAD_REQUEST)
 
         # Get project data
         project = requests.get('{}projects/{}'.format(base_url, project_id), headers=headers)
         if project.status_code != 200:
-            raise PresQTResponseException("Project with id, {}, could not be found.".format(project_id), status.HTTP_404_NOT_FOUND)
+            raise PresQTResponseException("Project with id, {}, could not be found.".format(
+                project_id), status.HTTP_404_NOT_FOUND)
         project_name = project.json()['name']
 
         for path, subdirs, files in os.walk(resource_main_dir):
@@ -158,9 +172,10 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
 
                 # A relative path to the file is what is added to the GitLab POST address
                 if base_repo_url == "{}projects/{}/repository/files/".format(base_url, project_id):
-                    encoded_file_path =  relative_file_path.replace('/', '%2F').replace('.', '%2E')
+                    encoded_file_path = relative_file_path.replace('/', '%2F').replace('.', '%2E')
                 else:
-                    encoded_file_path = '%2F{}'.format(relative_file_path.replace('/', '%2F').replace('.', '%2E'))
+                    encoded_file_path = '%2F{}'.format(
+                        relative_file_path.replace('/', '%2F').replace('.', '%2E'))
                 full_encoded_url = '{}{}'.format(base_repo_url, encoded_file_path)
 
                 ignore_file = False
@@ -200,7 +215,8 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                                 "encoding": "base64",
                                 "content": encoded_file}
 
-                response = upload_request("{}".format(full_encoded_url), headers=headers, data=request_data)
+                response = upload_request("{}".format(full_encoded_url),
+                                          headers=headers, data=request_data)
                 if response.status_code not in [201, 200]:
                     raise PresQTResponseException(
                         'Upload failed with a status code of {}'.format(response.status_code),
@@ -209,6 +225,8 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                 # Get the file hash
                 file_json = requests.get("{}?ref=master".format(full_encoded_url),
                                          headers=headers).json()
+                # Increment files finished
+                increment_process_info(process_info_path, 'resource_upload')
 
                 file_metadata_list.append({
                     "actionRootPath": os.path.join(path, name),

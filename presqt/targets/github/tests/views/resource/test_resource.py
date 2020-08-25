@@ -13,6 +13,7 @@ from presqt.targets.github.functions.upload_metadata import github_upload_metada
 from presqt.targets.github.utilities import delete_github_repo
 from presqt.targets.utilities import shared_upload_function_github, process_wait
 from presqt.utilities import read_file, PresQTError
+from presqt.api_v1.utilities import hash_tokens
 
 
 class TestResourceGETJSON(SimpleTestCase):
@@ -161,6 +162,7 @@ class TestResourcePOST(SimpleTestCase):
     def setUp(self):
         self.client = APIClient()
         self.token = GITHUB_TEST_USER_TOKEN
+        self.ticket_number = hash_tokens(self.token)
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
         self.good_zip_file = 'presqt/api_v1/tests/resources/upload/GoodBagIt.zip'
@@ -264,8 +266,7 @@ class TestResourcePOST(SimpleTestCase):
         self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
         response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
 
-        ticket_number = response.data['ticket_number']
-        self.ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        self.ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
         # Verify status code and message
         self.assertEqual(response.status_code, 202)
@@ -274,18 +275,18 @@ class TestResourcePOST(SimpleTestCase):
 
         # Verify process_info file status is 'in_progress' initially
         process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
-        self.assertEqual(process_info['status'], 'in_progress')
+        self.assertEqual(process_info['resource_upload']['status'], 'in_progress')
 
         # Wait until the spawned off process finishes in the background to do further validation
         process_wait(process_info, self.ticket_path)
 
         # Verify process_info.json file data
         process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
-        self.assertEqual(process_info['status'], 'failed')
+        self.assertEqual(process_info['resource_upload']['status'], 'failed')
         self.assertEqual(
-            process_info['message'],
+            process_info['resource_upload']['message'],
             "The resource with id, 58435738573489573498573498573, does not exist for this user.")
-        self.assertEqual(process_info['status_code'], 404)
+        self.assertEqual(process_info['resource_upload']['status_code'], 404)
 
         # Delete upload folder
         shutil.rmtree(self.ticket_path)
@@ -453,8 +454,7 @@ class TestResourcePOST(SimpleTestCase):
 
         response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
 
-        ticket_number = response.data['ticket_number']
-        self.ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        self.ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
         # Verify status code and message
         self.assertEqual(response.status_code, 202)
@@ -463,16 +463,16 @@ class TestResourcePOST(SimpleTestCase):
 
         # Verify process_info file status is 'in_progress' initially
         process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
-        self.assertEqual(process_info['status'], 'in_progress')
+        self.assertEqual(process_info['resource_upload']['status'], 'in_progress')
 
         # Wait until the spawned off process finishes in the background to do further validation
         process_wait(process_info, self.ticket_path)
 
         # Verify process_info.json file data
         process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
-        self.assertEqual(process_info['status'], 'failed')
-        self.assertEqual(process_info['message'], "The Resource provided, {}, is not a container".format(resource_id))
-        self.assertEqual(process_info['status_code'], 400)
+        self.assertEqual(process_info['resource_upload']['status'], 'failed')
+        self.assertEqual(process_info['resource_upload']['message'], "The Resource provided, {}, is not a container".format(resource_id))
+        self.assertEqual(process_info['resource_upload']['status_code'], 400)
 
     def test_failed_upload(self):
         # Mock a server error for when a put request is made.
@@ -513,8 +513,7 @@ class TestResourcePOST(SimpleTestCase):
             response = self.client.post(self.url, {'presqt-file': open(
                 self.file, 'rb')}, **self.headers)
 
-            ticket_number = response.data['ticket_number']
-            self.ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+            self.ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
             # Verify status code and message
             self.assertEqual(response.status_code, 202)
@@ -523,7 +522,7 @@ class TestResourcePOST(SimpleTestCase):
 
             # Verify process_info file status is 'in_progress' initially
             process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
-            self.assertEqual(process_info['status'], 'in_progress')
+            self.assertEqual(process_info['resource_upload']['status'], 'in_progress')
 
             # Wait until the spawned off process finishes in the background to do further validation
             process_wait(process_info, self.ticket_path)
@@ -531,9 +530,9 @@ class TestResourcePOST(SimpleTestCase):
             # Verify process_info.json file data
             process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
 
-            self.assertEqual(process_info['status'], 'failed')
-            self.assertEqual(process_info['message'], "Upload failed with a status code of 500")
-            self.assertEqual(process_info['status_code'], 400)
+            self.assertEqual(process_info['resource_upload']['status'], 'failed')
+            self.assertEqual(process_info['resource_upload']['message'], "Upload failed with a status code of 500")
+            self.assertEqual(process_info['resource_upload']['status_code'], 400)
 
         # Delete upload folder
         shutil.rmtree(self.ticket_path)

@@ -25,6 +25,7 @@ from presqt.targets.osf.utilities import delete_users_projects
 from presqt.targets.utilities import (shared_get_success_function_202,
                                       shared_get_success_function_202_with_error, process_wait,
                                       shared_upload_function_osf)
+from presqt.api_v1.utilities import hash_tokens
 from presqt.utilities import (
     write_file, read_file, get_dictionary_from_list, remove_path_contents, PresQTError)
 
@@ -779,6 +780,7 @@ class TestResourcePOST(SimpleTestCase):
     def setUp(self):
         self.client = APIClient()
         self.token = OSF_UPLOAD_TEST_USER_TOKEN
+        self.ticket_number = hash_tokens(self.token)
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
         self.good_zip_file = 'presqt/api_v1/tests/resources/upload/GoodBagIt.zip'
@@ -839,8 +841,6 @@ class TestResourcePOST(SimpleTestCase):
         self.assertEqual(metadata_dict['actions'][0]['destinationTargetName'], 'osf')
         self.assertEqual(metadata_dict['actions'][0]['destinationUsername'], 'Prometheus')
         self.assertEqual(len(metadata_dict['actions'][0]['files']['created']), 1)
-        # delete upload folder
-        shutil.rmtree(self.ticket_path)
 
         ######## 202 when uploading to an existing container with duplicate files ignored ########
         self.resource_id = '{}:osfstorage'.format(node_id)
@@ -889,9 +889,6 @@ class TestResourcePOST(SimpleTestCase):
         encoded_metadata = json.dumps(metadata_dict, indent=4).encode('utf-8')
         requests.put(update_url, headers=headers,
                      params={'kind': 'file'}, data=encoded_metadata)
-
-        # delete upload folder
-        shutil.rmtree(self.ticket_path)
 
         # ######## 202 when uploading to an existing container with duplicate files replaced ########
         self.resource_id = folder_id
@@ -949,8 +946,6 @@ class TestResourcePOST(SimpleTestCase):
         self.hash_algorithm = 'sha256'
         shared_upload_function_osf(self)
 
-        # delete upload folder
-        shutil.rmtree(self.ticket_path)
 
     def test_success_202_large_duplicate_connection_error(self):
         """
@@ -963,17 +958,10 @@ class TestResourcePOST(SimpleTestCase):
         self.assertEqual(response.status_code, 202)
 
         # Wait for the process to finish
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
-        process_info_path = 'mediafiles/uploads/{}/process_info.json'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
+        process_info_path = '{}/process_info.json'.format(ticket_path)
         process_info = read_file(process_info_path, True)
         process_wait(process_info, ticket_path)
-
-        # Wait for the process to finish
-        process_wait(process_info, ticket_path)
-
-        # delete upload folder
-        shutil.rmtree(ticket_path)
 
         # Get new project ID
         headers = {'Authorization': 'Bearer {}'.format(OSF_UPLOAD_TEST_USER_TOKEN)}
@@ -989,17 +977,10 @@ class TestResourcePOST(SimpleTestCase):
         self.assertEqual(response.status_code, 202)
 
         # Wait for the process to finish
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
-        process_info_path = 'mediafiles/uploads/{}/process_info.json'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
+        process_info_path = '{}/process_info.json'.format(ticket_path)
         process_info = read_file(process_info_path, True)
         process_wait(process_info, ticket_path)
-
-        # Wait for the process to finish
-        process_wait(process_info, ticket_path)
-
-        # delete upload folder
-        shutil.rmtree(ticket_path)
 
         # Attempt to upload the same large file and get the duplicate ConnectionError
         url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': node_id})
@@ -1007,17 +988,10 @@ class TestResourcePOST(SimpleTestCase):
         self.assertEqual(response.status_code, 202)
 
         # Wait for the process to finish
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
-        process_info_path = 'mediafiles/uploads/{}/process_info.json'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
+        process_info_path = '{}/process_info.json'.format(ticket_path)
         process_info = read_file(process_info_path, True)
         process_wait(process_info, ticket_path)
-
-        # Wait for the process to finish
-        process_wait(process_info, ticket_path)
-
-        # delete upload folder
-        shutil.rmtree(ticket_path)
 
     def test_bad_metadata_request(self):
         """
@@ -1060,8 +1034,6 @@ class TestResourcePOST(SimpleTestCase):
             self.assertRaises(PresQTError, osf_upload_metadata, self.token, node_id,
                               {"context": {}, "allKeywords": [], "actions": []})
 
-        # Delete corresponding folder
-        shutil.rmtree(self.ticket_path)
 
     def test_error_creating_invalid_metadata_file(self):
         """
@@ -1116,9 +1088,6 @@ class TestResourcePOST(SimpleTestCase):
             self.assertRaises(PresQTError, osf_upload_metadata, self.token, node_id,
                               {"context": {}, "actions": []})
 
-        # Delete corresponding folder
-        shutil.rmtree(self.ticket_path)
-
     def test_proper_message_if_metadata_fails_validation(self):
         """
         """
@@ -1136,8 +1105,7 @@ class TestResourcePOST(SimpleTestCase):
             response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')},
                                         **self.headers)
 
-            ticket_number = response.data['ticket_number']
-            self.ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+            self.ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
             # Verify status code and message
             self.assertEqual(response.status_code, 202)
@@ -1145,19 +1113,16 @@ class TestResourcePOST(SimpleTestCase):
 
             # Verify process_info file status is 'in_progress' initially
             process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
-            self.assertEqual(process_info['status'], 'in_progress')
+            self.assertEqual(process_info['resource_upload']['status'], 'in_progress')
 
             # Wait until the spawned off process finishes in the background to do further validation
-            while process_info['status'] == 'in_progress':
+            while process_info['resource_upload']['status'] == 'in_progress':
                 try:
                     process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
                 except json.decoder.JSONDecodeError:
                     # Pass while the process_info file is being written to
                     pass
-            self.assertEqual(process_info['message'], "Upload successful but with metadata errors.")
-
-        # Delete corresponding folder
-        shutil.rmtree(self.ticket_path)
+            self.assertEqual(process_info['resource_upload']['message'], "Upload successful but with metadata errors.")
 
     def test_success_400_bad_bag_only_single_file(self):
         """
