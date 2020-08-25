@@ -6,7 +6,8 @@ from rest_framework import status
 
 from presqt.targets.osf.utilities import get_osf_resource, osf_download_metadata
 from presqt.utilities import (PresQTResponseException, PresQTInvalidTokenError,
-                              get_dictionary_from_list, update_process_info, increment_process_info)
+                              get_dictionary_from_list, update_process_info, increment_process_info,
+                              update_process_info_message)
 from presqt.targets.osf.classes.main import OSF
 
 
@@ -116,6 +117,8 @@ def osf_download_resource(token, resource_id, process_info_path):
         # Add the total number of projects to the process info file.
         # This is necessary to keep track of the progress of the request.
         update_process_info(process_info_path, 1, 'resource_download')
+        update_process_info_message(process_info_path, 'resource_download',
+                                    'Downloading file from OSF...')
 
         project = osf_instance.project(resource.parent_project_id)
         files.append({
@@ -152,6 +155,8 @@ def osf_download_resource(token, resource_id, process_info_path):
         # Add the total number of projects to the process info file.
         # This is necessary to keep track of the progress of the request.
         update_process_info(process_info_path, len(file_urls), 'resource_download')
+        update_process_info_message(process_info_path, 'resource_download',
+                                    'Downloading files from OSF...')
 
         # Asynchronously make all download requests
         loop = asyncio.new_event_loop()
@@ -161,8 +166,8 @@ def osf_download_resource(token, resource_id, process_info_path):
         # Go through the file dictionaries and replace the file class with the binary_content
         for file in files:
             file['source_path'] = '/{}/{}{}'.format(project.title,
-                                                   file['file'].provider,
-                                                   file['file'].materialized_path)
+                                                    file['file'].provider,
+                                                    file['file'].materialized_path)
             file['file'] = get_dictionary_from_list(
                 download_data, 'url', file['file'].download_url)['binary_content']
 

@@ -2,7 +2,7 @@ import base64
 
 import requests
 
-from presqt.utilities import increment_process_info, update_process_info
+from presqt.utilities import increment_process_info, update_process_info, update_process_info_message
 
 
 def download_content(username, url, header, repo_name, files):
@@ -77,6 +77,7 @@ def download_directory(header, path_to_resource, repo_data, process_info_path):
     # Add the total number of repository to the process info file.
     # This is necessary to keep track of the progress of the request.
     update_process_info(process_info_path, number_of_files, 'resource_download')
+    update_process_info_message(process_info_path, 'resource_download', 'Downloading files from GitHub...')
 
     files = []
     for resource in contents['tree']:

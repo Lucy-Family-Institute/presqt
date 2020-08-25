@@ -8,7 +8,7 @@ from rest_framework import status
 from presqt.targets.github.utilities import (
     validation_check, download_content, download_directory, download_file)
 from presqt.utilities import (PresQTResponseException, get_dictionary_from_list,
-                              update_process_info, increment_process_info)
+                              update_process_info, increment_process_info, update_process_info_message)
 
 
 async def async_get(url, session, header, process_info_path):
@@ -126,6 +126,7 @@ def github_download_resource(token, resource_id, process_info_path):
         # Add the total number of repository to the process info file.
         # This is necessary to keep track of the progress of the request.
         update_process_info(process_info_path, len(file_urls), 'resource_download')
+        update_process_info_message(process_info_path, 'resource_download', 'Downloading files from GitHub...')
 
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -185,6 +186,7 @@ def github_download_resource(token, resource_id, process_info_path):
         # If the resource to get is a file
         elif resource_data['type'] == 'file':
             update_process_info(process_info_path, 1, 'resource_download')
+            update_process_info_message(process_info_path, 'resource_download', 'Downloading file from GitHub...')
             files = download_file(repo_data, resource_data, process_info_path)
 
         empty_containers = []

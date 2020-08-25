@@ -8,7 +8,7 @@ from presqt.targets.figshare.utilities.validation_check import validation_check
 from presqt.targets.figshare.utilities.helpers.download_content import download_project, download_article
 from presqt.utilities import (PresQTResponseException, get_dictionary_from_list,
                               update_process_info,
-                              increment_process_info)
+                              increment_process_info, update_process_info_message)
 
 
 async def async_get(url, session, header, process_info_path):
@@ -152,6 +152,7 @@ def figshare_download_resource(token, resource_id, process_info_path):
             # Add the total number of articles to the process info file.
             # This is necessary to keep track of the progress of the request.
             update_process_info(process_info_path, 1, 'resource_download')
+            update_process_info_message(process_info_path, 'resource_download', 'Downloading file from FigShare...')
 
             # Single file download.
             data = response.json()
@@ -178,6 +179,7 @@ def figshare_download_resource(token, resource_id, process_info_path):
         # Add the total number of articles to the process info file.
         # This is necessary to keep track of the progress of the request.
         update_process_info(process_info_path, len(file_urls), 'resource_download')
+        update_process_info_message(process_info_path, 'resource_download', 'Downloading files from FigShare...')
 
         # Start the async calls for project or article downloads
         loop = asyncio.new_event_loop()
