@@ -30,7 +30,7 @@ from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
 from presqt.json_schemas.schema_handlers import schema_validator
 from presqt.utilities import (PresQTValidationError, PresQTResponseException, write_file,
-                              zip_directory, read_file)
+                              zip_directory, read_file, update_process_info_message)
 
 
 class BaseResource(APIView):
@@ -315,6 +315,7 @@ class BaseResource(APIView):
 
         # The directory all files should be saved in.
         self.resource_main_dir = os.path.join(self.ticket_path, self.base_directory_name)
+        update_process_info_message(self.process_info_path, self.action, 'Performing fixity checks and gathering metadata...')
 
         # For each resource, perform fixity check, gather metadata, and save it to disk.
         fixity_info = []
@@ -359,6 +360,7 @@ class BaseResource(APIView):
         self.keyword_enhancement_successful = True
 
         # Create PresQT action metadata
+        update_process_info_message(self.process_info_path, self.action, "Creating PRESQT_FTS_METADATA...")
         self.source_username = func_dict['action_metadata']['sourceUsername']
         if self.action == 'resource_transfer_in':
             source_target_data = get_target_data(self.source_target_name)

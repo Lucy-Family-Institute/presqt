@@ -8,7 +8,8 @@ from rest_framework import status
 from presqt.targets.curate_nd.utilities import get_curate_nd_resource
 from presqt.targets.curate_nd.classes.main import CurateND
 from presqt.utilities import (PresQTInvalidTokenError, PresQTValidationError,
-                              get_dictionary_from_list, update_process_info, increment_process_info)
+                              get_dictionary_from_list, update_process_info, increment_process_info,
+                              update_process_info_message)
 
 
 async def async_get(url, session, token, process_info_path):
@@ -120,6 +121,7 @@ def curate_nd_download_resource(token, resource_id, process_info_path):
         # Add the total number of items to the process info file.
         # This is necessary to keep track of the progress of the request.
         update_process_info(process_info_path, 1, 'resource_download')
+        update_process_info_message(process_info_path, 'resource_download', 'Downloading file from CurateND...')
 
         binary_file, curate_hash = resource.download()
 
@@ -142,6 +144,7 @@ def curate_nd_download_resource(token, resource_id, process_info_path):
             # Add the total number of items to the process info file.
             # This is necessary to keep track of the progress of the request.
             update_process_info(process_info_path, len(resource.extra['containedFiles']), 'resource_download')
+            update_process_info_message(process_info_path, 'resource_download', 'Downloading files from CurateND...')
 
             title_helper = {}
             hash_helper = {}
