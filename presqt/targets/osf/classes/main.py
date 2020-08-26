@@ -120,13 +120,13 @@ class OSF(OSFBase):
 
         # Add the total number of storages to the process info file.
         # This is necessary to keep track of the progress of the request.
-        update_process_info(process_info_path, len(all_storages_resources), 'resource_collection')
+        update_process_info(process_info_path, len(all_storages_resources), 'resource_collection', 'fetch')
 
         # Loop through the storage resources to either add them to the main resources list or
         # traverse further down the tree to get their children resources.
         for storage_resources in all_storages_resources:
             # Increment the number of files done in the process info file.
-            increment_process_info(process_info_path, 'resource_collection')
+            increment_process_info(process_info_path, 'resource_collection', 'fetch')
 
             if storage_resources and storage_resources['data']: #TODO: First if check doing this to avoid private file errors look into it
                 # Calculate the given resource's container_id

@@ -184,7 +184,7 @@ class ContainerMixin:
 
     def create_directory(self, directory_path, file_duplicate_action, file_hashes,
                          resources_ignored, resources_updated, file_metadata_list,
-                         process_info_path):
+                         process_info_path, action):
         """
         Create a directory of folders and files found in the given directory_path.
 
@@ -204,6 +204,8 @@ class ContainerMixin:
             List of file metadata
         process_info_path: str
             Path to the process info file that keeps track of the action's progress
+        action: str
+            The action being performed
 
         Returns
         -------
@@ -215,19 +217,19 @@ class ContainerMixin:
             file_path = '{}/{}'.format(directory, filename)
             file_to_write = read_file(file_path)
 
-            action, file = self.create_file(filename, file_to_write, file_duplicate_action)
+            file_action, file = self.create_file(filename, file_to_write, file_duplicate_action)
 
             file_metadata_list.append({
                 "actionRootPath": file_path,
                 "destinationPath": '{}{}'.format(file.provider, file.materialized_path),
                 "title": file.title,
                 "destinationHash": file.hashes})
-            increment_process_info(process_info_path, 'resource_upload')
+            increment_process_info(process_info_path, action, 'upload')
 
             file_hashes[file_path] = file.hashes
-            if action == 'ignored':
+            if file_action == 'ignored':
                 resources_ignored.append(file_path)
-            elif action == 'updated':
+            elif file_action == 'updated':
                 resources_updated.append(file_path)
 
         for folder in folders:
@@ -235,7 +237,7 @@ class ContainerMixin:
             created_folder.create_directory('{}/{}'.format(directory, folder),
                                             file_duplicate_action, file_hashes,
                                             resources_ignored, resources_updated, file_metadata_list,
-                                            process_info_path)
+                                            process_info_path, action)
 
 
 

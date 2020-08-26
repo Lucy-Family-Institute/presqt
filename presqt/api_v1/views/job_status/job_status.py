@@ -127,9 +127,9 @@ class JobStatus(APIView):
         message = download_process_data['message']
         status_code = download_process_data['status_code']
 
-        total_files = download_process_data['total_files']
-        files_finished = download_process_data['files_finished']
-        job_percentage = calculate_job_percentage(total_files, files_finished)
+        total_files = download_process_data['download_total_files']
+        files_finished = download_process_data['download_files_finished']
+        download_job_percentage = calculate_job_percentage(total_files, files_finished)
 
         # Return the file to download if it has finished.
         if download_status == 'finished':
@@ -145,7 +145,7 @@ class JobStatus(APIView):
                                           'message': message,
                                           'zip_name': download_process_data['zip_name'],
                                           'failed_fixity': download_process_data['failed_fixity'],
-                                          'job_percentage': job_percentage,
+                                          'job_percentage': download_job_percentage,
                                           'status': download_status
                                           },
                                     status=status.HTTP_200_OK)
@@ -157,7 +157,7 @@ class JobStatus(APIView):
                 http_status = status.HTTP_500_INTERNAL_SERVER_ERROR
 
             return Response(status=http_status,
-                            data={'job_percentage': job_percentage,
+                            data={'job_percentage': download_job_percentage,
                                   'status': download_status,
                                   'status_code': status_code,
                                   'message': message
@@ -178,15 +178,15 @@ class JobStatus(APIView):
         upload_process_data = self.process_data['resource_upload']
 
         upload_status = upload_process_data['status']
-        total_files = upload_process_data['total_files']
-        files_finished = upload_process_data['files_finished']
+        total_files = upload_process_data['upload_total_files']
+        files_finished = upload_process_data['upload_files_finished']
 
         job_percentage = calculate_job_percentage(total_files, files_finished)
         data = {
-                'status_code': upload_process_data['status_code'],
-                'message': upload_process_data['message'],
-                'status': 'in_progress'
-                }
+            'status_code': upload_process_data['status_code'],
+            'message': upload_process_data['message'],
+            'status': 'in_progress'
+        }
 
         if upload_status == 'finished':
             http_status = status.HTTP_200_OK
@@ -220,8 +220,14 @@ class JobStatus(APIView):
 
         transfer_process_data = self.process_data['resource_transfer_in']
         transfer_status = transfer_process_data['status']
+        upload_job_percentage = calculate_job_percentage(transfer_process_data['upload_total_files'],
+                                                         transfer_process_data['upload_files_finished'])
+        download_job_percentage = calculate_job_percentage(transfer_process_data['download_total_files'],
+                                                           transfer_process_data['download_files_finished'])
         data = {'status_code': transfer_process_data['status_code'],
-                'message': transfer_process_data['message']}
+                'message': transfer_process_data['message'],
+                'job_percentage': round((upload_job_percentage + download_job_percentage) / 2)
+                }
 
         if transfer_status == 'finished':
             http_status = status.HTTP_200_OK
@@ -232,6 +238,7 @@ class JobStatus(APIView):
             data['initial_keywords'] = transfer_process_data['initial_keywords']
             data['source_resource_id'] = transfer_process_data['source_resource_id']
             data['destination_resource_id'] = transfer_process_data['destination_resource_id']
+            data['job_percentage'] = 99
         else:
             if transfer_status == 'in_progress':
                 http_status = status.HTTP_202_ACCEPTED

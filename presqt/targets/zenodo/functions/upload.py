@@ -11,7 +11,7 @@ from presqt.utilities import (PresQTValidationError, PresQTResponseException,
 
 
 def zenodo_upload_resource(token, resource_id, resource_main_dir, hash_algorithm,
-                           file_duplicate_action, process_info_path):
+                           file_duplicate_action, process_info_path, action):
     """
     Upload the files found in the resource_main_dir to the target.
 
@@ -29,6 +29,8 @@ def zenodo_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         The action to take when a duplicate file is found
     process_info_path: str
         Path to the process info file that keeps track of the action's progress
+    action: str
+            The action being performed
 
     Returns
     -------
@@ -65,8 +67,8 @@ def zenodo_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
     os_path = next(os.walk(resource_main_dir))
     total_files = upload_total_files(resource_main_dir)
     # Update process info file
-    update_process_info(process_info_path, total_files, 'resource_upload')
-    update_process_info_message(process_info_path, 'resource_upload', "Uploading files to Zenodo...")
+    update_process_info(process_info_path, total_files, action, 'upload')
+    update_process_info_message(process_info_path, action, "Uploading files to Zenodo...")
 
     # Since Zenodo is a finite depth target, the checks for path validity have already been done.
     if resource_id:
@@ -93,13 +95,13 @@ def zenodo_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
     post_url = "https://zenodo.org/api/deposit/depositions/{}/files".format(resource_id)
     upload_dict = zenodo_upload_loop(action_metadata, resource_id, resource_main_dir,
                                      post_url, auth_parameter, final_title, file_duplicate_action,
-                                     process_info_path)
+                                     process_info_path, action)
 
     return upload_dict
 
 
 def zenodo_upload_loop(action_metadata, resource_id, resource_main_dir, post_url, auth_parameter,
-                       title, file_duplicate_action, process_info_path):
+                       title, file_duplicate_action, process_info_path, action):
     """
     Loop through the files to be uploaded and return the dictionary.
 
@@ -119,6 +121,8 @@ def zenodo_upload_loop(action_metadata, resource_id, resource_main_dir, post_url
         The action to take when a duplicate file is found
     process_info_path: str
         Path to the process info file that keeps track of the action's progress
+    action: str
+            The action being performed
 
     Returns
     -------
@@ -189,7 +193,7 @@ def zenodo_upload_loop(action_metadata, resource_id, resource_main_dir, post_url
                     "Zenodo returned an error trying to upload {}".format(name),
                     status.HTTP_400_BAD_REQUEST)
             # Increment process info file
-            increment_process_info(process_info_path, 'resource_upload')
+            increment_process_info(process_info_path, action, 'upload')
 
             file_metadata_list.append({
                 'actionRootPath': os.path.join(path, name),

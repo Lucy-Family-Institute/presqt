@@ -10,7 +10,7 @@ from presqt.utilities import PresQTResponseException, update_process_info, incre
 from presqt.targets.utilities import upload_total_files
 
 
-def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm, file_duplicate_action, process_info_path):
+def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm, file_duplicate_action, process_info_path, action):
     """
     Upload the files found in the resource_main_dir to the target.
 
@@ -28,6 +28,8 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         The action to take when a duplicate file is found
     process_info_path: str
         Path to the process info file that keeps track of the action's progress
+    action: str
+        The action being performed
 
     Returns
     -------
@@ -64,8 +66,8 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
     os_path = next(os.walk(resource_main_dir))
     # Get total amount of files
     total_files = upload_total_files(resource_main_dir)
-    update_process_info(process_info_path, total_files, 'resource_upload')
-    update_process_info_message(process_info_path, 'resource_upload', "Uploading files to GitHub...")
+    update_process_info(process_info_path, total_files, action, 'upload')
+    update_process_info_message(process_info_path, action, "Uploading files to GitHub...")
 
     # Upload a new repository
     if not resource_id:
@@ -107,7 +109,7 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
 
                 requests.put(put_url, headers=header, data=json.dumps(data))
                 # Increment the file counter
-                increment_process_info(process_info_path, 'resource_upload')
+                increment_process_info(process_info_path, action, 'upload')
     else:
         # Upload to an existing repository
         if ':' not in resource_id:
@@ -201,7 +203,7 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                             upload_response.status_code),
                         status.HTTP_400_BAD_REQUEST)
                 # Increment the file counter
-                increment_process_info(process_info_path, 'resource_upload')
+                increment_process_info(process_info_path, action, 'upload')
 
     return {
         'resources_ignored': resources_ignored,

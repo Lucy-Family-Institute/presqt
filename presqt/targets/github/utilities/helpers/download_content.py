@@ -49,7 +49,8 @@ def download_content(username, url, header, repo_name, files):
 
     return files, [], action_metadata
 
-def download_directory(header, path_to_resource, repo_data, process_info_path):
+
+def download_directory(header, path_to_resource, repo_data, process_info_path, action):
     """
     Go through a repo's tree and download all files inside of a given resource directory path.
 
@@ -63,6 +64,8 @@ def download_directory(header, path_to_resource, repo_data, process_info_path):
         Repository data gathered in the repo GET request
     process_info_path: str
         Path to the process info file that keeps track of the action's progress
+    action: str
+        The action being performed
 
     Returns
     -------
@@ -73,11 +76,12 @@ def download_directory(header, path_to_resource, repo_data, process_info_path):
     trees_url = '{}/master?recursive=1'.format(repo_data['trees_url'][:-6])
     contents = requests.get(trees_url, headers=header).json()
 
-    number_of_files = len([file for file in contents['tree'] if file['path'].startswith(path_to_resource) and file['type'] == 'blob'])
+    number_of_files = len([file for file in contents['tree'] if file['path'].startswith(
+        path_to_resource) and file['type'] == 'blob'])
     # Add the total number of repository to the process info file.
     # This is necessary to keep track of the progress of the request.
-    update_process_info(process_info_path, number_of_files, 'resource_download')
-    update_process_info_message(process_info_path, 'resource_download', 'Downloading files from GitHub...')
+    update_process_info(process_info_path, number_of_files, action, 'download')
+    update_process_info_message(process_info_path, action, 'Downloading files from GitHub...')
 
     files = []
     for resource in contents['tree']:
@@ -100,10 +104,11 @@ def download_directory(header, path_to_resource, repo_data, process_info_path):
                 'extra_metadata': {}
             })
             # Increment the number of files done in the process info file.
-            increment_process_info(process_info_path, 'resource_download')
+            increment_process_info(process_info_path, action, 'download')
     return files
 
-def download_file(repo_data, resource_data, process_info_path):
+
+def download_file(repo_data, resource_data, process_info_path, action):
     """
     Build a dictionary for the requested file
 
@@ -115,6 +120,8 @@ def download_file(repo_data, resource_data, process_info_path):
         Resource data gathered in the resource GET request
     process_info_path: str
         Path to the process info file that keeps track of the action's progress
+    action: str
+        The action being performed
 
     Returns
     -------
@@ -122,7 +129,7 @@ def download_file(repo_data, resource_data, process_info_path):
     """
     repo_name = repo_data['name']
     # Increment the number of files done in the process info file.
-    increment_process_info(process_info_path, 'resource_download')
+    increment_process_info(process_info_path, action, 'download')
     return [{
         'file': base64.b64decode(resource_data['content']),
         'hashes': {},

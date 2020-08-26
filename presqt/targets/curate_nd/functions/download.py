@@ -12,7 +12,7 @@ from presqt.utilities import (PresQTInvalidTokenError, PresQTValidationError,
                               update_process_info_message)
 
 
-async def async_get(url, session, token, process_info_path):
+async def async_get(url, session, token, process_info_path, action):
     """
     Coroutine that uses aiohttp to make a GET request. This is the method that will be called
     asynchronously with other GETs.
@@ -27,6 +27,8 @@ async def async_get(url, session, token, process_info_path):
         User's CurateND token
     process_info_path: str
         Path to the process info file that keeps track of the action's progress
+    action: str
+        The action being performed
 
     Returns
     -------
@@ -36,11 +38,11 @@ async def async_get(url, session, token, process_info_path):
         assert response.status == 200
         content = await response.read()
         # Increment the number of files done in the process info file.
-        increment_process_info(process_info_path, 'resource_download')
+        increment_process_info(process_info_path, action, 'download')
         return {'url': url, 'binary_content': content}
 
 
-async def async_main(url_list, token, process_info_path):
+async def async_main(url_list, token, process_info_path, action):
     """
     Main coroutine method that will gather the url calls to be made and will make them
     asynchronously.
@@ -53,16 +55,18 @@ async def async_main(url_list, token, process_info_path):
         User's CurateND token
     process_info_path: str
         Path to the process info file that keeps track of the action's progress
+    action: str
+        The action being performed
 
     Returns
     -------
     List of data brought back from each coroutine called.
     """
     async with aiohttp.ClientSession() as session:
-        return await asyncio.gather(*[async_get(url, session, token, process_info_path) for url in url_list])
+        return await asyncio.gather(*[async_get(url, session, token, process_info_path, action) for url in url_list])
 
 
-def curate_nd_download_resource(token, resource_id, process_info_path):
+def curate_nd_download_resource(token, resource_id, process_info_path, action):
     """
     Fetch the requested resource from CurateND along with its hash information.
 
@@ -74,6 +78,8 @@ def curate_nd_download_resource(token, resource_id, process_info_path):
         ID of the resource requested
     process_info_path: str
         Path to the process info file that keeps track of the action's progress
+    action: str
+        The action being performed
 
     Returns
     -------
@@ -100,8 +106,8 @@ def curate_nd_download_resource(token, resource_id, process_info_path):
     except PresQTInvalidTokenError:
         raise PresQTValidationError("Token is invalid. Response returned a 401 status code.",
                                     status.HTTP_401_UNAUTHORIZED)
-    
-    update_process_info_message(process_info_path, 'resource_download', 'Downloading files from CurateND...')
+
+    update_process_info_message(process_info_path, action, 'Downloading files from CurateND...')
 
     # Get the resource
     resource = get_curate_nd_resource(resource_id, curate_instance)
@@ -115,14 +121,15 @@ def curate_nd_download_resource(token, resource_id, process_info_path):
         if type(title_url) is list:
             title_url = resource.extra['isPartOf'][0]
         # Get the title of the Project to add to sourcePath
-        project_title = requests.get(title_url, headers={'X-Api-Token': '{}'.format(token)}).json()['title']
+        project_title = requests.get(
+            title_url, headers={'X-Api-Token': '{}'.format(token)}).json()['title']
 
         # This is so we aren't missing the few extra keys that are pulled out for the PresQT payload
         resource.extra.update({"id": resource.id, "date_submitted": resource.date_submitted})
 
         # Add the total number of items to the process info file.
         # This is necessary to keep track of the progress of the request.
-        update_process_info(process_info_path, 1, 'resource_download')
+        update_process_info(process_info_path, 1, action, 'download')
 
         binary_file, curate_hash = resource.download()
 
@@ -136,7 +143,7 @@ def curate_nd_download_resource(token, resource_id, process_info_path):
             'extra_metadata': resource.extra})
 
         # Increment the number of files done in the process info file.
-        increment_process_info(process_info_path, 'resource_download')
+        increment_process_info(process_info_path, action, 'download')
 
     else:
         if not resource.extra['containedFiles']:
@@ -144,7 +151,7 @@ def curate_nd_download_resource(token, resource_id, process_info_path):
         else:
             # Add the total number of items to the process info file.
             # This is necessary to keep track of the progress of the request.
-            update_process_info(process_info_path, len(resource.extra['containedFiles']), 'resource_download')
+            update_process_info(process_info_path, len(resource.extra['containedFiles']), action, 'download')
 
             title_helper = {}
             hash_helper = {}
@@ -166,7 +173,8 @@ def curate_nd_download_resource(token, resource_id, process_info_path):
 
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-            download_data = loop.run_until_complete(async_main(file_urls, token, process_info_path))
+            download_data = loop.run_until_complete(
+                async_main(file_urls, token, process_info_path, action))
 
             for file in download_data:
                 title = title_helper[file['url']]
