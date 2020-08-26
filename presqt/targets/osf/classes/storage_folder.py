@@ -217,7 +217,7 @@ class ContainerMixin:
             file_path = '{}/{}'.format(directory, filename)
             file_to_write = read_file(file_path)
 
-            action, file = self.create_file(filename, file_to_write, file_duplicate_action)
+            file_action, file = self.create_file(filename, file_to_write, file_duplicate_action)
 
             file_metadata_list.append({
                 "actionRootPath": file_path,
@@ -227,9 +227,9 @@ class ContainerMixin:
             increment_process_info_upload(process_info_path, action)
 
             file_hashes[file_path] = file.hashes
-            if action == 'ignored':
+            if file_action == 'ignored':
                 resources_ignored.append(file_path)
-            elif action == 'updated':
+            elif file_action == 'updated':
                 resources_updated.append(file_path)
 
         for folder in folders:

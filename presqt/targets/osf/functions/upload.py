@@ -97,12 +97,12 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
             project_id = project.id
             resource.storage('osfstorage').create_directory(
                 resource_main_dir, file_duplicate_action, hashes,
-                resources_ignored, resources_updated, file_metadata_list, process_info_path)
+                resources_ignored, resources_updated, file_metadata_list, process_info_path, action)
 
         else:  # Folder or Storage
             resource.create_directory(
                 resource_main_dir, file_duplicate_action, hashes,
-                resources_ignored, resources_updated, file_metadata_list, process_info_path)
+                resources_ignored, resources_updated, file_metadata_list, process_info_path, action)
             # Get the project class for later metadata work
             if resource.kind_name == 'storage':
                 project_id = resource.node
@@ -124,7 +124,7 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
         # Upload resources into OSFStorage for the new project.
         project.storage('osfstorage').create_directory(
             data_to_upload_path, file_duplicate_action, hashes,
-            resources_ignored, resources_updated, file_metadata_list, process_info_path)
+            resources_ignored, resources_updated, file_metadata_list, process_info_path, action)
 
     for file_metadata in file_metadata_list:
         # Only send forward the hash we need based on the hash_algorithm provided
