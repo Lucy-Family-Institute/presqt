@@ -207,8 +207,8 @@ class Resource(BaseResource):
             'message': 'Download is being processed on the server',
             'status_code': None,
             'function_process_id': None,
-            'total_files': 0,
-            'files_finished': 0
+            'download_total_files': 0,
+            'download_files_finished': 0
         }
         self.process_info_path = update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
 

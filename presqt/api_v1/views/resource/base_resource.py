@@ -210,8 +210,8 @@ class BaseResource(APIView):
             'message': 'Saving files to server and validating bag...',
             'status_code': None,
             'function_process_id': None,
-            'total_files': 0,
-            'files_finished': 0
+            'upload_total_files': 0,
+            'upload_files_finished': 0
         }
 
         self.process_info_path = update_or_create_process_info(
@@ -287,7 +287,7 @@ class BaseResource(APIView):
         #       'action_metadata': action_metadata
         #   }
         try:
-            func_dict = func(self.source_token, self.source_resource_id, self.process_info_path)
+            func_dict = func(self.source_token, self.source_resource_id, self.process_info_path, self.action)
             # If the resource is being transferred, has only one file, and that file is the
             # PresQT metadata then raise an error.
             if self.action == 'resource_transfer_in' and \
