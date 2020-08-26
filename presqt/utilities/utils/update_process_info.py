@@ -38,6 +38,7 @@ def update_process_info_upload(process_info_path, total_files, action):
     write_file(process_info_path, process_info_data, True)
     return
 
+
 def update_process_info(process_info_path, total_files, action):
     """
     Update the process_info.json file with the number of total files involved in the action
@@ -90,9 +91,10 @@ def increment_process_info_upload(process_info_path, action):
     write_file(process_info_path, process_info_data, True)
     return
 
+
 def increment_process_info(process_info_path, action):
     """
-    Increment the download_files_finished attribute in the process_info.json file
+    Increment the files_finished attribute in the process_info.json file
 
     Parameters
     ----------
