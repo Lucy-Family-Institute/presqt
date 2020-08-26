@@ -121,8 +121,13 @@ class JobStatus(APIView):
                 data={'error': 'PresQT Error: {} is not a valid format for this endpoint.'.format(
                     self.response_format)},
                 status=status.HTTP_400_BAD_REQUEST)
+        try:
+            download_process_data = self.process_data['resource_download']
+        except KeyError:
+            return Response(
+                data={'error': 'PresQT Error: "resource_download" not found in process_info file.'},
+                status=status.HTTP_400_BAD_REQUEST)
 
-        download_process_data = self.process_data['resource_download']
         download_status = download_process_data['status']
         message = download_process_data['message']
         status_code = download_process_data['status_code']
@@ -175,7 +180,12 @@ class JobStatus(APIView):
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
-        upload_process_data = self.process_data['resource_upload']
+        try:
+            upload_process_data = self.process_data['resource_upload']
+        except KeyError:
+            return Response(
+                data={'error': 'PresQT Error: "resource_upload" not found in process_info file.'},
+                status=status.HTTP_400_BAD_REQUEST)
 
         upload_status = upload_process_data['status']
         total_files = upload_process_data['upload_total_files']
@@ -218,7 +228,13 @@ class JobStatus(APIView):
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
-        transfer_process_data = self.process_data['resource_transfer_in']
+        try:
+            transfer_process_data = self.process_data['resource_transfer_in']
+        except KeyError:
+            return Response(
+                data={'error': 'PresQT Error: "resource_download" not found in process_info file.'},
+                status=status.HTTP_400_BAD_REQUEST)
+
         transfer_status = transfer_process_data['status']
         upload_job_percentage = calculate_job_percentage(transfer_process_data['upload_total_files'],
                                                          transfer_process_data['upload_files_finished'])
