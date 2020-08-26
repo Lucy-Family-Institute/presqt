@@ -4,7 +4,7 @@ from requests.exceptions import ConnectionError
 from rest_framework import status
 
 from presqt.api_v1.utilities import hash_generator
-from presqt.utilities import read_file, increment_process_info
+from presqt.utilities import read_file, increment_process_info_upload
 from presqt.utilities import PresQTResponseException
 from presqt.targets.osf.classes.base import OSFBase
 from presqt.targets.osf.classes.file import File
@@ -184,7 +184,7 @@ class ContainerMixin:
 
     def create_directory(self, directory_path, file_duplicate_action, file_hashes,
                          resources_ignored, resources_updated, file_metadata_list,
-                         process_info_path):
+                         process_info_path, action):
         """
         Create a directory of folders and files found in the given directory_path.
 
@@ -204,6 +204,8 @@ class ContainerMixin:
             List of file metadata
         process_info_path: str
             Path to the process info file that keeps track of the action's progress
+        action: str
+            The action being performed
 
         Returns
         -------
@@ -222,7 +224,7 @@ class ContainerMixin:
                 "destinationPath": '{}{}'.format(file.provider, file.materialized_path),
                 "title": file.title,
                 "destinationHash": file.hashes})
-            increment_process_info(process_info_path, 'resource_upload')
+            increment_process_info_upload(process_info_path, action)
 
             file_hashes[file_path] = file.hashes
             if action == 'ignored':
@@ -235,7 +237,7 @@ class ContainerMixin:
             created_folder.create_directory('{}/{}'.format(directory, folder),
                                             file_duplicate_action, file_hashes,
                                             resources_ignored, resources_updated, file_metadata_list,
-                                            process_info_path)
+                                            process_info_path, action)
 
 
 
