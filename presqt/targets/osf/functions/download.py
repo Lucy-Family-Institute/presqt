@@ -6,7 +6,7 @@ from rest_framework import status
 
 from presqt.targets.osf.utilities import get_osf_resource, osf_download_metadata
 from presqt.utilities import (PresQTResponseException, PresQTInvalidTokenError,
-                              get_dictionary_from_list, update_process_info_download, increment_process_info_download,
+                              get_dictionary_from_list, update_process_info, increment_process_info,
                               update_process_info_message)
 from presqt.targets.osf.classes.main import OSF
 
@@ -37,7 +37,7 @@ async def async_get(url, session, token, process_info_path, action):
         assert response.status == 200
         content = await response.read()
         # Increment the number of files done in the process info file.
-        increment_process_info_download(process_info_path, action)
+        increment_process_info(process_info_path, action, 'download')
         return {'url': url, 'binary_content': content}
 
 
@@ -104,8 +104,7 @@ def osf_download_resource(token, resource_id, process_info_path, action):
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
-    update_process_info_message(process_info_path, action,
-                                    'Downloading files from OSF...')
+    update_process_info_message(process_info_path, action, 'Downloading files from OSF...')
     # Get contributor name
     contributor_name = requests.get('https://api.osf.io/v2/users/me/',
                                     headers={'Authorization': 'Bearer {}'.format(token)}).json()[
@@ -122,7 +121,7 @@ def osf_download_resource(token, resource_id, process_info_path, action):
     if resource.kind_name == 'file':
         # Add the total number of projects to the process info file.
         # This is necessary to keep track of the progress of the request.
-        update_process_info_download(process_info_path, 1, action)
+        update_process_info(process_info_path, 1, action, 'download')
 
         project = osf_instance.project(resource.parent_project_id)
         files.append({
@@ -135,7 +134,7 @@ def osf_download_resource(token, resource_id, process_info_path, action):
             "extra_metadata": osf_download_metadata(resource)
         })
         # Increment the number of files done in the process info file.
-        increment_process_info_download(process_info_path, action)
+        increment_process_info(process_info_path, action, 'download')
     else:
         if resource.kind_name == 'project':
             resource.get_all_files('', files, empty_containers)
@@ -158,7 +157,7 @@ def osf_download_resource(token, resource_id, process_info_path, action):
 
         # Add the total number of projects to the process info file.
         # This is necessary to keep track of the progress of the request.
-        update_process_info_download(process_info_path, len(file_urls), action)
+        update_process_info(process_info_path, len(file_urls), action, 'download')
 
         # Asynchronously make all download requests
         loop = asyncio.new_event_loop()

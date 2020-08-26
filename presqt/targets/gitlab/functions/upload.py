@@ -8,7 +8,7 @@ from presqt.api_v1.utilities import hash_generator
 from presqt.targets.gitlab.utilities import gitlab_paginated_data
 from presqt.targets.gitlab.utilities.validation_check import validation_check
 from presqt.targets.utilities import get_duplicate_title, upload_total_files
-from presqt.utilities import PresQTResponseException, update_process_info_upload, increment_process_info_upload, update_process_info_message
+from presqt.utilities import PresQTResponseException, update_process_info, increment_process_info, update_process_info_message
 
 
 def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm, file_duplicate_action, process_info_path, action):
@@ -71,7 +71,7 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
     os_path = next(os.walk(resource_main_dir))
     # Get total amount of files
     total_files = upload_total_files(resource_main_dir)
-    update_process_info_upload(process_info_path, total_files, action)
+    update_process_info(process_info_path, total_files, action, 'upload')
     update_process_info_message(process_info_path, action,
                                 "Uploading files to GitLab...")
 
@@ -127,7 +127,7 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                 file_json = requests.get("{}{}?ref=master".format(base_repo_path, encoded_file_path),
                                          headers=headers)
                 # Increment files finished
-                increment_process_info_upload(process_info_path, action)
+                increment_process_info(process_info_path, action, 'upload')
 
                 file_metadata_list.append({
                     "actionRootPath": os.path.join(path, name),
@@ -229,7 +229,7 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                 file_json = requests.get("{}?ref=master".format(full_encoded_url),
                                          headers=headers).json()
                 # Increment files finished
-                increment_process_info_upload(process_info_path, action)
+                increment_process_info(process_info_path, action, 'upload')
 
                 file_metadata_list.append({
                     "actionRootPath": os.path.join(path, name),

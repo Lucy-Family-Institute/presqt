@@ -7,8 +7,8 @@ from rest_framework import status
 from presqt.targets.figshare.utilities.validation_check import validation_check
 from presqt.targets.figshare.utilities.helpers.download_content import download_project, download_article
 from presqt.utilities import (PresQTResponseException, get_dictionary_from_list,
-                              update_process_info_download,
-                              increment_process_info_download, update_process_info_message)
+                              update_process_info,
+                              increment_process_info, update_process_info_message)
 
 
 async def async_get(url, session, header, process_info_path, action):
@@ -37,7 +37,7 @@ async def async_get(url, session, header, process_info_path, action):
         assert response.status == 200
         content = await response.read()
         # Increment the number of files done in the process info file.
-        increment_process_info_download(process_info_path, action)
+        increment_process_info(process_info_path, action, 'download')
         return {'url': url, 'binary_content': content}
 
 
@@ -158,7 +158,7 @@ def figshare_download_resource(token, resource_id, process_info_path, action):
         elif len(split_id) == 3:
             # Add the total number of articles to the process info file.
             # This is necessary to keep track of the progress of the request.
-            update_process_info_download(process_info_path, 1, action)
+            update_process_info(process_info_path, 1, action, 'download')
 
             # Single file download.
             data = response.json()
@@ -173,7 +173,7 @@ def figshare_download_resource(token, resource_id, process_info_path, action):
                         "extra_metadata": {"size": file['size']}
                     }]
                     # Increment the number of files done in the process info file.
-                    increment_process_info_download(process_info_path, action)
+                    increment_process_info(process_info_path, action, 'download')
 
                     empty_containers = []
                     action_metadata = {"sourceUsername": username}
@@ -184,7 +184,7 @@ def figshare_download_resource(token, resource_id, process_info_path, action):
     if file_urls:
         # Add the total number of articles to the process info file.
         # This is necessary to keep track of the progress of the request.
-        update_process_info_download(process_info_path, len(file_urls), action)
+        update_process_info(process_info_path, len(file_urls), action, 'download')
 
         # Start the async calls for project or article downloads
         loop = asyncio.new_event_loop()

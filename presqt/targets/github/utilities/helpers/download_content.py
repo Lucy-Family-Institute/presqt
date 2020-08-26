@@ -2,7 +2,7 @@ import base64
 
 import requests
 
-from presqt.utilities import increment_process_info_download, update_process_info_download, update_process_info_message
+from presqt.utilities import increment_process_info, update_process_info, update_process_info_message
 
 
 def download_content(username, url, header, repo_name, files):
@@ -80,7 +80,7 @@ def download_directory(header, path_to_resource, repo_data, process_info_path, a
         path_to_resource) and file['type'] == 'blob'])
     # Add the total number of repository to the process info file.
     # This is necessary to keep track of the progress of the request.
-    update_process_info_download(process_info_path, number_of_files, action)
+    update_process_info(process_info_path, number_of_files, action, 'download')
     update_process_info_message(process_info_path, action, 'Downloading files from GitHub...')
 
     files = []
@@ -104,7 +104,7 @@ def download_directory(header, path_to_resource, repo_data, process_info_path, a
                 'extra_metadata': {}
             })
             # Increment the number of files done in the process info file.
-            increment_process_info_download(process_info_path, action)
+            increment_process_info(process_info_path, action, 'download')
     return files
 
 
@@ -129,7 +129,7 @@ def download_file(repo_data, resource_data, process_info_path, action):
     """
     repo_name = repo_data['name']
     # Increment the number of files done in the process info file.
-    increment_process_info_download(process_info_path, action)
+    increment_process_info(process_info_path, action, 'download')
     return [{
         'file': base64.b64decode(resource_data['content']),
         'hashes': {},

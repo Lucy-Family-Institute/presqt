@@ -8,8 +8,8 @@ from rest_framework import status
 from presqt.targets.gitlab.utilities import (
     validation_check, gitlab_paginated_data, download_content)
 from presqt.utilities import (PresQTResponseException, get_dictionary_from_list,
-                              update_process_info_download,
-                              increment_process_info_download,
+                              update_process_info,
+                              increment_process_info,
                               update_process_info_message)
 
 
@@ -39,7 +39,7 @@ async def async_get(url, session, header, process_info_path, action):
         assert response.status == 200
         content = await response.json()
         # Increment the number of files done in the process info file.
-        increment_process_info_download(process_info_path, action)
+        increment_process_info(process_info_path, action, 'download')
         return {
             'url': url,
             'binary_content': base64.b64decode(content['content']),
@@ -151,7 +151,7 @@ def gitlab_download_resource(token, resource_id, process_info_path, action):
     else:
         # Add the total number of projects to the process info file.
         # This is necessary to keep track of the progress of the request.
-        update_process_info_download(process_info_path, 1, action)
+        update_process_info(process_info_path, 1, action, 'download')
 
         # This is a single file
         data = requests.get('https://gitlab.com/api/v4/projects/{}/repository/files/{}?ref=master'.format(
@@ -162,7 +162,7 @@ def gitlab_download_resource(token, resource_id, process_info_path, action):
                 status.HTTP_404_NOT_FOUND)
 
         # Increment the number of files done in the process info file.
-        increment_process_info_download(process_info_path, action)
+        increment_process_info(process_info_path, action, 'download')
         return {
             'resources': [{
                 'file': base64.b64decode(data['content']),
@@ -180,7 +180,7 @@ def gitlab_download_resource(token, resource_id, process_info_path, action):
 
     # Add the total number of projects to the process info file.
     # This is necessary to keep track of the progress of the request.
-    update_process_info_download(process_info_path, len(file_urls), action)
+    update_process_info(process_info_path, len(file_urls), action, 'download')
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)

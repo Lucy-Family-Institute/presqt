@@ -30,7 +30,7 @@ from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
 from presqt.json_schemas.schema_handlers import schema_validator
 from presqt.utilities import (PresQTValidationError, PresQTResponseException, write_file,
-                              zip_directory, read_file, update_process_info_message, increment_process_info_upload)
+                              zip_directory, read_file, update_process_info_message, increment_process_info)
 
 
 class BaseResource(APIView):
@@ -596,7 +596,7 @@ class BaseResource(APIView):
                                                           resources_ignored,
                                                           resources_updated)
         # Increment process_info one last time
-        increment_process_info_upload(self.process_info_path, self.action)
+        increment_process_info(self.process_info_path, self.action, 'upload')
 
         # Validate the final metadata
         upload_message = get_action_message(self, 'Upload',

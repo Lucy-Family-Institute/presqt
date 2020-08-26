@@ -9,5 +9,4 @@ from presqt.utilities.utils.get_dictionary_from_list import get_dictionary_from_
 from presqt.utilities.utils.list_differences import list_differences
 from presqt.utilities.utils.list_intersection import list_intersection
 from presqt.utilities.utils.update_process_info import (
-    update_process_info_download, update_process_info_upload, increment_process_info_download,
-    increment_process_info_upload, update_process_info_message, update_process_info, increment_process_info)
+    update_process_info_message, update_process_info, increment_process_info)

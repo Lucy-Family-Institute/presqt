@@ -6,8 +6,8 @@ from rest_framework import status
 
 from presqt.targets.zenodo.utilities import zenodo_download_helper, zenodo_validation_check
 from presqt.utilities import (PresQTResponseException, get_dictionary_from_list,
-                              update_process_info_download,
-                              increment_process_info_download, update_process_info_message)
+                              update_process_info,
+                              increment_process_info, update_process_info_message)
 
 
 async def async_get(url, session, params, process_info_path, action):
@@ -36,7 +36,7 @@ async def async_get(url, session, params, process_info_path, action):
         assert response.status == 200
         content = await response.read()
         # Increment the number of files done in the process info file.
-        increment_process_info_download(process_info_path, action)
+        increment_process_info(process_info_path, action, 'download')
         return {'url': url, 'binary_content': content}
 
 
@@ -110,7 +110,7 @@ def zenodo_download_resource(token, resource_id, process_info_path, action):
                                       status.HTTP_401_UNAUTHORIZED)
 
     update_process_info_message(process_info_path, action,
-                                    'Downloading files from Zenodo...')
+                                'Downloading files from Zenodo...')
     files = []
     empty_containers = []
     base_url = None
@@ -148,13 +148,13 @@ def zenodo_download_resource(token, resource_id, process_info_path, action):
 
         # Add the total number of projects to the process info file.
         # This is necessary to keep track of the progress of the request.
-        update_process_info_download(process_info_path, 1, action)
+        update_process_info(process_info_path, 1, action, 'download')
 
         files, action_metadata = zenodo_download_helper(is_record, base_url, auth_parameter, files,
                                                         file_url)
 
         # Increment the number of files done in the process info file.
-        increment_process_info_download(process_info_path, action)
+        increment_process_info(process_info_path, action, 'download')
 
     # Otherwise, it's a full project
     else:
@@ -176,11 +176,12 @@ def zenodo_download_resource(token, resource_id, process_info_path, action):
 
         # Add the total number of projects to the process info file.
         # This is necessary to keep track of the progress of the request.
-        update_process_info_download(process_info_path, len(file_urls), action)
+        update_process_info(process_info_path, len(file_urls), action, 'download')
 
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        download_data = loop.run_until_complete(async_main(file_urls, auth_parameter, process_info_path, action))
+        download_data = loop.run_until_complete(async_main(
+            file_urls, auth_parameter, process_info_path, action))
 
         # Go through the file dictionaries and replace the file path with the binary_content
         for file in files:

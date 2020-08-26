@@ -4,7 +4,7 @@ from requests.exceptions import ConnectionError
 from rest_framework import status
 
 from presqt.api_v1.utilities import hash_generator
-from presqt.utilities import read_file, increment_process_info_upload
+from presqt.utilities import read_file, increment_process_info
 from presqt.utilities import PresQTResponseException
 from presqt.targets.osf.classes.base import OSFBase
 from presqt.targets.osf.classes.file import File
@@ -224,7 +224,7 @@ class ContainerMixin:
                 "destinationPath": '{}{}'.format(file.provider, file.materialized_path),
                 "title": file.title,
                 "destinationHash": file.hashes})
-            increment_process_info_upload(process_info_path, action)
+            increment_process_info(process_info_path, action, 'upload')
 
             file_hashes[file_path] = file.hashes
             if file_action == 'ignored':

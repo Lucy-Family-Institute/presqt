@@ -7,7 +7,7 @@ from rest_framework import status
 from presqt.targets.utilities import get_duplicate_title, upload_total_files
 from presqt.targets.zenodo.utilities import zenodo_validation_check, zenodo_upload_helper
 from presqt.utilities import (PresQTValidationError, PresQTResponseException,
-                              update_process_info_upload, increment_process_info_upload, update_process_info_message)
+                              update_process_info, increment_process_info, update_process_info_message)
 
 
 def zenodo_upload_resource(token, resource_id, resource_main_dir, hash_algorithm,
@@ -67,7 +67,7 @@ def zenodo_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
     os_path = next(os.walk(resource_main_dir))
     total_files = upload_total_files(resource_main_dir)
     # Update process info file
-    update_process_info_upload(process_info_path, total_files, action)
+    update_process_info(process_info_path, total_files, action, 'upload')
     update_process_info_message(process_info_path, action, "Uploading files to Zenodo...")
 
     # Since Zenodo is a finite depth target, the checks for path validity have already been done.
@@ -193,7 +193,7 @@ def zenodo_upload_loop(action_metadata, resource_id, resource_main_dir, post_url
                     "Zenodo returned an error trying to upload {}".format(name),
                     status.HTTP_400_BAD_REQUEST)
             # Increment process info file
-            increment_process_info_upload(process_info_path, action)
+            increment_process_info(process_info_path, action, 'upload')
 
             file_metadata_list.append({
                 'actionRootPath': os.path.join(path, name),

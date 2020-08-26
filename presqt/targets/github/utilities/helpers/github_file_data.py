@@ -27,7 +27,7 @@ def get_github_repository_data(initial_data, header, process_info_path, resource
 
     # Add the total number of repository to the process info file.
     # This is necessary to keep track of the progress of the request.
-    update_process_info(process_info_path, len(initial_data), 'resource_collection')
+    update_process_info(process_info_path, len(initial_data), 'resource_collection', 'fetch')
 
     for repo in initial_data:
         resources.append({
@@ -70,6 +70,6 @@ def get_github_repository_data(initial_data, header, process_info_path, resource
                         "title": title
                     })
         # Increment the number of files done in the process info file.
-        increment_process_info(process_info_path, 'resource_collection')
+        increment_process_info(process_info_path, 'resource_collection', 'fetch')
 
     return resources
