@@ -655,7 +655,11 @@ class BaseResource(APIView):
             'download_status': None,
             'upload_status': None,
             'status_code': None,
-            'function_process_id': None
+            'function_process_id': None,
+            'upload_total_files': 0,
+            'upload_files_finished': 0,
+            'download_total_files': 0,
+            'download_files_finished':0
         }
         self.process_info_path = update_or_create_process_info(
             self.process_info_obj, self.action, self.ticket_number)
