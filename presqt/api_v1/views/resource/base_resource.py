@@ -30,7 +30,7 @@ from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
 from presqt.json_schemas.schema_handlers import schema_validator
 from presqt.utilities import (PresQTValidationError, PresQTResponseException, write_file,
-                              zip_directory, read_file, update_process_info_message)
+                              zip_directory, read_file, update_process_info_message, increment_process_info_upload)
 
 
 class BaseResource(APIView):
@@ -535,7 +535,7 @@ class BaseResource(APIView):
             structure_validation(self)
             func_dict = func(self.destination_token, self.destination_resource_id,
                              self.data_directory, self.hash_algorithm, self.file_duplicate_action,
-                             self.process_info_path)
+                             self.process_info_path, self.action)
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch.
             # Update the server process_info file appropriately.
@@ -596,7 +596,7 @@ class BaseResource(APIView):
                                                           resources_ignored,
                                                           resources_updated)
         # Increment process_info one last time
-        increment_process_info(self.process_info_path, self.action)
+        increment_process_info_upload(self.process_info_path, self.action)
 
         # Validate the final metadata
         upload_message = get_action_message(self, 'Upload',
@@ -611,8 +611,8 @@ class BaseResource(APIView):
             self.process_info_obj['status'] = 'finished'
             self.process_info_obj['hash_algorithm'] = self.hash_algorithm
             self.process_info_obj['failed_fixity'] = self.upload_failed_fixity
-            update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
             self.process_info_obj['upload_status'] = upload_message
+            update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
 
         return True
 

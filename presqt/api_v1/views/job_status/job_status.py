@@ -178,8 +178,8 @@ class JobStatus(APIView):
         upload_process_data = self.process_data['resource_upload']
 
         upload_status = upload_process_data['status']
-        total_files = upload_process_data['total_files']
-        files_finished = upload_process_data['files_finished']
+        total_files = upload_process_data['upload_total_files']
+        files_finished = upload_process_data['upload_files_finished']
 
         job_percentage = calculate_job_percentage(total_files, files_finished)
         data = {
