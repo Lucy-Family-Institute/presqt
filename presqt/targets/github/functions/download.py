@@ -8,10 +8,10 @@ from rest_framework import status
 from presqt.targets.github.utilities import (
     validation_check, download_content, download_directory, download_file)
 from presqt.utilities import (PresQTResponseException, get_dictionary_from_list,
-                              update_process_info, increment_process_info, update_process_info_message)
+                              update_process_info_download, increment_process_info_download, update_process_info_message)
 
 
-async def async_get(url, session, header, process_info_path):
+async def async_get(url, session, header, process_info_path, action):
     """
     Coroutine that uses aiohttp to make a GET request. This is the method that will be called
     asynchronously with other GETs.
@@ -26,6 +26,8 @@ async def async_get(url, session, header, process_info_path):
         Header for request
     process_info_path: str
         Path to the process info file that keeps track of the action's progress
+    action: str
+        The action being performed
 
     Returns
     -------
@@ -35,11 +37,11 @@ async def async_get(url, session, header, process_info_path):
         assert response.status == 200
         content = await response.read()
         # Increment the number of files done in the process info file.
-        increment_process_info(process_info_path, 'resource_download')
+        increment_process_info_download(process_info_path, action)
         return {'url': url, 'binary_content': content}
 
 
-async def async_main(url_list, header, process_info_path):
+async def async_main(url_list, header, process_info_path, action):
     """
     Main coroutine method that will gather the url calls to be made and will make them
     asynchronously.
@@ -52,16 +54,18 @@ async def async_main(url_list, header, process_info_path):
         Header for request
     process_info_path: str
         Path to the process info file that keeps track of the action's progress
+    action: str
+        The action being performed
 
     Returns
     -------
     List of data brought back from each coroutine called.
     """
     async with aiohttp.ClientSession() as session:
-        return await asyncio.gather(*[async_get(url, session, header, process_info_path) for url in url_list])
+        return await asyncio.gather(*[async_get(url, session, header, process_info_path, action) for url in url_list])
 
 
-def github_download_resource(token, resource_id, process_info_path):
+def github_download_resource(token, resource_id, process_info_path, action):
     """
     Fetch the requested resource from GitHub along with its hash information.
 
@@ -73,6 +77,8 @@ def github_download_resource(token, resource_id, process_info_path):
         ID of the resource requested
     process_info_path: str
         Path to the process info file that keeps track of the action's progress
+    action: str
+        The action being performed
 
 
     Returns
@@ -100,8 +106,8 @@ def github_download_resource(token, resource_id, process_info_path):
     except PresQTResponseException:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
-    
-    update_process_info_message(process_info_path, 'resource_download', 'Downloading files from GitHub...')
+
+    update_process_info_message(process_info_path, action, 'Downloading files from GitHub...')
 
     # Without a colon, we know this is a top level repo
     if ':' not in resource_id:
@@ -120,18 +126,18 @@ def github_download_resource(token, resource_id, process_info_path):
         # https://api.github.com/repos/eggyboi/djangoblog/contents
         contents_url = data['contents_url'].partition('/{+path}')[0]
 
-
         files, empty_containers, action_metadata = download_content(
             username, contents_url, header, repo_name, [])
         file_urls = [file['file'] for file in files]
 
         # Add the total number of repository to the process info file.
         # This is necessary to keep track of the progress of the request.
-        update_process_info(process_info_path, len(file_urls), 'resource_download')
+        update_process_info_download(process_info_path, len(file_urls), action)
 
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        download_data = loop.run_until_complete(async_main(file_urls, header, process_info_path))
+        download_data = loop.run_until_complete(
+            async_main(file_urls, header, process_info_path, action))
 
         # Go through the file dictionaries and replace the file path with the binary_content
         for file in files:
@@ -183,11 +189,11 @@ def github_download_resource(token, resource_id, process_info_path):
 
         # If the resource to get is a folder
         if isinstance(resource_data, list):
-            files = download_directory(header, path_to_file, repo_data, process_info_path)
+            files = download_directory(header, path_to_file, repo_data, process_info_path, action)
         # If the resource to get is a file
         elif resource_data['type'] == 'file':
-            update_process_info(process_info_path, 1, 'resource_download')
-            files = download_file(repo_data, resource_data, process_info_path)
+            update_process_info_download(process_info_path, 1, action)
+            files = download_file(repo_data, resource_data, process_info_path, action)
 
         empty_containers = []
         action_metadata = {"sourceUsername": username}
