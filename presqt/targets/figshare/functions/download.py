@@ -105,8 +105,6 @@ def figshare_download_resource(token, resource_id, process_info_path, action):
     except PresQTResponseException:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
-
-    update_process_info_message(process_info_path, action, 'Downloading files from FigShare...')
     split_id = str(resource_id).split(":")
 
     # But first we need to see whether it is a public project, or a private project.
@@ -156,6 +154,7 @@ def figshare_download_resource(token, resource_id, process_info_path, action):
             file_urls = [file['file'] for file in files]
 
         elif len(split_id) == 3:
+            update_process_info_message(process_info_path, action, 'Downloading files from FigShare...')
             # Add the total number of articles to the process info file.
             # This is necessary to keep track of the progress of the request.
             update_process_info(process_info_path, 1, action, 'download')
@@ -182,6 +181,7 @@ def figshare_download_resource(token, resource_id, process_info_path, action):
                 raise PresQTResponseException("The resource could not be found by the requesting user.",
                                               status.HTTP_404_NOT_FOUND)
     if file_urls:
+        update_process_info_message(process_info_path, action, 'Downloading files from FigShare...')
         # Add the total number of articles to the process info file.
         # This is necessary to keep track of the progress of the request.
         update_process_info(process_info_path, len(file_urls), action, 'download')

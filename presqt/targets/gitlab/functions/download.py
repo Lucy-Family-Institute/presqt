@@ -110,8 +110,7 @@ def gitlab_download_resource(token, resource_id, process_info_path, action):
     except PresQTResponseException:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
-    
-    update_process_info_message(process_info_path, action, 'Downloading files from GitLab...')
+
     # Get the user's GitLab username for action metadata
     username = requests.get("https://gitlab.com/api/v4/user", headers=header).json()['username']
 
@@ -149,6 +148,7 @@ def gitlab_download_resource(token, resource_id, process_info_path, action):
         is_project = False
 
     else:
+        update_process_info_message(process_info_path, action, 'Downloading files from GitLab...')
         # Add the total number of projects to the process info file.
         # This is necessary to keep track of the progress of the request.
         update_process_info(process_info_path, 1, action, 'download')
@@ -177,7 +177,8 @@ def gitlab_download_resource(token, resource_id, process_info_path, action):
     files, empty_containers, action_metadata = download_content(
         username, project_name, project_id, data, [], is_project)
     file_urls = [file['file'] for file in files]
-
+    
+    update_process_info_message(process_info_path, action, 'Downloading files from GitLab...')
     # Add the total number of projects to the process info file.
     # This is necessary to keep track of the progress of the request.
     update_process_info(process_info_path, len(file_urls), action, 'download')

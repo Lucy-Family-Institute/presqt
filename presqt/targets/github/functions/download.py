@@ -107,8 +107,6 @@ def github_download_resource(token, resource_id, process_info_path, action):
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
-    update_process_info_message(process_info_path, action, 'Downloading files from GitHub...')
-
     # Without a colon, we know this is a top level repo
     if ':' not in resource_id:
         project_url = 'https://api.github.com/repositories/{}'.format(resource_id)
@@ -130,6 +128,7 @@ def github_download_resource(token, resource_id, process_info_path, action):
             username, contents_url, header, repo_name, [])
         file_urls = [file['file'] for file in files]
 
+        update_process_info_message(process_info_path, action, 'Downloading files from GitHub...')
         # Add the total number of repository to the process info file.
         # This is necessary to keep track of the progress of the request.
         update_process_info(process_info_path, len(file_urls), action, 'download')
@@ -189,9 +188,11 @@ def github_download_resource(token, resource_id, process_info_path, action):
 
         # If the resource to get is a folder
         if isinstance(resource_data, list):
+            update_process_info_message(process_info_path, action, 'Downloading files from GitHub...')
             files = download_directory(header, path_to_file, repo_data, process_info_path, action)
         # If the resource to get is a file
         elif resource_data['type'] == 'file':
+            update_process_info_message(process_info_path, action, 'Downloading files from GitHub...')
             update_process_info(process_info_path, 1, action, 'download')
             files = download_file(repo_data, resource_data, process_info_path, action)
 

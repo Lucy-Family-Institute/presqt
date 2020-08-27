@@ -108,9 +108,6 @@ def zenodo_download_resource(token, resource_id, process_info_path, action):
     except PresQTResponseException:
         raise PresQTResponseException('Token is invalid. Response returned a 401 status code.',
                                       status.HTTP_401_UNAUTHORIZED)
-
-    update_process_info_message(process_info_path, action,
-                                'Downloading files from Zenodo...')
     files = []
     empty_containers = []
     base_url = None
@@ -146,6 +143,7 @@ def zenodo_download_resource(token, resource_id, process_info_path, action):
                 "The resource with id, {}, does not exist for this user.".format(resource_id),
                 status.HTTP_404_NOT_FOUND)
 
+        update_process_info_message(process_info_path, action, 'Downloading files from Zenodo...')
         # Add the total number of projects to the process info file.
         # This is necessary to keep track of the progress of the request.
         update_process_info(process_info_path, 1, action, 'download')
@@ -174,6 +172,7 @@ def zenodo_download_resource(token, resource_id, process_info_path, action):
 
         file_urls = [file['file'] for file in files]
 
+        update_process_info_message(process_info_path, action, 'Downloading files from Zenodo...')
         # Add the total number of projects to the process info file.
         # This is necessary to keep track of the progress of the request.
         update_process_info(process_info_path, len(file_urls), action, 'download')
