@@ -87,10 +87,10 @@ class JobStatus(APIView):
         total_files = self.process_data['resource_collection']['total_files']
         files_finished = self.process_data['resource_collection']['files_finished']
 
-        job_status = 'in_progress'
+        job_status = self.process_data['resource_collection']['status']
         job_percentage = calculate_job_percentage(total_files, files_finished)
-        if job_percentage == 99:
-            job_status = 'finished'
+        if job_status == 'finished':
+            job_percentage = 99
 
         data = {
             'status': job_status,
