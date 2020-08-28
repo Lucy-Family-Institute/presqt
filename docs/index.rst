@@ -33,10 +33,11 @@ FigShare    ✅             ✅         ✅         ✅           ✅          �
 
 **Current Service Integrations**:
 
-=========== ==============================================================================
-**Service** **Functionality**
-EaaSI       Send resources from a PresQT server to EaaSI to generate an emulation proposal
-=========== ==============================================================================
+=================== ==============================================================================
+**Service**         **Functionality**
+EaaSI               Send resources from a PresQT server to EaaSI to generate an emulation proposal
+Keyword Enhancement Suggest/add keywords to existing keywords
+=================== ==============================================================================
 
 .. toctree::
    :caption: Contents

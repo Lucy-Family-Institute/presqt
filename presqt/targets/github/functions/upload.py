@@ -6,10 +6,11 @@ import requests
 from rest_framework import status
 
 from presqt.targets.github.utilities import validation_check, create_repository
-from presqt.utilities import PresQTResponseException
+from presqt.utilities import PresQTResponseException, update_process_info, increment_process_info, update_process_info_message
+from presqt.targets.utilities import upload_total_files
 
 
-def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm, file_duplicate_action):
+def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm, file_duplicate_action, process_info_path, action):
     """
     Upload the files found in the resource_main_dir to the target.
 
@@ -25,6 +26,10 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         Hash algorithm we are using to check for fixity.
     file_duplicate_action : str
         The action to take when a duplicate file is found
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
+    action: str
+        The action being performed
 
     Returns
     -------
@@ -59,6 +64,10 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                                       status.HTTP_401_UNAUTHORIZED)
 
     os_path = next(os.walk(resource_main_dir))
+    # Get total amount of files
+    total_files = upload_total_files(resource_main_dir)
+    update_process_info(process_info_path, total_files, action, 'upload')
+    update_process_info_message(process_info_path, action, "Uploading files to GitHub...")
 
     # Upload a new repository
     if not resource_id:
@@ -99,6 +108,8 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                     "content": encoded_file}
 
                 requests.put(put_url, headers=header, data=json.dumps(data))
+                # Increment the file counter
+                increment_process_info(process_info_path, action, 'upload')
     else:
         # Upload to an existing repository
         if ':' not in resource_id:
@@ -108,7 +119,8 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         else:
             partitioned_id = resource_id.partition(':')
             repo_id = partitioned_id[0]
-            path_to_upload_to = '/{}'.format(partitioned_id[2]).replace('%2F', '/').replace('%2E', '.')
+            path_to_upload_to = '/{}'.format(partitioned_id[2]
+                                             ).replace('%2F', '/').replace('%2E', '.')
 
         # Get initial repo data for the resource requested
         repo_url = 'https://api.github.com/repositories/{}'.format(repo_id)
@@ -122,7 +134,8 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         repo_name = repo_data['name']
 
         # Get all repo resources so we can check if any files already exist
-        repo_resources = requests.get('{}/master?recursive=1'.format(repo_data['trees_url'][:-6]), headers=header).json()
+        repo_resources = requests.get(
+            '{}/master?recursive=1'.format(repo_data['trees_url'][:-6]), headers=header).json()
         # current_file_paths = ['/' + resource['path'] for resource in repo_resources['tree'] if resource['type'] == 'blob']
         current_file_paths = []
         for resource in repo_resources['tree']:
@@ -145,7 +158,8 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
             if not subdirs and not files:
                 resources_ignored.append(path)
             for name in files:
-                path_to_file = os.path.join('/', path.partition('/data/')[2], name).replace(' ', '_')
+                path_to_file = os.path.join('/', path.partition('/data/')
+                                            [2], name).replace(' ', '_')
 
                 # Check if the file already exists in this repository
                 full_file_path = '{}{}'.format(path_to_upload_to, path_to_file)
@@ -156,7 +170,8 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                     else:
                         resources_updated.append(os.path.join(path, name))
                         # Get the sha
-                        sha_url = 'https://api.github.com/repos/{}/contents{}'.format(repo_data['full_name'], full_file_path)
+                        sha_url = 'https://api.github.com/repos/{}/contents{}'.format(
+                            repo_data['full_name'], full_file_path)
                         sha_response = requests.get(sha_url, headers=header)
                         sha = sha_response.json()['sha']
 
@@ -184,8 +199,11 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
 
                 if upload_response.status_code not in [200, 201]:
                     raise PresQTResponseException(
-                        'Upload failed with a status code of {}'.format(upload_response.status_code),
+                        'Upload failed with a status code of {}'.format(
+                            upload_response.status_code),
                         status.HTTP_400_BAD_REQUEST)
+                # Increment the file counter
+                increment_process_info(process_info_path, action, 'upload')
 
     return {
         'resources_ignored': resources_ignored,
@@ -194,5 +212,3 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         'file_metadata_list': file_metadata_list,
         'project_id': repo_id
     }
-
-

@@ -152,11 +152,11 @@ structure on the front end.
                 # Process to obtain resource collection goes here.
                 # Variables below are defined here to show examples of structure.
                 target_resources = get_target_resources()
-                update_process_info(process_info_path, len(target_resources))
+                update_process_info(process_info_path, len(target_resources), 'resource_collection')
 
                 resources = []
                 for resource in target_resources:
-                    increment_process_info(process_info_path)
+                    increment_process_info(process_info_path, 'resource_collection')
                        resource.append({
                         'kind': 'container',
                         'kind_name': 'Project',
@@ -279,10 +279,11 @@ Resource Download Endpoint
 
     * The function must have the following parameters **in this order**:
 
-        =========== === =======================================
-        token       str User's token for the target
-        resource_id str ID for the resource we want to download
-        =========== === =======================================
+        ================= === =============================================
+        token             str User's token for the target
+        resource_id       str ID for the resource we want to download
+        process_info_path str The path to this download's process_info_path
+        ================= === =============================================
 
     * The function must return a **dictionary** with the following keys:
 
@@ -319,12 +320,15 @@ Resource Download Endpoint
             ============== === ============================================================
             sourceUsername str Username of the user making the request at the source target
             ============== === ============================================================
+    * If you want to keep track of the progress of the download there are two functions available
+      to do so. ``update_process_info()`` is for updating the total number of resources in the download
+      and ``increment_process_info()`` is for updating the number of resources gathered thus far.
 
     **Example Resource Download Function:**
 
         .. code-block:: python
 
-            def <your_target_name>_download_resource(token, resource_id):
+            def <your_target_name>_download_resource(token, resource_id, process_info_path):
                 # Process to download resource goes here.
                 # Variables below are defined here to show examples of structure.
                 resources = [
@@ -379,6 +383,7 @@ Resource Upload Endpoint
         file_duplicate_action str The action to take when a duplicate file is found
 
                                   Options: [ignore, update]
+        process_info_path     str The path to this download's process_info_path
         ===================== === ==========================================================================
 
     * The function must return a **dictionary** with the following keys:

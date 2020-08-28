@@ -11,6 +11,7 @@ from config.settings.base import ZENODO_TEST_USER_TOKEN
 from presqt.targets.utilities import shared_upload_function_osf
 from presqt.targets.zenodo.functions.upload_metadata import zenodo_upload_metadata
 from presqt.utilities import read_file, PresQTError
+from presqt.api_v1.utilities import hash_tokens
 
 
 class TestResourceCollection(SimpleTestCase):
@@ -133,6 +134,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
     def setUp(self):
         self.client = APIClient()
         self.token = ZENODO_TEST_USER_TOKEN
+        self.ticket_number = hash_tokens(self.token)
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
         self.project_title = 'NewProject'
@@ -247,13 +249,12 @@ class TestResourceCollectionPOST(SimpleTestCase):
         response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')},
                                     **self.headers)
 
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_upload']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
@@ -308,13 +309,12 @@ class TestResourceCollectionPOST(SimpleTestCase):
             response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')},
                                         **self.headers)
 
-            ticket_number = response.data['ticket_number']
-            ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+            ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
             # Wait until the spawned off process finishes in the background
             # to do validation on the resulting files
             process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-            while process_info['status'] == 'in_progress':
+            while process_info['resource_upload']['status'] == 'in_progress':
                 try:
                     process_info = read_file('{}/process_info.json'.format(ticket_path), True)
                 except json.decoder.JSONDecodeError:
@@ -369,13 +369,12 @@ class TestResourceCollectionPOST(SimpleTestCase):
             response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')},
                                         **self.headers)
 
-            ticket_number = response.data['ticket_number']
-            ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+            ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
             # Wait until the spawned off process finishes in the background
             # to do validation on the resulting files
             process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-            while process_info['status'] == 'in_progress':
+            while process_info['resource_upload']['status'] == 'in_progress':
                 try:
                     process_info = read_file('{}/process_info.json'.format(ticket_path), True)
                 except json.decoder.JSONDecodeError:
@@ -426,13 +425,12 @@ class TestResourceCollectionPOST(SimpleTestCase):
         response = self.client.post(self.url, {'presqt-file': open(bag_with_good_metadata, 'rb')},
                                     **self.headers)
 
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_upload']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
@@ -501,10 +499,9 @@ class TestResourceCollectionPOST(SimpleTestCase):
         response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')},
                                     **self.headers)
 
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_upload']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
@@ -581,13 +578,12 @@ class TestResourceCollectionPOST(SimpleTestCase):
                    'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
         response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **headers)
 
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_upload']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
@@ -612,13 +608,12 @@ class TestResourceCollectionPOST(SimpleTestCase):
         self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
         response = self.client.post(self.url, {'presqt-file': open(bad_bag, 'rb')}, **self.headers)
 
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_upload']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
@@ -640,13 +635,12 @@ class TestResourceCollectionPOST(SimpleTestCase):
         self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
         response = self.client.post(self.url, {'presqt-file': open(bad_bag, 'rb')}, **self.headers)
 
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_upload']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
@@ -679,13 +673,12 @@ class TestResourceCollectionPOST(SimpleTestCase):
             response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')},
                                         **self.headers)
 
-            ticket_number = response.data['ticket_number']
-            ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+            ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
             # Wait until the spawned off process finishes in the background
             # to do validation on the resulting files
             process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-            while process_info['status'] == 'in_progress':
+            while process_info['resource_upload']['status'] == 'in_progress':
                 try:
                     process_info = read_file('{}/process_info.json'.format(ticket_path), True)
                 except json.decoder.JSONDecodeError:

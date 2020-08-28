@@ -8,7 +8,7 @@ from presqt.api_v1.utilities import (
     target_validation, FunctionRouter, get_source_token, query_validator, hash_tokens, page_links,
     update_or_create_process_info)
 from presqt.api_v1.views.resource.base_resource import BaseResource
-from presqt.utilities import PresQTValidationError, PresQTResponseException, write_file
+from presqt.utilities import PresQTValidationError, PresQTResponseException, write_file, read_file
 
 
 class ResourceCollection(BaseResource):
@@ -113,6 +113,7 @@ class ResourceCollection(BaseResource):
         # Create a ticket_number directory for progress check-ins
         ticket_number = hash_tokens(token)
         process_obj = {
+            'status': 'in_progress',
             'total_files': 0,
             'files_finished': 0
         }
@@ -126,6 +127,9 @@ class ResourceCollection(BaseResource):
         try:
             resources, pages = func(token, query_params, process_info_path)
         except PresQTResponseException as e:
+            # Update the process_obj for the error
+            process_obj = {"error": "PresQT Error: Bad token provided"}
+            update_or_create_process_info(process_obj, action, ticket_number)
             # Catch any errors that happen within the target fetch
             return Response(data={'error': e.data}, status=e.status_code)
 
@@ -133,5 +137,10 @@ class ResourceCollection(BaseResource):
                                          'target_name': target_name,
                                          'request': request})
         linked_pages = page_links(self, target_name, search_params, pages)
+
+        # Mark the status of the collection job as finished
+        process_info_data = read_file(process_info_path, True)
+        process_info_data['resource_collection']['status'] = 'finished'
+        write_file(process_info_path, process_info_data, True)
 
         return Response({"resources": serializer.data, "pages": linked_pages})

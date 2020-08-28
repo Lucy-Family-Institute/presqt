@@ -126,12 +126,9 @@ class CurateND(CurateNDBase):
         items = self.items(url)
         # Add the total number of items to the process info file.
         # This is necessary to keep track of the progress of the request.
-        update_process_info(process_info_path, len(items))
+        update_process_info(process_info_path, len(items), 'resource_collection', 'fetch')
 
         for item in items:
-            # Increment the number of files done in the process info file.
-            increment_process_info(process_info_path)
-
             # Items
             resources.append({
                 'kind': 'container',
@@ -148,5 +145,7 @@ class CurateND(CurateNDBase):
                         'id': file['id'],
                         'container': item.id,
                         'title': file['label']})
+            # Increment the number of files done in the process info file.
+            increment_process_info(process_info_path, 'resource_collection', 'fetch')
 
         return resources

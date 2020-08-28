@@ -1,4 +1,5 @@
 import os
+import shutil
 from uuid import uuid4
 
 from dateutil.relativedelta import relativedelta
@@ -9,8 +10,8 @@ from rest_framework.reverse import reverse
 
 from presqt.api_v1.serializers.resource import ResourceSerializer
 from presqt.api_v1.utilities import (get_source_token, target_validation, FunctionRouter,
-                                     spawn_action_process, hash_tokens)
-from presqt.utilities import write_file
+                                     spawn_action_process, hash_tokens,
+                                     update_or_create_process_info)
 from presqt.api_v1.views.resource.base_resource import BaseResource
 from presqt.utilities import PresQTValidationError, PresQTResponseException
 
@@ -195,8 +196,8 @@ class Resource(BaseResource):
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Generate ticket number
-        ticket_number = uuid4()
-        self.ticket_path = os.path.join('mediafiles', 'downloads', str(ticket_number))
+        self.ticket_number = hash_tokens(self.source_token)
+        self.ticket_path = os.path.join('mediafiles', 'jobs', str(self.ticket_number))
 
         # Create directory and process_info json file
         self.process_info_obj = {
@@ -205,29 +206,32 @@ class Resource(BaseResource):
             'expiration': str(timezone.now() + relativedelta(hours=5)),
             'message': 'Download is being processed on the server',
             'status_code': None,
-            'function_process_id': None
+            'function_process_id': None,
+            'download_total_files': 0,
+            'download_files_finished': 0
         }
-
-        self.process_info_path = os.path.join(str(self.ticket_path), 'process_info.json')
-        write_file(self.process_info_path, self.process_info_obj, True)
+        self.process_info_path = update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
 
         self.base_directory_name = '{}_download_{}'.format(self.source_target_name,
                                                            self.source_resource_id)
+
+        # Remove any resources that already exist in this user's job directory
+        if os.path.exists(self.ticket_path):
+            for folder in next(os.walk(self.ticket_path))[1]:
+                shutil.rmtree(os.path.join(self.ticket_path, folder))
+
         # Spawn the upload_resource method separate from the request server by using multiprocess.
-        spawn_action_process(self, self._download_resource)
+        spawn_action_process(self, self._download_resource, 'resource_download')
 
         # Get the download url for zip format
-        reversed_url = reverse('download_job', kwargs={'ticket_number': ticket_number,
-                                                       'response_format': 'zip'})
+        reversed_url = reverse('job_status', kwargs={'action': 'download', 'response_format': 'zip'})
         download_zip_hyperlink = self.request.build_absolute_uri(reversed_url)
 
         # Get the download url for json format
-        reversed_url = reverse('download_job', kwargs={'ticket_number': ticket_number,
-                                                           'response_format': 'json'})
+        reversed_url = reverse('job_status', kwargs={'action': 'download', 'response_format': 'json'})
         download_json_hyperlink = self.request.build_absolute_uri(reversed_url)
 
         return Response(status=status.HTTP_202_ACCEPTED,
-                        data={'ticket_number': ticket_number,
-                              'message': 'The server is processing the request.',
+                        data={'message': 'The server is processing the request.',
                               'download_job_zip': download_zip_hyperlink,
                               'download_job_json': download_json_hyperlink})

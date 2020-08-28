@@ -14,6 +14,7 @@ from presqt.targets.figshare.utilities.helpers.create_article import create_arti
 from presqt.targets.figshare.utilities.helpers.create_project import create_project
 from presqt.targets.utilities import process_wait
 from presqt.utilities import read_file, PresQTError
+from presqt.api_v1.utilities import hash_tokens
 
 
 class TestResourceGETJSON(SimpleTestCase):
@@ -258,6 +259,7 @@ class TestResourcePost(SimpleTestCase):
     def setUp(self):
         self.client = APIClient()
         self.token = FIGSHARE_TEST_USER_TOKEN
+        self.ticket_number = hash_tokens(self.token)
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
         self.good_zip_file = 'presqt/api_v1/tests/resources/upload/GoodBagIt.zip'
@@ -284,8 +286,7 @@ class TestResourcePost(SimpleTestCase):
         response = self.client.post(
             self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
 
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
         # Verify status code and message
         self.assertEqual(response.status_code, 202)
@@ -293,23 +294,20 @@ class TestResourcePost(SimpleTestCase):
 
         # Verify process_info file status is 'in_progress' initially
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        self.assertEqual(process_info['status'], 'in_progress')
+        self.assertEqual(process_info['resource_upload']['status'], 'in_progress')
 
         # Wait until the spawned off process finishes in the background to do further validation
         process_wait(process_info, ticket_path)
 
         # Verify process_info.json file data
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        self.assertEqual(process_info['status'], 'finished')
-        self.assertEqual(process_info['message'], 'Upload successful.')
-        self.assertEqual(process_info['status_code'], '200')
-        self.assertEqual(process_info['failed_fixity'], [])
-        self.assertEqual(process_info['resources_ignored'], [])
-        self.assertEqual(process_info['resources_updated'], [])
-        self.assertEqual(process_info['hash_algorithm'], 'md5')
-
-        # delete upload folder
-        shutil.rmtree(ticket_path)
+        self.assertEqual(process_info['resource_upload']['status'], 'finished')
+        self.assertEqual(process_info['resource_upload']['message'], 'Upload successful.')
+        self.assertEqual(process_info['resource_upload']['status_code'], '200')
+        self.assertEqual(process_info['resource_upload']['failed_fixity'], [])
+        self.assertEqual(process_info['resource_upload']['resources_ignored'], [])
+        self.assertEqual(process_info['resource_upload']['resources_updated'], [])
+        self.assertEqual(process_info['resource_upload']['hash_algorithm'], 'md5')
 
         ##### UPLOAD TO EXISTING PROJECT #####
         # Get Project ID
@@ -327,8 +325,7 @@ class TestResourcePost(SimpleTestCase):
         url = reverse('resource', kwargs={'target_name': 'figshare', 'resource_id': project_id})
         existing_response = self.client.post(
             url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
-        ticket_number = existing_response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
         # Verify status code and message
         self.assertEqual(existing_response.status_code, 202)
@@ -336,23 +333,20 @@ class TestResourcePost(SimpleTestCase):
 
         # Verify process_info file status is 'in_progress' initially
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        self.assertEqual(process_info['status'], 'in_progress')
+        self.assertEqual(process_info['resource_upload']['status'], 'in_progress')
 
         # Wait until the spawned off process finishes in the background to do further validation
         process_wait(process_info, ticket_path)
 
         # Verify process_info.json file data
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        self.assertEqual(process_info['status'], 'finished')
-        self.assertEqual(process_info['message'], 'Upload successful.')
-        self.assertEqual(process_info['status_code'], '200')
-        self.assertEqual(process_info['failed_fixity'], [])
-        self.assertEqual(process_info['resources_ignored'], [])
-        self.assertEqual(process_info['resources_updated'], [])
-        self.assertEqual(process_info['hash_algorithm'], 'md5')
-
-        # delete upload folder
-        shutil.rmtree(ticket_path)
+        self.assertEqual(process_info['resource_upload']['status'], 'finished')
+        self.assertEqual(process_info['resource_upload']['message'], 'Upload successful.')
+        self.assertEqual(process_info['resource_upload']['status_code'], '200')
+        self.assertEqual(process_info['resource_upload']['failed_fixity'], [])
+        self.assertEqual(process_info['resource_upload']['resources_ignored'], [])
+        self.assertEqual(process_info['resource_upload']['resources_updated'], [])
+        self.assertEqual(process_info['resource_upload']['hash_algorithm'], 'md5')
 
         ##### UPLOAD TO EXISTING ARTICLE #####
         project_response = requests.get(project_url + '/articles', headers=figshare_headers)
@@ -362,8 +356,7 @@ class TestResourcePost(SimpleTestCase):
 
         existing_article_response = self.client.post(
             article_url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
-        ticket_number = existing_article_response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
         # Verify status code and message
         self.assertEqual(existing_article_response.status_code, 202)
@@ -372,23 +365,20 @@ class TestResourcePost(SimpleTestCase):
 
         # Verify process_info file status is 'in_progress' initially
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        self.assertEqual(process_info['status'], 'in_progress')
+        self.assertEqual(process_info['resource_upload']['status'], 'in_progress')
 
         # Wait until the spawned off process finishes in the background to do further validation
         process_wait(process_info, ticket_path)
 
         # Verify process_info.json file data
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        self.assertEqual(process_info['status'], 'finished')
-        self.assertEqual(process_info['message'], 'Upload successful.')
-        self.assertEqual(process_info['status_code'], '200')
-        self.assertEqual(process_info['failed_fixity'], [])
-        self.assertEqual(process_info['resources_ignored'], [])
-        self.assertEqual(process_info['resources_updated'], [])
-        self.assertEqual(process_info['hash_algorithm'], 'md5')
-
-        # delete upload folder
-        shutil.rmtree(ticket_path)
+        self.assertEqual(process_info['resource_upload']['status'], 'finished')
+        self.assertEqual(process_info['resource_upload']['message'], 'Upload successful.')
+        self.assertEqual(process_info['resource_upload']['status_code'], '200')
+        self.assertEqual(process_info['resource_upload']['failed_fixity'], [])
+        self.assertEqual(process_info['resource_upload']['resources_ignored'], [])
+        self.assertEqual(process_info['resource_upload']['resources_updated'], [])
+        self.assertEqual(process_info['resource_upload']['hash_algorithm'], 'md5')
 
     def test_401_unauthorized_user(self):
         """
@@ -399,13 +389,12 @@ class TestResourcePost(SimpleTestCase):
         self.url = reverse('resource_collection', kwargs={'target_name': 'figshare'})
         response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **headers)
 
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_upload']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
@@ -418,9 +407,6 @@ class TestResourcePost(SimpleTestCase):
         self.assertEqual(upload_job_response.data['message'],
                          "Token is invalid. Response returned a 401 status code.")
 
-        # Delete upload folder
-        shutil.rmtree(ticket_path)
-
     def test_cant_upload_to_file(self):
         """
         Return a 400 if user attempts to upload to a file.
@@ -428,13 +414,12 @@ class TestResourcePost(SimpleTestCase):
         url = reverse('resource', kwargs={'target_name': 'figshare',
                                           'resource_id': "83375:12533801:23301149"})
         response = self.client.post(url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_upload']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
@@ -447,9 +432,6 @@ class TestResourcePost(SimpleTestCase):
         self.assertEqual(upload_job_response.data['message'],
                          "Can not upload into an existing file.")
 
-        # Delete upload folder
-        shutil.rmtree(ticket_path)
-
     def test_bad_project_id(self):
         """
         Return a 400 if user attempts to upload to a bad project id.
@@ -457,13 +439,12 @@ class TestResourcePost(SimpleTestCase):
         url = reverse('resource', kwargs={'target_name': 'figshare',
                                           'resource_id': "itsbad"})
         response = self.client.post(url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_upload']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
@@ -476,9 +457,6 @@ class TestResourcePost(SimpleTestCase):
         self.assertEqual(
             upload_job_response.data['message'], "Project with id, itsbad, could not be found by the requesting user.")
 
-        # Delete upload folder
-        shutil.rmtree(ticket_path)
-
     def test_bad_article_id(self):
         """
         Return a 400 if user attempts to upload to a bad article id.
@@ -486,13 +464,12 @@ class TestResourcePost(SimpleTestCase):
         url = reverse('resource', kwargs={'target_name': 'figshare',
                                           'resource_id': "83375:itsbad"})
         response = self.client.post(url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_upload']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
@@ -504,9 +481,6 @@ class TestResourcePost(SimpleTestCase):
         self.assertEqual(upload_job_response.data['status_code'], 400)
         self.assertEqual(
             upload_job_response.data['message'], "Article with id, itsbad, could not be found by the requesting user.")
-
-        # Delete upload folder
-        shutil.rmtree(ticket_path)
 
     def test_bad_metadata_request(self):
         """
@@ -536,8 +510,7 @@ class TestResourcePost(SimpleTestCase):
         response = self.client.post(
             self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
 
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
         # Verify status code and message
         self.assertEqual(response.status_code, 202)
@@ -545,20 +518,20 @@ class TestResourcePost(SimpleTestCase):
 
         # Verify process_info file status is 'in_progress' initially
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        self.assertEqual(process_info['status'], 'in_progress')
+        self.assertEqual(process_info['resource_upload']['status'], 'in_progress')
 
         # Wait until the spawned off process finishes in the background to do further validation
         process_wait(process_info, ticket_path)
 
         # Verify process_info.json file data
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        self.assertEqual(process_info['status'], 'finished')
-        self.assertEqual(process_info['message'], 'Upload successful.')
-        self.assertEqual(process_info['status_code'], '200')
-        self.assertEqual(process_info['failed_fixity'], [])
-        self.assertEqual(process_info['resources_ignored'], [])
-        self.assertEqual(process_info['resources_updated'], [])
-        self.assertEqual(process_info['hash_algorithm'], 'md5')
+        self.assertEqual(process_info['resource_upload']['status'], 'finished')
+        self.assertEqual(process_info['resource_upload']['message'], 'Upload successful.')
+        self.assertEqual(process_info['resource_upload']['status_code'], '200')
+        self.assertEqual(process_info['resource_upload']['failed_fixity'], [])
+        self.assertEqual(process_info['resource_upload']['resources_ignored'], [])
+        self.assertEqual(process_info['resource_upload']['resources_updated'], [])
+        self.assertEqual(process_info['resource_upload']['hash_algorithm'], 'md5')
 
         # Get Project ID
         figshare_headers = {'Authorization': 'token {}'.format(self.token)}
@@ -597,8 +570,7 @@ class TestResourcePost(SimpleTestCase):
         response = self.client.post(
             self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
 
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
         # Verify status code and message
         self.assertEqual(response.status_code, 202)
@@ -606,23 +578,20 @@ class TestResourcePost(SimpleTestCase):
 
         # Verify process_info file status is 'in_progress' initially
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        self.assertEqual(process_info['status'], 'in_progress')
+        self.assertEqual(process_info['resource_upload']['status'], 'in_progress')
 
         # Wait until the spawned off process finishes in the background to do further validation
         process_wait(process_info, ticket_path)
 
         # Verify process_info.json file data
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        self.assertEqual(process_info['status'], 'finished')
-        self.assertEqual(process_info['message'], 'Upload successful.')
-        self.assertEqual(process_info['status_code'], '200')
-        self.assertEqual(process_info['failed_fixity'], [])
-        self.assertEqual(process_info['resources_ignored'], [])
-        self.assertEqual(process_info['resources_updated'], [])
-        self.assertEqual(process_info['hash_algorithm'], 'md5')
-
-        # delete upload folder
-        shutil.rmtree(ticket_path)
+        self.assertEqual(process_info['resource_upload']['status'], 'finished')
+        self.assertEqual(process_info['resource_upload']['message'], 'Upload successful.')
+        self.assertEqual(process_info['resource_upload']['status_code'], '200')
+        self.assertEqual(process_info['resource_upload']['failed_fixity'], [])
+        self.assertEqual(process_info['resource_upload']['resources_ignored'], [])
+        self.assertEqual(process_info['resource_upload']['resources_updated'], [])
+        self.assertEqual(process_info['resource_upload']['hash_algorithm'], 'md5')
 
         # Get Project ID
         figshare_headers = {'Authorization': 'token {}'.format(self.token)}
@@ -653,8 +622,7 @@ class TestResourcePost(SimpleTestCase):
         url = reverse('resource', kwargs={'target_name': 'figshare', 'resource_id': project_id})
         existing_response = self.client.post(
             url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
-        ticket_number = existing_response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
         # Verify status code and message
         self.assertEqual(existing_response.status_code, 202)
@@ -662,23 +630,20 @@ class TestResourcePost(SimpleTestCase):
 
         # Verify process_info file status is 'in_progress' initially
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        self.assertEqual(process_info['status'], 'in_progress')
+        self.assertEqual(process_info['resource_upload']['status'], 'in_progress')
 
         # Wait until the spawned off process finishes in the background to do further validation
         process_wait(process_info, ticket_path)
 
         # Verify process_info.json file data
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        self.assertEqual(process_info['status'], 'finished')
-        self.assertEqual(process_info['message'], 'Upload successful.')
-        self.assertEqual(process_info['status_code'], '200')
-        self.assertEqual(process_info['failed_fixity'], [])
-        self.assertEqual(process_info['resources_ignored'], [])
-        self.assertEqual(process_info['resources_updated'], [])
-        self.assertEqual(process_info['hash_algorithm'], 'md5')
-
-        # delete upload folder
-        shutil.rmtree(ticket_path)
+        self.assertEqual(process_info['resource_upload']['status'], 'finished')
+        self.assertEqual(process_info['resource_upload']['message'], 'Upload successful.')
+        self.assertEqual(process_info['resource_upload']['status_code'], '200')
+        self.assertEqual(process_info['resource_upload']['failed_fixity'], [])
+        self.assertEqual(process_info['resource_upload']['resources_ignored'], [])
+        self.assertEqual(process_info['resource_upload']['resources_updated'], [])
+        self.assertEqual(process_info['resource_upload']['hash_algorithm'], 'md5')
 
     def test_duplicate_title(self):
         """
@@ -690,8 +655,7 @@ class TestResourcePost(SimpleTestCase):
         response = self.client.post(
             self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
 
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
         # Verify status code and message
         self.assertEqual(response.status_code, 202)
@@ -699,31 +663,27 @@ class TestResourcePost(SimpleTestCase):
 
         # Verify process_info file status is 'in_progress' initially
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        self.assertEqual(process_info['status'], 'in_progress')
+        self.assertEqual(process_info['resource_upload']['status'], 'in_progress')
 
         # Wait until the spawned off process finishes in the background to do further validation
         process_wait(process_info, ticket_path)
 
         # Verify process_info.json file data
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        self.assertEqual(process_info['status'], 'finished')
-        self.assertEqual(process_info['message'], 'Upload successful.')
-        self.assertEqual(process_info['status_code'], '200')
-        self.assertEqual(process_info['failed_fixity'], [])
-        self.assertEqual(process_info['resources_ignored'], [])
-        self.assertEqual(process_info['resources_updated'], [])
-        self.assertEqual(process_info['hash_algorithm'], 'md5')
-
-        # delete upload folder
-        shutil.rmtree(ticket_path)
+        self.assertEqual(process_info['resource_upload']['status'], 'finished')
+        self.assertEqual(process_info['resource_upload']['message'], 'Upload successful.')
+        self.assertEqual(process_info['resource_upload']['status_code'], '200')
+        self.assertEqual(process_info['resource_upload']['failed_fixity'], [])
+        self.assertEqual(process_info['resource_upload']['resources_ignored'], [])
+        self.assertEqual(process_info['resource_upload']['resources_updated'], [])
+        self.assertEqual(process_info['resource_upload']['hash_algorithm'], 'md5')
 
         self.url = reverse('resource_collection', kwargs={'target_name': 'figshare'})
 
         response = self.client.post(
             self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
 
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
         # Verify status code and message
         self.assertEqual(response.status_code, 202)
@@ -731,23 +691,20 @@ class TestResourcePost(SimpleTestCase):
 
         # Verify process_info file status is 'in_progress' initially
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        self.assertEqual(process_info['status'], 'in_progress')
+        self.assertEqual(process_info['resource_upload']['status'], 'in_progress')
 
         # Wait until the spawned off process finishes in the background to do further validation
         process_wait(process_info, ticket_path)
 
         # Verify process_info.json file data
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        self.assertEqual(process_info['status'], 'finished')
-        self.assertEqual(process_info['message'], 'Upload successful.')
-        self.assertEqual(process_info['status_code'], '200')
-        self.assertEqual(process_info['failed_fixity'], [])
-        self.assertEqual(process_info['resources_ignored'], [])
-        self.assertEqual(process_info['resources_updated'], [])
-        self.assertEqual(process_info['hash_algorithm'], 'md5')
-
-        # delete upload folder
-        shutil.rmtree(ticket_path)
+        self.assertEqual(process_info['resource_upload']['status'], 'finished')
+        self.assertEqual(process_info['resource_upload']['message'], 'Upload successful.')
+        self.assertEqual(process_info['resource_upload']['status_code'], '200')
+        self.assertEqual(process_info['resource_upload']['failed_fixity'], [])
+        self.assertEqual(process_info['resource_upload']['resources_ignored'], [])
+        self.assertEqual(process_info['resource_upload']['resources_updated'], [])
+        self.assertEqual(process_info['resource_upload']['hash_algorithm'], 'md5')
 
         # Check that the project exists
         url = reverse('resource_collection', kwargs={'target_name': 'figshare'})

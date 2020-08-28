@@ -1,5 +1,6 @@
-from rest_framework import status
+import json
 
+from rest_framework import status
 from presqt.utilities import read_file
 from presqt.utilities import PresQTValidationError
 
@@ -19,8 +20,11 @@ def get_process_info_data(action, ticket_number):
     -------
     JSON dictionary representing the process_info.json data.
     """
-    try:
-        return read_file('mediafiles/{}/{}/process_info.json'.format(action, ticket_number), True)
-    except FileNotFoundError:
-        raise PresQTValidationError("PresQT Error: Invalid ticket number, '{}'.".format(ticket_number),
-                                    status.HTTP_404_NOT_FOUND)
+    while True:
+        try:
+            return read_file('mediafiles/{}/{}/process_info.json'.format(action, ticket_number), True)
+        except json.decoder.JSONDecodeError:
+            pass
+        except FileNotFoundError:
+            raise PresQTValidationError("PresQT Error: Invalid ticket number, '{}'.".format(ticket_number),
+                                        status.HTTP_404_NOT_FOUND)
