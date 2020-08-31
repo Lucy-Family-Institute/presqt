@@ -141,6 +141,7 @@ def shared_call_get_resource_zip(test_case_instance, resource_id):
                                       'resource_id': resource_id,
                                       'resource_format': 'zip'})
     response = test_case_instance.client.get(url, **test_case_instance.header)
+    test_case_instance.ticket_number = hash_tokens(test_case_instance.token)
     # Verify the status code
     test_case_instance.assertEqual(response.status_code, 202)
     test_case_instance.process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(
