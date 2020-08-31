@@ -283,6 +283,7 @@ Resource Download Endpoint
         token             str User's token for the target
         resource_id       str ID for the resource we want to download
         process_info_path str The path to this download's process_info_path
+        action            str The type of action occurring
         ================= === =============================================
 
     * The function must return a **dictionary** with the following keys:
@@ -384,6 +385,7 @@ Resource Upload Endpoint
 
                                   Options: [ignore, update]
         process_info_path     str The path to this download's process_info_path
+        action                str The type of action occurring
         ===================== === ==========================================================================
 
     * The function must return a **dictionary** with the following keys:
