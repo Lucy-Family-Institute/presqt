@@ -41,7 +41,7 @@ class TestResourceCollection(SimpleTestCase):
         for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
             self.assertEqual(len(data['links']), 1)
-        self.assertEqual(response.data['pages']['total_pages'], '2')
+        self.assertEqual(response.data['pages']['total_pages'], 2)
 
     def test_success_gitlab_page_2(self):
         """
@@ -56,7 +56,7 @@ class TestResourceCollection(SimpleTestCase):
         for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
             self.assertEqual(len(data['links']), 1)
-        self.assertEqual(response.data['pages']['total_pages'], '2')
+        self.assertEqual(response.data['pages']['total_pages'], 2)
 
     def test_success_gitlab_with_search(self):
         """

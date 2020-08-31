@@ -111,7 +111,7 @@ class TestDownloadJobGET(SimpleTestCase):
         # Verify the status code and content
         self.assertEqual(response.status_code, 202)
         self.assertEqual(
-            response.data, {'message': 'Download is being processed on the server', 'status_code': None})
+            response.data['message'], 'Download is being processed on the server')
 
         # Verify the status of the process_info file is 'in_progress'
         process_info = read_file(self.process_info_path, True)
@@ -160,7 +160,7 @@ class TestDownloadJobGET(SimpleTestCase):
         shared_call_get_resource_zip(self, self.resource_id)
 
         url = reverse('job_status', kwargs={'action': 'download',
-                                              'response_format': 'bad_format'})
+                                            'response_format': 'bad_format'})
         response = self.client.get(url, **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 400)
@@ -172,19 +172,17 @@ class TestDownloadJobGET(SimpleTestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
-
     def test_error_404(self):
         """
         Return a 404 if the ticket_number provided is not a valid ticket number.
         """
         header = {'HTTP_PRESQT_SOURCE_TOKEN': 'bad_token'}
-
         url = reverse('job_status', kwargs={'action': 'download'})
         response = self.client.get(url, **header)
         # Verify the status code and content
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data['error'], "PresQT Error: Invalid ticket number, '{}'.".format(hash_tokens('bad_token')))
-
+        self.assertEqual(response.data['error'], "PresQT Error: Invalid ticket number, '{}'.".format(
+            hash_tokens(OSF_TEST_USER_TOKEN)))
 
     def test_error_500_401_token_invalid(self):
         """
@@ -198,9 +196,8 @@ class TestDownloadJobGET(SimpleTestCase):
         response = self.client.get(url, **self.header)
 
         self.assertEqual(response.status_code, 500)
-        self.assertEqual(response.data,
-                         {'message': "Token is invalid. Response returned a 401 status code.",
-                          'status_code': 401})
+        self.assertEqual(response.data['message'],
+                         "Token is invalid. Response returned a 401 status code.")
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
@@ -216,9 +213,8 @@ class TestDownloadJobGET(SimpleTestCase):
         response = self.client.get(url, **self.header)
 
         self.assertEqual(response.status_code, 500)
-        self.assertEqual(response.data,
-                         {'message': "User does not have access to this resource with the token provided.",
-                          'status_code': 403})
+        self.assertEqual(response.data['message'],
+                         "User does not have access to this resource with the token provided.")
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
@@ -234,9 +230,8 @@ class TestDownloadJobGET(SimpleTestCase):
         response = self.client.get(url, **self.header)
 
         self.assertEqual(response.status_code, 500)
-        self.assertEqual(response.data,
-                         {'message': "User does not have access to this resource with the token provided.",
-                          'status_code': 403})
+        self.assertEqual(response.data['message'],
+                         "User does not have access to this resource with the token provided.")
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
@@ -252,9 +247,8 @@ class TestDownloadJobGET(SimpleTestCase):
         response = self.client.get(url, **self.header)
 
         self.assertEqual(response.status_code, 500)
-        self.assertEqual(response.data,
-                         {'message': "Resource with id 'bad_id' not found for this user.",
-                          'status_code': 404})
+        self.assertEqual(response.data['message'],
+                         "Resource with id 'bad_id' not found for this user.")
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
@@ -270,12 +264,12 @@ class TestDownloadJobGET(SimpleTestCase):
         response = self.client.get(url, **self.header)
 
         self.assertEqual(response.status_code, 500)
-        self.assertEqual(response.data,
-                         {'message': "The requested resource is no longer available.",
-                          'status_code': 410})
+        self.assertEqual(response.data['message'],
+                         "The requested resource is no longer available.")
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
+
 
 class TestDownloadJobPATCH(SimpleTestCase):
     """
@@ -283,6 +277,7 @@ class TestDownloadJobPATCH(SimpleTestCase):
 
     Testing only PresQT core code.
     """
+
     def setUp(self):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN}
@@ -316,7 +311,6 @@ class TestDownloadJobPATCH(SimpleTestCase):
         download_patch_url_response = self.client.patch(download_patch_url, **self.header)
 
         self.assertEquals(download_patch_url_response.status_code, 200)
-        self.assertEquals(download_patch_url_response.data['message'], 'Download was cancelled by the user')
 
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         download_process_info = process_info['resource_download']
@@ -377,7 +371,6 @@ class TestDownloadJobPATCH(SimpleTestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['error'],
                          "PresQT Error: 'presqt-source-token' missing in the request headers.")
-
 
     def test_success_400_bad_format(self):
         """

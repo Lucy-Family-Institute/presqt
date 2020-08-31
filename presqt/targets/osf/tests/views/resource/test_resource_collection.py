@@ -32,7 +32,7 @@ class TestResourceCollection(SimpleTestCase):
             self.assertEqual(len(data['links']), 1)
         # Verify the count of resource objects is what we expect.
         self.assertEqual(75, len(response.data['resources']))
-        self.assertEqual(response.data['pages']['total_pages'], '1')
+        self.assertEqual(response.data['pages']['total_pages'], 1)
 
     def test_success_with_search(self):
         """

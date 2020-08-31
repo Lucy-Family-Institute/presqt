@@ -22,24 +22,23 @@ def shared_get_success_function_202(test_case_instance):
     -------
     Fixity JSON from the fixity_info.json file
     """
+    from presqt.api_v1.utilities.utils.hash_tokens import hash_tokens
     url = reverse('resource', kwargs={'target_name': test_case_instance.target_name,
                                       'resource_id': test_case_instance.resource_id,
                                       'resource_format': 'zip'})
     response = test_case_instance.client.get(url, **test_case_instance.header)
     # Verify the status code and content
     test_case_instance.assertEqual(response.status_code, 202)
-    test_case_instance.assertEqual(
-        response.data['message'], 'The server is processing the request.')
-    ticket_number = response.data['ticket_number']
-    ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
+    ticket_number = hash_tokens(test_case_instance.token)
+    ticket_path = 'mediafiles/jobs/{}'.format(ticket_number)
 
     # Verify process_info file status is 'in_progress' initially
     process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-    test_case_instance.assertEqual(process_info['status'], 'in_progress')
+    test_case_instance.assertEqual(process_info['resource_download']['status'], 'in_progress')
 
     # Wait until the spawned off process finishes in the background
     # to do validation on the resulting files
-    while process_info['status'] == 'in_progress':
+    while process_info['resource_download']['status'] == 'in_progress':
         try:
             process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         except json.decoder.JSONDecodeError:
@@ -48,14 +47,15 @@ def shared_get_success_function_202(test_case_instance):
 
     # Verify the final status in the process_info file is 'finished'
     process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-    test_case_instance.assertEqual(process_info['status'], 'finished')
+    test_case_instance.assertEqual(process_info['resource_download']['status'], 'finished')
     # Verify zip file exists and has the proper amount of resources in it.
     base_name = '{}_download_{}'.format(
         test_case_instance.target_name, test_case_instance.resource_id)
     zip_path = '{}/{}.zip'.format(ticket_path, base_name)
     test_case_instance.zip_file = zipfile.ZipFile(zip_path)
     test_case_instance.assertEqual(os.path.isfile(zip_path), True)
-    test_case_instance.assertEqual(len(test_case_instance.zip_file.namelist()), test_case_instance.file_number)
+    test_case_instance.assertEqual(
+        len(test_case_instance.zip_file.namelist()), test_case_instance.file_number)
 
     # Verify that the resource we expect is there.
     test_case_instance.assertEqual(os.path.isfile('{}/{}/data/{}'.format(
@@ -80,6 +80,7 @@ def shared_get_success_function_202_with_error(test_case_instance):
     test_case_instance : instance
         instance of a test case
     """
+    from presqt.api_v1.utilities.utils.hash_tokens import hash_tokens
     url = reverse('resource', kwargs={'target_name': test_case_instance.target_name,
                                       'resource_id': test_case_instance.resource_id,
                                       'resource_format': 'zip'})
@@ -88,17 +89,17 @@ def shared_get_success_function_202_with_error(test_case_instance):
     test_case_instance.assertEqual(response.status_code, 202)
     test_case_instance.assertEqual(
         response.data['message'], 'The server is processing the request.')
-    ticket_number = response.data['ticket_number']
-    ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
+    ticket_number = hash_tokens(test_case_instance.token)
+    ticket_path = 'mediafiles/jobs/{}'.format(ticket_number)
 
     # Verify process_info file status is 'in_progress' initially
-    process_info = read_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number),
+    process_info = read_file('mediafiles/jobs/{}/process_info.json'.format(ticket_number),
                              True)
-    test_case_instance.assertEqual(process_info['status'], 'in_progress')
+    test_case_instance.assertEqual(process_info['resource_download']['status'], 'in_progress')
 
     # Wait until the spawned off process finishes in the background
     # to do validation on the resulting files
-    while process_info['status'] == 'in_progress':
+    while process_info['resource_download']['status'] == 'in_progress':
         try:
             process_info = read_file(
                 'mediafiles/downloads/{}/process_info.json'.format(ticket_number), True)
@@ -133,14 +134,16 @@ def shared_call_get_resource_zip(test_case_instance, resource_id):
     resource_id : str
         The id of the resource to be downloaded
     """
+    from presqt.api_v1.utilities.utils.hash_tokens import hash_tokens
     url = reverse('resource', kwargs={'target_name': test_case_instance.target_name,
                                       'resource_id': resource_id,
                                       'resource_format': 'zip'})
     response = test_case_instance.client.get(url, **test_case_instance.header)
+    test_case_instance.ticket_number = hash_tokens(test_case_instance.token)
     # Verify the status code
     test_case_instance.assertEqual(response.status_code, 202)
     test_case_instance.process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(
-        test_case_instance.ticket_number)
+        hash_tokens(test_case_instance.token))
     process_info = read_file(test_case_instance.process_info_path, True)
 
     # Save initial process data that we can use to rewrite to the process_info file for testing
