@@ -484,9 +484,8 @@ class TestTransferJobGET(SimpleTestCase):
         response = self.client.get(url, **self.headers)
 
         self.assertEqual(response.status_code, 500)
-        self.assertEqual(response.data,
-                         {'message': "Token is invalid. Response returned a 401 status code.",
-                          'status_code': 401})
+        self.assertEqual(response.data['message'],
+                         "Token is invalid. Response returned a 401 status code.")
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
@@ -525,9 +524,8 @@ class TestTransferJobGET(SimpleTestCase):
         url = reverse('job_status', kwargs={'action': 'transfer'})
         response = self.client.get(url, **self.headers)
         self.assertEqual(response.status_code, 500)
-        self.assertEqual(response.data,
-                         {'message': "Response has status code 500 while creating project ProjectTwelve",
-                          'status_code': 400})
+        self.assertEqual(response.data['message'],
+                         "Response has status code 500 while creating project ProjectTwelve")
         # Delete corresponding folder
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
@@ -564,9 +562,8 @@ class TestTransferJobGET(SimpleTestCase):
         url = reverse('job_status', kwargs={'action': 'transfer'})
         response = self.client.get(url, **self.headers)
 
-        self.assertEqual(response.data,
-                         {'message': "The resource with id, garbage_id, does not exist for this user.",
-                          'status_code': 404})
+        self.assertEqual(response.data['message'],
+                         "The resource with id, garbage_id, does not exist for this user.")
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
@@ -633,9 +630,8 @@ class TestTransferJobGET(SimpleTestCase):
 
         # Verify the status code and content
         self.assertEqual(response.status_code, 500)
-        self.assertEqual(response.data,
-                         {'message': "PresQT Error: PresQT FTS metadata cannot not be transferred by itself.",
-                          'status_code': 400})
+        self.assertEqual(response.data['message'],
+                         "PresQT Error: PresQT FTS metadata cannot not be transferred by itself.")
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
