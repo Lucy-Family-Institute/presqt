@@ -29,8 +29,6 @@ def shared_get_success_function_202(test_case_instance):
     response = test_case_instance.client.get(url, **test_case_instance.header)
     # Verify the status code and content
     test_case_instance.assertEqual(response.status_code, 202)
-    test_case_instance.assertEqual(
-        response.data['message'], 'The server is processing the request.')
     ticket_number = hash_tokens(test_case_instance.token)
     ticket_path = 'mediafiles/jobs/{}'.format(ticket_number)
 
