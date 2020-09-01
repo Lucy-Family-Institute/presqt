@@ -41,28 +41,28 @@ def zenodo_fetch_resources_helper(zenodo_projects, auth_parameter, is_record, pr
             "title": entry['metadata']['title']}
         resources.append(resource)
 
-        # Now loop through the files
-        if is_record is True:
-            # This will work on the records endpoint
-            for item in entry['files']:
-                resource = {
-                    "kind": "item",
-                    "kind_name": "file",
-                    "container": entry['id'],
-                    "id": item['bucket'],
-                    "title": item['key']}
-                resources.append(resource)
+        # # Now loop through the files
+        # if is_record is True:
+        #     # This will work on the records endpoint
+        #     for item in entry['files']:
+        #         resource = {
+        #             "kind": "item",
+        #             "kind_name": "file",
+        #             "container": entry['id'],
+        #             "id": item['bucket'],
+        #             "title": item['key']}
+        #         resources.append(resource)
 
         # Otherwise we need to pull the info from the depositions endpoint
-        else:
-            for item in requests.get(entry['links']['files'], params=auth_parameter).json():
-                resource = {
-                    "kind": "item",
-                    "kind_name": "file",
-                    "container": entry['id'],
-                    "id": item['id'],
-                    "title": item['filename']}
-                resources.append(resource)
+        # else:
+        #     for item in requests.get(entry['links']['files'], params=auth_parameter).json():
+        #         resource = {
+        #             "kind": "item",
+        #             "kind_name": "file",
+        #             "container": entry['id'],
+        #             "id": item['id'],
+        #             "title": item['filename']}
+        #         resources.append(resource)
          # Increment the number of files done in the process info file.
         increment_process_info(process_info_path, 'resource_collection', 'fetch')
 
