@@ -102,6 +102,9 @@ def zenodo_fetch_resource_helper(zenodo_project, resource_id, is_record=False, i
         extra = {}
         for key, value in zenodo_project['metadata'].items():
             extra[key] = value
+        
+        from presqt.targets.zenodo.utilities.helpers.get_zenodo_children import zenodo_get_project_children
+        children = zenodo_get_project_children(zenodo_project, resource_id, is_record)
 
     else:
         kind = 'item'
@@ -110,6 +113,7 @@ def zenodo_fetch_resource_helper(zenodo_project, resource_id, is_record=False, i
         date_modified = zenodo_project['updated']
         hashes = {'md5': zenodo_project['checksum'].partition(':')[2]}
         extra = {}
+        children = []
 
     return {
         "kind": kind,
@@ -120,4 +124,4 @@ def zenodo_fetch_resource_helper(zenodo_project, resource_id, is_record=False, i
         "date_modified": date_modified,
         "hashes": hashes,
         "extra": extra,
-        "children": []}
+        "children": children}
