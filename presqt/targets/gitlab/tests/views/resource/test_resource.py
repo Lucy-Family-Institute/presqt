@@ -29,7 +29,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_TEST_USER_TOKEN}
         self.keys = ['kind', 'kind_name', 'id', 'title', 'date_created', 'date_modified', 'hashes',
-                     'extra', 'links', 'actions']
+                     'extra', 'children', 'links', 'actions']
 
     def test_success_project(self):
         """
@@ -48,7 +48,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual('project', response.data['kind_name'])
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('ProjectNine', response.data['title'])
-
+        self.assertEqual(len(response.data['children']), 1)
         self.assertEqual(len(response.data['links']), 4)
 
     def test_success_dir(self):
@@ -68,7 +68,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual('dir', response.data['kind_name'])
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('android', response.data['title'])
-
+        self.assertEqual(len(response.data['children']), 6)
         self.assertEqual(len(response.data['links']), 4)
 
     def test_success_file(self):
@@ -88,6 +88,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual('file', response.data['kind_name'])
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('README.md', response.data['title'])
+        self.assertEqual(len(response.data['children']), 0)
         # Download Link
         self.assertEqual(len(response.data['links']), 2)
 

@@ -5,6 +5,7 @@ from presqt.targets.gitlab.utilities.gitlab_paginated_data import gitlab_paginat
 from presqt.targets.gitlab.utilities.validation_check import validation_check
 from presqt.targets.gitlab.utilities.get_gitlab_project_data import get_gitlab_project_data
 from presqt.targets.gitlab.utilities.get_page_numbers import get_page_numbers
+from presqt.targets.gitlab.utilities.gitlab_get_children import gitlab_get_project_children
 from presqt.utilities import PresQTResponseException
 
 
@@ -193,6 +194,7 @@ def gitlab_fetch_resource(token, resource_id):
             if response.json() == []:
                 raise PresQTResponseException("The resource could not be found by the requesting user.",
                                               status.HTTP_404_NOT_FOUND)
+            children = gitlab_get_project_children(response.json(), resource_id, project_id)
             resource = {
                 "kind": "container",
                 "kind_name": "dir",
@@ -202,7 +204,7 @@ def gitlab_fetch_resource(token, resource_id):
                 "date_modified": None,
                 "hashes": {},
                 "extra": {},
-                "children": []}
+                "children": children}
 
     # This is the top level project
     else:
@@ -214,6 +216,13 @@ def gitlab_fetch_resource(token, resource_id):
                                           status.HTTP_404_NOT_FOUND)
 
         data = response.json()
+        children_data = requests.get("{}/repository/tree".format(project_url), headers=headers).json()
+
+        # ERROR, return no children
+        if children_data == []:
+            children = []
+
+        children = gitlab_get_project_children(children_data, resource_id, resource_id)
 
         resource = {
             "kind": "container",
@@ -224,7 +233,7 @@ def gitlab_fetch_resource(token, resource_id):
             "date_modified": data['last_activity_at'],
             "hashes": {},
             "extra": {},
-            "children": []
+            "children": children
         }
         for key, value in data.items():
             if '_url' in key:
