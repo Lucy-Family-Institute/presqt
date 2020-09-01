@@ -28,7 +28,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': FIGSHARE_TEST_USER_TOKEN}
         self.keys = ['kind', 'kind_name', 'id', 'title', 'date_created', 'date_modified', 'hashes',
-                     'extra', 'links', 'actions']
+                     'extra', 'children', 'links', 'actions']
 
     def test_success_project(self):
         """
