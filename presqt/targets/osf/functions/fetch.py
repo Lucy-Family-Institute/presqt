@@ -155,7 +155,8 @@ def osf_fetch_resource(token, resource_id):
                 'md5': resource_object.md5,
                 'sha256': resource_object.sha256
             },
-            'extra': {}
+            'extra': {},
+            "children": []
         }
 
         if resource_object.kind_name in ['folder', 'file']:

@@ -147,6 +147,7 @@ def curate_nd_fetch_resource(token, resource_id):
         "date_created": resource.date_submitted,
         "date_modified": resource.modified,
         "hashes": {"md5": resource.md5},
-        "extra": resource.extra}
+        "extra": resource.extra,
+        "children": []}
 
     return resource_dict

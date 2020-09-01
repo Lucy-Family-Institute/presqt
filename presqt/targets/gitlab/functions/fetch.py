@@ -181,7 +181,8 @@ def gitlab_fetch_resource(token, resource_id):
                 "date_created": None,
                 "date_modified": None,
                 "hashes": {'sha256': data['content_sha256']},
-                "extra": {'ref': data['ref'], 'commit_id': data['commit_id'], 'size': data['size']}}
+                "extra": {'ref': data['ref'], 'commit_id': data['commit_id'], 'size': data['size']},
+                "children": []}
 
         # Resource is a folder
         else:
@@ -200,7 +201,8 @@ def gitlab_fetch_resource(token, resource_id):
                 "date_created": None,
                 "date_modified": None,
                 "hashes": {},
-                "extra": {}}
+                "extra": {},
+                "children": []}
 
     # This is the top level project
     else:
@@ -221,7 +223,8 @@ def gitlab_fetch_resource(token, resource_id):
             "date_created": data['created_at'],
             "date_modified": data['last_activity_at'],
             "hashes": {},
-            "extra": {}
+            "extra": {},
+            "children": []
         }
         for key, value in data.items():
             if '_url' in key:

@@ -50,6 +50,7 @@ class ResourceSerializer(serializers.Serializer):
     date_modified = serializers.DateField()
     hashes = serializers.DictField()
     extra = serializers.DictField()
+    children = serializers.ListField(child=serializers.DictField())
     links = serializers.SerializerMethodField()
     actions = serializers.SerializerMethodField()
 

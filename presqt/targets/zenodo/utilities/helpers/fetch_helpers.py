@@ -119,4 +119,5 @@ def zenodo_fetch_resource_helper(zenodo_project, resource_id, is_record=False, i
         "date_created": zenodo_project['created'],
         "date_modified": date_modified,
         "hashes": hashes,
-        "extra": extra}
+        "extra": extra,
+        "children": []}

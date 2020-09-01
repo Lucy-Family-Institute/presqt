@@ -184,7 +184,8 @@ def github_fetch_resource(token, resource_id):
             "date_created": data['created_at'],
             "date_modified": data['updated_at'],
             "hashes": {},
-            "extra": {}
+            "extra": {},
+            "children": []
         }
         for key, value in data.items():
             if '_url' in key:
@@ -240,7 +241,8 @@ def github_fetch_resource(token, resource_id):
                 "date_created": None,
                 "date_modified": None,
                 "hashes": {},
-                "extra": {}
+                "extra": {},
+                "children": []
             }
 
         else:
@@ -254,5 +256,6 @@ def github_fetch_resource(token, resource_id):
                 "hashes": {},
                 "extra": {'size': file_json['size'],
                           'commit_hash': file_json['sha'],
-                          'path': file_json['path']}
+                          'path': file_json['path']},
+                "children": []
             }

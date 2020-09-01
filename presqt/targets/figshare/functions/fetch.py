@@ -144,8 +144,9 @@ def figshare_fetch_resource(token, resource_id):
                 "funding": data['funding'],
                 "collaborators": data['collaborators'],
                 "description": data['description'],
-                "custom_fields": data['custom_fields']
-            }}
+                "custom_fields": data['custom_fields']},
+            "children": []
+        }
 
     elif len(split_id) == 2:
         # This is an article
@@ -175,7 +176,8 @@ def figshare_fetch_resource(token, resource_id):
             "date_created": data['created_date'],
             "date_modified": data['modified_date'],
             "hashes": {},
-            "extra": extra}
+            "extra": extra,
+            "children": []}
 
     elif len(split_id) == 3:
         # This is a file
@@ -206,7 +208,8 @@ def figshare_fetch_resource(token, resource_id):
                     },
                     "extra": {
                         "size": file['size']
-                    }
+                    },
+                    "children": []
                 }
         else:
             raise PresQTResponseException("The resource could not be found by the requesting user.",
