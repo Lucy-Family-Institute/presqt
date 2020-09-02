@@ -1,5 +1,3 @@
-import json
-
 import requests
 
 from rest_framework import status
@@ -7,8 +5,7 @@ from rest_framework import status
 from presqt.targets.osf.utilities import get_osf_resource, validate_token, get_all_paginated_data
 from presqt.targets.osf.utilities.utils.get_page_numbers import get_page_numbers
 from presqt.utilities import (PresQTResponseException, PresQTInvalidTokenError,
-                              PresQTValidationError, update_process_info, increment_process_info,
-                              list_differences)
+                              PresQTValidationError, update_process_info, increment_process_info)
 from presqt.targets.osf.classes.main import OSF
 
 
@@ -107,7 +104,7 @@ def osf_fetch_resources(token, query_parameter, process_info_path):
                     "container": "None",
                     "title": project['attributes']['title'],
                 })
-        # If 'page=' doesn't exist in the url then we are getting the user's 1st of page of projects
+        # If 'page=' doesn't exist in the url then we are getting the user's first page of projects.
         # Since subprojects exist in the main nodes api endpoint we need to filter them out
         else:
             all_data = get_all_paginated_data(url, token)
