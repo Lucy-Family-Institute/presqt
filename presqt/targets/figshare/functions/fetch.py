@@ -4,7 +4,7 @@ from rest_framework import status
 from presqt.targets.figshare.utilities.validation_check import validation_check
 from presqt.targets.figshare.utilities.get_figshare_project_data import (
     get_figshare_project_data, get_search_project_data)
-from presqt.targets.figshare.utilities.helpers.get_figshare_children import get_figshare_project_children
+from presqt.targets.figshare.utilities.helpers.get_figshare_children import get_figshare_children
 from presqt.utilities import PresQTResponseException
 
 
@@ -135,7 +135,7 @@ def figshare_fetch_resource(token, resource_id):
         data = response.json()
         # Get article data...
         article_data = requests.get("{}/articles".format(project_url), headers=headers).json()
-        children = get_figshare_project_children(article_data, resource_id, 'article')
+        children = get_figshare_children(article_data, resource_id, 'article')
 
         return {
             "kind": "container",
@@ -169,7 +169,7 @@ def figshare_fetch_resource(token, resource_id):
                                               status.HTTP_404_NOT_FOUND)
         data = response.json()
         # Get the children
-        children = get_figshare_project_children(data['files'], resource_id, 'file')
+        children = get_figshare_children(data['files'], resource_id, 'file')
 
         extra = {}
         for key, value in data.items():

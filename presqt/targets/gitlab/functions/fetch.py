@@ -5,7 +5,7 @@ from presqt.targets.gitlab.utilities.gitlab_paginated_data import gitlab_paginat
 from presqt.targets.gitlab.utilities.validation_check import validation_check
 from presqt.targets.gitlab.utilities.get_gitlab_project_data import get_gitlab_project_data
 from presqt.targets.gitlab.utilities.get_page_numbers import get_page_numbers
-from presqt.targets.gitlab.utilities.gitlab_get_children import gitlab_get_project_children
+from presqt.targets.gitlab.utilities.gitlab_get_children import gitlab_get_children
 from presqt.utilities import PresQTResponseException
 
 
@@ -194,7 +194,7 @@ def gitlab_fetch_resource(token, resource_id):
             if response.json() == []:
                 raise PresQTResponseException("The resource could not be found by the requesting user.",
                                               status.HTTP_404_NOT_FOUND)
-            children = gitlab_get_project_children(response.json(), resource_id, project_id)
+            children = gitlab_get_children(response.json(), resource_id, project_id)
             resource = {
                 "kind": "container",
                 "kind_name": "dir",
@@ -222,7 +222,7 @@ def gitlab_fetch_resource(token, resource_id):
         if children_data == [] or 'message' in children_data:
             children = []
         else:
-            children = gitlab_get_project_children(children_data, resource_id, resource_id)
+            children = gitlab_get_children(children_data, resource_id, resource_id)
 
         resource = {
             "kind": "container",

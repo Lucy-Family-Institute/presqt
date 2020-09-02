@@ -2,7 +2,7 @@ import urllib.parse
 import requests
 
 
-def github_get_repo_children(data, header, parent_id, repo_id):
+def github_get_children(data, header, parent_id, repo_id):
     """
     Get the children of the requested resource. Only going down one level.
 

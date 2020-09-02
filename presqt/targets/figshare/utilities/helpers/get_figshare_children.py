@@ -1,6 +1,6 @@
 
 
-def get_figshare_project_children(data, resource_id, kind_name):
+def get_figshare_children(data, resource_id, kind_name):
     """
     Get the children of the requested resource. Only going down one level.
 

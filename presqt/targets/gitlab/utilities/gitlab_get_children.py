@@ -2,7 +2,7 @@ import urllib.parse
 import requests
 
 
-def gitlab_get_project_children(data, resource_id, project_id):
+def gitlab_get_children(data, resource_id, project_id):
     """
     Get the children of the requested resource. Only going down one level.
 
