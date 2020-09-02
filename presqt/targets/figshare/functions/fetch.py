@@ -4,6 +4,7 @@ from rest_framework import status
 from presqt.targets.figshare.utilities.validation_check import validation_check
 from presqt.targets.figshare.utilities.get_figshare_project_data import (
     get_figshare_project_data, get_search_project_data)
+from presqt.targets.figshare.utilities.helpers.get_figshare_children import get_figshare_project_children
 from presqt.utilities import PresQTResponseException
 
 
@@ -132,6 +133,10 @@ def figshare_fetch_resource(token, resource_id):
                 raise PresQTResponseException("The resource could not be found by the requesting user.",
                                               status.HTTP_404_NOT_FOUND)
         data = response.json()
+        # Get article data...
+        article_data = requests.get("{}/articles".format(project_url), headers=headers).json()
+        children = get_figshare_project_children(article_data, resource_id, 'article')
+
         return {
             "kind": "container",
             "kind_name": "project",
@@ -144,8 +149,9 @@ def figshare_fetch_resource(token, resource_id):
                 "funding": data['funding'],
                 "collaborators": data['collaborators'],
                 "description": data['description'],
-                "custom_fields": data['custom_fields']
-            }}
+                "custom_fields": data['custom_fields']},
+            "children": children
+        }
 
     elif len(split_id) == 2:
         # This is an article
@@ -162,6 +168,9 @@ def figshare_fetch_resource(token, resource_id):
                 raise PresQTResponseException("The resource could not be found by the requesting user.",
                                               status.HTTP_404_NOT_FOUND)
         data = response.json()
+        # Get the children
+        children = get_figshare_project_children(data['files'], resource_id, 'file')
+
         extra = {}
         for key, value in data.items():
             if key not in ['id', 'title', 'created_date', 'modified_date']:
@@ -175,7 +184,8 @@ def figshare_fetch_resource(token, resource_id):
             "date_created": data['created_date'],
             "date_modified": data['modified_date'],
             "hashes": {},
-            "extra": extra}
+            "extra": extra,
+            "children": children}
 
     elif len(split_id) == 3:
         # This is a file
@@ -206,7 +216,8 @@ def figshare_fetch_resource(token, resource_id):
                     },
                     "extra": {
                         "size": file['size']
-                    }
+                    },
+                    "children": []
                 }
         else:
             raise PresQTResponseException("The resource could not be found by the requesting user.",

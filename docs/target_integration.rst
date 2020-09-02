@@ -84,8 +84,7 @@ Resource Endpoints
 Resource Collection
 +++++++++++++++++++
 Targets that integrate with the Resources Collection API Endpoint must have a function that returns
-a specifically structured dataset. This structure allows us to recreate the hierarchy of the file
-structure on the front end.
+a specifically structured dataset.
 
 1. Update your target in ``presqt/specs/targets.json`` by setting
 ``supported_actions.resource_collection`` to ``true``.
@@ -105,10 +104,10 @@ structure on the front end.
 
     * The function must return the following **in this order**:
 
-        ========= ==== =============================================
-        resources list list of Python dictionaries for each resource
+        ========= ==== =======================================================
+        resources list list of Python dictionaries for each top level resource
         pages     dict dictionary of pagination details
-        ========= ==== =============================================
+        ========= ==== =======================================================
 
             **Resource dictionary details:**
 
@@ -228,6 +227,13 @@ a specifically structured dataset that represents the resource.
             extra         dict Any extra target specific data.
 
                                Can be an empty dict
+            children      list A list of children resources, each child in the list must be a 
+                               
+                               dictionary that follows the structure of the resource_collection
+                               
+                               dictionaries listed above. Example: [{'kind': '', 'kind_name': '', 
+                               
+                               'id': '', 'container': '', 'title': ''}]
             ============= ==== ==================================================================
 
         **Example Resource Collection Function:**
@@ -259,7 +265,8 @@ a specifically structured dataset that represents the resource.
                                 "write",
                                 "admin"
                             ],
-                        }
+                        },
+                        "children": []
                     }
                     return resource
 

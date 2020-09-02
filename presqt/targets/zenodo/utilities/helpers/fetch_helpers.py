@@ -41,28 +41,28 @@ def zenodo_fetch_resources_helper(zenodo_projects, auth_parameter, is_record, pr
             "title": entry['metadata']['title']}
         resources.append(resource)
 
-        # Now loop through the files
-        if is_record is True:
-            # This will work on the records endpoint
-            for item in entry['files']:
-                resource = {
-                    "kind": "item",
-                    "kind_name": "file",
-                    "container": entry['id'],
-                    "id": item['bucket'],
-                    "title": item['key']}
-                resources.append(resource)
+        # # Now loop through the files
+        # if is_record is True:
+        #     # This will work on the records endpoint
+        #     for item in entry['files']:
+        #         resource = {
+        #             "kind": "item",
+        #             "kind_name": "file",
+        #             "container": entry['id'],
+        #             "id": item['bucket'],
+        #             "title": item['key']}
+        #         resources.append(resource)
 
         # Otherwise we need to pull the info from the depositions endpoint
-        else:
-            for item in requests.get(entry['links']['files'], params=auth_parameter).json():
-                resource = {
-                    "kind": "item",
-                    "kind_name": "file",
-                    "container": entry['id'],
-                    "id": item['id'],
-                    "title": item['filename']}
-                resources.append(resource)
+        # else:
+        #     for item in requests.get(entry['links']['files'], params=auth_parameter).json():
+        #         resource = {
+        #             "kind": "item",
+        #             "kind_name": "file",
+        #             "container": entry['id'],
+        #             "id": item['id'],
+        #             "title": item['filename']}
+        #         resources.append(resource)
          # Increment the number of files done in the process info file.
         increment_process_info(process_info_path, 'resource_collection', 'fetch')
 
@@ -102,6 +102,9 @@ def zenodo_fetch_resource_helper(zenodo_project, resource_id, is_record=False, i
         extra = {}
         for key, value in zenodo_project['metadata'].items():
             extra[key] = value
+        
+        from presqt.targets.zenodo.utilities.helpers.get_zenodo_children import zenodo_get_project_children
+        children = zenodo_get_project_children(zenodo_project, resource_id, is_record)
 
     else:
         kind = 'item'
@@ -110,6 +113,7 @@ def zenodo_fetch_resource_helper(zenodo_project, resource_id, is_record=False, i
         date_modified = zenodo_project['updated']
         hashes = {'md5': zenodo_project['checksum'].partition(':')[2]}
         extra = {}
+        children = []
 
     return {
         "kind": kind,
@@ -119,4 +123,5 @@ def zenodo_fetch_resource_helper(zenodo_project, resource_id, is_record=False, i
         "date_created": zenodo_project['created'],
         "date_modified": date_modified,
         "hashes": hashes,
-        "extra": extra}
+        "extra": extra,
+        "children": children}
