@@ -224,7 +224,7 @@ Resource Collection
 
 .. http:get::  /api_v1/targets/(str: target_name)/resources/
 
-    Retrieve details of all resources for a given ``Target`` and ``User Token``
+    Retrieve details of all top level resources for a given ``Target`` and ``User Token``
 
     **Example request**:
 
@@ -259,42 +259,14 @@ Resource Collection
                 },
                 {
                     "kind": "container",
-                    "kind_name": "storage",
-                    "id": "cmn5z:osfstorage",
-                    "container": "cmn5z",
-                    "title": "osfstorage",
+                    "kind_name": "project",
+                    "id": "12345",
+                    "container": null,
+                    "title": "Egg Project",
                     "links": [
                         {
                             "name": "Detail",
-                            "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/cmn5z:osfstorage/",
-                            "method": "GET"
-                        }
-                    ]
-                },
-                {
-                    "kind": "container",
-                    "kind_name": "folder",
-                    "id": "5cd9832cf244ec0021e5f245",
-                    "container": "cmn5z:osfstorage",
-                    "title": "Images",
-                    "links": [
-                        {
-                            "name": "Detail",
-                            "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/5cd9832cf244ec0021e5f245/",
-                            "method": "GET"
-                        }
-                    ]
-                },
-                {
-                    "kind": "item",
-                    "kind_name": "file",
-                    "id": "5cd98510f244ec001fe5632f",
-                    "container": "5cd9832cf244ec0021e5f245",
-                    "title": "22776439564_7edbed7e10_o.jpg",
-                    "links": [
-                        {
-                            "name": "Detail",
-                            "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/5cd98510f244ec001fe5632f/",
+                            "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/12345/",
                             "method": "GET"
                         }
                     ]
@@ -305,7 +277,7 @@ Resource Collection
                 "previous_page": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources?page=5",
                 "next_page": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources?page=7",
                 "last_page": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources?page=30",
-                "total_pages": 30,
+                "total_pages": 1,
                 "per_page": 10,
                 "base_page": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources?page="
             }

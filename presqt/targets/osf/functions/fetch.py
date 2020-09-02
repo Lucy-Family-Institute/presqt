@@ -1,16 +1,20 @@
+import json
+
 import requests
 
 from rest_framework import status
 
-from presqt.targets.osf.utilities import get_osf_resource
+from presqt.targets.osf.utilities import get_osf_resource, validate_token, get_all_paginated_data
 from presqt.targets.osf.utilities.utils.get_page_numbers import get_page_numbers
-from presqt.utilities import PresQTResponseException, PresQTInvalidTokenError, PresQTValidationError
+from presqt.utilities import (PresQTResponseException, PresQTInvalidTokenError,
+                              PresQTValidationError, update_process_info, increment_process_info,
+                              list_differences)
 from presqt.targets.osf.classes.main import OSF
 
 
 def osf_fetch_resources(token, query_parameter, process_info_path):
     """
-    Fetch all OSF resources for the user connected to the given token.
+    Fetch all top level OSF resources for the user connected to the given token.
 
     Parameters
     ----------
@@ -28,10 +32,10 @@ def osf_fetch_resources(token, query_parameter, process_info_path):
     Dictionary must be in the following format:
         {
             "kind": "container",
-            "kind_name": "folder",
+            "kind_name": "project",
             "id": "12345",
             "container": "None",
-            "title": "Folder Name",
+            "title": "Project Name",
         }
     We are also returning a dictionary of pagination information.
     Dictionary must be in the following format:
@@ -45,7 +49,7 @@ def osf_fetch_resources(token, query_parameter, process_info_path):
         }
     """
     try:
-        osf_instance = OSF(token)
+        validate_token(token)
     except PresQTInvalidTokenError:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
@@ -61,17 +65,17 @@ def osf_fetch_resources(token, query_parameter, process_info_path):
     if 'title' in query_parameter:
         # Format the search that is coming in to be passed to the OSF API
         query_parameters = query_parameter['title'].replace(' ', '+')
-        url = 'https://api.osf.io/v2/nodes/?filter[title]={}'.format(query_parameters)
+        url = 'https://api.osf.io/v2/nodes/?filter[title]={}&page=1'.format(query_parameters)
         if 'page' in query_parameter:
             url = 'https://api.osf.io/v2/nodes/?filter[title]={}&page={}'.format(
                 query_parameters, query_parameter['page'])
 
     elif 'id' in query_parameter:
-        url = 'https://api.osf.io/v2/nodes/?filter[id]={}'.format(query_parameter['id'])
+        url = 'https://api.osf.io/v2/nodes/?filter[id]={}&page=1'.format(query_parameter['id'])
 
     elif 'author' in query_parameter:
         query_parameters = query_parameter['author'].replace(' ', '+')
-        user_url = 'https://api.osf.io/v2/users/?filter[full_name]={}'.format(query_parameters)
+        user_url = 'https://api.osf.io/v2/users/?filter[full_name]={}&page=1'.format(query_parameters)
         if 'page' in query_parameter:
             user_url = 'https://api.osf.io/v2/users/?filter[full_name]={}&page={}'.format(
                 query_parameters, query_parameter['page'])
@@ -84,19 +88,80 @@ def osf_fetch_resources(token, query_parameter, process_info_path):
 
     elif 'keywords' in query_parameter:
         query_parameters = query_parameter['keywords'].replace(' ', '+')
-        url = 'https://api.osf.io/v2/nodes/?filter[tags][icontains]={}'.format(query_parameters)
+        url = 'https://api.osf.io/v2/nodes/?filter[tags][icontains]={}&page=1'.format(query_parameters)
         if 'page' in query_parameter:
             url = 'https://api.osf.io/v2/nodes/?filter[tags][icontains]={}&page={}'.format(
                 query_parameters, query_parameter['page'])
-
-    elif 'page' in query_parameter:
-        url = 'https://api.osf.io/v2/users/me/nodes?page={}'.format(query_parameter['page'])
-
     else:
-        url = "https://api.osf.io/v2/users/me/nodes?page=1"
+        url = "https://api.osf.io/v2/users/me/nodes/"
     
     try:
-        resources = osf_instance.get_resources(process_info_path, url)
+        resources = []
+        response = requests.get(url, headers={'Authorization': 'Bearer {}'.format(token)})
+        if 'page=' in url:
+            for project in response.json()['data']:
+                resources.append({
+                    "kind": "container",
+                    "kind_name": "project",
+                    "id": project['id'],
+                    "container": "None",
+                    "title": project['attributes']['title'],
+                })
+        # If 'page=' doesn't exist in the url then we are getting the user's 1st of page of projects
+        # Since subprojects exist in the main nodes api endpoint we need to filter them out
+        else:
+            all_data = get_all_paginated_data(url, token)
+
+            # Add the total number of projects to the process info file.
+            # This is necessary to keep track of the progress of the request.
+            update_process_info(process_info_path, len(all_data), 'resource_collection', 'fetch')
+
+            project_ids = []
+            children_projects = []
+
+            # Find any top level projects, add subprojects to the children_project list, and add
+            # the project ID to project_ids
+            for project_json in all_data:
+                project_ids.append(project_json['id'])
+
+                try:
+                    if project_json['relationships']['parent']['data']['id']:
+                        children_projects.append(project_json)
+                except KeyError:
+                    resources.append({
+                        "kind": "container",
+                        "kind_name": "project",
+                        "id": project_json['id'],
+                        "container": "None",
+                        "title": project_json['attributes']['title'],
+                    })
+                # Increment the number of files done in the process info file.
+                increment_process_info(process_info_path, 'resource_collection', 'fetch')
+
+            # Loop through the children projects and find those that are actually top level projects
+            # They are top level projects because their parent project doesn't belong to this user.
+            for project_json in children_projects:
+                parent_id = project_json['relationships']['parent']['data']['id']
+
+                if parent_id not in project_ids:
+                    resources.append({
+                        "kind": "container",
+                        "kind_name": "project",
+                        "id": project_json['id'],
+                        "container": "None",
+                        "title": project_json['attributes']['title'],
+                    })
+
+            # Since we can't use OSF pagination because the nodes endpoint brings back subprojects,
+            # we need to splice the array ourselves.
+            if 'page' in query_parameter:
+                page_min = int(query_parameter['page']) * 10
+                page_max = page_min + 10
+
+                resources = resources[page_min: page_max]
+            else:
+                resources = resources[0:10]
+
         pages = get_page_numbers(url, token)
     except PresQTValidationError as e:
         raise e

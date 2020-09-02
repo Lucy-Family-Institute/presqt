@@ -22,7 +22,7 @@ Target Collection/Details
         readable_name                str      Human readable name of the Target for the front end
         status_url                   str      Url which is 200 OK if the API works.
         supported_actions            array    Actions the target supports. Only make actions true when action is working
-        resource_collection          bool     Get all resources for the user in this target
+        resource_collection          bool     Get all top level resources for the user in this target
         resource_detail              bool     Get an individual resource's details
         resource_download            bool     Download a resource
         resource_upload              bool     Upload a resource
@@ -118,7 +118,7 @@ structure on the front end.
                               Options: [container, item]
                 kind_name str Target specific name for that kind
 
-                               For example OSF kind_names are: [node, folder, file]
+                               For example OSF kind_names are: [project, folder, file]
                 container str ID of the container for the resource.
 
                               For example if the resource is a file in a folder then the **container** value would be the ID of the folder
