@@ -228,8 +228,11 @@ a specifically structured dataset that represents the resource.
 
                                Can be an empty dict
             children      list A list of children resources, each child in the list must be a 
+                               
                                dictionary that follows the structure of the resource_collection
+                               
                                dictionaries listed above. Example: [{'kind': '', 'kind_name': '', 
+                               
                                'id': '', 'container': '', 'title': ''}]
             ============= ==== ==================================================================
 
