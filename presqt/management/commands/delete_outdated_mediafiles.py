@@ -39,4 +39,8 @@ class Command(BaseCommand):
                             print('{} has been deleted.'.format(directory))
                             break
                 else:
-                    print('{} has been retained.'.format(directory))
+                    if os.environ['ENVIRONMENT'] == 'development':
+                        shutil.rmtree(directory)
+                        print('{} has been deleted.'.format(directory))
+                    else:
+                        print('{} has been retained.'.format(directory))

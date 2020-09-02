@@ -177,7 +177,8 @@ def zenodo_fetch_resource(token, resource_id):
                             "hashes": {
                                 "md5": file['checksum']
                             },
-                            "extra": {}}
+                            "extra": {},
+                            "children": []}
                         # We found the file, break out of file loop
                         break
                 # If the file wasn't found, we want to continue looping through the other projects.

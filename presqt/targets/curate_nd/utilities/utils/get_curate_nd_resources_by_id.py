@@ -31,12 +31,4 @@ def get_curate_nd_resources_by_id(token, resource_id):
         "container": None,
         "title": data['title']}]
 
-    for file in data['containedFiles']:
-        resources.append({
-            "kind": "item",
-            "kind_name": "file",
-            "id": file['id'],
-            "container": data['id'],
-            "title": file['label']})
-
     return resources

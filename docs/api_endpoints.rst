@@ -224,7 +224,7 @@ Resource Collection
 
 .. http:get::  /api_v1/targets/(str: target_name)/resources/
 
-    Retrieve details of all resources for a given ``Target`` and ``User Token``
+    Retrieve details of all top level resources for a given ``Target`` and ``User Token``
 
     **Example request**:
 
@@ -259,42 +259,14 @@ Resource Collection
                 },
                 {
                     "kind": "container",
-                    "kind_name": "storage",
-                    "id": "cmn5z:osfstorage",
-                    "container": "cmn5z",
-                    "title": "osfstorage",
+                    "kind_name": "project",
+                    "id": "12345",
+                    "container": null,
+                    "title": "Egg Project",
                     "links": [
                         {
                             "name": "Detail",
-                            "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/cmn5z:osfstorage/",
-                            "method": "GET"
-                        }
-                    ]
-                },
-                {
-                    "kind": "container",
-                    "kind_name": "folder",
-                    "id": "5cd9832cf244ec0021e5f245",
-                    "container": "cmn5z:osfstorage",
-                    "title": "Images",
-                    "links": [
-                        {
-                            "name": "Detail",
-                            "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/5cd9832cf244ec0021e5f245/",
-                            "method": "GET"
-                        }
-                    ]
-                },
-                {
-                    "kind": "item",
-                    "kind_name": "file",
-                    "id": "5cd98510f244ec001fe5632f",
-                    "container": "5cd9832cf244ec0021e5f245",
-                    "title": "22776439564_7edbed7e10_o.jpg",
-                    "links": [
-                        {
-                            "name": "Detail",
-                            "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/5cd98510f244ec001fe5632f/",
+                            "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/12345/",
                             "method": "GET"
                         }
                     ]
@@ -305,7 +277,7 @@ Resource Collection
                 "previous_page": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources?page=5",
                 "next_page": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources?page=7",
                 "last_page": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources?page=30",
-                "total_pages": 30,
+                "total_pages": 1,
                 "per_page": 10,
                 "base_page": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources?page="
             }
@@ -410,10 +382,10 @@ Resource Detail
         Content-Type: application/json
 
         {
-            "kind": "item",
-            "kind_name": "file",
-            "id": "5cd98a30f2c01100177156be",
-            "title": "Character Sheet - Alternative - Print Version.pdf",
+            "kind": "container",
+            "kind_name": "project",
+            "id": "cmn5z",
+            "title": "Test Project",
             "date_created": "2019-05-13T15:06:34.521000Z",
             "date_modified": "2019-05-13T15:06:34.521000Z",
             "hashes": {
@@ -422,21 +394,75 @@ Resource Detail
             },
             "extra": {
                 "last_touched": "2019-11-07T17:00:51.680957",
-                "materialized_path": "/Character Sheet - Alternative - Print Version.pdf",
+                "materialized_path": "/Test Project",
                 "current_version": 1,
                 "provider": "googledrive",
-                "path": "/Character%20Sheet%20-%20Alternative%20-%20Print%20Version.pdf",
+                "path": "/Test Project",
                 "current_user_can_comment": true,
                 "guid": "byz93",
                 "checkout": null,
                 "tags": [],
                 "size": null
             },
+            "children": [
+                {
+                    "kind": "container",
+                    "kind_name": "storage",
+                    "id": "cmn5z:osfstorage",
+                    "container": "cmn5z",
+                    "title": "osfstorage",
+                    "links": [
+                        {
+                            "name": "Detail",
+                            "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/cmn5z:osfstorage/",
+                            "method": "GET"
+                        }
+                    ]
+                },
+                {
+                    "kind": "container",
+                    "kind_name": "folder",
+                    "id": "5cd9832cf244ec0021e5f245",
+                    "container": "cmn5z:osfstorage",
+                    "title": "Images",
+                    "links": [
+                        {
+                            "name": "Detail",
+                            "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/5cd9832cf244ec0021e5f245/",
+                            "method": "GET"
+                        }
+                    ]
+                },
+                {
+                    "kind": "item",
+                    "kind_name": "file",
+                    "id": "5cd98510f244ec001fe5632f",
+                    "container": "5cd9832cf244ec0021e5f245",
+                    "title": "22776439564_7edbed7e10_o.jpg",
+                    "links": [
+                        {
+                            "name": "Detail",
+                            "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/5cd98510f244ec001fe5632f/",
+                            "method": "GET"
+                        }
+                    ]
+                }
+            ],
             "links": [
                 {
                     "name": "Download",
-                    "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/5cd98a30f2c01100177156be.zip/",
+                    "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/cmn5z.zip/",
                     "method": "GET"
+                },
+                {
+                    "name": "Upload",
+                    "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/cmn5z/",
+                    "method": "POST"
+                },
+                {
+                    "name": "Transfer",
+                    "link": "https://presqt-prod.crc.nd.edu/api_v1/targets/osf/resources/cmn5z/",
+                    "method": "POST"
                 }
             ],
             "actions": [

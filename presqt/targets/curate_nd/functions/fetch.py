@@ -139,6 +139,17 @@ def curate_nd_fetch_resource(token, resource_id):
         )
     # Get the resource
     resource = get_curate_nd_resource(resource_id, curate_instance)
+    children = []
+    if resource.kind == 'container':
+        # Get the children of this item
+        for child in resource.extra['containedFiles']:
+            children.append({
+                'kind': 'item',
+                'kind_name': 'file',
+                'id': child['id'],
+                'container': resource.id,
+                'title': child['label']})
+
     resource_dict = {
         "kind": resource.kind,
         "kind_name": resource.kind_name,
@@ -147,6 +158,7 @@ def curate_nd_fetch_resource(token, resource_id):
         "date_created": resource.date_submitted,
         "date_modified": resource.modified,
         "hashes": {"md5": resource.md5},
-        "extra": resource.extra}
+        "extra": resource.extra,
+        "children": children}
 
     return resource_dict

@@ -136,15 +136,7 @@ class CurateND(CurateNDBase):
                 'id': item.id,
                 'container': None,
                 'title': item.title})
-            # Files, check because Curate payloads are inconsistent
-            if 'containedFiles' in item.extra:
-                for file in item.extra['containedFiles']:
-                    resources.append({
-                        'kind': 'item',
-                        'kind_name': 'file',
-                        'id': file['id'],
-                        'container': item.id,
-                        'title': file['label']})
+
             # Increment the number of files done in the process info file.
             increment_process_info(process_info_path, 'resource_collection', 'fetch')
 
