@@ -100,6 +100,8 @@ def osf_fetch_resources(token, query_parameter, process_info_path):
             # The page requested doesn't exist
             return [], pages
 
+        # If page exists in url, then we are filtering the results so we don't have to worry
+        # about parent and subprojects
         if 'page=' in url:
             paginated_resources = []
             for project in response.json()['data']:
