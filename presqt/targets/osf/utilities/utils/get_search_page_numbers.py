@@ -21,10 +21,10 @@ def get_search_page_numbers(url, token):
     previous_page = pagination_info['prev']
 
     if next_page:
-        next_page = next_page.partition('?page=')[2]
+        next_page = next_page.partition('page=')[2]
 
     if previous_page:
-        previous_page = previous_page.partition('?page=')[2]
+        previous_page = previous_page.partition('page=')[2]
         if previous_page == '':
             previous_page = '1'
 

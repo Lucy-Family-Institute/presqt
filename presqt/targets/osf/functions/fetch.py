@@ -66,7 +66,7 @@ def osf_fetch_resources(token, query_parameter, process_info_path):
         page = int(query_parameter['page'])
     else:
         page = 1
-        
+
     if 'title' in query_parameter:
         # Format the search that is coming in to be passed to the OSF API
         query_parameters = query_parameter['title'].replace(' ', '+')
@@ -77,7 +77,8 @@ def osf_fetch_resources(token, query_parameter, process_info_path):
 
     elif 'author' in query_parameter:
         query_parameters = query_parameter['author'].replace(' ', '+')
-        user_url = 'https://api.osf.io/v2/users/?filter[full_name]={}&page={}'.format(query_parameters, page)
+        user_url = 'https://api.osf.io/v2/users/?filter[full_name]={}&page={}'.format(
+            query_parameters, page)
 
         user_data = requests.get(user_url, headers={'Authorization': 'Bearer {}'.format(token)})
         if user_data.status_code != 200 or len(user_data.json()['data']) == 0:
@@ -88,12 +89,17 @@ def osf_fetch_resources(token, query_parameter, process_info_path):
 
     elif 'keywords' in query_parameter:
         query_parameters = query_parameter['keywords'].replace(' ', '+')
-        url = 'https://api.osf.io/v2/nodes/?filter[tags][icontains]={}&page={}'.format(query_parameters, page)
+        url = 'https://api.osf.io/v2/nodes/?filter[tags][icontains]={}&page={}'.format(
+            query_parameters, page)
     else:
         url = "https://api.osf.io/v2/users/me/nodes/"
 
     try:
         response = requests.get(url, headers={'Authorization': 'Bearer {}'.format(token)})
+        if response.status_code != 200:
+            # The page requested doesn't exist
+            return [], pages
+
         if 'page=' in url:
             paginated_resources = []
             for project in response.json()['data']:
@@ -161,8 +167,8 @@ def osf_fetch_resources(token, query_parameter, process_info_path):
                 paginated_resources = top_level_resources[page_min: page_max]
             else:
                 paginated_resources = top_level_resources[0:9]
-
             pages = get_page_numbers(top_level_resources, page)
+
     except PresQTValidationError as e:
         raise e
 

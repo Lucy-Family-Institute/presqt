@@ -27,8 +27,7 @@ def get_osf_children(resource_id, token, parent_kind):
 
     if parent_kind == 'project':
         # Get the project information
-        data = requests.get(
-            "https://api.osf.io/v2/nodes/{}/files".format(resource_id), headers=headers).json()
+        data = get_all_paginated_data("https://api.osf.io/v2/nodes/{}/files".format(resource_id), token)
 
         for child in data['data']:
             children.append({
@@ -40,8 +39,7 @@ def get_osf_children(resource_id, token, parent_kind):
             })
 
         # Also get the subprojects
-        sub_data = requests.get(
-            "https://api.osf.io/v2/nodes/{}/children".format(resource_id), headers=headers).json()
+        sub_data = get_all_paginated_data("https://api.osf.io/v2/nodes/{}/children".format(resource_id), token)
 
         for child in sub_data['data']:
             children.append({
