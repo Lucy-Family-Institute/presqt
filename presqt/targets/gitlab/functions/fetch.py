@@ -219,10 +219,10 @@ def gitlab_fetch_resource(token, resource_id):
         children_data = requests.get("{}/repository/tree".format(project_url), headers=headers).json()
 
         # ERROR, return no children
-        if children_data == []:
+        if children_data == [] or 'message' in children_data:
             children = []
-
-        children = gitlab_get_project_children(children_data, resource_id, resource_id)
+        else:
+            children = gitlab_get_project_children(children_data, resource_id, resource_id)
 
         resource = {
             "kind": "container",
