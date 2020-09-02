@@ -4,6 +4,7 @@ from rest_framework import status
 
 from presqt.targets.osf.utilities import get_osf_resource, validate_token, get_all_paginated_data
 from presqt.targets.osf.utilities.utils.get_page_numbers import get_page_numbers
+from presqt.targets.osf.utilities.utils.get_osf_children import get_osf_children
 from presqt.utilities import (PresQTResponseException, PresQTInvalidTokenError,
                               PresQTValidationError, update_process_info, increment_process_info)
 from presqt.targets.osf.classes.main import OSF
@@ -58,7 +59,7 @@ def osf_fetch_resources(token, query_parameter, process_info_path):
         "last_page": '1',
         "total_pages": '1',
         "per_page": 10}
-        
+
     if 'title' in query_parameter:
         # Format the search that is coming in to be passed to the OSF API
         query_parameters = query_parameter['title'].replace(' ', '+')
@@ -91,7 +92,7 @@ def osf_fetch_resources(token, query_parameter, process_info_path):
                 query_parameters, query_parameter['page'])
     else:
         url = "https://api.osf.io/v2/users/me/nodes/"
-    
+
     try:
         resources = []
         response = requests.get(url, headers={'Authorization': 'Bearer {}'.format(token)})
@@ -206,6 +207,9 @@ def osf_fetch_resource(token, resource_id):
                                       status.HTTP_401_UNAUTHORIZED)
 
     def create_object(resource_object):
+        # Get children
+        children = get_osf_children(resource_id, token, resource_object.kind_name)
+
         resource_object_obj = {
             'kind': resource_object.kind,
             'kind_name': resource_object.kind_name,
@@ -218,7 +222,7 @@ def osf_fetch_resource(token, resource_id):
                 'sha256': resource_object.sha256
             },
             'extra': {},
-            "children": []
+            "children": children
         }
 
         if resource_object.kind_name in ['folder', 'file']:
@@ -252,6 +256,7 @@ def osf_fetch_resource(token, resource_id):
                 'tags': resource_object.tags,
                 'size': resource_object.size
             }
+
         return resource_object_obj
 
     # Get the resource
