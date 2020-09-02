@@ -76,26 +76,6 @@ class ResourceSerializer(serializers.Serializer):
 
         return links
 
-    def get_detail(self, instance):
-        """
-        Translate the `detail` property to a custom array of Hyperlink values.
-
-        Parameters
-        ----------
-        instance : Target Obj instance
-
-        Returns
-        -------
-        Hyperlink url for Target detail API endpoint
-        """
-        list_of_actions = action_checker(self.context.get('target_name'))
-        # Build a list of endpoint_actions and compare with list of actions
-        resources_actions = list_intersection(list_of_actions, ['resource_detail'])
-
-        links = link_builder(self, instance, resources_actions)
-
-        return links
-
     def get_actions(self, instance):
         """
         Translate the `actions` property to a custom array of `action names`.
