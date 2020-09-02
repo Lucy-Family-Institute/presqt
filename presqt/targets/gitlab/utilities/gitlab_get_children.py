@@ -1,5 +1,4 @@
 import urllib.parse
-import requests
 
 
 def gitlab_get_children(data, resource_id, project_id):
@@ -10,8 +9,6 @@ def gitlab_get_children(data, resource_id, project_id):
     ----------
     data : list or dict
         The project path data
-    header : dict
-        The GitLab Authorization header
     resource_id : str
         The resource id of the children
     project_id :  str

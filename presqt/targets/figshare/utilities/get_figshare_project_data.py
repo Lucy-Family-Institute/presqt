@@ -5,7 +5,7 @@ from presqt.utilities import update_process_info, increment_process_info
 
 def get_figshare_project_data(initial_data, headers, resources, process_info_path):
     """
-    Get all directories and files of given projects.
+    Get all top level figshare projects.
 
     Parameters
     ----------
@@ -44,7 +44,7 @@ def get_figshare_project_data(initial_data, headers, resources, process_info_pat
 
 def get_search_project_data(initial_data, headers, resources, process_info_path):
     """
-    Get all directories and files of a given project.
+    Get all top level figshare projects with search query.
 
     Parameters
     ----------
