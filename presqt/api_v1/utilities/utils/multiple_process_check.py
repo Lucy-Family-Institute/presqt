@@ -16,10 +16,11 @@ def multiple_process_check(process_info_path):
     -------
         Whether the user has an action in progress or not (bool)
     """
+    process_info_file = "{}/process_info.json".format(process_info_path)
     # Check if the file exists
-    if os.path.exists(process_info_path):
+    if os.path.exists(process_info_file):
         # Check if this user currently has any other process in progress
-        process_info_data = read_file("{}/process_info.json".format(process_info_path), True)
+        process_info_data = read_file(process_info_file, True)
         # Loop through the dictionaries and check the status's
         for key, value in process_info_data.items():
             if value['status'] == 'in_progress':
