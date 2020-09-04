@@ -194,8 +194,9 @@ class JobStatus(APIView):
         job_percentage = calculate_job_percentage(total_files, files_finished)
         data = {
             'status_code': upload_process_data['status_code'],
+            'status': upload_status,
             'message': upload_process_data['message'],
-            'status': 'in_progress'
+            'job_percentage': job_percentage
         }
 
         if upload_status == 'finished':
@@ -241,8 +242,9 @@ class JobStatus(APIView):
         download_job_percentage = calculate_job_percentage(transfer_process_data['download_total_files'],
                                                            transfer_process_data['download_files_finished'])
         data = {'status_code': transfer_process_data['status_code'],
+                'status': transfer_status,
                 'message': transfer_process_data['message'],
-                'job_percentage': round((upload_job_percentage + download_job_percentage) / 2)
+                'job_percentage': round((upload_job_percentage + download_job_percentage) / 2),
                 }
 
         if transfer_status == 'finished':
