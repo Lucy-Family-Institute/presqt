@@ -24,7 +24,5 @@ def multiple_process_check(process_info_path):
         for key, value in process_info_data.items():
             if value['status'] == 'in_progress':
                 return True
-        else:
-            return False
 
     return False
