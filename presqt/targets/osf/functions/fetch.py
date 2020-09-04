@@ -33,7 +33,7 @@ def osf_fetch_resources(token, query_parameter, process_info_path):
             "kind": "container",
             "kind_name": "project",
             "id": "12345",
-            "container": "None",
+            "container": None,
             "title": "Project Name",
         }
     We are also returning a dictionary of pagination information.
@@ -109,7 +109,7 @@ def osf_fetch_resources(token, query_parameter, process_info_path):
                     "kind": "container",
                     "kind_name": "project",
                     "id": project['id'],
-                    "container": "None",
+                    "container": None,
                     "title": project['attributes']['title'],
                 })
             pages = get_search_page_numbers(url, token)
@@ -140,7 +140,7 @@ def osf_fetch_resources(token, query_parameter, process_info_path):
                         "kind": "container",
                         "kind_name": "project",
                         "id": project_json['id'],
-                        "container": "None",
+                        "container": None,
                         "title": project_json['attributes']['title'],
                     })
                 # Increment the number of files done in the process info file.
@@ -156,7 +156,7 @@ def osf_fetch_resources(token, query_parameter, process_info_path):
                         "kind": "container",
                         "kind_name": "project",
                         "id": project_json['id'],
-                        "container": "None",
+                        "container": None,
                         "title": project_json['attributes']['title'],
                     })
 
