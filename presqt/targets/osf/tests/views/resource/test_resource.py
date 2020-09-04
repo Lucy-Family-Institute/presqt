@@ -727,6 +727,22 @@ class TestResourceGETZip(SimpleTestCase):
         # Delete corresponding folder
         shutil.rmtree(ticket_path)
 
+    def test_error_attempt_multiple_downloads(self):
+        """
+        If a user has other process in action, alert the user.
+        """
+        url = reverse('resource', kwargs={'target_name': 'osf',
+                                          'resource_id': '5cd988d3054f5b00185ca5e3',
+                                          'resource_format': 'zip'})
+        response = self.client.get(url, **self.header)
+        # Verify the status code and content
+        self.assertEqual(response.status_code, 202)
+
+        response = self.client.get(url, **self.header)
+        # Verify the status code and content
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['error'], "User currently has processes in progress.")
+
 
 class TestResourcePOST(SimpleTestCase):
     """
@@ -1096,3 +1112,20 @@ class TestResourcePOST(SimpleTestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['error'], 'PresQT Error: Bag is not formatted properly.')
+
+    def test_error_attempt_multiple_uploads(self):
+        """
+        If a user has other process in action, alert the user.
+        """
+        self.resource_id = None
+        self.duplicate_action = 'ignore'
+        self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
+        response = self.client.post(
+            self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+
+        error_response = self.client.post(
+            self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+        # Verify the status code and content
+        self.assertEqual(error_response.status_code, 400)
+        self.assertEqual(error_response.data['error'], "User currently has processes in progress.")
