@@ -24,6 +24,7 @@ from presqt.api_v1.utilities import (target_validation, transfer_target_validati
                                      automatic_keywords, update_targets_keywords, manual_keywords,
                                      get_target_data, get_keyword_support,
                                      update_or_create_process_info)
+from presqt.api_v1.utilities.utils.multiple_process_check import multiple_process_check
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.metadata.download_metadata import validate_metadata
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
@@ -196,6 +197,12 @@ class BaseResource(APIView):
 
         self.ticket_number = hash_tokens(self.destination_token)
         self.ticket_path = os.path.join('mediafiles', 'jobs', str(self.ticket_number))
+
+        # Check if this user currently has any other process in progress
+        user_has_process_running = multiple_process_check(self.ticket_path)
+        if user_has_process_running:
+            return Response(data={'error': 'User currently has processes in progress.'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         # Remove any resources that already exist in this user's job directory
         if os.path.exists(self.ticket_path):
@@ -644,6 +651,12 @@ class BaseResource(APIView):
         self.ticket_number = '{}_{}'.format(hash_tokens(
             self.source_token), hash_tokens(self.destination_token))
         self.ticket_path = os.path.join("mediafiles", "jobs", str(self.ticket_number))
+        
+        # Check if this user currently has any other process in progress
+        user_has_process_running = multiple_process_check(self.ticket_path)
+        if user_has_process_running:
+            return Response(data={'error': 'User currently has processes in progress.'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         # Create directory and process_info json file
         self.process_info_obj = {
@@ -659,7 +672,7 @@ class BaseResource(APIView):
             'upload_total_files': 0,
             'upload_files_finished': 0,
             'download_total_files': 0,
-            'download_files_finished':0
+            'download_files_finished': 0
         }
         self.process_info_path = update_or_create_process_info(
             self.process_info_obj, self.action, self.ticket_number)
