@@ -518,6 +518,7 @@ Download Resource
     :reqheader presqt-source-token: User's token for the source target
     :statuscode 202: ``Resource`` has begun downloading
     :statuscode 400: The ``Target`` does not support the action ``resource_download``
+    :statuscode 400: User currently has processes in progress.
     :statuscode 400: ``presqt-source-token`` missing in the request headers
     :statuscode 400: Invalid format given. Must be ``zip``
     :statuscode 404: Invalid ``Target`` name
@@ -747,6 +748,7 @@ Upload New Top Level Resource
     :statuscode 400: Invalid ``file_duplicate_action`` header give. The options are ``ignore`` or ``update``
     :statuscode 400: Repository is not formatted correctly. Multiple directories exist at the top level
     :statuscode 400: Repository is not formatted correctly. Files exist at the top level
+    :statuscode 400: User currently has processes in progress.
     :statuscode 401: ``Token`` is invalid
     :statuscode 404: Invalid ``Target`` name
 
@@ -791,6 +793,7 @@ Upload To Existing Resource
     :statuscode 400: Checksums failed to validate
     :statuscode 400: ``presqt-file-duplicate-action`` missing in the request headers
     :statuscode 400: Invalid ``file_duplicate_action`` header give. The options are ``ignore`` or ``update``
+    :statuscode 400: User currently has processes in progress.
     :statuscode 401: ``Token`` is invalid
     :statuscode 403: User does not have access to this ``Resource``
     :statuscode 404: Invalid ``Target`` name
@@ -979,6 +982,7 @@ Transfer New Top Level Resource
     :statuscode 400: Destination target does not allow transfer to the source target
     :statuscode 400: Invalid ``presqt-keyword-action`` header given. The options are ``automatic`` or ``manual``
     :statuscode 400: ``presqt-keyword-action`` missing in the request headers
+    :statuscode 400: User currently has processes in progress.
     :statuscode 401: ``Source Token`` is invalid
     :statuscode 401: ``Destination Token`` is invalid
     :statuscode 403: User does not have access to the ``Resource`` to transfer
@@ -1044,6 +1048,7 @@ Transfer To Existing Resource
     :statuscode 400: Destination target does not allow transfer to the source target
     :statuscode 400: Invalid ``presqt-keyword-action`` header given. The options are ``automatic`` or ``manual``
     :statuscode 400: ``presqt-keyword-action`` missing in the request headers
+    :statuscode 400: User currently has processes in progress.
     :statuscode 401: ``Source Token`` is invalid
     :statuscode 401: ``Destination Token`` is invalid
     :statuscode 403: User does not have access to the ``Resource`` to transfer

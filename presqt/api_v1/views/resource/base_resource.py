@@ -142,6 +142,10 @@ class BaseResource(APIView):
         {
             "error": "PresQT Error: 'bad_action' is not a valid keyword_action. The options are 'automatic' or 'manual'."
         }
+        or
+        {
+            "error": "User currently has processes in progress."
+        }
 
         401: Unauthorized
         {
