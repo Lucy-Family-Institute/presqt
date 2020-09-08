@@ -107,6 +107,10 @@ class Resource(BaseResource):
         {
             "error": "PresQT Error: csv is not a valid format for this endpoint."
         }
+        or
+        {
+            "error": "User currently has processes in progress."
+        }
 
         401: Unauthorized
         {
