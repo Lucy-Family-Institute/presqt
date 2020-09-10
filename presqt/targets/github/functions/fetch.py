@@ -9,7 +9,7 @@ from presqt.targets.github.utilities.helpers.github_get_children import github_g
 from presqt.utilities import PresQTResponseException
 
 
-def github_fetch_resources(token, query_parameter, process_info_path):
+def github_fetch_resources(token, query_parameter):
     """
     Fetch all users resources from GitHub.
 
@@ -20,8 +20,6 @@ def github_fetch_resources(token, query_parameter, process_info_path):
     query_parameter : dict
         The search parameter passed to the API View
         Gets passed formatted as {'title': 'search_info'}
-    process_info_path: str
-        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
@@ -95,7 +93,7 @@ def github_fetch_resources(token, query_parameter, process_info_path):
         data = requests.get(url, headers=header)
         if data.status_code != 200:
             return [], pages
-        return get_github_repository_data([data.json()], header, process_info_path, []), pages
+        return get_github_repository_data([data.json()], header, []), pages
 
     elif 'title' in query_parameter:
         query_parameters = query_parameter['title'].replace(' ', '+')
@@ -123,7 +121,7 @@ def github_fetch_resources(token, query_parameter, process_info_path):
 
     pages = get_page_numbers(url, header, page_number)
 
-    return get_github_repository_data(data, header, process_info_path, []), pages
+    return get_github_repository_data(data, header, []), pages
 
 
 def github_fetch_resource(token, resource_id):
