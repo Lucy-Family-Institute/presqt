@@ -7,11 +7,11 @@ from presqt.targets.osf.utilities import (get_osf_resource, validate_token, get_
 from presqt.targets.osf.utilities.utils.get_page_numbers import get_page_numbers
 from presqt.targets.osf.utilities.utils.get_osf_children import get_osf_children
 from presqt.utilities import (PresQTResponseException, PresQTInvalidTokenError,
-                              PresQTValidationError, update_process_info, increment_process_info)
+                              PresQTValidationError)
 from presqt.targets.osf.classes.main import OSF
 
 
-def osf_fetch_resources(token, query_parameter, process_info_path):
+def osf_fetch_resources(token, query_parameter):
     """
     Fetch all top level OSF resources for the user connected to the given token.
 
@@ -22,8 +22,6 @@ def osf_fetch_resources(token, query_parameter, process_info_path):
     query_parameter : dict
         The search parameter passed to the API View
         Gets passed formatted as {'title': 'search_info'}
-    process_info_path: str
-        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
@@ -120,10 +118,6 @@ def osf_fetch_resources(token, query_parameter, process_info_path):
             top_level_resources = []
             all_data = get_all_paginated_data(url, token)
 
-            # Add the total number of projects to the process info file.
-            # This is necessary to keep track of the progress of the request.
-            update_process_info(process_info_path, len(all_data), 'resource_collection', 'fetch')
-
             project_ids = []
             children_projects = []
 
@@ -143,8 +137,6 @@ def osf_fetch_resources(token, query_parameter, process_info_path):
                         "container": None,
                         "title": project_json['attributes']['title'],
                     })
-                # Increment the number of files done in the process info file.
-                increment_process_info(process_info_path, 'resource_collection', 'fetch')
 
             # Loop through the children projects and find those that are actually top level projects
             # They are top level projects because their parent project doesn't belong to this user.

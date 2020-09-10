@@ -309,56 +309,6 @@ Resource Collection
     :statuscode 401: ``Token`` is invalid
     :statuscode 404: Invalid ``Target`` name
 
-Resource Collection Job Status
-++++++++++++++++++++++++++++++
-
-.. http:get:: /api_v1/job_status/collection/
-
-    Use the ``Job Status`` endpoint to check in on the ``Collection Process``. Provide the
-    ``presqt-source-token`` in the headers.
-
-    **Example request**
-
-    .. sourcecode:: http
-
-        GET /api_v1/job_status/collection/ HTTP/1.1
-        Host: presqt-prod.crc.nd.edu
-        Accept: application/json
-
-    **Example response if the collection request is still in progress**:
-
-    .. sourcecode:: http
-
-        HTTP/1.1 200 OK
-        Content-Type: application/json
-
-        {
-            "status": "in_progress",
-            "total_files": 50,
-            "files_finished": 5,
-            "job_percentage": 10
-        }
-
-    **Example response if the collection request is finished**:
-
-    .. sourcecode:: http
-
-        HTTP/1.1 200 OK
-        Content-Type: application/json
-
-        {
-            "status": "finished",
-            "total_files": 50,
-            "files_finished": 50,
-            "job_percentage": 100
-        }
-
-    :reqheader presqt-source-token: User's ``Token`` for the source target
-    :statuscode 200: ``Collection`` progress successfully retrieved
-    :statuscode 400: ``presqt-source-token`` missing in the request headers
-    :statuscode 404: Invalid ``Ticket Number``
-
-
 Resource Detail
 +++++++++++++++
 

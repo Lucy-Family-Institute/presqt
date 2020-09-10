@@ -9,7 +9,7 @@ from presqt.targets.gitlab.utilities.gitlab_get_children import gitlab_get_child
 from presqt.utilities import PresQTResponseException
 
 
-def gitlab_fetch_resources(token, query_parameter, process_info_path):
+def gitlab_fetch_resources(token, query_parameter):
     """
     Fetch all users projects from GitLab.
 
@@ -20,8 +20,6 @@ def gitlab_fetch_resources(token, query_parameter, process_info_path):
     query_parameter : dict
         The search parameter passed to the API View
         Gets passed formatted as {'title': 'search_info'}
-    process_info_path: str
-        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
@@ -92,7 +90,7 @@ def gitlab_fetch_resources(token, query_parameter, process_info_path):
 
                 if project_response.status_code == 404:
                     return [], pages
-                return get_gitlab_project_data([project_response.json()], headers, [], process_info_path), pages
+                return get_gitlab_project_data([project_response.json()], headers, []), pages
 
             elif 'title' in query_parameter:
                 url = "{}/projects?search={}".format(base_url, query_parameter['title'])
@@ -103,7 +101,7 @@ def gitlab_fetch_resources(token, query_parameter, process_info_path):
             data = requests.get(url, headers=headers).json()
             pages = get_page_numbers(url, headers)
 
-    return get_gitlab_project_data(data, headers, [], process_info_path), pages
+    return get_gitlab_project_data(data, headers, []), pages
 
 
 def gitlab_fetch_resource(token, resource_id):

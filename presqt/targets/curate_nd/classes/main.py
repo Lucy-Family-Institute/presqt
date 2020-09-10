@@ -107,7 +107,7 @@ class CurateND(CurateNDBase):
         else:
             return Item(response_data.json(), self.session)
 
-    def get_resources(self, process_info_path, url=None):
+    def get_resources(self, url=None):
         """
         Get all of the requested resources. Return in the structure expected for the PresQT API.
 
@@ -124,9 +124,6 @@ class CurateND(CurateNDBase):
         """
         resources = []
         items = self.items(url)
-        # Add the total number of items to the process info file.
-        # This is necessary to keep track of the progress of the request.
-        update_process_info(process_info_path, len(items), 'resource_collection', 'fetch')
 
         for item in items:
             # Items
@@ -136,8 +133,5 @@ class CurateND(CurateNDBase):
                 'id': item.id,
                 'container': None,
                 'title': item.title})
-
-            # Increment the number of files done in the process info file.
-            increment_process_info(process_info_path, 'resource_collection', 'fetch')
 
         return resources
