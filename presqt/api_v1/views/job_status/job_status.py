@@ -68,38 +68,6 @@ class JobStatus(APIView):
         else:
             return func()
 
-    def collection_get(self):
-        """
-        Get the status of a collection job.
-        """
-        # Perform token validation. Read data from the process_info file.
-        try:
-            source_token = get_source_token(self.request)
-            self.ticket_number = hash_tokens(source_token)
-            self.process_data = get_process_info_data('jobs', self.ticket_number)
-        except PresQTValidationError as e:
-            return Response(data={'error': e.data}, status=e.status_code)
-
-        if 'error' in self.process_data['resource_collection']:
-            return Response(data={'error': self.process_data['resource_collection']['error']},
-                            status=status.HTTP_400_BAD_REQUEST)
-
-        total_files = self.process_data['resource_collection']['total_files']
-        files_finished = self.process_data['resource_collection']['files_finished']
-
-        job_status = self.process_data['resource_collection']['status']
-        job_percentage = calculate_job_percentage(total_files, files_finished)
-        if job_status == 'finished':
-            job_percentage = 99
-
-        data = {
-            'status': job_status,
-            'total_files': total_files,
-            'files_finished': files_finished,
-            'job_percentage': job_percentage
-        }
-        return Response(status=status.HTTP_200_OK, data=data)
-
     def download_get(self):
         """
         Get the status of a download job.
