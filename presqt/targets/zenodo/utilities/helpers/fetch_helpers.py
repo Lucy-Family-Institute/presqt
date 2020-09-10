@@ -1,9 +1,6 @@
-import requests
-
-from presqt.utilities import update_process_info, increment_process_info
 
 
-def zenodo_fetch_resources_helper(zenodo_projects, auth_parameter, is_record, process_info_path):
+def zenodo_fetch_resources_helper(zenodo_projects, auth_parameter, is_record):
     """
     Takes a dictionary of Zenodo depositions/records and builds Zenodo PresQT resources.
 
@@ -15,17 +12,11 @@ def zenodo_fetch_resources_helper(zenodo_projects, auth_parameter, is_record, pr
         The user's Zenodo API token
     is_record : boolean
         Flag for if the resource is a published record
-    process_info_path: str
-        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
         List of PresQT Zenodo Resources.
     """
-    # Add the total number of projects to the process info file.
-    # This is necessary to keep track of the progress of the request.
-    update_process_info(process_info_path, len(zenodo_projects), 'resource_collection', 'fetch')
-
     resources = []
     for entry in zenodo_projects:
         # This will determine if it's a record or a deposition
@@ -40,9 +31,6 @@ def zenodo_fetch_resources_helper(zenodo_projects, auth_parameter, is_record, pr
             "id": entry['id'],
             "title": entry['metadata']['title']}
         resources.append(resource)
-
-        # Increment the number of files done in the process info file.
-        increment_process_info(process_info_path, 'resource_collection', 'fetch')
 
     return resources
 
