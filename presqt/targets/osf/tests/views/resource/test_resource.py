@@ -555,7 +555,7 @@ class TestResourceGETZip(SimpleTestCase):
                 '{}/{}/data/22776439564_7edbed7e10_o.jpg'.format(ticket_path, base_name)), True)
 
         # Verify the fixity info returned is correct
-        fixity_file = zip_file.open('{}/data/fixity_info.json'.format(base_name))
+        fixity_file = zip_file.open('{}/fixity_info.json'.format(base_name))
         fixity_info = json.load(fixity_file)
         self.assertEqual(fixity_info[0]['fixity'], False)
         self.assertEqual(fixity_info[0]['fixity_details'],

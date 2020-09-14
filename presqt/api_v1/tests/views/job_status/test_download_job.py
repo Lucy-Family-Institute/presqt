@@ -30,6 +30,7 @@ class TestDownloadJobGET(SimpleTestCase):
             "sha256": "3e517cda95ddbfcb270ab273201517f5ae0ee1190a9c5f6f7e6662f97868366f",
             "md5": "9e79fdd9032629743fca52634ecdfd86"}
         self.ticket_number = hash_tokens(OSF_TEST_USER_TOKEN)
+        self.token = OSF_TEST_USER_TOKEN
 
     def test_success_200_zip(self):
         """
@@ -53,7 +54,7 @@ class TestDownloadJobGET(SimpleTestCase):
         self.assertEqual(len(zip_file.namelist()), 13)
 
         # Verify the custom hash_file information is correct
-        with zip_file.open('osf_download_{}/data/fixity_info.json'.format(self.resource_id)) as fixityfile:
+        with zip_file.open('osf_download_{}/fixity_info.json'.format(self.resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)[0]
             self.assertEqual(zip_json['fixity'], True)
             self.assertEqual(zip_json['fixity_details'],
@@ -182,14 +183,14 @@ class TestDownloadJobGET(SimpleTestCase):
         # Verify the status code and content
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.data['error'], "PresQT Error: Invalid ticket number, '{}'.".format(
-            hash_tokens(OSF_TEST_USER_TOKEN)))
+            hash_tokens('bad_token')))
 
     def test_error_500_401_token_invalid(self):
         """
         Return a 500 if the Resource._download_resource() method running on the server gets a 401 error
         """
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': '1234'}
-        self.ticket_number = hash_tokens('1234')
+        self.token = '1234'
         shared_call_get_resource_zip(self, self.resource_id)
 
         url = reverse('job_status', kwargs={'action': 'download'})
@@ -284,6 +285,7 @@ class TestDownloadJobPATCH(SimpleTestCase):
         self.resource_id = 'cmn5z'
         self.target_name = 'osf'
         self.ticket_number = hash_tokens(OSF_TEST_USER_TOKEN)
+        self.token = OSF_TEST_USER_TOKEN
 
     def test_success_200(self):
         """

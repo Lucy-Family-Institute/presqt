@@ -50,7 +50,7 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(len(zip_file.namelist()), 13)
 
         # Verify the fixity file is empty as there was nothing to check.
-        with zip_file.open('github_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
+        with zip_file.open('github_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 1)
 
@@ -90,7 +90,7 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(len(zip_file.namelist()), 13)
 
         # Verify the fixity file is empty as there was nothing to check.
-        with zip_file.open('github_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
+        with zip_file.open('github_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 1)
 
@@ -130,7 +130,7 @@ class TestDownload(SimpleTestCase):
         # self.assertEqual(len(zip_file.namelist()), 13)
 
         # Verify the fixity file is empty as there was nothing to check.
-        with zip_file.open('github_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
+        with zip_file.open('github_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 20)
 
@@ -166,7 +166,7 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(len(zip_file.namelist()), 83)
 
         # GitHub does not provide file hashes, and thus we can't properly check fixity.
-        with zip_file.open('{}_download_{}/data/fixity_info.json'.format(self.target_name, resource_id)) as fixityfile:
+        with zip_file.open('{}_download_{}/fixity_info.json'.format(self.target_name, resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             for file_fixity in zip_json:
                 self.assertEqual(file_fixity['fixity_details'],
