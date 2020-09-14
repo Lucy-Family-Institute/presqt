@@ -11,7 +11,7 @@ from rest_framework.reverse import reverse
 from presqt.api_v1.serializers.resource import ResourceSerializer
 from presqt.api_v1.utilities import (get_source_token, target_validation, FunctionRouter,
                                      spawn_action_process, hash_tokens,
-                                     update_or_create_process_info)
+                                     update_or_create_process_info, get_user_email_opt)
 from presqt.api_v1.utilities.utils.multiple_process_check import multiple_process_check
 from presqt.api_v1.views.resource.base_resource import BaseResource
 from presqt.utilities import PresQTValidationError, PresQTResponseException
@@ -196,6 +196,7 @@ class Resource(BaseResource):
         # Perform token, target, and action validation
         try:
             self.source_token = get_source_token(self.request)
+            self.email = get_user_email_opt(self.request)
             target_validation(self.source_target_name, self.action)
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
