@@ -2,7 +2,7 @@ from .base import *
 
 ALLOWED_HOSTS = ['presqt-qa.crc.nd.edu']
 
-EMAIL_BACKEND = django.core.mail.backends.smtp.EmailBackend
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 CORS_ORIGIN_ALLOW_ALL = False
 
