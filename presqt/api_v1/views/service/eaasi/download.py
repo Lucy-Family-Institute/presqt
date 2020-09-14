@@ -21,10 +21,15 @@ class EaasiDownload(APIView):
           Otherwise return the file contents.
     """
 
-    def get(self, request):
+    def get(self, request, ticket_number):
         """
         Get the resource's download contents.
-        
+
+        Parameters
+        ----------
+        ticket_number: str
+            The ticket number of the download being prepared.
+
         Returns
         -------
         200: OK
@@ -58,8 +63,6 @@ class EaasiDownload(APIView):
         # Get the source token from the request, hash it to get the ticket_number, get the
         # process info data for resource_download
         try:
-            source_token = get_source_token(self.request)
-            ticket_number = hash_tokens(source_token)
             process_info_data = get_process_info_data(ticket_number)
             download_data = get_process_info_action(process_info_data, 'resource_download')
             process_token_validation(eaasi_token, download_data, 'eaasi_token')
