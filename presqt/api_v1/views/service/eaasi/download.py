@@ -39,10 +39,6 @@ class EaasiDownload(APIView):
         {
             "error": "'eaasi_token' not found as query parameter."
         }
-        or
-        {
-            "error":  "PresQT Error: 'presqt-source-token' missing in the request headers."
-        }
 
         401: Unauthorized
         {
@@ -52,6 +48,14 @@ class EaasiDownload(APIView):
         404: Not Found
         {
             "message": "File unavailable."
+        }
+        or
+        {
+            "error": "PresQT Error: Invalid ticket number, '1233'."
+        }
+        or
+        {
+            "error": "PresQT Error: A resource_download does not exist for this user on the server."
         }
         """
         try:
@@ -79,6 +83,5 @@ class EaasiDownload(APIView):
             response['Content-Disposition'] = 'attachment; filename={}'.format(zip_name)
         else:
             response = Response(data={'message': 'File unavailable.'}, status=status.HTTP_404_NOT_FOUND)
-        print('download_response', response)
         return response
 

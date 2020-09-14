@@ -40,10 +40,16 @@ class Proposals(APIView):
         }
         or
         {
-            "error":  "PresQT Error: 'presqt-source-token' missing in the request headers."
-        }
-        {
             "error": "PresQT Error: A download does not exist for this user on the server."
+        }
+
+        404: Not Found
+        {
+            "error": "PresQT Error: Invalid ticket number, '1234'."
+        }
+        or
+        {
+            "error": "PresQT Error: A resource_download does not exist for this user on the server."
         }
         """
         # Get the source token from the request, hash it to get the ticket_number, get the
