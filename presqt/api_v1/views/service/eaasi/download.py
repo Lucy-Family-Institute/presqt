@@ -70,7 +70,7 @@ class EaasiDownload(APIView):
         if download_data['status'] == 'finished':
             # Path to the file to be downloaded
             zip_name = download_data['zip_name']
-            zip_file_path = os.path.join('mediafiles', 'downloads', ticket_number, zip_name)
+            zip_file_path = os.path.join('mediafiles', 'jobs', ticket_number, zip_name)
 
             response = HttpResponse(open(zip_file_path, 'rb'), content_type='application/zip')
             response['Content-Disposition'] = 'attachment; filename={}'.format(zip_name)
