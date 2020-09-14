@@ -429,11 +429,9 @@ class BaseResource(APIView):
         # If we are only downloading the resource then create metadata, bag, zip,
         # and update the server process file.
         else:
-            # Create and write metadata file.
+            # Create Metadata file
             final_fts_metadata_data = create_fts_metadata(self.all_keywords, self.action_metadata,
                                                           self.source_fts_metadata_actions)
-            write_file(os.path.join(self.resource_main_dir, 'PRESQT_FTS_METADATA.json'),
-                       final_fts_metadata_data, True)
 
             # Validate the final metadata
             metadata_validation = schema_validator('presqt/json_schemas/metadata_schema.json',
@@ -441,11 +439,16 @@ class BaseResource(APIView):
             self.process_info_obj['message'] = get_action_message(self, 'Download', self.download_fixity,
                                                                   metadata_validation, self.action_metadata)
 
+            # Make a BagIt 'bag' of the resources.
+            bagit.make_bag(self.resource_main_dir, checksums=['md5', 'sha1', 'sha256', 'sha512'])
+
+            # Write metadata file.
+            write_file(os.path.join(self.resource_main_dir, 'PRESQT_FTS_METADATA.json'),
+                       final_fts_metadata_data, True)
+
             # Add the fixity file to the disk directory
             write_file(os.path.join(self.resource_main_dir, 'fixity_info.json'), fixity_info, True)
 
-            # Make a BagIt 'bag' of the resources.
-            bagit.make_bag(self.resource_main_dir, checksums=['md5', 'sha1', 'sha256', 'sha512'])
 
             # Zip the BagIt 'bag' to send forward.
             zip_directory(self.resource_main_dir, "{}.zip".format(self.resource_main_dir),
