@@ -6,7 +6,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from presqt.api_v1.utilities import (get_process_info_data, process_token_validation)
+from presqt.api_v1.utilities import (get_process_info_data, process_token_validation,
+                                     get_source_token, hash_tokens, get_process_info_action)
 from presqt.utilities import PresQTValidationError
 
 
@@ -20,14 +21,10 @@ class EaasiDownload(APIView):
           Otherwise return the file contents.
     """
 
-    def get(self, request, ticket_number):
+    def get(self, request):
         """
         Get the resource's download contents.
 
-        Parameters
-        ----------
-        ticket_number: str
-            The ticket number of the download being prepared.
         
         Returns
         -------
@@ -37,6 +34,10 @@ class EaasiDownload(APIView):
         400: Bad Request
         {
             "error": "'eaasi_token' not found as query parameter."
+        }
+        or
+        {
+            "error":  "PresQT Error: 'presqt-source-token' missing in the request headers."
         }
 
         401: Unauthorized
@@ -50,22 +51,26 @@ class EaasiDownload(APIView):
         }
         """
         try:
-            token = request.query_params['eaasi_token']
+            eaasi_token = request.query_params['eaasi_token']
         except MultiValueDictKeyError:
             return Response(data={'error': "'eaasi_token' not found as query parameter."},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        # Perform token validation. Read data from the process_info file.
+        # Get the source token from the request, hash it to get the ticket_number, get the
+        # process info data for resource_download
         try:
-            data = get_process_info_data('downloads', ticket_number)
-            process_token_validation(token, data, 'eaasi_token')
+            source_token = get_source_token(self.request)
+            ticket_number = hash_tokens(source_token)
+            process_info_data = get_process_info_data(ticket_number)
+            download_data = get_process_info_action(process_info_data, 'resource_download')
+            process_token_validation(eaasi_token, download_data, 'eaasi_token')
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Return the file to download if it has finished.
-        if data['status'] == 'finished':
+        if download_data['status'] == 'finished':
             # Path to the file to be downloaded
-            zip_name = data['zip_name']
+            zip_name = download_data['zip_name']
             zip_file_path = os.path.join('mediafiles', 'downloads', ticket_number, zip_name)
 
             response = HttpResponse(open(zip_file_path, 'rb'), content_type='application/zip')

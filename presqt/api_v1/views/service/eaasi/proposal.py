@@ -8,8 +8,9 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework import status
 
-from presqt.api_v1.utilities import get_process_info_data
-from presqt.utilities import write_file
+from presqt.api_v1.utilities import (get_process_info_data, get_source_token, hash_tokens,
+                                     get_process_info_action)
+from presqt.utilities import write_file, PresQTValidationError
 
 
 class Proposals(APIView):
@@ -35,20 +36,30 @@ class Proposals(APIView):
 
         400: Bad Request
         {
-        "error": "ticket_number is missing from the request body."
+            "error": "PresQT Error: 'presqt-source-token' missing in the request headers."
+        }
+        or
+        {
+            "error":  "PresQT Error: 'presqt-source-token' missing in the request headers."
+        }
+        {
+            "error": "PresQT Error: A download does not exist for this user on the server."
         }
         """
+        # Get the source token from the request, hash it to get the ticket_number, get the
+        # process_info.json file connected with the ticket_number.
         try:
-            ticket_number = request.data['ticket_number']
-        except KeyError:
-            return Response(data={"error": "ticket_number is missing from the request body."},
-                            status=status.HTTP_400_BAD_REQUEST)
+            source_token = get_source_token(self.request)
+            ticket_number = hash_tokens(source_token)
+            process_info_data = get_process_info_data(ticket_number)
+            download_data = get_process_info_action(process_info_data, 'resource_download')
+        except PresQTValidationError as e:
+            return Response(data={'error': e.data}, status=e.status_code)
 
         # Create a one time use token for EaaSI to use.
         eaasi_token = str(uuid4())
-        data = get_process_info_data('downloads', ticket_number)
-        data['eaasi_token'] = eaasi_token
-        write_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number), data, True)
+        download_data['eaasi_token'] = eaasi_token
+        write_file('mediafiles/jobs/{}/process_info.json'.format(ticket_number), process_info_data, True)
 
         # Build EaaSI download endpoint url
         eaasi_download_reverse = reverse('eaasi_download', kwargs={"ticket_number": ticket_number})
@@ -109,7 +120,8 @@ class Proposal(APIView):
         """
         wait_queue_url = 'https://eaasi-portal.emulation.cloud/environment-proposer/api/v1/waitqueue/{}'.format(proposal_id)
         response = requests.get(wait_queue_url)
-
+        print(response)
+        print(response.json())
         try:
             response.headers['Location']
             return Response(
