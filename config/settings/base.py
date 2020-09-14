@@ -34,6 +34,15 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 DEBUG = False
 ALLOWED_HOSTS = []
 
+# SMTP server configuration
+EMAIL_HOST = "smtp.nd.edu"
+EMAIL_PORT = 25
+EMAIL_USE_TLS = True
+# Email backend: console
+# Instead of sending out real emails the console backend just writes the emails
+# that would be sent to the standard output
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 # Application definition
 
 INSTALLED_APPS = [
