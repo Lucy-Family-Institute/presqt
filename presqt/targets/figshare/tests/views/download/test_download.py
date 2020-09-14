@@ -50,7 +50,7 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(len(zip_file.namelist()), 14)
 
         # Verify the fixity file is empty as there was nothing to check.
-        with zip_file.open('figshare_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
+        with zip_file.open('figshare_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 1)
 
@@ -89,7 +89,7 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(len(zip_file.namelist()), 71)
 
         # Verify the fixity file is empty as there was nothing to check.
-        with zip_file.open('figshare_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
+        with zip_file.open('figshare_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 57)
 
@@ -128,7 +128,7 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(len(zip_file.namelist()), 13)
 
         # Verify the fixity file is empty as there was nothing to check.
-        with zip_file.open('figshare_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
+        with zip_file.open('figshare_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 1)
 
@@ -167,7 +167,7 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(len(zip_file.namelist()), 14)
 
         # Verify the fixity file is empty as there was nothing to check.
-        with zip_file.open('figshare_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
+        with zip_file.open('figshare_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 2)
 
@@ -198,7 +198,7 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(len(zip_file.namelist()), 13)
 
         # Verify the fixity file is empty as there was nothing to check.
-        with zip_file.open('figshare_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
+        with zip_file.open('figshare_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 1)
 
@@ -237,7 +237,7 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(len(zip_file.namelist()), 13)
 
         # Verify the fixity file is empty as there was nothing to check.
-        with zip_file.open('figshare_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
+        with zip_file.open('figshare_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 1)
 
