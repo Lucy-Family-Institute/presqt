@@ -76,6 +76,6 @@ class EaasiDownload(APIView):
             response['Content-Disposition'] = 'attachment; filename={}'.format(zip_name)
         else:
             response = Response(data={'message': 'File unavailable.'}, status=status.HTTP_404_NOT_FOUND)
-        
+        print('download_response', response)
         return response
 
