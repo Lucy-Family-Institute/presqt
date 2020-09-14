@@ -5,10 +5,11 @@ from rest_framework import status
 from presqt.targets.github.utilities import validation_check, github_paginated_data
 from presqt.targets.github.utilities.helpers.github_file_data import get_github_repository_data
 from presqt.targets.github.utilities.helpers.get_page_numbers import get_page_numbers
+from presqt.targets.github.utilities.helpers.github_get_children import github_get_children
 from presqt.utilities import PresQTResponseException
 
 
-def github_fetch_resources(token, query_parameter, process_info_path):
+def github_fetch_resources(token, query_parameter):
     """
     Fetch all users resources from GitHub.
 
@@ -19,8 +20,6 @@ def github_fetch_resources(token, query_parameter, process_info_path):
     query_parameter : dict
         The search parameter passed to the API View
         Gets passed formatted as {'title': 'search_info'}
-    process_info_path: str
-        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
@@ -94,7 +93,7 @@ def github_fetch_resources(token, query_parameter, process_info_path):
         data = requests.get(url, headers=header)
         if data.status_code != 200:
             return [], pages
-        return get_github_repository_data([data.json()], header, process_info_path, []), pages
+        return get_github_repository_data([data.json()], header, []), pages
 
     elif 'title' in query_parameter:
         query_parameters = query_parameter['title'].replace(' ', '+')
@@ -122,7 +121,7 @@ def github_fetch_resources(token, query_parameter, process_info_path):
 
     pages = get_page_numbers(url, header, page_number)
 
-    return get_github_repository_data(data, header, process_info_path, []), pages
+    return get_github_repository_data(data, header, []), pages
 
 
 def github_fetch_resource(token, resource_id):
@@ -184,7 +183,8 @@ def github_fetch_resource(token, resource_id):
             "date_created": data['created_at'],
             "date_modified": data['updated_at'],
             "hashes": {},
-            "extra": {}
+            "extra": {},
+            "children": github_get_children(data, header, resource_id, resource_id)
         }
         for key, value in data.items():
             if '_url' in key:
@@ -232,6 +232,7 @@ def github_fetch_resource(token, resource_id):
                                           status.HTTP_404_NOT_FOUND)
 
         if isinstance(file_json, list):
+            children = github_get_children(file_json, header, resource_id, repo_id)
             return {
                 "kind": "container",
                 "kind_name": "dir",
@@ -240,7 +241,8 @@ def github_fetch_resource(token, resource_id):
                 "date_created": None,
                 "date_modified": None,
                 "hashes": {},
-                "extra": {}
+                "extra": {},
+                "children": children
             }
 
         else:
@@ -254,5 +256,6 @@ def github_fetch_resource(token, resource_id):
                 "hashes": {},
                 "extra": {'size': file_json['size'],
                           'commit_hash': file_json['sha'],
-                          'path': file_json['path']}
+                          'path': file_json['path']},
+                "children": []
             }

@@ -28,4 +28,10 @@ Zenodo     Provides checksums for all files              Writes PRESQT_FTS_METAD
 GitLab     Provides checksums for all files              Writes PRESQT_FTS_METADATA.json file
 
            Keywords written to 'Tag List' attribute      Keywords written to 'Tag List' attribute
+
+Figshare   Provides checksums for all files              Writes PRESQT_FTS_METADATA.json file
+           
+           Keywords written to 'Tags' attribute          Resources will be written in BagIt format as a ZIP file
+                                                         
+                                                         Keywords written to 'Tags' attribute
 ========== ============================================= ==============================================================

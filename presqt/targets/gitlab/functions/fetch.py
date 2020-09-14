@@ -5,10 +5,11 @@ from presqt.targets.gitlab.utilities.gitlab_paginated_data import gitlab_paginat
 from presqt.targets.gitlab.utilities.validation_check import validation_check
 from presqt.targets.gitlab.utilities.get_gitlab_project_data import get_gitlab_project_data
 from presqt.targets.gitlab.utilities.get_page_numbers import get_page_numbers
+from presqt.targets.gitlab.utilities.gitlab_get_children import gitlab_get_children
 from presqt.utilities import PresQTResponseException
 
 
-def gitlab_fetch_resources(token, query_parameter, process_info_path):
+def gitlab_fetch_resources(token, query_parameter):
     """
     Fetch all users projects from GitLab.
 
@@ -19,8 +20,6 @@ def gitlab_fetch_resources(token, query_parameter, process_info_path):
     query_parameter : dict
         The search parameter passed to the API View
         Gets passed formatted as {'title': 'search_info'}
-    process_info_path: str
-        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
@@ -91,7 +90,7 @@ def gitlab_fetch_resources(token, query_parameter, process_info_path):
 
                 if project_response.status_code == 404:
                     return [], pages
-                return get_gitlab_project_data([project_response.json()], headers, [], process_info_path), pages
+                return get_gitlab_project_data([project_response.json()], headers, []), pages
 
             elif 'title' in query_parameter:
                 url = "{}/projects?search={}".format(base_url, query_parameter['title'])
@@ -102,7 +101,7 @@ def gitlab_fetch_resources(token, query_parameter, process_info_path):
             data = requests.get(url, headers=headers).json()
             pages = get_page_numbers(url, headers)
 
-    return get_gitlab_project_data(data, headers, [], process_info_path), pages
+    return get_gitlab_project_data(data, headers, []), pages
 
 
 def gitlab_fetch_resource(token, resource_id):
@@ -181,7 +180,8 @@ def gitlab_fetch_resource(token, resource_id):
                 "date_created": None,
                 "date_modified": None,
                 "hashes": {'sha256': data['content_sha256']},
-                "extra": {'ref': data['ref'], 'commit_id': data['commit_id'], 'size': data['size']}}
+                "extra": {'ref': data['ref'], 'commit_id': data['commit_id'], 'size': data['size']},
+                "children": []}
 
         # Resource is a folder
         else:
@@ -192,6 +192,7 @@ def gitlab_fetch_resource(token, resource_id):
             if response.json() == []:
                 raise PresQTResponseException("The resource could not be found by the requesting user.",
                                               status.HTTP_404_NOT_FOUND)
+            children = gitlab_get_children(response.json(), resource_id, project_id)
             resource = {
                 "kind": "container",
                 "kind_name": "dir",
@@ -200,7 +201,8 @@ def gitlab_fetch_resource(token, resource_id):
                 "date_created": None,
                 "date_modified": None,
                 "hashes": {},
-                "extra": {}}
+                "extra": {},
+                "children": children}
 
     # This is the top level project
     else:
@@ -212,6 +214,13 @@ def gitlab_fetch_resource(token, resource_id):
                                           status.HTTP_404_NOT_FOUND)
 
         data = response.json()
+        children_data = requests.get("{}/repository/tree".format(project_url), headers=headers).json()
+
+        # ERROR, return no children
+        if children_data == [] or 'message' in children_data:
+            children = []
+        else:
+            children = gitlab_get_children(children_data, resource_id, resource_id)
 
         resource = {
             "kind": "container",
@@ -221,7 +230,8 @@ def gitlab_fetch_resource(token, resource_id):
             "date_created": data['created_at'],
             "date_modified": data['last_activity_at'],
             "hashes": {},
-            "extra": {}
+            "extra": {},
+            "children": children
         }
         for key, value in data.items():
             if '_url' in key:

@@ -31,8 +31,8 @@ class TestResourceCollection(SimpleTestCase):
             self.assertListEqual(keys, list(data.keys()))
             self.assertEqual(len(data['links']), 1)
         # Verify the count of resource objects is what we expect.
-        self.assertEqual(75, len(response.data['resources']))
-        self.assertEqual(response.data['pages']['total_pages'], '1')
+        self.assertEqual(1, len(response.data['resources']))
+        self.assertEqual(response.data['pages']['total_pages'], 1)
 
     def test_success_with_search(self):
         """
@@ -96,7 +96,7 @@ class TestResourceCollection(SimpleTestCase):
         for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
         # Verify the count of resource objects is what we expect.
-        self.assertEqual(122, len(response.data['resources']))
+        self.assertEqual(1, len(response.data['resources']))
 
     def test_error_401_invalid_token(self):
         """
@@ -142,4 +142,4 @@ class TestResourceCollection(SimpleTestCase):
         # Should return users resources
         self.assertEqual(response.status_code, 200)
         # Verify the count of resource objects is what we expect.
-        self.assertEqual(75, len(response.data['resources']))
+        self.assertEqual(1, len(response.data['resources']))

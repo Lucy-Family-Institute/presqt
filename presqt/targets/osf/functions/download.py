@@ -54,6 +54,8 @@ async def async_main(url_list, token, process_info_path, action):
         User's OSF token
     process_info_path: str
         Path to the process info file that keeps track of the action's progress
+    action: str
+        The action being performed
 
     Returns
     -------

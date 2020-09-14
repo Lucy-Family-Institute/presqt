@@ -12,6 +12,7 @@ from presqt.api_v1.serializers.resource import ResourceSerializer
 from presqt.api_v1.utilities import (get_source_token, target_validation, FunctionRouter,
                                      spawn_action_process, hash_tokens,
                                      update_or_create_process_info)
+from presqt.api_v1.utilities.utils.multiple_process_check import multiple_process_check
 from presqt.api_v1.views.resource.base_resource import BaseResource
 from presqt.utilities import PresQTValidationError, PresQTResponseException
 
@@ -106,6 +107,10 @@ class Resource(BaseResource):
         {
             "error": "PresQT Error: csv is not a valid format for this endpoint."
         }
+        or
+        {
+            "error": "User currently has processes in progress."
+        }
 
         401: Unauthorized
         {
@@ -199,6 +204,12 @@ class Resource(BaseResource):
         self.ticket_number = hash_tokens(self.source_token)
         self.ticket_path = os.path.join('mediafiles', 'jobs', str(self.ticket_number))
 
+        # Check if this user currently has any other process in progress
+        user_has_process_running = multiple_process_check(self.ticket_path)
+        if user_has_process_running:
+            return Response(data={'error': 'User currently has processes in progress.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
         # Create directory and process_info json file
         self.process_info_obj = {
             'presqt-source-token': hash_tokens(self.source_token),
@@ -210,7 +221,8 @@ class Resource(BaseResource):
             'download_total_files': 0,
             'download_files_finished': 0
         }
-        self.process_info_path = update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
+        self.process_info_path = update_or_create_process_info(
+            self.process_info_obj, self.action, self.ticket_number)
 
         self.base_directory_name = '{}_download_{}'.format(self.source_target_name,
                                                            self.source_resource_id)
@@ -224,11 +236,13 @@ class Resource(BaseResource):
         spawn_action_process(self, self._download_resource, 'resource_download')
 
         # Get the download url for zip format
-        reversed_url = reverse('job_status', kwargs={'action': 'download', 'response_format': 'zip'})
+        reversed_url = reverse('job_status', kwargs={
+                               'action': 'download', 'response_format': 'zip'})
         download_zip_hyperlink = self.request.build_absolute_uri(reversed_url)
 
         # Get the download url for json format
-        reversed_url = reverse('job_status', kwargs={'action': 'download', 'response_format': 'json'})
+        reversed_url = reverse('job_status', kwargs={
+                               'action': 'download', 'response_format': 'json'})
         download_json_hyperlink = self.request.build_absolute_uri(reversed_url)
 
         return Response(status=status.HTTP_202_ACCEPTED,

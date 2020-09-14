@@ -22,7 +22,7 @@ Target Collection/Details
         readable_name                str      Human readable name of the Target for the front end
         status_url                   str      Url which is 200 OK if the API works.
         supported_actions            array    Actions the target supports. Only make actions true when action is working
-        resource_collection          bool     Get all resources for the user in this target
+        resource_collection          bool     Get all top level resources for the user in this target
         resource_detail              bool     Get an individual resource's details
         resource_download            bool     Download a resource
         resource_upload              bool     Upload a resource
@@ -84,8 +84,7 @@ Resource Endpoints
 Resource Collection
 +++++++++++++++++++
 Targets that integrate with the Resources Collection API Endpoint must have a function that returns
-a specifically structured dataset. This structure allows us to recreate the hierarchy of the file
-structure on the front end.
+a specifically structured dataset.
 
 1. Update your target in ``presqt/specs/targets.json`` by setting
 ``supported_actions.resource_collection`` to ``true``.
@@ -100,15 +99,14 @@ structure on the front end.
         ================= === =======================================================================
         token             str User's token for the target
         query_parameter   str The query_parameter parameters passed to the API View
-        process_info_path str Path to the process info file that keeps track of the action's progress
         ================= === =======================================================================
 
     * The function must return the following **in this order**:
 
-        ========= ==== =============================================
-        resources list list of Python dictionaries for each resource
+        ========= ==== =======================================================
+        resources list list of Python dictionaries for each top level resource
         pages     dict dictionary of pagination details
-        ========= ==== =============================================
+        ========= ==== =======================================================
 
             **Resource dictionary details:**
 
@@ -118,7 +116,7 @@ structure on the front end.
                               Options: [container, item]
                 kind_name str Target specific name for that kind
 
-                               For example OSF kind_names are: [node, folder, file]
+                               For example OSF kind_names are: [project, folder, file]
                 container str ID of the container for the resource.
 
                               For example if the resource is a file in a folder then the **container** value would be the ID of the folder
@@ -139,24 +137,18 @@ structure on the front end.
                 per_page      str The amount of resources per page
                 ============= === ================================
 
-    * If you want to keep track of the progress of the collection there are two functions available
-      to do so. ``update_process_info()`` is for updating the total number of resources in the collection
-      and ``increment_process_info()`` is for updating the number of resources gathered thus far.
-
     **Example Resource Collection Function:**
 
         .. code-block:: python
 
-            def <your_target_name>_fetch_resources(token, query_parameter, process_info_path):
+            def <your_target_name>_fetch_resources(token, query_parameter):
                 # Process to obtain resource collection IF search_parameter goes here.
                 # Process to obtain resource collection goes here.
                 # Variables below are defined here to show examples of structure.
                 target_resources = get_target_resources()
-                update_process_info(process_info_path, len(target_resources), 'resource_collection')
 
                 resources = []
                 for resource in target_resources:
-                    increment_process_info(process_info_path, 'resource_collection')
                        resource.append({
                         'kind': 'container',
                         'kind_name': 'Project',
@@ -228,6 +220,13 @@ a specifically structured dataset that represents the resource.
             extra         dict Any extra target specific data.
 
                                Can be an empty dict
+            children      list A list of children resources, each child in the list must be a 
+                               
+                               dictionary that follows the structure of the resource_collection
+                               
+                               dictionaries listed above. Example: [{'kind': '', 'kind_name': '', 
+                               
+                               'id': '', 'container': '', 'title': ''}]
             ============= ==== ==================================================================
 
         **Example Resource Collection Function:**
@@ -259,7 +258,8 @@ a specifically structured dataset that represents the resource.
                                 "write",
                                 "admin"
                             ],
-                        }
+                        },
+                        "children": []
                     }
                     return resource
 
@@ -283,6 +283,7 @@ Resource Download Endpoint
         token             str User's token for the target
         resource_id       str ID for the resource we want to download
         process_info_path str The path to this download's process_info_path
+        action            str The type of action occurring
         ================= === =============================================
 
     * The function must return a **dictionary** with the following keys:
@@ -384,6 +385,7 @@ Resource Upload Endpoint
 
                                   Options: [ignore, update]
         process_info_path     str The path to this download's process_info_path
+        action                str The type of action occurring
         ===================== === ==========================================================================
 
     * The function must return a **dictionary** with the following keys:

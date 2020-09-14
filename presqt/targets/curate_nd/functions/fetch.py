@@ -5,7 +5,7 @@ from presqt.targets.curate_nd.classes.main import CurateND
 from presqt.targets.curate_nd.utilities import get_curate_nd_resource, get_curate_nd_resources_by_id, get_page_numbers
 
 
-def curate_nd_fetch_resources(token, query_parameter, process_info_path):
+def curate_nd_fetch_resources(token, query_parameter):
     """
     Fetch all CurateND resources for the user connected to the given token.
 
@@ -16,8 +16,6 @@ def curate_nd_fetch_resources(token, query_parameter, process_info_path):
     query_parameter : dict
         The search parameter passed to the API View
         Gets passed formatted as {'title': 'search_info'}
-    process_info_path: str
-        Path to the process info file that keeps track of the action's progress
 
     Returns
     -------
@@ -67,7 +65,7 @@ def curate_nd_fetch_resources(token, query_parameter, process_info_path):
                     query_parameters, query_parameter['page'])
             pages = get_page_numbers(search_url, token)
             try:
-                resources = curate_instance.get_resources(process_info_path, search_url)
+                resources = curate_instance.get_resources(search_url)
             except PresQTValidationError as e:
                 raise e
 
@@ -78,7 +76,7 @@ def curate_nd_fetch_resources(token, query_parameter, process_info_path):
                     query_parameter['general'], query_parameter['page'])
             pages = get_page_numbers(search_url, token)
             try:
-                resources = curate_instance.get_resources(process_info_path, search_url)
+                resources = curate_instance.get_resources(search_url)
             except PresQTValidationError as e:
                 raise e
 
@@ -88,11 +86,11 @@ def curate_nd_fetch_resources(token, query_parameter, process_info_path):
         elif 'page' in query_parameter:
             url = 'https://curate.nd.edu/api/items?editor=self&page={}'.format(
                 query_parameter['page'])
-            resources = curate_instance.get_resources(process_info_path, url)
+            resources = curate_instance.get_resources(url)
             pages = get_page_numbers(url, token)
     else:
         url = 'https://curate.nd.edu/api/items?editor=self&page=1'
-        resources = curate_instance.get_resources(process_info_path, url)
+        resources = curate_instance.get_resources(url)
         pages = get_page_numbers(url, token)
 
     return resources, pages
@@ -139,6 +137,17 @@ def curate_nd_fetch_resource(token, resource_id):
         )
     # Get the resource
     resource = get_curate_nd_resource(resource_id, curate_instance)
+    children = []
+    if resource.kind == 'container':
+        # Get the children of this item
+        for child in resource.extra['containedFiles']:
+            children.append({
+                'kind': 'item',
+                'kind_name': 'file',
+                'id': child['id'],
+                'container': resource.id,
+                'title': child['label']})
+
     resource_dict = {
         "kind": resource.kind,
         "kind_name": resource.kind_name,
@@ -147,6 +156,7 @@ def curate_nd_fetch_resource(token, resource_id):
         "date_created": resource.date_submitted,
         "date_modified": resource.modified,
         "hashes": {"md5": resource.md5},
-        "extra": resource.extra}
+        "extra": resource.extra,
+        "children": children}
 
     return resource_dict

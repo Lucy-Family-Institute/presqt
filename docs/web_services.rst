@@ -418,6 +418,7 @@ Github      [Topics]
 Gitlab      [Tag List]
 CurateND    [Subjects]
 Zenodo      [Keywords]
+FigShare    [Tags]
 =========== ======================
 
 Keyword Assignment During Transfer

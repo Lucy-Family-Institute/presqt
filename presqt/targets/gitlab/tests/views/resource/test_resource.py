@@ -15,6 +15,7 @@ from presqt.targets.gitlab.functions.upload_metadata import gitlab_upload_metada
 from presqt.targets.utilities.tests.shared_upload_test_functions import \
     (shared_upload_function_gitlab, process_wait)
 from presqt.utilities import read_file, PresQTError
+from presqt.api_v1.utilities import hash_tokens
 
 
 class TestResourceGETJSON(SimpleTestCase):
@@ -28,7 +29,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_TEST_USER_TOKEN}
         self.keys = ['kind', 'kind_name', 'id', 'title', 'date_created', 'date_modified', 'hashes',
-                     'extra', 'links', 'actions']
+                     'extra', 'children', 'links', 'actions']
 
     def test_success_project(self):
         """
@@ -47,7 +48,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual('project', response.data['kind_name'])
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('ProjectNine', response.data['title'])
-
+        self.assertEqual(len(response.data['children']), 1)
         self.assertEqual(len(response.data['links']), 4)
 
     def test_success_dir(self):
@@ -67,7 +68,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual('dir', response.data['kind_name'])
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('android', response.data['title'])
-
+        self.assertEqual(len(response.data['children']), 6)
         self.assertEqual(len(response.data['links']), 4)
 
     def test_success_file(self):
@@ -87,6 +88,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual('file', response.data['kind_name'])
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('README.md', response.data['title'])
+        self.assertEqual(len(response.data['children']), 0)
         # Download Link
         self.assertEqual(len(response.data['links']), 2)
 
@@ -189,6 +191,7 @@ class TestResourcePOST(SimpleTestCase):
     def setUp(self):
         self.client = APIClient()
         self.token = GITLAB_UPLOAD_TEST_USER_TOKEN
+        self.ticket_number = hash_tokens(self.token)
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
         self.resource_id = None
@@ -322,8 +325,7 @@ class TestResourcePOST(SimpleTestCase):
         response = self.client.post(
             self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
 
-        ticket_number = response.data['ticket_number']
-        self.ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        self.ticket_path = 'mediafiles/uploads/{}'.format(self.ticket_number)
 
         # Verify status code and message
         self.assertEqual(response.status_code, 202)
@@ -332,14 +334,14 @@ class TestResourcePOST(SimpleTestCase):
 
         # Verify process_info file status is 'in_progress' initially
         process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
-        self.assertEqual(process_info['status'], 'in_progress')
+        self.assertEqual(process_info['resource_upload']['status'], 'in_progress')
 
         # Wait until the spawned off process finishes in the background to do further validation
         process_wait(process_info, self.ticket_path)
         process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
         self.assertEquals(
-            process_info['message'], "Project with id, badbadbadidnowaythisisreal, could not be found.")
-        self.assertEquals(process_info['status_code'], 404)
+            process_info['resource_upload']['message'], "Project with id, badbadbadidnowaythisisreal, could not be found.")
+        self.assertEquals(process_info['resource_upload']['status_code'], 404)
 
         shutil.rmtree(self.ticket_path)
 
@@ -467,15 +469,18 @@ class TestResourcePOST(SimpleTestCase):
         self.resource_id = project_id
         shutil.rmtree(self.ticket_path)
 
-        self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': self.resource_id})
+        self.url = reverse('resource', kwargs={
+                           'target_name': 'gitlab', 'resource_id': self.resource_id})
         sleep(30)
         shared_upload_function_gitlab(self)
 
         shutil.rmtree(self.ticket_path)
 
         self.duplicate_action = 'update'
-        self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': self.resource_id})
-        self.resources_ignored = ["/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png"]
+        self.url = reverse('resource', kwargs={
+                           'target_name': 'gitlab', 'resource_id': self.resource_id})
+        self.resources_ignored = [
+            "/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png"]
         sleep(30)
         shared_upload_function_gitlab(self)
         shutil.rmtree(self.ticket_path)
@@ -501,7 +506,8 @@ class TestResourcePOST(SimpleTestCase):
         self.file = 'presqt/api_v1/tests/resources/upload/Empty_Directory_Bag.zip'
         self.resources_ignored = ['/Egg/Empty_Folder']
         self.resource_id = project_id
-        self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': self.resource_id})
+        self.url = reverse('resource', kwargs={
+                           'target_name': 'gitlab', 'resource_id': self.resource_id})
         sleep(30)
         shared_upload_function_gitlab(self)
 
@@ -536,7 +542,8 @@ class TestResourcePOST(SimpleTestCase):
             mock_request.return_value = mock_req
 
             # Upload to the newly created project
-            self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': project_id})
+            self.url = reverse('resource', kwargs={
+                               'target_name': 'gitlab', 'resource_id': project_id})
             self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
             response = self.client.post(self.url, {'presqt-file': open(
                 self.file, 'rb')}, **self.headers)

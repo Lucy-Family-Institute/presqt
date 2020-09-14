@@ -35,6 +35,7 @@ Local Development Environment Setup
     * **OSF_PRESQT_FORK_TOKEN**: The PresQT fork user test token for OSF's API.
     * **ZENODO_TEST_USER_TOKEN**: The test token for Zenodo's API.
     * **GITLAB_TEST_USER_TOKEN**: The test token for GitLab's API.
+    * **FIGSHARE_TEST_USER_TOKEN**: The test token for FigShare's API.
 
     .. Note::
         Contact an administrator to get the target test tokens.

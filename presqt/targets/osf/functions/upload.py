@@ -6,7 +6,7 @@ from rest_framework import status
 from presqt.targets.osf.utilities import get_osf_resource
 from presqt.utilities import (
     PresQTInvalidTokenError, PresQTResponseException, update_process_info,
-    increment_process_info, update_process_info_message)
+    update_process_info_message)
 from presqt.targets.osf.classes.main import OSF
 from presqt.targets.utilities import upload_total_files
 
