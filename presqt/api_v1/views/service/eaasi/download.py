@@ -24,7 +24,6 @@ class EaasiDownload(APIView):
     def get(self, request):
         """
         Get the resource's download contents.
-
         
         Returns
         -------
