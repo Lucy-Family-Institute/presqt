@@ -5,6 +5,7 @@
     "properties": {
       "name": { "type": "string" },
       "status_url": { "type": "string" },
+      "token_url": { "type": "string" },
       "readable_name": { "type": "string" },
       "supported_actions": {
         "type": "object",

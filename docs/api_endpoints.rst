@@ -75,6 +75,7 @@ Target Collection
                 "name": "osf",
                 "readable_name": "OSF",
                 "status_url": "https://api.osf.io/v2/nodes/",
+                "token_url": "https://osf.io/settings/tokens",
                 "supported_actions": {
                     "resource_collection": true,
                     "resource_detail": true,
@@ -111,6 +112,7 @@ Target Collection
                 "name": "curate_nd",
                 "readable_name": "CurateND",
                 "status_url": "https://curate.nd.edu/api/items",
+                "token_url": "https://curate.nd.edu/api/access_tokens",
                 "supported_actions": {
                     "resource_collection": true,
                     "resource_detail": true,
@@ -170,6 +172,7 @@ Target Details
             "name": "osf",
             "readable_name": "OSF",
             "status_url": "https://api.osf.io/v2/nodes/",
+            "token_url": "https://osf.io/settings/tokens",
             "supported_actions": {
                 "resource_collection": true,
                 "resource_detail": true,
