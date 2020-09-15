@@ -103,9 +103,6 @@ class TestDownloadJobGET(SimpleTestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
-        # Ensure an email was sent for this request as an email was provided.
-        self.assertEqual(len(mail.outbox), 1)
-
     def test_success_202(self):
         """
         Return a 202 if the resource has not finished being prepared on the server.
