@@ -3,6 +3,7 @@ import json
 import shutil
 import zipfile
 
+from django.core import mail
 from django.test import SimpleTestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
@@ -23,7 +24,8 @@ class TestDownloadJobGET(SimpleTestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN}
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN,
+                       'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.resource_id = '5cd98510f244ec001fe5632f'
         self.target_name = 'osf'
         self.hashes = {
@@ -78,10 +80,14 @@ class TestDownloadJobGET(SimpleTestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
+        # Ensure no email was sent for this request as no email was provided.
+        self.assertEqual(len(mail.outbox), 0)
+
     def test_success_200_json(self):
         """
         Return a 200 along with a zip file of the resource requested.
         """
+        self.header['HTTP_PRESQT_EMAIL_OPT_IN'] = 'test@fakeemail.com'
         shared_call_get_resource_zip(self, self.resource_id)
 
         url = reverse('job_status', kwargs={'action': 'download', 'response_format': 'json'})
@@ -96,6 +102,9 @@ class TestDownloadJobGET(SimpleTestCase):
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
+
+        # Ensure an email was sent for this request as an email was provided.
+        self.assertEqual(len(mail.outbox), 1)
 
     def test_success_202(self):
         """

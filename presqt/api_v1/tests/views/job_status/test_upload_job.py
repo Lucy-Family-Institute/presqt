@@ -1,8 +1,9 @@
 import json
 import shutil
 from unittest.mock import patch
-
 import requests
+
+from django.core import mail
 from django.test import SimpleTestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
@@ -125,10 +126,14 @@ class TestUploadJobGET(SimpleTestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/jobs/{}'.format(ticket_one))
 
+        # Ensure no email was sent for this request as no email was provided.
+        self.assertEqual(len(mail.outbox), 0)
+
     def test_get_success_osf(self):
         """
         Return a 200 if the GET was successful and the resources were uploaded.
         """
+        self.headers['HTTP_EMAIL_OPT_IN'] = 'eggs@test.com'
         self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
         self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
         self.call_upload_resources()
@@ -145,6 +150,9 @@ class TestUploadJobGET(SimpleTestCase):
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
+
+        # Ensure an email was sent for this request as an email was provided.
+        self.assertEqual(len(mail.outbox), 1)
 
     def test_get_success_202_osf(self):
         """
