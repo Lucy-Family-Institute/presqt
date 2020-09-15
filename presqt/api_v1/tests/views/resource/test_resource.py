@@ -97,7 +97,8 @@ class TestResourceGETZip(SimpleTestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN}
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN,
+                       'HTTP_PRESQT_EMAIL_OPT_IN': ''}
 
     def test_error_400_target_not_supported_test_target(self):
         """
@@ -158,7 +159,8 @@ class TestResourcePOSTWithFile(SimpleTestCase):
         self.client = APIClient()
         self.token = OSF_UPLOAD_TEST_USER_TOKEN
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token,
-                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.good_zip_file = 'presqt/api_v1/tests/resources/upload/GoodBagIt.zip'
 
     def tearDown(self):
@@ -253,7 +255,7 @@ class TestResourcePOSTWithFile(SimpleTestCase):
         """
         Return a 400 if the POST method fails because the presqt-destination-token was not provided.
         """
-        headers = {'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+        headers = {'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore', 'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': 'resource_id'})
         response = self.client.post(
             url, {'presqt-file': open('presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip', 'rb')}, **headers)
@@ -290,7 +292,7 @@ class TestResourcePOSTWithFile(SimpleTestCase):
         """
         Return a 400 if the POST fails because "'presqt-file-duplicate-action' missing in headers.
         """
-        headers = {'HTTP_PRESQT_DESTINATION_TOKEN': OSF_UPLOAD_TEST_USER_TOKEN}
+        headers = {'HTTP_PRESQT_DESTINATION_TOKEN': OSF_UPLOAD_TEST_USER_TOKEN, 'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': 'resource_id'})
         response = self.client.post(
             url, {'presqt-file': open('presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip', 'rb')}, **headers)
@@ -367,7 +369,8 @@ class TestResourcePOSTWithBody(SimpleTestCase):
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.destination_token,
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
-                        'HTTP_PRESQT_KEYWORD_ACTION': 'automatic'}
+                        'HTTP_PRESQT_KEYWORD_ACTION': 'automatic',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
 
     def test_error_400_missing_destination_token(self):
         """

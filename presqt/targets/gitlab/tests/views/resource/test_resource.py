@@ -193,7 +193,8 @@ class TestResourcePOST(SimpleTestCase):
         self.token = GITLAB_UPLOAD_TEST_USER_TOKEN
         self.ticket_number = hash_tokens(self.token)
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token,
-                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.resource_id = None
         self.duplicate_action = 'ignore'
         self.url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})

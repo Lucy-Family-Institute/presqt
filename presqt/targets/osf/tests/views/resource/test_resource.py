@@ -240,7 +240,8 @@ class TestResourceGETZip(SimpleTestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN}
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN,
+                       'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.token = OSF_TEST_USER_TOKEN
 
     def test_success_202_file_osfstorage_jpg(self):
@@ -444,7 +445,7 @@ class TestResourceGETZip(SimpleTestCase):
         """
         self.resource_id = 'cmn5z'
         self.target_name = 'osf'
-        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': 'bad_token'}
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': 'bad_token', 'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.status_code = 401
         self.status_message = "Token is invalid. Response returned a 401 status code."
         shared_get_success_function_202_with_error(self)
@@ -758,7 +759,8 @@ class TestResourcePOST(SimpleTestCase):
         self.token = OSF_UPLOAD_TEST_USER_TOKEN
         self.ticket_number = hash_tokens(self.token)
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token,
-                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.good_zip_file = 'presqt/api_v1/tests/resources/upload/GoodBagIt.zip'
 
     def tearDown(self):

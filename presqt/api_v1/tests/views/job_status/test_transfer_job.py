@@ -32,7 +32,8 @@ class TestTransferJobGET(SimpleTestCase):
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.destination_token,
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
-                        'HTTP_PRESQT_KEYWORD_ACTION': 'manual'}
+                        'HTTP_PRESQT_KEYWORD_ACTION': 'manual',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.ticket_number = "{}_{}".format(hash_tokens(self.source_token), hash_tokens(self.destination_token))
         self.resource_id = '209373660'
         self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
@@ -89,7 +90,8 @@ class TestTransferJobGET(SimpleTestCase):
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': ZENODO_TEST_USER_TOKEN,
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
-                        'HTTP_PRESQT_KEYWORD_ACTION': 'automatic'}
+                        'HTTP_PRESQT_KEYWORD_ACTION': 'automatic',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.ticket_number = "{}_{}".format(hash_tokens(self.source_token), hash_tokens(ZENODO_TEST_USER_TOKEN))
         response = self.client.post(self.url, {"source_target_name": "github",
                                                "source_resource_id": self.resource_id,
@@ -606,7 +608,8 @@ class TestTransferJobGET(SimpleTestCase):
         headers = {'HTTP_PRESQT_DESTINATION_TOKEN': GITHUB_TEST_USER_TOKEN,
                    'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN,
                    'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
-                   'HTTP_PRESQT_KEYWORD_ACTION': 'automatic'}
+                   'HTTP_PRESQT_KEYWORD_ACTION': 'automatic',
+                   'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.ticket_number = '{}_{}'.format(hash_tokens(OSF_TEST_USER_TOKEN), hash_tokens(GITHUB_TEST_USER_TOKEN))
         url = reverse('resource_collection', kwargs={'target_name': 'github'})
 
@@ -756,7 +759,8 @@ class TestTransferJobPATCH(SimpleTestCase):
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.destination_token,
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
-                        'HTTP_PRESQT_KEYWORD_ACTION': 'manual'}
+                        'HTTP_PRESQT_KEYWORD_ACTION': 'manual',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.resource_id = '209373660'
         self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
 

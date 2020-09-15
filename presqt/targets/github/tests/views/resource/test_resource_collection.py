@@ -181,7 +181,8 @@ class TestResourceCollectionPOST(SimpleTestCase):
         self.token = GITHUB_TEST_USER_TOKEN
         self.ticket_number = hash_tokens(self.token)
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token,
-                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.repo_title = 'NewProject'
 
         self.resource_id = None
@@ -445,7 +446,8 @@ class TestResourceCollectionPOST(SimpleTestCase):
         If a user does not have a valid GitHub API token, we should return a 401 unauthorized status.
         """
         headers = {'HTTP_PRESQT_DESTINATION_TOKEN': 'eggyboi',
-                   'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+                   'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
+                   'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **headers)
 
         ticket_number = hash_tokens('eggyboi')

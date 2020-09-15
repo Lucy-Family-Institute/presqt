@@ -22,7 +22,8 @@ class TestUploadJobGET(SimpleTestCase):
         self.client = APIClient()
         self.token = OSF_UPLOAD_TEST_USER_TOKEN
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token,
-                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.ticket_number = hash_tokens(OSF_UPLOAD_TEST_USER_TOKEN)
 
     def tearDown(self):
@@ -175,7 +176,7 @@ class TestUploadJobGET(SimpleTestCase):
         self.call_upload_resources()
 
         url = reverse('job_status', kwargs={'action': 'upload'})
-        headers = {'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+        headers = {'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore', 'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         response = self.client.get(url, **headers)
 
         # Verify the status code and content
@@ -194,13 +195,15 @@ class TestUploadJobGET(SimpleTestCase):
         self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
         self.call_upload_resources()
         headers = {'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
-                   'HTTP_PRESQT_DESTINATION_TOKEN': 'bad_ticket'}
+                   'HTTP_PRESQT_DESTINATION_TOKEN': 'bad_ticket',
+                   'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         url = reverse('job_status', kwargs={'action': 'upload'})
         response = self.client.get(url, **headers)
 
         # Verify the status code and content
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data['error'], "PresQT Error: Invalid ticket number, '{}'.".format(hash_tokens('bad_ticket')))
+        self.assertEqual(response.data['error'], "PresQT Error: Invalid ticket number, '{}'.".format(
+            hash_tokens('bad_ticket')))
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
@@ -219,7 +222,8 @@ class TestUploadJobGET(SimpleTestCase):
         response = self.client.get(url, **self.headers)
 
         self.assertEqual(response.status_code, 500)
-        self.assertEqual(response.data['message'], "Token is invalid. Response returned a 401 status code.")
+        self.assertEqual(response.data['message'],
+                         "Token is invalid. Response returned a 401 status code.")
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
@@ -256,7 +260,8 @@ class TestUploadJobGET(SimpleTestCase):
 
         # Verify the status code and content
         self.assertEqual(response.status_code, 500)
-        self.assertEqual(response.data['message'], "The Resource provided, {}, is not a container".format(file_id))
+        self.assertEqual(response.data['message'],
+                         "The Resource provided, {}, is not a container".format(file_id))
 
         # Delete corresponding folders
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
@@ -273,7 +278,8 @@ class TestUploadJobGET(SimpleTestCase):
         response = self.client.get(url, **self.headers)
 
         self.assertEqual(response.status_code, 500)
-        self.assertEqual(response.data['message'], "User does not have access to this resource with the token provided.")
+        self.assertEqual(
+            response.data['message'], "User does not have access to this resource with the token provided.")
 
         # Delete corresponding folders
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
@@ -292,7 +298,7 @@ class TestUploadJobGET(SimpleTestCase):
         self.assertEqual(response.status_code, 500)
         self.assertEqual(response.data['message'],
 
-        
+
                          "Resource with id 'bad_id' not found for this user.")
 
         # Delete corresponding folders
@@ -311,7 +317,7 @@ class TestUploadJobGET(SimpleTestCase):
 
         self.assertEqual(response.status_code, 500)
         self.assertEqual(response.data['message'],
-                        "The requested resource is no longer available.")
+                         "The requested resource is no longer available.")
 
         # Delete corresponding folders
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
@@ -340,7 +346,8 @@ class TestUploadJobGET(SimpleTestCase):
         url = reverse('job_status', kwargs={'action': 'upload'})
         response = self.client.get(url, **self.headers)
         self.assertEqual(response.status_code, 500)
-        self.assertEqual(response.data['message'], "Response has status code 500 while creating project NewProject")
+        self.assertEqual(response.data['message'],
+                         "Response has status code 500 while creating project NewProject")
 
         # Delete corresponding folders
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
@@ -369,7 +376,8 @@ class TestUploadJobGET(SimpleTestCase):
         url = reverse('job_status', kwargs={'action': 'upload'})
         response = self.client.get(url, **self.headers)
         self.assertEqual(response.status_code, 500)
-        self.assertEqual(response.data['message'], "Response has status code 500 while creating folder funnyfunnyimages")
+        self.assertEqual(
+            response.data['message'], "Response has status code 500 while creating folder funnyfunnyimages")
 
         # Delete corresponding folders
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
@@ -400,7 +408,8 @@ class TestUploadJobGET(SimpleTestCase):
             url = reverse('job_status', kwargs={'action': 'upload'})
             response = self.client.get(url, **self.headers)
             self.assertEqual(response.status_code, 500)
-            self.assertEqual(response.data['message'], "Response has status code 500 while creating file Screen Shot 2019-07-15 at 3.51.13 PM.png")
+            self.assertEqual(
+                response.data['message'], "Response has status code 500 while creating file Screen Shot 2019-07-15 at 3.51.13 PM.png")
 
             # Delete corresponding folders
             shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
@@ -447,7 +456,8 @@ class TestUploadJobGET(SimpleTestCase):
         url = reverse('job_status', kwargs={'action': 'upload'})
         response = self.client.get(url, **self.headers)
         self.assertEqual(response.status_code, 500)
-        self.assertEqual(response.data['message'], "Response has status code 500 while updating file Screen Shot 2019-07-15 at 3.51.13 PM.png")
+        self.assertEqual(
+            response.data['message'], "Response has status code 500 while updating file Screen Shot 2019-07-15 at 3.51.13 PM.png")
 
         # Delete corresponding folders
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
@@ -465,7 +475,8 @@ class TestUploadJobGET(SimpleTestCase):
         url = reverse('job_status', kwargs={'action': 'upload'})
         response = self.client.get(url, **self.headers)
         self.assertEqual(response.status_code, 500)
-        self.assertEqual(response.data['message'], "PresQT Error: Repository is not formatted correctly. Multiple directories exist at the top level.")
+        self.assertEqual(
+            response.data['message'], "PresQT Error: Repository is not formatted correctly. Multiple directories exist at the top level.")
 
         # Delete corresponding folders
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
@@ -483,7 +494,8 @@ class TestUploadJobGET(SimpleTestCase):
         url = reverse('job_status', kwargs={'action': 'upload'})
         response = self.client.get(url, **self.headers)
         self.assertEqual(response.status_code, 500)
-        self.assertEqual(response.data['message'], "PresQT Error: Repository is not formatted correctly. Files exist at the top level.")
+        self.assertEqual(
+            response.data['message'], "PresQT Error: Repository is not formatted correctly. Files exist at the top level.")
 
         # Delete corresponding folders
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
@@ -511,7 +523,8 @@ class TestUploadJobPATCH(SimpleTestCase):
         self.client = APIClient()
         self.token = OSF_UPLOAD_TEST_USER_TOKEN
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token,
-                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.upload_url = reverse('resource_collection', kwargs={'target_name': 'osf'})
         self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
         self.ticket_number = hash_tokens(self.token)
@@ -520,7 +533,7 @@ class TestUploadJobPATCH(SimpleTestCase):
         """
         Return a 200 for successful cancelled upload process.
         """
-        self.client.post( self.upload_url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+        self.client.post(self.upload_url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
 
         ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
         # Verify process_info file status is 'in_progress' initially
@@ -545,7 +558,8 @@ class TestUploadJobPATCH(SimpleTestCase):
 
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
 
-        self.assertEquals(process_info['resource_upload']['message'], 'Upload was cancelled by the user')
+        self.assertEquals(process_info['resource_upload']['message'],
+                          'Upload was cancelled by the user')
         self.assertEquals(process_info['resource_upload']['status'], 'failed')
         self.assertEquals(process_info['resource_upload']['status_code'], '499')
 

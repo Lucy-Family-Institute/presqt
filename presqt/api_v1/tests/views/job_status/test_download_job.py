@@ -281,7 +281,8 @@ class TestDownloadJobPATCH(SimpleTestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN}
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN,
+                       'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.resource_id = 'cmn5z'
         self.target_name = 'osf'
         self.ticket_number = hash_tokens(OSF_TEST_USER_TOKEN)
