@@ -3,6 +3,19 @@
 # together.
 
 version: "3"
+networks:
+  frontend:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.0.0/24
+  backend:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.1.0/24
 services:
   presqt_nginx:
     depends_on:
