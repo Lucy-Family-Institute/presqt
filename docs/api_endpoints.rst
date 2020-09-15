@@ -473,6 +473,7 @@ Download Resource
     :statuscode 400: The ``Target`` does not support the action ``resource_download``
     :statuscode 400: User currently has processes in progress.
     :statuscode 400: ``presqt-source-token`` missing in the request headers
+    :statuscode 400: ``presqt-email-opt-in`` missing in the request headers
     :statuscode 400: Invalid format given. Must be ``zip``
     :statuscode 404: Invalid ``Target`` name
 
@@ -698,6 +699,7 @@ Upload New Top Level Resource
     :statuscode 400: The file provided is not in BagIt format
     :statuscode 400: Checksums failed to validate
     :statuscode 400: ``presqt-file-duplicate-action`` missing in the request headers
+    :statuscode 400: ``presqt-email-opt-in`` missing in the request headers
     :statuscode 400: Invalid ``file_duplicate_action`` header give. The options are ``ignore`` or ``update``
     :statuscode 400: Repository is not formatted correctly. Multiple directories exist at the top level
     :statuscode 400: Repository is not formatted correctly. Files exist at the top level
@@ -740,6 +742,7 @@ Upload To Existing Resource
     :statuscode 202: ``Resource`` has begun uploading
     :statuscode 400: The ``Target`` does not support the action ``resource_upload``
     :statuscode 400: ``presqt-destination-token`` missing in the request headers
+    :statuscode 400: ``presqt-email-opt-in`` missing in the request headers
     :statuscode 400: The file, ``presqt-file``, is not found in the body of the request
     :statuscode 400: The file provided is not a zip file
     :statuscode 400: The file provided is not in BagIt format
@@ -925,6 +928,7 @@ Transfer New Top Level Resource
     :statuscode 400: ``presqt-source-token`` missing in the request headers
     :statuscode 400: ``presqt-destination-token`` missing in the request headers
     :statuscode 400: ``presqt-file-duplicate-action`` missing in the request headers
+    :statuscode 400: ``presqt-email-opt-in`` missing in the request headers
     :statuscode 400: Invalid ``file-duplicate-action`` header give. The options are ``ignore`` or ``update``
     :statuscode 400: ``source_resource_id`` can't be none or blank
     :statuscode 400: ``source_resource_id`` was not found in the request body
@@ -991,6 +995,7 @@ Transfer To Existing Resource
     :statuscode 400: ``presqt-source-token`` missing in the request headers
     :statuscode 400: ``presqt-destination-token`` missing in the request headers
     :statuscode 400: ``presqt-file-duplicate-action`` missing in the request headers
+    :statuscode 400: ``presqt-email-opt-in`` missing in the request headers
     :statuscode 400: Invalid ``file_duplicate_action`` header give. The options are ``ignore`` or ``update``
     :statuscode 400: ``source_resource_id`` can't be none or blank
     :statuscode 400: ``source_resource_id`` was not found in the request body

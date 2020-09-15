@@ -105,6 +105,10 @@ class Resource(BaseResource):
         }
         or
         {
+            "error": "PresQT Error: 'presqt-email-opt-in' missing in the request headers."
+        }
+        or
+        {
             "error": "PresQT Error: csv is not a valid format for this endpoint."
         }
         or

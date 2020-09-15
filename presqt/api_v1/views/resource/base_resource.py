@@ -91,6 +91,10 @@ class BaseResource(APIView):
         }
         or
         {
+            "error": "PresQT Error: 'presqt-email-opt-in' missing in the request headers."
+        }
+        or
+        {
             "error": "PresQT Error: 'bad_action' is not a valid file_duplicate_action.
             The options are 'ignore' or 'update'."
         }
