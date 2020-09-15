@@ -22,7 +22,8 @@ class TestDownload(SimpleTestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': FIGSHARE_TEST_USER_TOKEN}
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': FIGSHARE_TEST_USER_TOKEN,
+                       'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.target_name = 'figshare'
         self.token = FIGSHARE_TEST_USER_TOKEN
 
@@ -260,7 +261,7 @@ class TestDownload(SimpleTestCase):
                                           'resource_id': '209373160',
                                           'resource_format': 'zip'})
 
-        response = self.client.get(url, **{'HTTP_PRESQT_SOURCE_TOKEN': 'eggs'})
+        response = self.client.get(url, **{'HTTP_PRESQT_SOURCE_TOKEN': 'eggs', 'HTTP_PRESQT_EMAIL_OPT_IN': ''})
         download_url = response.data['download_job_zip']
         process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(hash_tokens('eggs'))
         process_info = read_file(process_info_path, True)

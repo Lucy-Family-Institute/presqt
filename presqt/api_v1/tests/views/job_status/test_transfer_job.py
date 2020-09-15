@@ -6,6 +6,8 @@ import requests
 import shutil
 from unittest.mock import patch
 
+from django.core import mailP
+
 from django.test import SimpleTestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
@@ -32,7 +34,8 @@ class TestTransferJobGET(SimpleTestCase):
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.destination_token,
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
-                        'HTTP_PRESQT_KEYWORD_ACTION': 'manual'}
+                        'HTTP_PRESQT_KEYWORD_ACTION': 'manual',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.ticket_number = "{}_{}".format(hash_tokens(self.source_token), hash_tokens(self.destination_token))
         self.resource_id = '209373660'
         self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
@@ -81,6 +84,9 @@ class TestTransferJobGET(SimpleTestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
+        # Ensure no email was sent for this request as no email was provided.
+        self.assertEqual(len(mail.outbox), 0)
+
     def test_call_transfer_success_finite_depth(self):
         """
         Make a POST request to `resource` to begin transferring a resource.
@@ -89,7 +95,8 @@ class TestTransferJobGET(SimpleTestCase):
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': ZENODO_TEST_USER_TOKEN,
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
-                        'HTTP_PRESQT_KEYWORD_ACTION': 'automatic'}
+                        'HTTP_PRESQT_KEYWORD_ACTION': 'automatic',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': 'eggs@test.com'}
         self.ticket_number = "{}_{}".format(hash_tokens(self.source_token), hash_tokens(ZENODO_TEST_USER_TOKEN))
         response = self.client.post(self.url, {"source_target_name": "github",
                                                "source_resource_id": self.resource_id,
@@ -126,6 +133,9 @@ class TestTransferJobGET(SimpleTestCase):
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
+
+        # Ensure an email was sent for this request as an email was provided.
+        self.assertEqual(len(mail.outbox), 1)
 
     def test_transfer_keyword_enhancement_automatic(self):
         """
@@ -606,7 +616,8 @@ class TestTransferJobGET(SimpleTestCase):
         headers = {'HTTP_PRESQT_DESTINATION_TOKEN': GITHUB_TEST_USER_TOKEN,
                    'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN,
                    'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
-                   'HTTP_PRESQT_KEYWORD_ACTION': 'automatic'}
+                   'HTTP_PRESQT_KEYWORD_ACTION': 'automatic',
+                   'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.ticket_number = '{}_{}'.format(hash_tokens(OSF_TEST_USER_TOKEN), hash_tokens(GITHUB_TEST_USER_TOKEN))
         url = reverse('resource_collection', kwargs={'target_name': 'github'})
 
@@ -756,7 +767,8 @@ class TestTransferJobPATCH(SimpleTestCase):
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.destination_token,
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
-                        'HTTP_PRESQT_KEYWORD_ACTION': 'manual'}
+                        'HTTP_PRESQT_KEYWORD_ACTION': 'manual',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.resource_id = '209373660'
         self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
 

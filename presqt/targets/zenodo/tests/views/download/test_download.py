@@ -22,7 +22,8 @@ class TestDownload(SimpleTestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': ZENODO_TEST_USER_TOKEN}
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': ZENODO_TEST_USER_TOKEN,
+                       'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.target_name = 'zenodo'
         self.token = ZENODO_TEST_USER_TOKEN
 
@@ -200,7 +201,7 @@ class TestDownload(SimpleTestCase):
                                           'resource_id': '209373160',
                                           'resource_format': 'zip'})
 
-        response = self.client.get(url, **{'HTTP_PRESQT_SOURCE_TOKEN': 'eggs'})
+        response = self.client.get(url, **{'HTTP_PRESQT_SOURCE_TOKEN': 'eggs', 'HTTP_PRESQT_EMAIL_OPT_IN': ''})
         ticket_number = hash_tokens('eggs')
         download_url = response.data['download_job_zip']
         process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(ticket_number)

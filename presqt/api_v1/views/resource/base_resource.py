@@ -23,12 +23,13 @@ from presqt.api_v1.utilities import (target_validation, transfer_target_validati
                                      keyword_action_validation,
                                      automatic_keywords, update_targets_keywords, manual_keywords,
                                      get_target_data, get_keyword_support,
-                                     update_or_create_process_info)
+                                     update_or_create_process_info, get_user_email_opt)
 from presqt.api_v1.utilities.utils.multiple_process_check import multiple_process_check
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.metadata.download_metadata import validate_metadata
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
+from presqt.api_v1.utilities.utils.send_email import transfer_upload_email_blaster, download_email_blaster
 from presqt.json_schemas.schema_handlers import schema_validator
 from presqt.utilities import (PresQTValidationError, PresQTResponseException, write_file,
                               zip_directory, read_file, update_process_info_message, increment_process_info)
@@ -87,6 +88,10 @@ class BaseResource(APIView):
         or
         {
             "error": "PresQT Error: 'presqt-file-duplicate-action' missing in the request headers."
+        }
+        or
+        {
+            "error": "PresQT Error: 'presqt-email-opt-in' missing in the request headers."
         }
         or
         {
@@ -192,10 +197,10 @@ class BaseResource(APIView):
         try:
             self.destination_token = get_destination_token(self.request)
             self.file_duplicate_action = file_duplicate_action_validation(self.request)
+            self.email = get_user_email_opt(self.request)
             target_valid, self.infinite_depth = target_validation(
                 self.destination_target_name, self.action)
             resource = file_validation(self.request)
-
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
@@ -460,6 +465,8 @@ class BaseResource(APIView):
             self.process_info_obj['zip_name'] = '{}.zip'.format(self.base_directory_name)
             self.process_info_obj['failed_fixity'] = self.download_failed_fixity
             update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
+            if self.email:
+                download_email_blaster(self.email, "{}.zip".format(self.resource_main_dir))
 
         return True
 
@@ -628,6 +635,9 @@ class BaseResource(APIView):
             self.process_info_obj['upload_status'] = upload_message
             update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
 
+            if self.email:
+                transfer_upload_email_blaster(self.email, self.action)
+
         return True
 
     def transfer_post(self):
@@ -641,6 +651,7 @@ class BaseResource(APIView):
         try:
             self.destination_token = get_destination_token(self.request)
             self.source_token = get_source_token(self.request)
+            self.email = get_user_email_opt(self.request)
             self.file_duplicate_action = file_duplicate_action_validation(self.request)
             self.keyword_action = keyword_action_validation(self.request)
             self.source_target_name, self.source_resource_id, self.keywords = transfer_post_body_validation(
@@ -759,5 +770,8 @@ class BaseResource(APIView):
             self, 'Transfer', transfer_fixity, self.metadata_validation, self.action_metadata)
 
         update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
+
+        if self.email:
+            transfer_upload_email_blaster(self.email, self.action)
 
         return

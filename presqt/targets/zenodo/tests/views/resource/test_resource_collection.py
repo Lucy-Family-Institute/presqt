@@ -137,7 +137,8 @@ class TestResourceCollectionPOST(SimpleTestCase):
         self.token = ZENODO_TEST_USER_TOKEN
         self.ticket_number = hash_tokens(self.token)
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token,
-                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.project_title = 'NewProject'
         self.resource_id = None
         self.duplicate_action = 'ignore'
@@ -576,7 +577,8 @@ class TestResourceCollectionPOST(SimpleTestCase):
         If a user does not have a valid Zenodo API token, we should return a 401 unauthorized status.
         """
         headers = {'HTTP_PRESQT_DESTINATION_TOKEN': 'eggyboi',
-                   'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+                   'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
+                   'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **headers)
 
         ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)

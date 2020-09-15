@@ -157,7 +157,8 @@ class TestResourcePOST(SimpleTestCase):
         self.token = GITHUB_TEST_USER_TOKEN
         self.ticket_number = hash_tokens(self.token)
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token,
-                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.good_zip_file = 'presqt/api_v1/tests/resources/upload/GoodBagIt.zip'
         self.repo_title = 'NewProject'
 
