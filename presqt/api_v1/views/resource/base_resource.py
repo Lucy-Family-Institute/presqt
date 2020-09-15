@@ -466,7 +466,9 @@ class BaseResource(APIView):
             self.process_info_obj['failed_fixity'] = self.download_failed_fixity
             update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
             if self.email:
-                download_email_blaster(self.email, "{}.zip".format(self.resource_main_dir))
+                message = 'The download you started on PresQT has finished. It has been attached to this email. \n\nDownload Message: {}\n\nFailed Fixity: {}'.format(
+                    self.process_info_obj['message'], self.process_info_obj['failed_fixity'])
+                download_email_blaster(self.email, "{}.zip".format(self.resource_main_dir), message)
 
         return True
 
@@ -636,7 +638,10 @@ class BaseResource(APIView):
             update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
 
             if self.email:
-                transfer_upload_email_blaster(self.email, self.action)
+                # Build the message for the email
+                message = 'The upload you started on PresQT has finished. \n\nUpload message: {}\n\nFailed Fixity: {}'.format(
+                    upload_message, self.upload_failed_fixity)
+                transfer_upload_email_blaster(self.email, self.action, message)
 
         return True
 
@@ -772,6 +777,9 @@ class BaseResource(APIView):
         update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
 
         if self.email:
-            transfer_upload_email_blaster(self.email, self.action)
+            # Build the message for the email
+            message = 'The transfer you started on PresQT has finished. \n\nTransfer message: {}\n\nFailed Fixity: {}\n\nEnhanced Keywords: {}'.format(
+                self.process_info_obj['message'], self.process_info_obj['failed_fixity'], self.process_info_obj['enhanced_keywords'])
+            transfer_upload_email_blaster(self.email, self.action, message)
 
         return
