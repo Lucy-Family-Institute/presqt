@@ -467,9 +467,7 @@ class BaseResource(APIView):
             update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
             if self.email:
                 # BOLD HEADER
-                start = "\033[1m"
-                end = "\033[0;0m"
-                header = start + "Download Details" + end
+                header = "-----Download Details-----"
                 # Make the message to add to the email body
                 message = 'The download you started on PresQT has finished. It has been attached to this email.\n\n{}\nDownload Message: {}\n\nFailed Fixity: {}'.format(
                     header, self.process_info_obj['message'], self.process_info_obj['failed_fixity'])
@@ -644,9 +642,7 @@ class BaseResource(APIView):
 
             if self.email:
                 # BOLD HEADER
-                start = "\033[1m"
-                end = "\033[0;0m"
-                header = start + "Upload Details" + end
+                header = "-----Upload Details-----"
                 # Build the message for the email
                 message = 'The upload you started on PresQT has finished.\n\n{}\nUpload message: {}\n\nFailed Fixity: {}'.format(
                     header, upload_message, self.upload_failed_fixity)
@@ -787,9 +783,7 @@ class BaseResource(APIView):
 
         if self.email:
             # BOLD HEADER
-            start = "\033[1m"
-            end = "\033[0;0m"
-            header = start + "Transfer Details" + end
+            header = "-----Transfer Details-----"
             # Build the message for the email
             message = 'The transfer you started on PresQT has finished.\n\n{}\nTransfer message: {}\n\nFailed Fixity: {}\n\nEnhanced Keywords: {}'.format(
                 header, self.process_info_obj['message'], self.process_info_obj['failed_fixity'], self.process_info_obj['enhanced_keywords'])
