@@ -205,13 +205,14 @@ class BaseResource(APIView):
             return Response(data={'error': e.data}, status=e.status_code)
 
         self.ticket_number = hash_tokens(self.destination_token)
-        self.ticket_path = os.path.join('mediafiles', 'jobs', str(self.ticket_number))
-
+        ticket_path = os.path.join('mediafiles', 'jobs', str(self.ticket_number))
         # Check if this user currently has any other process in progress
-        user_has_process_running = multiple_process_check(self.ticket_path)
+        user_has_process_running = multiple_process_check(ticket_path)
         if user_has_process_running:
             return Response(data={'error': 'User currently has processes in progress.'},
                             status=status.HTTP_400_BAD_REQUEST)
+        
+        self.ticket_path = os.path.join('mediafiles', 'jobs', str(self.ticket_number), 'upload')
 
         # Remove any resources that already exist in this user's job directory
         if os.path.exists(self.ticket_path):
@@ -678,13 +679,15 @@ class BaseResource(APIView):
         # Generate ticket number
         self.ticket_number = '{}_{}'.format(hash_tokens(
             self.source_token), hash_tokens(self.destination_token))
-        self.ticket_path = os.path.join("mediafiles", "jobs", str(self.ticket_number))
+        ticket_path = os.path.join("mediafiles", "jobs", str(self.ticket_number))
         
         # Check if this user currently has any other process in progress
-        user_has_process_running = multiple_process_check(self.ticket_path)
+        user_has_process_running = multiple_process_check(ticket_path)
         if user_has_process_running:
             return Response(data={'error': 'User currently has processes in progress.'},
                             status=status.HTTP_400_BAD_REQUEST)
+
+        self.ticket_path = os.path.join('mediafiles', 'jobs', str(self.ticket_number), 'transfer')
 
         # Create directory and process_info json file
         self.process_info_obj = {
