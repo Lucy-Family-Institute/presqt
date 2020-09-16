@@ -207,13 +207,15 @@ class Resource(BaseResource):
 
         # Generate ticket number
         self.ticket_number = hash_tokens(self.source_token)
-        self.ticket_path = os.path.join('mediafiles', 'jobs', str(self.ticket_number))
+        ticket_path = os.path.join('mediafiles', 'jobs', str(self.ticket_number))
 
         # Check if this user currently has any other process in progress
-        user_has_process_running = multiple_process_check(self.ticket_path)
+        user_has_process_running = multiple_process_check(ticket_path)
         if user_has_process_running:
             return Response(data={'error': 'User currently has processes in progress.'},
                             status=status.HTTP_400_BAD_REQUEST)
+
+        self.ticket_path = os.path.join('mediafiles', 'jobs', str(self.ticket_number), 'download')
 
         # Create directory and process_info json file
         self.process_info_obj = {
@@ -232,7 +234,7 @@ class Resource(BaseResource):
         self.base_directory_name = '{}_download_{}'.format(self.source_target_name,
                                                            self.source_resource_id)
 
-        # Remove any resources that already exist in this user's job directory
+        # Remove any resources that already exist in this user's job download directory
         if os.path.exists(self.ticket_path):
             for folder in next(os.walk(self.ticket_path))[1]:
                 shutil.rmtree(os.path.join(self.ticket_path, folder))

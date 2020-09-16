@@ -48,4 +48,4 @@ def download_email_blaster(email_address, file_path, message):
         [email_address]
     )
     message.attach_file(file_path)
-    message.send()
+    message.send(fail_silently=True)

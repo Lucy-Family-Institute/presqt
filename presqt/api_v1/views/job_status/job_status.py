@@ -109,7 +109,8 @@ class JobStatus(APIView):
             if self.response_format == 'zip':
                 # Path to the file to be downloaded
                 zip_name = download_process_data['zip_name']
-                zip_file_path = os.path.join('mediafiles', 'jobs', self.ticket_number, zip_name)
+                zip_file_path = os.path.join('mediafiles', 'jobs', self.ticket_number,
+                                             'download', zip_name)
 
                 response = HttpResponse(open(zip_file_path, 'rb'), content_type='application/zip')
                 response['Content-Disposition'] = 'attachment; filename={}'.format(zip_name)
