@@ -25,6 +25,7 @@ from presqt.targets.osf.utilities import delete_users_projects
 from presqt.targets.utilities import (shared_get_success_function_202,
                                       shared_get_success_function_202_with_error, process_wait,
                                       shared_upload_function_osf)
+from presqt.api_v1.utilities import hash_tokens
 from presqt.utilities import (
     write_file, read_file, get_dictionary_from_list, remove_path_contents, PresQTError)
 
@@ -40,7 +41,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN}
         self.keys = ['kind', 'kind_name', 'id', 'title', 'date_created',
-                     'date_modified', 'hashes', 'extra', 'links', 'actions']
+                     'date_modified', 'hashes', 'extra', 'children', 'links', 'actions']
 
     def test_success_project(self):
         """
@@ -71,6 +72,7 @@ class TestResourceGETJSON(SimpleTestCase):
             if link['name'] == 'Upload':
                 self.assertEqual(link['method'], 'POST')
         self.assertEqual(len(response.data['links']), 4)
+        self.assertEqual(len(response.data['children']), 1)
 
     def test_success_file(self):
         """
@@ -94,7 +96,8 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual('2017-01-27 PresQT Workshop Planning Meeting Items.docx',
                          response.data['title'])
         self.assertEqual(len(response.data['links']), 2)
-        self.assertEqual(response.data['links'][0]['name'], 'Download')
+        self.assertEqual(response.data['links'][0]['name'], 'Detail')
+        self.assertEqual(len(response.data['children']), 0)
 
     def test_success_file_no_format(self):
         """
@@ -237,7 +240,9 @@ class TestResourceGETZip(SimpleTestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN}
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN,
+                       'HTTP_PRESQT_EMAIL_OPT_IN': ''}
+        self.token = OSF_TEST_USER_TOKEN
 
     def test_success_202_file_osfstorage_jpg(self):
         """
@@ -259,8 +264,10 @@ class TestResourceGETZip(SimpleTestCase):
         self.assertEqual(fixity_info[0]['fixity_details'],
                          'Source Hash and PresQT Calculated hash matched.')
         self.assertIn(fixity_info[0]['hash_algorithm'], ['sha256', 'md5'])
-        self.assertEqual(fixity_info[0]['presqt_hash'], self.hashes[fixity_info[0]['hash_algorithm']])
-        self.assertEqual(fixity_info[0]['source_hash'], self.hashes[fixity_info[0]['hash_algorithm']])
+        self.assertEqual(fixity_info[0]['presqt_hash'],
+                         self.hashes[fixity_info[0]['hash_algorithm']])
+        self.assertEqual(fixity_info[0]['source_hash'],
+                         self.hashes[fixity_info[0]['hash_algorithm']])
 
     def test_success_202_file_osfstorage_docx(self):
         """
@@ -282,9 +289,10 @@ class TestResourceGETZip(SimpleTestCase):
         self.assertEqual(fixity_info[0]['fixity_details'],
                          'Source Hash and PresQT Calculated hash matched.')
         self.assertIn(fixity_info[0]['hash_algorithm'], ['sha256', 'md5'])
-        self.assertEqual(fixity_info[0]['presqt_hash'], self.hashes[fixity_info[0]['hash_algorithm']])
-        self.assertEqual(fixity_info[0]['source_hash'], self.hashes[fixity_info[0]['hash_algorithm']])
-
+        self.assertEqual(fixity_info[0]['presqt_hash'],
+                         self.hashes[fixity_info[0]['hash_algorithm']])
+        self.assertEqual(fixity_info[0]['source_hash'],
+                         self.hashes[fixity_info[0]['hash_algorithm']])
 
     def test_success_202_file_osfstorage_pdf(self):
         """
@@ -306,8 +314,10 @@ class TestResourceGETZip(SimpleTestCase):
         self.assertEqual(fixity_info[0]['fixity_details'],
                          'Source Hash and PresQT Calculated hash matched.')
         self.assertIn(fixity_info[0]['hash_algorithm'], ['sha256', 'md5'])
-        self.assertEqual(fixity_info[0]['presqt_hash'], self.hashes[fixity_info[0]['hash_algorithm']])
-        self.assertEqual(fixity_info[0]['source_hash'], self.hashes[fixity_info[0]['hash_algorithm']])
+        self.assertEqual(fixity_info[0]['presqt_hash'],
+                         self.hashes[fixity_info[0]['hash_algorithm']])
+        self.assertEqual(fixity_info[0]['source_hash'],
+                         self.hashes[fixity_info[0]['hash_algorithm']])
 
     def test_success_202_file_osfstorage_mp3(self):
         """
@@ -329,8 +339,10 @@ class TestResourceGETZip(SimpleTestCase):
         self.assertEqual(fixity_info[0]['fixity_details'],
                          'Source Hash and PresQT Calculated hash matched.')
         self.assertIn(fixity_info[0]['hash_algorithm'], ['sha256', 'md5'])
-        self.assertEqual(fixity_info[0]['presqt_hash'], self.hashes[fixity_info[0]['hash_algorithm']])
-        self.assertEqual(fixity_info[0]['source_hash'], self.hashes[fixity_info[0]['hash_algorithm']])
+        self.assertEqual(fixity_info[0]['presqt_hash'],
+                         self.hashes[fixity_info[0]['hash_algorithm']])
+        self.assertEqual(fixity_info[0]['source_hash'],
+                         self.hashes[fixity_info[0]['hash_algorithm']])
 
     def test_success_202_file_googledrive(self):
         """
@@ -433,7 +445,7 @@ class TestResourceGETZip(SimpleTestCase):
         """
         self.resource_id = 'cmn5z'
         self.target_name = 'osf'
-        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': 'bad_token'}
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': 'bad_token', 'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.status_code = 401
         self.status_message = "Token is invalid. Response returned a 401 status code."
         shared_get_success_function_202_with_error(self)
@@ -544,7 +556,7 @@ class TestResourceGETZip(SimpleTestCase):
                 '{}/{}/data/22776439564_7edbed7e10_o.jpg'.format(ticket_path, base_name)), True)
 
         # Verify the fixity info returned is correct
-        fixity_file = zip_file.open('{}/data/fixity_info.json'.format(base_name))
+        fixity_file = zip_file.open('{}/fixity_info.json'.format(base_name))
         fixity_info = json.load(fixity_file)
         self.assertEqual(fixity_info[0]['fixity'], False)
         self.assertEqual(fixity_info[0]['fixity_details'],
@@ -552,56 +564,6 @@ class TestResourceGETZip(SimpleTestCase):
         self.assertEqual(fixity_info[0]['hash_algorithm'], 'sha256')
         self.assertEqual(fixity_info[0]['source_hash'], hashes['sha256'])
         self.assertNotEqual(fixity_info[0]['presqt_hash'], hashes['sha256'])
-
-        # Delete corresponding folder
-        shutil.rmtree(ticket_path)
-
-    def test_process_watchdog_failure(self):
-        """
-        Manually test the process_watchdog utility function to get code coverage and make sure it
-        is working as expected.
-        Test whether the process_watchdog catches that the monitored process took too long.
-        """
-        resource_id = '5cd9832cf244ec0021e5f245'
-        ticket_number = uuid.uuid4()
-        ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
-        base_name = 'osf_download_{}'.format(resource_id)
-        process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(ticket_number)
-        process_info_obj = {
-            'presqt-source-token': OSF_TEST_USER_TOKEN,
-            'status': 'in_progress',
-            'expiration': str(timezone.now() + relativedelta(days=5)),
-            'message': 'Download is being processed on the server',
-            'status_code': None
-        }
-        write_file(process_info_path, process_info_obj, True)
-
-        # Start the Resource._download_resource process manually
-        process_state = multiprocessing.Value('b', 0)
-
-        resource_instance = BaseResource()
-        resource_instance.source_target_name = 'osf'
-        resource_instance.action = 'resource_download'
-        resource_instance.source_token = OSF_TEST_USER_TOKEN
-        resource_instance.source_resource_id = resource_id
-        resource_instance.ticket_path = ticket_path
-        resource_instance.resource_main_dir = '{}/{}'.format(ticket_path, base_name)
-        resource_instance.process_info_path = process_info_path
-        resource_instance.process_state = process_state
-        resource_instance.process_info_obj = {}
-        resource_instance.base_directory_name = base_name
-        function_process = multiprocessing.Process(target=resource_instance._download_resource)
-        function_process.start()
-
-        # Start watchdog function manually
-        process_watchdog(function_process, process_info_path, 1)
-
-        # Make sure the process_watchdog reached a failure and updated the status to 'failed'
-        process_info = read_file('mediafiles/downloads/{}/process_info.json'.format(ticket_number),
-                                 True)
-        self.assertEqual(process_info['status'], 'failed')
-        self.assertEqual(process_info['status_code'], 504)
-        self.assertEqual(process_info['message'], 'The process took too long on the server.')
 
         # Delete corresponding folder
         shutil.rmtree(ticket_path)
@@ -716,7 +678,7 @@ class TestResourceGETZip(SimpleTestCase):
         self.assertEqual(2, len(metadata_json['actions']))
 
         for action in metadata_json['actions']:
-            if action['id'] == 'd1b9df10-d7d4-4223-b49b-efa51bca16e1':
+            if action['id'] == '2d5a7159-e03b-4931-99b9-8f8bddb490c2':
                 self.assertEqual({"created": [], "updated": [], "ignored": []}, action['files'])
             else:
                 self.assertEqual(57, len(action['files']['created']))
@@ -766,6 +728,22 @@ class TestResourceGETZip(SimpleTestCase):
         # Delete corresponding folder
         shutil.rmtree(ticket_path)
 
+    def test_error_attempt_multiple_downloads(self):
+        """
+        If a user has other process in action, alert the user.
+        """
+        url = reverse('resource', kwargs={'target_name': 'osf',
+                                          'resource_id': '5cd988d3054f5b00185ca5e3',
+                                          'resource_format': 'zip'})
+        response = self.client.get(url, **self.header)
+        # Verify the status code and content
+        self.assertEqual(response.status_code, 202)
+
+        response = self.client.get(url, **self.header)
+        # Verify the status code and content
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['error'], "User currently has processes in progress.")
+
 
 class TestResourcePOST(SimpleTestCase):
     """
@@ -779,8 +757,10 @@ class TestResourcePOST(SimpleTestCase):
     def setUp(self):
         self.client = APIClient()
         self.token = OSF_UPLOAD_TEST_USER_TOKEN
+        self.ticket_number = hash_tokens(self.token)
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token,
-                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.good_zip_file = 'presqt/api_v1/tests/resources/upload/GoodBagIt.zip'
 
     def tearDown(self):
@@ -839,8 +819,6 @@ class TestResourcePOST(SimpleTestCase):
         self.assertEqual(metadata_dict['actions'][0]['destinationTargetName'], 'osf')
         self.assertEqual(metadata_dict['actions'][0]['destinationUsername'], 'Prometheus')
         self.assertEqual(len(metadata_dict['actions'][0]['files']['created']), 1)
-        # delete upload folder
-        shutil.rmtree(self.ticket_path)
 
         ######## 202 when uploading to an existing container with duplicate files ignored ########
         self.resource_id = '{}:osfstorage'.format(node_id)
@@ -889,9 +867,6 @@ class TestResourcePOST(SimpleTestCase):
         encoded_metadata = json.dumps(metadata_dict, indent=4).encode('utf-8')
         requests.put(update_url, headers=headers,
                      params={'kind': 'file'}, data=encoded_metadata)
-
-        # delete upload folder
-        shutil.rmtree(self.ticket_path)
 
         # ######## 202 when uploading to an existing container with duplicate files replaced ########
         self.resource_id = folder_id
@@ -949,9 +924,6 @@ class TestResourcePOST(SimpleTestCase):
         self.hash_algorithm = 'sha256'
         shared_upload_function_osf(self)
 
-        # delete upload folder
-        shutil.rmtree(self.ticket_path)
-
     def test_success_202_large_duplicate_connection_error(self):
         """
         Return a 202 if we upload a large duplicate file. We have a separate test here because
@@ -963,17 +935,10 @@ class TestResourcePOST(SimpleTestCase):
         self.assertEqual(response.status_code, 202)
 
         # Wait for the process to finish
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
-        process_info_path = 'mediafiles/uploads/{}/process_info.json'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
+        process_info_path = '{}/process_info.json'.format(ticket_path)
         process_info = read_file(process_info_path, True)
         process_wait(process_info, ticket_path)
-
-        # Wait for the process to finish
-        process_wait(process_info, ticket_path)
-
-        # delete upload folder
-        shutil.rmtree(ticket_path)
 
         # Get new project ID
         headers = {'Authorization': 'Bearer {}'.format(OSF_UPLOAD_TEST_USER_TOKEN)}
@@ -989,17 +954,10 @@ class TestResourcePOST(SimpleTestCase):
         self.assertEqual(response.status_code, 202)
 
         # Wait for the process to finish
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
-        process_info_path = 'mediafiles/uploads/{}/process_info.json'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
+        process_info_path = '{}/process_info.json'.format(ticket_path)
         process_info = read_file(process_info_path, True)
         process_wait(process_info, ticket_path)
-
-        # Wait for the process to finish
-        process_wait(process_info, ticket_path)
-
-        # delete upload folder
-        shutil.rmtree(ticket_path)
 
         # Attempt to upload the same large file and get the duplicate ConnectionError
         url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': node_id})
@@ -1007,17 +965,10 @@ class TestResourcePOST(SimpleTestCase):
         self.assertEqual(response.status_code, 202)
 
         # Wait for the process to finish
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
-        process_info_path = 'mediafiles/uploads/{}/process_info.json'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
+        process_info_path = '{}/process_info.json'.format(ticket_path)
         process_info = read_file(process_info_path, True)
         process_wait(process_info, ticket_path)
-
-        # Wait for the process to finish
-        process_wait(process_info, ticket_path)
-
-        # delete upload folder
-        shutil.rmtree(ticket_path)
 
     def test_bad_metadata_request(self):
         """
@@ -1059,9 +1010,6 @@ class TestResourcePOST(SimpleTestCase):
             # Attempt to update the metadata, but the server is down!
             self.assertRaises(PresQTError, osf_upload_metadata, self.token, node_id,
                               {"context": {}, "allKeywords": [], "actions": []})
-
-        # Delete corresponding folder
-        shutil.rmtree(self.ticket_path)
 
     def test_error_creating_invalid_metadata_file(self):
         """
@@ -1116,9 +1064,6 @@ class TestResourcePOST(SimpleTestCase):
             self.assertRaises(PresQTError, osf_upload_metadata, self.token, node_id,
                               {"context": {}, "actions": []})
 
-        # Delete corresponding folder
-        shutil.rmtree(self.ticket_path)
-
     def test_proper_message_if_metadata_fails_validation(self):
         """
         """
@@ -1136,8 +1081,7 @@ class TestResourcePOST(SimpleTestCase):
             response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')},
                                         **self.headers)
 
-            ticket_number = response.data['ticket_number']
-            self.ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+            self.ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
             # Verify status code and message
             self.assertEqual(response.status_code, 202)
@@ -1145,19 +1089,17 @@ class TestResourcePOST(SimpleTestCase):
 
             # Verify process_info file status is 'in_progress' initially
             process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
-            self.assertEqual(process_info['status'], 'in_progress')
+            self.assertEqual(process_info['resource_upload']['status'], 'in_progress')
 
             # Wait until the spawned off process finishes in the background to do further validation
-            while process_info['status'] == 'in_progress':
+            while process_info['resource_upload']['status'] == 'in_progress':
                 try:
                     process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
                 except json.decoder.JSONDecodeError:
                     # Pass while the process_info file is being written to
                     pass
-            self.assertEqual(process_info['message'], "Upload successful but with metadata errors.")
-
-        # Delete corresponding folder
-        shutil.rmtree(self.ticket_path)
+            self.assertEqual(process_info['resource_upload']['message'],
+                             "Upload successful but with metadata errors.")
 
     def test_success_400_bad_bag_only_single_file(self):
         """
@@ -1167,8 +1109,25 @@ class TestResourcePOST(SimpleTestCase):
         self.duplicate_action = 'ignore'
         self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
         self.file = 'presqt/api_v1/tests/resources/upload/bagless_zip.zip'
-        response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+        response = self.client.post(
+            self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['error'], 'PresQT Error: Bag is not formatted properly.')
 
+    def test_error_attempt_multiple_uploads(self):
+        """
+        If a user has other process in action, alert the user.
+        """
+        self.resource_id = None
+        self.duplicate_action = 'ignore'
+        self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
+        response = self.client.post(
+            self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+
+        error_response = self.client.post(
+            self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+        # Verify the status code and content
+        self.assertEqual(error_response.status_code, 400)
+        self.assertEqual(error_response.data['error'], "User currently has processes in progress.")

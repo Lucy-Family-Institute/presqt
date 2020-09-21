@@ -6,7 +6,8 @@ from presqt.targets.curate_nd.classes.base import CurateNDBase
 from presqt.targets.curate_nd.classes.file import File
 from presqt.targets.curate_nd.classes.item import Item
 from presqt.targets.utilities import run_urls_async
-from presqt.utilities import PresQTInvalidTokenError, PresQTResponseException
+from presqt.utilities import (PresQTInvalidTokenError, PresQTResponseException, update_process_info,
+                              increment_process_info)
 
 
 class CurateND(CurateNDBase):
@@ -112,6 +113,8 @@ class CurateND(CurateNDBase):
 
         Parameters
         ----------
+        process_info_path: str
+            Path to the process info file that keeps track of the action's progress
         url : str
             The url used to retrive all items.
 
@@ -120,7 +123,9 @@ class CurateND(CurateNDBase):
         List of all items.
         """
         resources = []
-        for item in self.items(url):
+        items = self.items(url)
+
+        for item in items:
             # Items
             resources.append({
                 'kind': 'container',
@@ -128,13 +133,5 @@ class CurateND(CurateNDBase):
                 'id': item.id,
                 'container': None,
                 'title': item.title})
-            # Files
-            for file in item.extra['containedFiles']:
-                resources.append({
-                    'kind': 'item',
-                    'kind_name': 'file',
-                    'id': file['id'],
-                    'container': item.id,
-                    'title': file['label']})
 
         return resources

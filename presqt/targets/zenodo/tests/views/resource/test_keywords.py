@@ -46,15 +46,13 @@ class TestResourceKeywords(SimpleTestCase):
         """
         resource_id = '3525982'
         # Ensure no keywords for this project
-        url = reverse('resource', kwargs={'target_name': 'zenodo',
-                                          'resource_id': resource_id})
+        url = reverse('resource', kwargs={'target_name': 'zenodo', 'resource_id': resource_id})
         response = self.client.get(url, **self.header)
         self.assertEqual(response.data['extra']['keywords'], [])
 
         keywords_url = reverse('keywords', kwargs={'target_name': 'zenodo',
                                                    'resource_id': resource_id})
         keywords_response = self.client.get(keywords_url, **self.header)
-
         self.assertGreater(keywords_response.data['keywords'], [])
 
     def test_error_project_keywords(self):
@@ -82,18 +80,17 @@ class TestResourceKeywordsPOST(SimpleTestCase):
     def setUp(self):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': ZENODO_TEST_USER_TOKEN}
-        self.keys = ['keywords_added', 'final_keywords']
+        self.keys = ['initial_keywords', 'keywords_added', 'final_keywords']
 
     def test_success_project_keywords(self):
         """
         Returns a 202 if the POST method is successful when updating a Zenodo `project` keywords.
         """
         resource_id = '3525310'
-        url = reverse('keywords', kwargs={'target_name': 'zenodo',
-                                          'resource_id': resource_id})
+        url = reverse('keywords', kwargs={'target_name': 'zenodo', 'resource_id': resource_id})
         # First check the initial tags.
         get_response = self.client.get(url, **self.header)
-        # Get the ount of the initial keywords
+        # Get the count of the initial keywords
         initial_keywords = len(get_response.data['keywords'])
 
         response = self.client.post(
@@ -125,6 +122,12 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         project_info = requests.get(put_url, params=headers).json()
         for file in project_info['files']:
             if file['filename'] == 'PRESQT_FTS_METADATA.json':
+                # Get the contents
+                response = requests.get(file['links']['download'], params=headers)
+                metadata_file = json.loads(response.content)
+                # Check keys
+                for key, value in metadata_file['actions'][0]['keywords']['ontologies'][0].items():
+                    self.assertIn(key, ['keywords', 'ontology', 'ontology_id', 'categories'])
                 # 2. Delete the metadata
                 delete_url = file['links']['self']
                 response = requests.delete(delete_url, params=headers)
@@ -133,7 +136,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
 
     def test_success_keywords_error_metadata(self):
         """
-        Test that if an error occured during metadata updating, the user is made aware.
+        Test that if an error occurred during metadata updating, the user is made aware.
         """
         class MockResponse:
             def __init__(self, json_data, status_code):
@@ -149,7 +152,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
                                               'resource_id': resource_id})
             # First check the initial tags.
             get_response = self.client.get(url, **self.header)
-            # Get the ount of the initial keywords
+            # Get the count of the initial keywords
             initial_keywords = len(get_response.data['keywords'])
 
             response = self.client.post(

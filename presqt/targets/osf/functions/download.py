@@ -6,11 +6,12 @@ from rest_framework import status
 
 from presqt.targets.osf.utilities import get_osf_resource, osf_download_metadata
 from presqt.utilities import (PresQTResponseException, PresQTInvalidTokenError,
-                              get_dictionary_from_list)
+                              get_dictionary_from_list, update_process_info, increment_process_info,
+                              update_process_info_message)
 from presqt.targets.osf.classes.main import OSF
 
 
-async def async_get(url, session, token):
+async def async_get(url, session, token, process_info_path, action):
     """
     Coroutine that uses aiohttp to make a GET request. This is the method that will be called
     asynchronously with other GETs.
@@ -23,6 +24,10 @@ async def async_get(url, session, token):
         aiohttp ClientSession Object
     token: str
         User's OSF token
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
+    action: str
+        The action being performed
 
     Returns
     -------
@@ -31,10 +36,12 @@ async def async_get(url, session, token):
     async with session.get(url, headers={'Authorization': 'Bearer {}'.format(token)}) as response:
         assert response.status == 200
         content = await response.read()
+        # Increment the number of files done in the process info file.
+        increment_process_info(process_info_path, action, 'download')
         return {'url': url, 'binary_content': content}
 
 
-async def async_main(url_list, token):
+async def async_main(url_list, token, process_info_path, action):
     """
     Main coroutine method that will gather the url calls to be made and will make them
     asynchronously.
@@ -45,16 +52,20 @@ async def async_main(url_list, token):
         List of urls to call
     token: str
         User's OSF token
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
+    action: str
+        The action being performed
 
     Returns
     -------
     List of data brought back from each coroutine called.
     """
     async with aiohttp.ClientSession() as session:
-        return await asyncio.gather(*[async_get(url, session, token) for url in url_list])
+        return await asyncio.gather(*[async_get(url, session, token, process_info_path, action) for url in url_list])
 
 
-def osf_download_resource(token, resource_id):
+def osf_download_resource(token, resource_id, process_info_path, action):
     """
     Fetch the requested resource from OSF along with its hash information.
 
@@ -62,9 +73,12 @@ def osf_download_resource(token, resource_id):
     ----------
     token : str
         User's OSF token
-
     resource_id : str
         ID of the resource requested
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
+    action: str
+        The action being performed
 
     Returns
     -------
@@ -91,7 +105,6 @@ def osf_download_resource(token, resource_id):
     except PresQTInvalidTokenError:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
-
     # Get contributor name
     contributor_name = requests.get('https://api.osf.io/v2/users/me/',
                                     headers={'Authorization': 'Bearer {}'.format(token)}).json()[
@@ -106,6 +119,11 @@ def osf_download_resource(token, resource_id):
     files = []
     empty_containers = []
     if resource.kind_name == 'file':
+        update_process_info_message(process_info_path, action, 'Downloading files from OSF...')
+        # Add the total number of projects to the process info file.
+        # This is necessary to keep track of the progress of the request.
+        update_process_info(process_info_path, 1, action, 'download')
+
         project = osf_instance.project(resource.parent_project_id)
         files.append({
             "file": resource.download(),
@@ -116,6 +134,8 @@ def osf_download_resource(token, resource_id):
             "source_path": '/{}/{}{}'.format(project.title, resource.provider, resource.materialized_path),
             "extra_metadata": osf_download_metadata(resource)
         })
+        # Increment the number of files done in the process info file.
+        increment_process_info(process_info_path, action, 'download')
     else:
         if resource.kind_name == 'project':
             resource.get_all_files('', files, empty_containers)
@@ -134,17 +154,23 @@ def osf_download_resource(token, resource_id):
                 path_to_strip = resource.materialized_path[:-(len(resource.title) + 2)]
                 file['path'] = file['file'].materialized_path[len(path_to_strip):]
 
-        # Asynchronously make all download requests
         file_urls = [file['file'].download_url for file in files]
+
+        update_process_info_message(process_info_path, action, 'Downloading files from OSF...')
+        # Add the total number of projects to the process info file.
+        # This is necessary to keep track of the progress of the request.
+        update_process_info(process_info_path, len(file_urls), action, 'download')
+
+        # Asynchronously make all download requests
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        download_data = loop.run_until_complete(async_main(file_urls, token))
+        download_data = loop.run_until_complete(async_main(file_urls, token, process_info_path, action))
 
         # Go through the file dictionaries and replace the file class with the binary_content
         for file in files:
             file['source_path'] = '/{}/{}{}'.format(project.title,
-                                                   file['file'].provider,
-                                                   file['file'].materialized_path)
+                                                    file['file'].provider,
+                                                    file['file'].materialized_path)
             file['file'] = get_dictionary_from_list(
                 download_data, 'url', file['file'].download_url)['binary_content']
 

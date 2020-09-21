@@ -1,4 +1,3 @@
-import requests
 
 
 def zenodo_fetch_resources_helper(zenodo_projects, auth_parameter, is_record):
@@ -9,7 +8,7 @@ def zenodo_fetch_resources_helper(zenodo_projects, auth_parameter, is_record):
     ----------
     zenodo_projects : dict
         The requesting user's Zenodo projects.
-    auth_parameeter : dict
+    auth_parameter : dict
         The user's Zenodo API token
     is_record : boolean
         Flag for if the resource is a published record
@@ -32,29 +31,6 @@ def zenodo_fetch_resources_helper(zenodo_projects, auth_parameter, is_record):
             "id": entry['id'],
             "title": entry['metadata']['title']}
         resources.append(resource)
-
-        # Now loop through the files
-        if is_record is True:
-            # This will work on the records endpoint
-            for item in entry['files']:
-                resource = {
-                    "kind": "item",
-                    "kind_name": "file",
-                    "container": entry['id'],
-                    "id": item['bucket'],
-                    "title": item['key']}
-                resources.append(resource)
-
-        # Otherwise we need to pull the info from the depositions endpoint
-        else:
-            for item in requests.get(entry['links']['files'], params=auth_parameter).json():
-                resource = {
-                    "kind": "item",
-                    "kind_name": "file",
-                    "container": entry['id'],
-                    "id": item['id'],
-                    "title": item['filename']}
-                resources.append(resource)
 
     return resources
 
@@ -93,6 +69,9 @@ def zenodo_fetch_resource_helper(zenodo_project, resource_id, is_record=False, i
         for key, value in zenodo_project['metadata'].items():
             extra[key] = value
 
+        from presqt.targets.zenodo.utilities.helpers.get_zenodo_children import zenodo_get_children
+        children = zenodo_get_children(zenodo_project, resource_id, is_record)
+
     else:
         kind = 'item'
         kind_name = 'file'
@@ -100,6 +79,7 @@ def zenodo_fetch_resource_helper(zenodo_project, resource_id, is_record=False, i
         date_modified = zenodo_project['updated']
         hashes = {'md5': zenodo_project['checksum'].partition(':')[2]}
         extra = {}
+        children = []
 
     return {
         "kind": kind,
@@ -109,4 +89,5 @@ def zenodo_fetch_resource_helper(zenodo_project, resource_id, is_record=False, i
         "date_created": zenodo_project['created'],
         "date_modified": date_modified,
         "hashes": hashes,
-        "extra": extra}
+        "extra": extra,
+        "children": children}

@@ -27,24 +27,24 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
-        # Verify the count of resource objects is what we expect.
-        self.assertEqual(75, len(response.data))
-        for data in response.data:
             self.assertEqual(len(data['links']), 1)
+        # Verify the count of resource objects is what we expect.
+        self.assertEqual(1, len(response.data['resources']))
+        self.assertEqual(response.data['pages']['total_pages'], 1)
 
     def test_success_with_search(self):
         """
         Return a 200 if the GET method is successful when grabbing OSF resources with a search query.
         """
         url = reverse('resource_collection', kwargs={'target_name': 'osf'})
-        response = self.client.get(url+'?title=hcv+and+nhl+risk', **self.header)
+        response = self.client.get(url+'?title=hcv+and+nhl+risk&page=1', **self.header)
         # Verify the Status Code
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
 
         # Ensure we are only get back the first page of results
@@ -53,7 +53,7 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
 
         ### Search by ID ###
@@ -62,16 +62,16 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
 
         # Search By Author
-        response = self.client.get(url+'?author=Prometheus', **self.header)
+        response = self.client.get(url+'?author=Prometheus&page=1', **self.header)
         # Verify the Status Code
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
 
         # Search by Keywords
@@ -80,7 +80,7 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
 
     def test_success_large_project(self):
@@ -93,10 +93,10 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
         # Verify the count of resource objects is what we expect.
-        self.assertEqual(119, len(response.data))
+        self.assertEqual(1, len(response.data['resources']))
 
     def test_error_401_invalid_token(self):
         """
@@ -117,21 +117,24 @@ class TestResourceCollection(SimpleTestCase):
         """
         url = reverse('resource_collection', kwargs={'target_name': 'osf'})
         # TOO MANY KEYS
-        response = self.client.get(url + '?title=hat&spaghetti=egg', **self.header)
+        response = self.client.get(url + '?title=hat&spaghetti=egg&banana=TRUE', **self.header)
 
-        self.assertEqual(response.data['error'], 'PresQT Error: The search query is not formatted correctly.')
+        self.assertEqual(response.data['error'],
+                         'PresQT Error: The search query is not formatted correctly.')
         self.assertEqual(response.status_code, 400)
 
         # BAD KEY
         response = self.client.get(url + '?spaghetti=egg', **self.header)
 
-        self.assertEqual(response.data['error'], 'PresQT Error: OSF does not support spaghetti as a search parameter.')
+        self.assertEqual(
+            response.data['error'], 'PresQT Error: OSF does not support spaghetti as a search parameter.')
         self.assertEqual(response.status_code, 400)
 
         # SPECIAL CHARACTERS IN THE REQUEST
         response = self.client.get(url + '?title=egg:boi', **self.header)
 
-        self.assertEqual(response.data['error'], 'PresQT Error: The search query is not formatted correctly.')
+        self.assertEqual(response.data['error'],
+                         'PresQT Error: The search query is not formatted correctly.')
         self.assertEqual(response.status_code, 400)
 
         # EMPTY SEARCH -- NOT AN ERROR
@@ -139,4 +142,4 @@ class TestResourceCollection(SimpleTestCase):
         # Should return users resources
         self.assertEqual(response.status_code, 200)
         # Verify the count of resource objects is what we expect.
-        self.assertEqual(75, len(response.data))
+        self.assertEqual(1, len(response.data['resources']))

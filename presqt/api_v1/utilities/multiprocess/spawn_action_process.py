@@ -3,7 +3,7 @@ import multiprocessing
 from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
 
 
-def spawn_action_process(self, method_to_call):
+def spawn_action_process(self, method_to_call, action):
     """
     Spawn a separate process on the Python kernel to run independently of the
     main request thread. This also starts a watch dog to supervise the spawned process.
@@ -23,6 +23,6 @@ def spawn_action_process(self, method_to_call):
 
     # Start the watchdog process that will monitor the spawned off process
     watch_dog = multiprocessing.Process(target=process_watchdog,
-                                        args=(function_process, self.process_info_path, 3600))
+                                        args=(function_process, self.process_info_path, 3600, action))
     self.watch_dog = watch_dog
     watch_dog.start()

@@ -7,10 +7,13 @@ from rest_framework import status
 
 from presqt.targets.gitlab.utilities import (
     validation_check, gitlab_paginated_data, download_content)
-from presqt.utilities import PresQTResponseException, get_dictionary_from_list
+from presqt.utilities import (PresQTResponseException, get_dictionary_from_list,
+                              update_process_info,
+                              increment_process_info,
+                              update_process_info_message)
 
 
-async def async_get(url, session, header):
+async def async_get(url, session, header, process_info_path, action):
     """
     Coroutine that uses aiohttp to make a GET request. This is the method that will be called
     asynchronously with other GETs.
@@ -21,8 +24,12 @@ async def async_get(url, session, header):
         URL to call
     session: ClientSession object
         aiohttp ClientSession Object
-    token: str
-        User's GitHub token
+    header: str
+        Proper header for calls
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
+    action: str
+        The action being performed
 
     Returns
     -------
@@ -31,13 +38,15 @@ async def async_get(url, session, header):
     async with session.get(url, headers=header) as response:
         assert response.status == 200
         content = await response.json()
+        # Increment the number of files done in the process info file.
+        increment_process_info(process_info_path, action, 'download')
         return {
             'url': url,
             'binary_content': base64.b64decode(content['content']),
             'hashes': {'sha256': content['content_sha256']}}
 
 
-async def async_main(url_list, header):
+async def async_main(url_list, header, process_info_path, action):
     """
     Main coroutine method that will gather the url calls to be made and will make them
     asynchronously.
@@ -46,18 +55,22 @@ async def async_main(url_list, header):
     ----------
     url_list: list
         List of urls to call
-    token: str
-        User's GitHub token
+    header: str
+        Proper header for calls
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
+    action: str
+        The action being performed
 
     Returns
     -------
     List of data brought back from each coroutine called.
     """
     async with aiohttp.ClientSession() as session:
-        return await asyncio.gather(*[async_get(url, session, header) for url in url_list])
+        return await asyncio.gather(*[async_get(url, session, header, process_info_path, action) for url in url_list])
 
 
-def gitlab_download_resource(token, resource_id):
+def gitlab_download_resource(token, resource_id, process_info_path, action):
     """
     Fetch the requested resource from GitLab along with its hash information.
 
@@ -67,6 +80,10 @@ def gitlab_download_resource(token, resource_id):
         User's GitLab token
     resource_id : str
         ID of the resource requested
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
+    action: str
+        The action being performed
 
     Returns
     -------
@@ -93,6 +110,7 @@ def gitlab_download_resource(token, resource_id):
     except PresQTResponseException:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
+
     # Get the user's GitLab username for action metadata
     username = requests.get("https://gitlab.com/api/v4/user", headers=header).json()['username']
 
@@ -123,13 +141,18 @@ def gitlab_download_resource(token, resource_id):
         all_files_url = "https://gitlab.com/api/v4/projects/{}/repository/tree?path={}&recursive=1".format(
             partitioned_id[0], partitioned_id[2].replace('+', ' '))
         data = gitlab_paginated_data(header, user_id, all_files_url)
-        if data == []:
+        if not data:
             raise PresQTResponseException(
                 'The resource with id, {}, does not exist for this user.'.format(resource_id),
                 status.HTTP_404_NOT_FOUND)
         is_project = False
 
     else:
+        update_process_info_message(process_info_path, action, 'Downloading files from GitLab...')
+        # Add the total number of projects to the process info file.
+        # This is necessary to keep track of the progress of the request.
+        update_process_info(process_info_path, 1, action, 'download')
+
         # This is a single file
         data = requests.get('https://gitlab.com/api/v4/projects/{}/repository/files/{}?ref=master'.format(
             project_id, partitioned_id[2].replace('+', ' ')), headers=header).json()
@@ -138,6 +161,8 @@ def gitlab_download_resource(token, resource_id):
                 'The resource with id, {}, does not exist for this user.'.format(resource_id),
                 status.HTTP_404_NOT_FOUND)
 
+        # Increment the number of files done in the process info file.
+        increment_process_info(process_info_path, action, 'download')
         return {
             'resources': [{
                 'file': base64.b64decode(data['content']),
@@ -152,10 +177,15 @@ def gitlab_download_resource(token, resource_id):
     files, empty_containers, action_metadata = download_content(
         username, project_name, project_id, data, [], is_project)
     file_urls = [file['file'] for file in files]
+    
+    update_process_info_message(process_info_path, action, 'Downloading files from GitLab...')
+    # Add the total number of projects to the process info file.
+    # This is necessary to keep track of the progress of the request.
+    update_process_info(process_info_path, len(file_urls), action, 'download')
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    download_data = loop.run_until_complete(async_main(file_urls, header))
+    download_data = loop.run_until_complete(async_main(file_urls, header, process_info_path, action))
 
     # Go through the file dictionaries and replace the file path with the binary_content
     # and replace the hashes with the correct file hashes

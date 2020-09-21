@@ -1,10 +1,14 @@
+import os
+import uuid
+
 from rest_framework.response import Response
 
 from presqt.api_v1.serializers.resource import ResourcesSerializer
 from presqt.api_v1.utilities import (
-    target_validation, FunctionRouter, get_source_token, search_validator)
+    target_validation, FunctionRouter, get_source_token, query_validator, hash_tokens, page_links,
+    update_or_create_process_info)
 from presqt.api_v1.views.resource.base_resource import BaseResource
-from presqt.utilities import PresQTValidationError, PresQTResponseException
+from presqt.utilities import PresQTValidationError, PresQTResponseException, write_file, read_file
 
 
 class ResourceCollection(BaseResource):
@@ -94,23 +98,24 @@ class ResourceCollection(BaseResource):
             return Response(data={'error': e.data}, status=e.status_code)
 
         query_params = request.query_params
+        search_params = {}
         # Validate the search query if there is one.
         if query_params != {}:
             try:
-                search_validator(query_params, target_name)
-                query_params_value = list(query_params.values())[0]
-                if query_params_value.isspace() or query_params_value == '':
+                search_value, page_number, search_params = query_validator(query_params, target_name)
+                if search_value.isspace() or search_value == '' and page_number == '1':
                     # If title is empty, we want to only return user resources.
                     query_params = {}
             except PresQTResponseException as e:
                 # Catch any errors that happen within the search validation
                 return Response(data={'error': e.data}, status=e.status_code)
+
         # Fetch the proper function to call
         func = FunctionRouter.get_function(target_name, action)
 
         # Fetch the target's resources
         try:
-            resources = func(token, query_params)
+            resources, pages = func(token, query_params)
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch
             return Response(data={'error': e.data}, status=e.status_code)
@@ -118,5 +123,6 @@ class ResourceCollection(BaseResource):
         serializer = ResourcesSerializer(instance=resources, many=True, context={
                                          'target_name': target_name,
                                          'request': request})
+        linked_pages = page_links(self, target_name, search_params, pages)
 
-        return Response(serializer.data)
+        return Response({"resources": serializer.data, "pages": linked_pages})

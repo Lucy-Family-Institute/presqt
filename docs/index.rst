@@ -27,17 +27,17 @@ curateND    ✅             ✅         ✅         ✅           ❌          �
 Github      ✅             ✅         ✅         ✅           ✅          ✅[OSF, CurateND, Zenodo, GitLab, FigShare]      ✅ [OSF, Zenodo, GitLab, FigShare]          [ ]                 ✅              ✅
 Zenodo      ✅             ✅         ✅         ✅           ✅          ✅[OSF, Github, CurateND, GitLab, FigShare]      ✅ [OSF, Github, GitLab, FigShare]          [md5]               ✅              ✅
 GitLab      ✅             ✅         ✅         ✅           ✅          ✅[OSF, Github, CurateND, Zenodo, FigShare]      ✅ [OSF, GitHub, Zenodo, FigShare]          [sha256]            ✅              ✅
-GitLab      ✅             ✅         ✅         ✅           ✅          ✅[OSF, Github, CurateND, Zenodo, FigShare]      ✅ [OSF, GitHub, Zenodo, FigShare]          [sha256]            ✅              ✅
 FigShare    ✅             ✅         ✅         ✅           ✅          ✅[OSF, Github, CurateND, Zenodo, Gitlab]        ✅ [OSF, Github, Gitlab, Zenodo]            [md5]               ✅              ✅
 =========== ============== ========== ========== ============ ========== ================================================ =========================================== =================== =============== ===================
 
 
 **Current Service Integrations**:
 
-=========== ==============================================================================
-**Service** **Functionality**
-EaaSI       Send resources from a PresQT server to EaaSI to generate an emulation proposal
-=========== ==============================================================================
+=================== ==============================================================================
+**Service**         **Functionality**
+EaaSI               Send resources from a PresQT server to EaaSI to generate an emulation proposal
+Keyword Enhancement Suggest/add keywords to existing keywords
+=================== ==============================================================================
 
 .. toctree::
    :caption: Contents

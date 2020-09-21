@@ -67,7 +67,7 @@ class TestResourceKeywords(SimpleTestCase):
         self.assertEqual(response.status_code, 400)
         # Verify the error message
         self.assertEqual(response.data['error'],
-                         "GitHub directories and files do not have keywords.")
+                         "Only Github repositories have keywords, not files or directories, therefore PresQT keyword features are not supported at Github's file or directory level.")
 
 
 class TestResourceKeywordsPOST(SimpleTestCase):
@@ -115,7 +115,14 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         # Delete the metadata file
         # First get the sha, which will ensure the metadata file exists....
         file_url = 'https://api.github.com/repos/presqt-test-user/PrivateProject/contents/PRESQT_FTS_METADATA.json'
-        file_sha = requests.get(file_url, headers=headers).json()['sha']
+        file = requests.get(file_url, headers=headers).json()
+        file_sha = file['sha']
+        file_contents_raw = requests.get("https://raw.githubusercontent.com/presqt-test-user/PrivateProject/master/PRESQT_FTS_METADATA.json", headers=headers).content
+        file_contents = json.loads(file_contents_raw)
+
+        # Check keys in keywords
+        for key, value in file_contents['actions'][0]['keywords']['ontologies'][0].items():
+            self.assertIn(key, ['keywords', 'ontology', 'ontology_id', 'categories'])
 
         data = {
             "message": "Delete Metadata",
@@ -131,7 +138,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
 
     def test_error_project_keywords(self):
         """
-        Returns a 400 if the POST method is unsuccessful when getting a GitLab `file` keywords.
+        Returns a 400 if the POST method is unsuccessful when getting a GitHub `file` keywords.
         """
         resource_id = "209372336:README%252Emd"
         url = reverse('keywords', kwargs={'target_name': 'github',
@@ -142,7 +149,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         self.assertEqual(response.status_code, 400)
         # Verify the error message
         self.assertEqual(response.data['error'],
-                         "GitHub directories and files do not have keywords.")
+                         "Only Github repositories have keywords, not files or directories, therefore PresQT keyword features are not supported at Github's file or directory level.")
 
     def test_failed_update_keywords(self):
         # Mock a server error for when a put request is made.

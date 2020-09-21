@@ -2,6 +2,10 @@ from .base import *
 
 ALLOWED_HOSTS = ['presqt-qa.crc.nd.edu']
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST_USER = os.environ['EMAIL_HOST_USER']
+EMAIL_DEFAULT_FROM_EMAIL = 'noreply@presqt.crc.nd.edu'
+
 CORS_ORIGIN_ALLOW_ALL = False
 
 CORS_ORIGIN_WHITELIST = (

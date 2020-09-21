@@ -50,7 +50,7 @@ class TestResourceKeywords(SimpleTestCase):
         self.assertEqual(response.status_code, 400)
         # Verify the error message
         self.assertEqual(response.data['error'],
-                         "FigShare projects/files do no have keywords.")
+                         "On FigShare only projects have keywords, not files, therefore PresQT keyword features are not supported at FigShare's file level.")
 
     def test_bad_token(self):
         """
@@ -117,9 +117,16 @@ class TestResourceKeywordsPOST(SimpleTestCase):
                     "{}/files".format(article['url']), headers=headers).json()
                 for file in project_files:
                     if file['name'] == "PRESQT_FTS_METADATA.json":
+                        metadata_info = requests.get("https://api.figshare.com/v2/account/articles/{}/files/{}".format(
+                            article['id'], file['id']), headers=headers).json()
+                        # Get the metadata file
+                        metadata_file = json.loads(requests.get(metadata_info['download_url'], headers=headers).content)
+                        # Test that the metadata has the keys we expect
+                        for key, value in metadata_file['actions'][0]['keywords']['ontologies'][0].items():
+                            self.assertIn(key, ['keywords', 'ontology', 'ontology_id', 'categories'])
+                        # Delete the file
                         response = requests.delete("https://api.figshare.com/v2/account/articles/{}/files/{}".format(
-                            article['id'], file['id']),
-                            headers=headers)
+                            article['id'], file['id']), headers=headers)
                         self.assertEqual(response.status_code, 204)
                 # Also delete the article
                 response = requests.delete(article['url'], headers=headers)
@@ -129,7 +136,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         """
         Returns a 400 if the POST method is unsuccessful when getting a FigShare `project` keywords.
         """
-        resource_id = "17993268"
+        resource_id = "7099786765098"
         url = reverse('keywords', kwargs={'target_name': 'figshare',
                                           'resource_id': resource_id})
         response = self.client.post(
@@ -138,7 +145,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         self.assertEqual(response.status_code, 400)
         # Verify the error message
         self.assertEqual(response.data['error'],
-                         "FigShare projects/files do no have keywords.")
+                         "Project with id, 7099786765098, not found for requesting user.")
 
     def test_failed_update_keywords(self):
         # Mock a server error for when a put request is made.

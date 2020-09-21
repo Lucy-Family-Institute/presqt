@@ -26,12 +26,13 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
         # Verify the count of resource objects is what we expect.
-        self.assertEqual(len(response.data), 3)
+        # Note: We are only getting the top level resources
+        self.assertEqual(len(response.data['resources']), 1)
 
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertEqual(len(data['links']), 1)
 
     def test_success_with_search(self):
@@ -44,11 +45,12 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
         # Verify the count of resource objects is what we expect.
-        self.assertEqual(len(response.data), 7)
-        for data in response.data:
+        # Note: We are only getting the top level resources
+        self.assertEqual(len(response.data['resources']), 1)
+        for data in response.data['resources']:
             self.assertEqual(len(data['links']), 1)
 
     def test_404_no_search_results(self):

@@ -4,7 +4,7 @@ from time import sleep
 from presqt.utilities import read_file, write_file
 
 
-def process_watchdog(function_process, process_info_path, process_time):
+def process_watchdog(function_process, process_info_path, process_time, action):
     """
     Monitoring function for the file transfer processes spawned off using Multiprocessing.
     It will monitor if the process has either finished or has gone over it's processing time.
@@ -36,14 +36,14 @@ def process_watchdog(function_process, process_info_path, process_time):
                 return
 
         # If the monitored process has finished
-        if process_info_data['status'] != 'in_progress':
+        if process_info_data[action]['status'] != 'in_progress':
             return
         slept_time += 1
 
     # If we've reached here then the process reached our time limit and we need to terminate
     # the monitored process and update the process_info.json file.
     function_process.terminate()
-    process_info_data['status'] = 'failed'
-    process_info_data['message'] = 'The process took too long on the server.'
-    process_info_data['status_code'] = 504
+    process_info_data[action]['status'] = 'failed'
+    process_info_data[action]['message'] = 'The process took too long on the server.'
+    process_info_data[action]['status_code'] = 504
     write_file(process_info_path, process_info_data, True)

@@ -24,6 +24,7 @@ class TestTargetCollection(SimpleTestCase):
             'name',
             'readable_name',
             'status_url',
+            'token_url',
             'supported_actions',
             'supported_transfer_partners',
             'supported_hash_algorithms',

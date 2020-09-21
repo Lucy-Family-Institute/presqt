@@ -45,8 +45,9 @@ def osf_fetch_keywords(token, resource_id):
     resource = get_osf_resource(resource_id, osf_instance)
 
     if resource.kind_name == 'storage':
-        raise PresQTResponseException("OSF Storages do not have keywords.",
-                                      status.HTTP_400_BAD_REQUEST)
+        raise PresQTResponseException(
+            "On OSF only projects, folders and files have keywords, not storages, therefore PresQT keyword features are not supported at OSF's storage level.",
+            status.HTTP_400_BAD_REQUEST)
 
     # Find out if metadata exists for this project
     project_id = get_project_id(resource)

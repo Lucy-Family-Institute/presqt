@@ -3,6 +3,7 @@
     "name": "osf",
     "readable_name": "OSF",
     "status_url": "https://api.osf.io/v2/nodes/",
+    "token_url": "https://osf.io/settings/tokens",
     "supported_actions": {
       "resource_collection": true,
       "resource_detail": true,
@@ -25,6 +26,7 @@
     "name": "curate_nd",
     "readable_name": "CurateND",
     "status_url": "https://curate.nd.edu/api/items",
+    "token_url": "https://curate.nd.edu/api/access_tokens",
     "supported_actions": {
       "resource_collection": true,
       "resource_detail": true,
@@ -47,6 +49,7 @@
     "name": "github",
     "readable_name": "GitHub",
     "status_url": "https://api.github.com/rate_limit",
+    "token_url": "https://github.com/settings/tokens",
     "supported_actions": {
       "resource_collection": true,
       "resource_detail": true,
@@ -69,6 +72,7 @@
     "name": "zenodo",
     "readable_name": "Zenodo",
     "status_url": "https://zenodo.org/api/records/",
+    "token_url": "https://zenodo.org/account/settings/applications/",
     "supported_actions": {
       "resource_collection": true,
       "resource_detail": true,
@@ -91,6 +95,7 @@
     "name": "gitlab",
     "readable_name": "GitLab",
     "status_url": "https://gitlab.com/api/v4/projects",
+    "token_url": "https://gitlab.com/profile/personal_access_tokens",
     "supported_actions": {
       "resource_collection": true,
       "resource_detail": true,
@@ -113,6 +118,7 @@
     "name": "figshare",
     "readable_name": "FigShare",
     "status_url": "https://api.figshare.com/v2/projects",
+    "token_url": "https://figshare.com/account/applications",
     "supported_actions": {
       "resource_collection": true,
       "resource_detail": true,

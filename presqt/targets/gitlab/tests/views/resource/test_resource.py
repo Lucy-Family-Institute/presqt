@@ -2,6 +2,7 @@ import json
 import shutil
 import base64
 import requests
+from time import sleep
 from unittest.mock import patch
 
 from rest_framework.reverse import reverse
@@ -14,6 +15,7 @@ from presqt.targets.gitlab.functions.upload_metadata import gitlab_upload_metada
 from presqt.targets.utilities.tests.shared_upload_test_functions import \
     (shared_upload_function_gitlab, process_wait)
 from presqt.utilities import read_file, PresQTError
+from presqt.api_v1.utilities import hash_tokens
 
 
 class TestResourceGETJSON(SimpleTestCase):
@@ -27,7 +29,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_TEST_USER_TOKEN}
         self.keys = ['kind', 'kind_name', 'id', 'title', 'date_created', 'date_modified', 'hashes',
-                     'extra', 'links', 'actions']
+                     'extra', 'children', 'links', 'actions']
 
     def test_success_project(self):
         """
@@ -46,7 +48,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual('project', response.data['kind_name'])
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('ProjectNine', response.data['title'])
-
+        self.assertEqual(len(response.data['children']), 1)
         self.assertEqual(len(response.data['links']), 4)
 
     def test_success_dir(self):
@@ -66,7 +68,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual('dir', response.data['kind_name'])
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('android', response.data['title'])
-
+        self.assertEqual(len(response.data['children']), 6)
         self.assertEqual(len(response.data['links']), 4)
 
     def test_success_file(self):
@@ -86,6 +88,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual('file', response.data['kind_name'])
         self.assertEqual(resource_id, response.data['id'])
         self.assertEqual('README.md', response.data['title'])
+        self.assertEqual(len(response.data['children']), 0)
         # Download Link
         self.assertEqual(len(response.data['links']), 2)
 
@@ -180,13 +183,18 @@ class TestResourcePOST(SimpleTestCase):
          `api_v1/targets/{target_name}/resources/`
 
     Testing Gitlab integration.
+
+    NOTE: A sleep timer was added before every upload call, as GitLabs server can be a bit
+          laggy while processing deletions.
     """
 
     def setUp(self):
         self.client = APIClient()
         self.token = GITLAB_UPLOAD_TEST_USER_TOKEN
+        self.ticket_number = hash_tokens(self.token)
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token,
-                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.resource_id = None
         self.duplicate_action = 'ignore'
         self.url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
@@ -200,17 +208,19 @@ class TestResourcePOST(SimpleTestCase):
         """
         Test that we can successfully upload to existing containers in Gitlab.
         """
+        sleep(30)
         shared_upload_function_gitlab(self)
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
         project_id = self.client.get(
-            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()[0]['id']
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()['resources'][0]['id']
         shutil.rmtree(self.ticket_path)
 
         # Upload to existing repo
         self.resource_id = project_id
         self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': project_id})
+        sleep(30)
         shared_upload_function_gitlab(self)
         shutil.rmtree(self.ticket_path)
 
@@ -219,6 +229,7 @@ class TestResourcePOST(SimpleTestCase):
         self.resources_ignored = [
             '/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
         self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': project_id})
+        sleep(30)
         shared_upload_function_gitlab(self)
         shutil.rmtree(self.ticket_path)
 
@@ -228,6 +239,7 @@ class TestResourcePOST(SimpleTestCase):
         self.resources_ignored = []
         self.url = reverse('resource', kwargs={
                            'target_name': 'gitlab', 'resource_id': self.resource_id})
+        sleep(30)
         shared_upload_function_gitlab(self)
         shutil.rmtree(self.ticket_path)
 
@@ -238,12 +250,13 @@ class TestResourcePOST(SimpleTestCase):
         """
         Test that we will get an error when attempting to upload to a file.
         """
+        sleep(30)
         shared_upload_function_gitlab(self)
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
         project_id = self.client.get(
-            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()[0]['id']
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()['resources'][0]['id']
         shutil.rmtree(self.ticket_path)
 
         # Upload to existing repo
@@ -284,12 +297,13 @@ class TestResourcePOST(SimpleTestCase):
 
     def test_duplicate_update(self):
         self.file = 'presqt/api_v1/tests/resources/upload/ProjectSingleFileToUpload.zip'
+        sleep(30)
         shared_upload_function_gitlab(self)
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
         project_id = self.client.get(
-            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()[0]['id']
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()['resources'][0]['id']
         shutil.rmtree(self.ticket_path)
 
         self.file = 'presqt/api_v1/tests/resources/upload/ProjectSingleDuplicateFileToUpload.zip'
@@ -298,6 +312,7 @@ class TestResourcePOST(SimpleTestCase):
         self.resources_updated = ['/Screen Shot 2019-07-15 at 3.51.13 PM.png']
         self.url = reverse('resource', kwargs={
                            'target_name': 'gitlab', 'resource_id': self.resource_id})
+        sleep(30)
         shared_upload_function_gitlab(self)
         shutil.rmtree(self.ticket_path)
 
@@ -311,8 +326,7 @@ class TestResourcePOST(SimpleTestCase):
         response = self.client.post(
             self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
 
-        ticket_number = response.data['ticket_number']
-        self.ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        self.ticket_path = 'mediafiles/uploads/{}'.format(self.ticket_number)
 
         # Verify status code and message
         self.assertEqual(response.status_code, 202)
@@ -321,14 +335,14 @@ class TestResourcePOST(SimpleTestCase):
 
         # Verify process_info file status is 'in_progress' initially
         process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
-        self.assertEqual(process_info['status'], 'in_progress')
+        self.assertEqual(process_info['resource_upload']['status'], 'in_progress')
 
         # Wait until the spawned off process finishes in the background to do further validation
         process_wait(process_info, self.ticket_path)
         process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
         self.assertEquals(
-            process_info['message'], "Project with id, badbadbadidnowaythisisreal, could not be found.")
-        self.assertEquals(process_info['status_code'], 404)
+            process_info['resource_upload']['message'], "Project with id, badbadbadidnowaythisisreal, could not be found.")
+        self.assertEquals(process_info['resource_upload']['status_code'], 404)
 
         shutil.rmtree(self.ticket_path)
 
@@ -336,12 +350,13 @@ class TestResourcePOST(SimpleTestCase):
         """
         If a project has invalid metadata, we need to change the name and create a new metadata file.
         """
+        sleep(30)
         shared_upload_function_gitlab(self)
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
         project_id = self.client.get(
-            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()[0]['id']
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()['resources'][0]['id']
         shutil.rmtree(self.ticket_path)
 
         put_url = "https://gitlab.com/api/v4/projects/{}/repository/files/PRESQT_FTS_METADATA%2Ejson".format(
@@ -361,6 +376,7 @@ class TestResourcePOST(SimpleTestCase):
         self.resource_id = project_id
         self.url = reverse('resource', kwargs={
                            'target_name': 'gitlab', 'resource_id': self.resource_id})
+        sleep(30)
         shared_upload_function_gitlab(self)
 
         shutil.rmtree(self.ticket_path)
@@ -378,12 +394,13 @@ class TestResourcePOST(SimpleTestCase):
                 self.status_code = status_code
         mock_req = MockResponse({'error': 'The server is down.'}, 500)
 
+        sleep(30)
         shared_upload_function_gitlab(self)
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
         project_id = self.client.get(
-            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()[0]['id']
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()['resources'][0]['id']
         shutil.rmtree(self.ticket_path)
 
         # Now I'll make an explicit call to our metadata function with a mocked server error and ensure
@@ -408,12 +425,13 @@ class TestResourcePOST(SimpleTestCase):
                 self.status_code = status_code
         mock_req = MockResponse({'error': 'The server is down.'}, 500)
 
+        sleep(30)
         shared_upload_function_gitlab(self)
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
         project_id = self.client.get(
-            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()[0]['id']
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()['resources'][0]['id']
         shutil.rmtree(self.ticket_path)
 
         put_url = "https://gitlab.com/api/v4/projects/{}/repository/files/PRESQT_FTS_METADATA%2Ejson".format(
@@ -442,23 +460,29 @@ class TestResourcePOST(SimpleTestCase):
         delete_gitlab_project(project_id, GITLAB_UPLOAD_TEST_USER_TOKEN)
 
     def test_try_upload_same_duplicate(self):
+        sleep(30)
         shared_upload_function_gitlab(self)
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
         project_id = self.client.get(
-            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()[0]['id']
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()['resources'][0]['id']
         self.resource_id = project_id
         shutil.rmtree(self.ticket_path)
 
-        self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': self.resource_id})
+        self.url = reverse('resource', kwargs={
+                           'target_name': 'gitlab', 'resource_id': self.resource_id})
+        sleep(30)
         shared_upload_function_gitlab(self)
 
         shutil.rmtree(self.ticket_path)
 
         self.duplicate_action = 'update'
-        self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': self.resource_id})
-        self.resources_ignored = ["/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png"]
+        self.url = reverse('resource', kwargs={
+                           'target_name': 'gitlab', 'resource_id': self.resource_id})
+        self.resources_ignored = [
+            "/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png"]
+        sleep(30)
         shared_upload_function_gitlab(self)
         shutil.rmtree(self.ticket_path)
 
@@ -471,18 +495,21 @@ class TestResourcePOST(SimpleTestCase):
         made aware.
         """
         # 202 when uploading a new top level repo
+        sleep(30)
         shared_upload_function_gitlab(self)
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
         project_id = self.client.get(
-            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()[0]['id']
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()['resources'][0]['id']
         shutil.rmtree(self.ticket_path)
 
         self.file = 'presqt/api_v1/tests/resources/upload/Empty_Directory_Bag.zip'
         self.resources_ignored = ['/Egg/Empty_Folder']
         self.resource_id = project_id
-        self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': self.resource_id})
+        self.url = reverse('resource', kwargs={
+                           'target_name': 'gitlab', 'resource_id': self.resource_id})
+        sleep(30)
         shared_upload_function_gitlab(self)
 
         # Delete upload folder
@@ -500,12 +527,13 @@ class TestResourcePOST(SimpleTestCase):
         mock_req = MockResponse({'error': 'The server is down.'}, 500)
 
         # 202 when uploading a new top level repo
+        sleep(30)
         shared_upload_function_gitlab(self)
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
         project_id = self.client.get(
-            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()[0]['id']
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()['resources'][0]['id']
         self.resource_id = project_id
         shutil.rmtree(self.ticket_path)
 
@@ -515,7 +543,8 @@ class TestResourcePOST(SimpleTestCase):
             mock_request.return_value = mock_req
 
             # Upload to the newly created project
-            self.url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': project_id})
+            self.url = reverse('resource', kwargs={
+                               'target_name': 'gitlab', 'resource_id': project_id})
             self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
             response = self.client.post(self.url, {'presqt-file': open(
                 self.file, 'rb')}, **self.headers)

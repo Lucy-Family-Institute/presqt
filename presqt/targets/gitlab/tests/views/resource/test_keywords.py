@@ -1,3 +1,5 @@
+import base64
+import json
 import requests
 from unittest.mock import patch
 
@@ -44,15 +46,13 @@ class TestResourceKeywords(SimpleTestCase):
         """
         resource_id = '17990894'
         # Ensure there are no keywords for this project
-        url = reverse('resource', kwargs={'target_name': 'gitlab',
-                                          'resource_id': resource_id})
+        url = reverse('resource', kwargs={'target_name': 'gitlab', 'resource_id': resource_id})
         response = self.client.get(url, **self.header)
         self.assertEqual(response.data['extra']['tag_list'], [])
 
         keywords_url = reverse('keywords', kwargs={'target_name': 'gitlab',
                                                    'resource_id': resource_id})
         keywords_response = self.client.get(keywords_url, **self.header)
-
         self.assertGreater(keywords_response.data['keywords'], response.data['extra']['tag_list'])
 
     def test_error_project_keywords(self):
@@ -67,7 +67,7 @@ class TestResourceKeywords(SimpleTestCase):
         self.assertEqual(response.status_code, 400)
         # Verify the error message
         self.assertEqual(response.data['error'],
-                         "GitLab directories and files do not have keywords.")
+                         "On GitLab only projects have keywords, not files or directories, therefore PresQT keyword features are not supported at GitLab's file or directory levels.")
 
 
 class TestResourceKeywordsPOST(SimpleTestCase):
@@ -80,7 +80,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
     def setUp(self):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_TEST_USER_TOKEN}
-        self.keys = ['keywords_added', 'final_keywords']
+        self.keys = ['initial_keywords', 'keywords_added', 'final_keywords']
 
     def test_success_project_keywords(self):
         """
@@ -91,7 +91,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
                                           'resource_id': resource_id})
         # First check the initial tags.
         get_response = self.client.get(url, **self.header)
-        # Get the ount of the initial keywords
+        # Get the count of the initial keywords
         initial_keywords = len(get_response.data['keywords'])
 
         response = self.client.post(
@@ -111,13 +111,19 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
 
         # We also need to delete the metadata file.
-        delete_url = "https://gitlab.com/api/v4/projects/{}/repository/files/PRESQT_FTS_METADATA%2Ejson?ref=master".format(
-            resource_id)
+        url = "https://gitlab.com/api/v4/projects/17993268/repository/files/PRESQT_FTS_METADATA%2Ejson?ref=master"
+        response = requests.get(url, headers=headers)
+        metadata_file = json.loads(base64.b64decode(response.json()['content']))
+
+        for key, value in metadata_file['actions'][0]['keywords']['ontologies'][0].items():
+            # Ensure all the keyword keys are here
+            self.assertIn(key, ['keywords', 'ontology', 'ontology_id', 'categories'])
+
         data = {
             "branch": "master",
             "commit_message": "PRESQT DELETE METADATA"
         }
-        delete_response = requests.delete(delete_url, headers=headers, data=data)
+        delete_response = requests.delete(url, headers=headers, data=data)
         self.assertEqual(delete_response.status_code, 204)
 
     def test_error_project_keywords(self):
@@ -133,7 +139,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         self.assertEqual(response.status_code, 400)
         # Verify the error message
         self.assertEqual(response.data['error'],
-                         "GitLab directories and files do not have keywords.")
+                         "On GitLab only projects have keywords, not files or directories, therefore PresQT keyword features are not supported at GitLab's file or directory levels.")
 
     def test_failed_update_keywords(self):
         # Mock a server error for when a put request is made.

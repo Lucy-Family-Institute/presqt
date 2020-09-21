@@ -14,6 +14,7 @@ from presqt.targets.gitlab.utilities import delete_gitlab_project
 from presqt.targets.utilities.tests.shared_upload_test_functions import \
     shared_upload_function_gitlab
 from presqt.utilities import PresQTError, read_file
+from presqt.api_v1.utilities import hash_tokens
 
 
 class TestResourceCollection(SimpleTestCase):
@@ -37,13 +38,25 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
-        # Verify the count of resource objects is what we expect.
-        self.assertEqual(len(response.data), 42)
-
-        for data in response.data:
             self.assertEqual(len(data['links']), 1)
+        self.assertEqual(response.data['pages']['total_pages'], 2)
+
+    def test_success_gitlab_page_2(self):
+        """
+        Return a 200 if the GET method is successful when grabbing GitLab resources.
+        """
+        url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
+        response = self.client.get(url + "?page=2", **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 200)
+        # Verify the dict keys match what we expect
+        keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
+        for data in response.data['resources']:
+            self.assertListEqual(keys, list(data.keys()))
+            self.assertEqual(len(data['links']), 1)
+        self.assertEqual(response.data['pages']['total_pages'], 2)
 
     def test_success_gitlab_with_search(self):
         """
@@ -51,14 +64,13 @@ class TestResourceCollection(SimpleTestCase):
         parameters.
         """
         url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
-        response = self.client.get(url + '?title=A+Good+Egg', **self.header)
+        response = self.client.get(url + '?title=A+Good+Egg&page=1', **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
-
 
         ###### Search by ID #######
         response = self.client.get(url + '?id=17990806', **self.header)
@@ -66,25 +78,25 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
 
         #### Search by Author ####
-        response = self.client.get(url + '?author=prometheus-test', **self.header)
+        response = self.client.get(url + '?author=prometheus-test&page=1', **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
 
         ### Search by General ###
-        response = self.client.get(url + '?general=egg', **self.header)
+        response = self.client.get(url + '?general=taco&page=2', **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
 
     def test_error_400_missing_token_gitlab(self):
@@ -117,21 +129,24 @@ class TestResourceCollection(SimpleTestCase):
         """
         url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
         # TOO MANY KEYS
-        response = self.client.get(url + '?title=hat&spaghetti=egg', **self.header)
+        response = self.client.get(url + '?title=hat&spaghetti=egg&banana=TRUE', **self.header)
 
-        self.assertEqual(response.data['error'], 'PresQT Error: The search query is not formatted correctly.')
+        self.assertEqual(response.data['error'],
+                         'PresQT Error: The search query is not formatted correctly.')
         self.assertEqual(response.status_code, 400)
 
         # BAD KEY
         response = self.client.get(url + '?spaghetti=egg', **self.header)
 
-        self.assertEqual(response.data['error'], 'PresQT Error: GitLab does not support spaghetti as a search parameter.')
+        self.assertEqual(
+            response.data['error'], 'PresQT Error: GitLab does not support spaghetti as a search parameter.')
         self.assertEqual(response.status_code, 400)
 
         # SPECIAL CHARACTERS IN REQUEST
         response = self.client.get(url + '?title=egg:boi', **self.header)
 
-        self.assertEqual(response.data['error'], 'PresQT Error: The search query is not formatted correctly.')
+        self.assertEqual(response.data['error'],
+                         'PresQT Error: The search query is not formatted correctly.')
         self.assertEqual(response.status_code, 400)
 
     def test_for_id_search_no_results_gitlab(self):
@@ -142,7 +157,7 @@ class TestResourceCollection(SimpleTestCase):
         response = self.client.get(url + '?id=supasupabadid', **self.header)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data, [])
+        self.assertEqual(response.data['resources'], [])
 
     def test_for_author_search_no_results_gitlab(self):
         """
@@ -152,7 +167,7 @@ class TestResourceCollection(SimpleTestCase):
         response = self.client.get(url + '?author=XxsupasupasupasupabadauthorxX', **self.header)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data, [])
+        self.assertEqual(response.data['resources'], [])
 
 
 class TestResourceCollectionPOST(SimpleTestCase):
@@ -163,11 +178,15 @@ class TestResourceCollectionPOST(SimpleTestCase):
 
     Testing GitLab integration.
     """
+
     def setUp(self):
         self.client = APIClient()
         self.token = GITLAB_UPLOAD_TEST_USER_TOKEN
+        self.ticket_number = hash_tokens(self.token)
+
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token,
-                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.resource_id = None
         self.duplicate_action = 'ignore'
         self.url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
@@ -176,7 +195,6 @@ class TestResourceCollectionPOST(SimpleTestCase):
         self.resources_updated = []
         self.hash_algorithm = 'sha256'
         self.success_message = 'Upload successful.'
-
 
     def test_success_202_upload(self):
         """
@@ -192,7 +210,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
 
         # Delete upload folder and project
         shutil.rmtree(self.ticket_path)
-        delete_gitlab_project(response_json[0]['id'], GITLAB_UPLOAD_TEST_USER_TOKEN)
+        delete_gitlab_project(response_json['resources'][0]['id'], GITLAB_UPLOAD_TEST_USER_TOKEN)
 
     def test_presqt_fts_metadata(self):
         """
@@ -205,7 +223,8 @@ class TestResourceCollectionPOST(SimpleTestCase):
             url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()
 
         # On the project that was just created, we need to get the contents of the metadata file.
-        metadata_link = 'https://gitlab.com/api/v4/projects/{}/repository/files/PRESQT_FTS_METADATA%2Ejson?ref=master'.format(response_json[0]['id'])
+        metadata_link = 'https://gitlab.com/api/v4/projects/{}/repository/files/PRESQT_FTS_METADATA%2Ejson?ref=master'.format(
+            response_json['resources'][0]['id'])
 
         # Get the metadata json
         response = requests.get(metadata_link, headers={"Private-Token": "{}".format(self.token)})
@@ -227,7 +246,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
 
         # Delete upload folder
         shutil.rmtree(self.ticket_path)
-        delete_gitlab_project(response_json[0]['id'], GITLAB_UPLOAD_TEST_USER_TOKEN)
+        delete_gitlab_project(response_json['resources'][0]['id'], GITLAB_UPLOAD_TEST_USER_TOKEN)
 
     def test_bad_metadata_request(self):
         """
@@ -241,19 +260,17 @@ class TestResourceCollectionPOST(SimpleTestCase):
         If the upload file contains an invalid metadata file, it needs to be renamed and a new metadata
         file is to be made. If it is valid, we need to append the new action.
         """
-        header = {"Private-Token": "{}".format(self.token)}
         bag_with_bad_metadata = 'presqt/api_v1/tests/resources/upload/Invalid_Metadata_Upload.zip'
         self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
         response = self.client.post(self.url, {'presqt-file': open(bag_with_bad_metadata, 'rb')},
                                     **self.headers)
 
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_upload']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
@@ -266,7 +283,8 @@ class TestResourceCollectionPOST(SimpleTestCase):
             url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()
 
         # On the project that was just created, we need to get the contents of the metadata file.
-        metadata_link = 'https://gitlab.com/api/v4/projects/{}/repository/files/INVALID_PRESQT_FTS_METADATA%2Ejson?ref=master'.format(response_json[0]['id'])
+        metadata_link = 'https://gitlab.com/api/v4/projects/{}/repository/files/INVALID_PRESQT_FTS_METADATA%2Ejson?ref=master'.format(
+            response_json['resources'][0]['id'])
 
         # Get the metadata json
         response = requests.get(metadata_link, headers={"Private-Token": "{}".format(self.token)})
@@ -274,7 +292,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
 
         self.assertEqual(invalid_metadata_file, {'invalid_metadata': 'no bueno'})
 
-        delete_gitlab_project(response_json[0]['id'], GITLAB_UPLOAD_TEST_USER_TOKEN)
+        delete_gitlab_project(response_json['resources'][0]['id'], GITLAB_UPLOAD_TEST_USER_TOKEN)
         # Delete upload folder
         shutil.rmtree(ticket_path)
 
@@ -282,13 +300,11 @@ class TestResourceCollectionPOST(SimpleTestCase):
         bag_with_good_metadata = 'presqt/api_v1/tests/resources/upload/Valid_Metadata_Upload.zip'
         response = self.client.post(self.url, {'presqt-file': open(bag_with_good_metadata, 'rb')},
                                     **self.headers)
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_upload']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
@@ -298,15 +314,16 @@ class TestResourceCollectionPOST(SimpleTestCase):
             url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()
 
         # On the project that was just created, we need to get the contents of the metadata file.
-        metadata_link = 'https://gitlab.com/api/v4/projects/{}/repository/files/PRESQT_FTS_METADATA%2Ejson?ref=master'.format(response_json[0]['id'])
+        metadata_link = 'https://gitlab.com/api/v4/projects/{}/repository/files/PRESQT_FTS_METADATA%2Ejson?ref=master'.format(
+            response_json['resources'][0]['id'])
 
         # Get the metadata json
         response = requests.get(metadata_link, headers={"Private-Token": "{}".format(self.token)})
         valid_metadata_file = json.loads(base64.b64decode(response.json()['content']))
 
-        self.assertEqual(len(valid_metadata_file['actions']), 2)
+        self.assertEqual(len(valid_metadata_file['actions']), 1)
 
-        delete_gitlab_project(response_json[0]['id'], GITLAB_UPLOAD_TEST_USER_TOKEN)
+        delete_gitlab_project(response_json['resources'][0]['id'], GITLAB_UPLOAD_TEST_USER_TOKEN)
         # Delete upload folder
         shutil.rmtree(ticket_path)
 
@@ -315,16 +332,16 @@ class TestResourceCollectionPOST(SimpleTestCase):
         If a user does not have a valid GitLab API token, we should return a 401 unauthorized status.
         """
         headers = {'HTTP_PRESQT_DESTINATION_TOKEN': 'eggyboi',
-                   'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+                   'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
+                   'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **headers)
 
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_upload']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
@@ -357,13 +374,12 @@ class TestResourceCollectionPOST(SimpleTestCase):
             response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')},
                                         **self.headers)
 
-            ticket_number = response.data['ticket_number']
-            ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+            ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
             # Wait until the spawned off process finishes in the background
             # to do validation on the resulting files
             process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-            while process_info['status'] == 'in_progress':
+            while process_info['resource_upload']['status'] == 'in_progress':
                 try:
                     process_info = read_file('{}/process_info.json'.format(ticket_path), True)
                 except json.decoder.JSONDecodeError:
@@ -386,13 +402,12 @@ class TestResourceCollectionPOST(SimpleTestCase):
         response = self.client.post(self.url, {'presqt-file': open(bag_with_empty_directory, 'rb')},
                                     **self.headers)
 
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_upload']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
@@ -407,8 +422,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
         response_json = self.client.get(
             url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()
-        delete_gitlab_project(response_json[0]['id'], GITLAB_UPLOAD_TEST_USER_TOKEN)
+        delete_gitlab_project(response_json['resources'][0]['id'], GITLAB_UPLOAD_TEST_USER_TOKEN)
 
         # Delete upload folder
         shutil.rmtree(ticket_path)
-

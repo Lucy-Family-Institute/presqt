@@ -12,6 +12,7 @@ from presqt.targets.github.functions.upload_metadata import github_upload_metada
 from presqt.targets.github.utilities import delete_github_repo
 from presqt.targets.utilities import shared_upload_function_github
 from presqt.utilities import read_file, PresQTError
+from presqt.api_v1.utilities import hash_tokens
 
 
 class TestResourceCollection(SimpleTestCase):
@@ -35,10 +36,22 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
+            self.assertEqual(len(data['links']), 1)
 
-        for data in response.data:
+    def test_success_github_page_2(self):
+        """
+        Return a 200 if the GET method is successful when grabbing GitHub resources.
+        """
+        url = reverse('resource_collection', kwargs={'target_name': 'github'})
+        response = self.client.get(url + "?page=2", **self.header)
+        # Verify the status code
+        self.assertEqual(response.status_code, 200)
+        # Verify the dict keys match what we expect
+        keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
+        for data in response.data['resources']:
+            self.assertListEqual(keys, list(data.keys()))
             self.assertEqual(len(data['links']), 1)
 
     def test_success_github_with_search(self):
@@ -47,12 +60,12 @@ class TestResourceCollection(SimpleTestCase):
         parameters.
         """
         url = reverse('resource_collection', kwargs={'target_name': 'github'})
-        response = self.client.get(url + '?title=automated+nhl+goal+light', **self.header)
+        response = self.client.get(url + '?title=automated+nhl+goal+light&page=1', **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
 
         ###### Search by ID #######
@@ -61,25 +74,25 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
 
         #### Search by Author ####
-        response = self.client.get(url + '?author=eikonomega', **self.header)
+        response = self.client.get(url + '?author=eikonomega&page=1', **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
 
         ### Search by General ###
-        response = self.client.get(url + '?general=egg', **self.header)
+        response = self.client.get(url + '?general=egg&page=2', **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
 
         # Search by Keywords
@@ -88,7 +101,7 @@ class TestResourceCollection(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         # Verify the dict keys match what we expect
         keys = ['kind', 'kind_name', 'id', 'container', 'title', 'links']
-        for data in response.data:
+        for data in response.data['resources']:
             self.assertListEqual(keys, list(data.keys()))
 
     def test_error_400_missing_token_github(self):
@@ -120,7 +133,7 @@ class TestResourceCollection(SimpleTestCase):
         """
         url = reverse('resource_collection', kwargs={'target_name': 'github'})
         # TOO MANY KEYS
-        response = self.client.get(url + '?title=hat&spaghetti=egg', **self.header)
+        response = self.client.get(url + '?title=hat&spaghetti=egg&banana=TRUE', **self.header)
 
         self.assertEqual(response.data['error'],
                          'PresQT Error: The search query is not formatted correctly.')
@@ -145,13 +158,13 @@ class TestResourceCollection(SimpleTestCase):
         # NO AUTHOR FOUND
         response = self.client.get(
             url + '?author=378rFDsahfojIO2QDJOgibberishauthor', **self.header)
-        self.assertEqual(response.data, [])
+        self.assertEqual(response.data['resources'], [])
 
         # NO ID FOUND
         response = self.client.get(url + '?id=248593331', **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data, [])
+        self.assertEqual(response.data['resources'], [])
 
 
 class TestResourceCollectionPOST(SimpleTestCase):
@@ -166,8 +179,10 @@ class TestResourceCollectionPOST(SimpleTestCase):
     def setUp(self):
         self.client = APIClient()
         self.token = GITHUB_TEST_USER_TOKEN
+        self.ticket_number = hash_tokens(self.token)
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token,
-                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.repo_title = 'NewProject'
 
         self.resource_id = None
@@ -200,7 +215,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         response_json = self.client.get(
             url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
 
-        repo_name_list = [repo['title'] for repo in response_json]
+        repo_name_list = [repo['title'] for repo in response_json['resources']]
         self.assertIn(self.repo_title, repo_name_list)
         # Delete upload folder
         shutil.rmtree(self.ticket_path)
@@ -215,13 +230,13 @@ class TestResourceCollectionPOST(SimpleTestCase):
         response = self.client.post(self.url, {'presqt-file': open(bag_with_empty_directory, 'rb')},
                                     **self.headers)
 
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_number = hash_tokens(self.token)
+        ticket_path = 'mediafiles/jobs/{}'.format(ticket_number)
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_upload']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
@@ -253,7 +268,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         response_json = self.client.get(
             url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
 
-        repo_name_list = [repo['title'] for repo in response_json]
+        repo_name_list = [repo['title'] for repo in response_json['resources']]
         self.assertNotIn(duplicate_title, repo_name_list)
 
         # Delete upload folder
@@ -281,7 +296,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         updated_response_json = self.client.get(
             url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
 
-        updated_repo_name_list = [repo['title'] for repo in updated_response_json]
+        updated_repo_name_list = [repo['title'] for repo in updated_response_json['resources']]
         self.assertIn(duplicate_title, updated_repo_name_list)
 
         # Delete upload folder
@@ -309,7 +324,8 @@ class TestResourceCollectionPOST(SimpleTestCase):
         more_updated_response_json = self.client.get(
             url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
 
-        another_updated_repo_name_list = [repo['title'] for repo in more_updated_response_json]
+        another_updated_repo_name_list = [repo['title']
+                                          for repo in more_updated_response_json['resources']]
         self.assertIn(second_duplicate_title, another_updated_repo_name_list)
 
         delete_github_repo('presqt-test-user', duplicate_title,
@@ -372,13 +388,13 @@ class TestResourceCollectionPOST(SimpleTestCase):
         response = self.client.post(self.url, {'presqt-file': open(bag_with_bad_metadata, 'rb')},
                                     **self.headers)
 
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_number = hash_tokens(self.token)
+        ticket_path = 'mediafiles/jobs/{}'.format(ticket_number)
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_upload']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
@@ -401,13 +417,13 @@ class TestResourceCollectionPOST(SimpleTestCase):
         bag_with_good_metadata = 'presqt/api_v1/tests/resources/upload/Valid_Metadata_Upload.zip'
         response = self.client.post(self.url, {'presqt-file': open(bag_with_good_metadata, 'rb')},
                                     **self.headers)
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_number = hash_tokens(self.token)
+        ticket_path = 'mediafiles/jobs/{}'.format(ticket_number)
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_upload']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
@@ -430,16 +446,17 @@ class TestResourceCollectionPOST(SimpleTestCase):
         If a user does not have a valid GitHub API token, we should return a 401 unauthorized status.
         """
         headers = {'HTTP_PRESQT_DESTINATION_TOKEN': 'eggyboi',
-                   'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+                   'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
+                   'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **headers)
 
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_number = hash_tokens('eggyboi')
+        ticket_path = 'mediafiles/jobs/{}'.format(ticket_number)
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_upload']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
@@ -464,13 +481,13 @@ class TestResourceCollectionPOST(SimpleTestCase):
         self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
         response = self.client.post(self.url, {'presqt-file': open(bad_bag, 'rb')}, **self.headers)
 
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_number = hash_tokens(self.token)
+        ticket_path = 'mediafiles/jobs/{}'.format(ticket_number)
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_upload']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
@@ -492,13 +509,10 @@ class TestResourceCollectionPOST(SimpleTestCase):
         self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
         response = self.client.post(self.url, {'presqt-file': open(bad_bag, 'rb')}, **self.headers)
 
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
-
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_upload']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
@@ -531,13 +545,13 @@ class TestResourceCollectionPOST(SimpleTestCase):
             response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')},
                                         **self.headers)
 
-            ticket_number = response.data['ticket_number']
-            ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+            ticket_number = hash_tokens(self.token)
+            ticket_path = 'mediafiles/jobs/{}'.format(ticket_number)
 
             # Wait until the spawned off process finishes in the background
             # to do validation on the resulting files
             process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-            while process_info['status'] == 'in_progress':
+            while process_info['resource_upload']['status'] == 'in_progress':
                 try:
                     process_info = read_file('{}/process_info.json'.format(ticket_path), True)
                 except json.decoder.JSONDecodeError:

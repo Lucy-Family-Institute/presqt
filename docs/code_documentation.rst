@@ -155,9 +155,9 @@ The full flow of the resource download in server memory can be found below in Im
 
 Download Job Check-In Endpoint
 ++++++++++++++++++++++++++++++
-The `/download/<ticket_number>/` GET endpoint will check in on the download process on the server to 
-see its status. It uses the ticket_number path parameter to find the `process_info.json` file in the 
-corresponding folder, `mediafiles/downloads/<ticket_number>/process_info.json`.
+The `/job_status/download/` GET endpoint will check in on the download process on the server to 
+see its status. It uses the token header to find the `process_info.json` file in the 
+corresponding folder, `mediafiles/jobs/<hashed_token>/process_info.json`.
 
 * If the status is 'in_progress', it will return a 202 response along with a small payload.
 * If the status is 'failed', it will return a 500 response along with the failure message and failure error code.
@@ -288,9 +288,9 @@ The full flow of the resource upload in server memory can be found below in Imag
 
 Upload Job Check-In Endpoint
 ++++++++++++++++++++++++++++
-The `/upload/<ticket_number>/` GET endpoint will check in on the upload process on the server to see 
-its status. It uses the ticket_number path parameter to find the `process_info.json` file in the 
-corresponding folder, `mediafiles/uploads/<ticket_number>/process_info.json`.
+The `/job_status/upload/` GET endpoint will check in on the upload process on the server to see 
+its status. It uses the token header to find the `process_info.json` file in the 
+corresponding folder, `mediafiles/jobs/<hashed_token>/process_info.json`.
 
 * If the status is 'in_progress', it will return a 202 response along with a small payload.
 * If the status is 'failed', it will return a 500 response along with the failure message and failure error code.

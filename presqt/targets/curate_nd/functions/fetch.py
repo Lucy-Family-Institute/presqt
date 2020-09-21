@@ -1,13 +1,11 @@
-import requests
-
 from rest_framework import status
 
 from presqt.utilities import PresQTResponseException, PresQTInvalidTokenError, PresQTValidationError
 from presqt.targets.curate_nd.classes.main import CurateND
-from presqt.targets.curate_nd.utilities import get_curate_nd_resource, get_curate_nd_resources_by_id
+from presqt.targets.curate_nd.utilities import get_curate_nd_resource, get_curate_nd_resources_by_id, get_page_numbers
 
 
-def curate_nd_fetch_resources(token, search_parameter):
+def curate_nd_fetch_resources(token, query_parameter):
     """
     Fetch all CurateND resources for the user connected to the given token.
 
@@ -15,7 +13,7 @@ def curate_nd_fetch_resources(token, search_parameter):
     ----------
     token : str
         User's CurateND token
-    search_parameter : dict
+    query_parameter : dict
         The search parameter passed to the API View
         Gets passed formatted as {'title': 'search_info'}
 
@@ -30,6 +28,16 @@ def curate_nd_fetch_resources(token, search_parameter):
             "container": "None",
             "title": "Folder Name",
         }
+    We are also returning a dictionary of pagination information.
+    Dictionary must be in the following format:
+        {
+            "first_page": '1',
+            "previous_page": None,
+            "next_page": None,
+            "last_page": '1',
+            "total_pages": '1',
+            "per_page": 12
+        }
     """
     try:
         curate_instance = CurateND(token)
@@ -38,28 +46,54 @@ def curate_nd_fetch_resources(token, search_parameter):
             "Token is invalid. Response returned a 401 status code.",
             status.HTTP_401_UNAUTHORIZED)
 
-    if search_parameter:
-        if 'title' in search_parameter:
+    pages = {
+        "first_page": '1',
+        "previous_page": None,
+        "next_page": None,
+        "last_page": '1',
+        "total_pages": '1',
+        "per_page": 12}
+
+    if query_parameter:
+        if 'title' in query_parameter:
             # Format the search that is coming in to be passed to the Curate API
-            search_parameters = search_parameter['title'].replace(' ', '+')
-            search_url = 'https://curate.nd.edu/api/items?q={}&search_fields=title'.format(search_parameters)
+            query_parameters = query_parameter['title'].replace(' ', '+')
+            search_url = 'https://curate.nd.edu/api/items?q={}&search_fields=title'.format(
+                query_parameters)
+            if 'page' in query_parameter:
+                search_url = 'https://curate.nd.edu/api/items?q={}&search_fields=title&page={}'.format(
+                    query_parameters, query_parameter['page'])
+            pages = get_page_numbers(search_url, token)
             try:
                 resources = curate_instance.get_resources(search_url)
             except PresQTValidationError as e:
                 raise e
 
-        elif 'general' in search_parameter:
-            search_url = 'https://curate.nd.edu/api/items?q={}'.format(search_parameter['general'])
+        elif 'general' in query_parameter:
+            search_url = 'https://curate.nd.edu/api/items?q={}'.format(query_parameter['general'])
+            if 'page' in query_parameter:
+                search_url = 'https://curate.nd.edu/api/items?q={}&page={}'.format(
+                    query_parameter['general'], query_parameter['page'])
+            pages = get_page_numbers(search_url, token)
             try:
                 resources = curate_instance.get_resources(search_url)
             except PresQTValidationError as e:
                 raise e
 
-        elif 'id' in search_parameter:
-            resources = get_curate_nd_resources_by_id(token, search_parameter['id'])
+        elif 'id' in query_parameter:
+            resources = get_curate_nd_resources_by_id(token, query_parameter['id'])
+
+        elif 'page' in query_parameter:
+            url = 'https://curate.nd.edu/api/items?editor=self&page={}'.format(
+                query_parameter['page'])
+            resources = curate_instance.get_resources(url)
+            pages = get_page_numbers(url, token)
     else:
-        resources = curate_instance.get_resources()
-    return resources
+        url = 'https://curate.nd.edu/api/items?editor=self&page=1'
+        resources = curate_instance.get_resources(url)
+        pages = get_page_numbers(url, token)
+
+    return resources, pages
 
 
 def curate_nd_fetch_resource(token, resource_id):
@@ -103,6 +137,17 @@ def curate_nd_fetch_resource(token, resource_id):
         )
     # Get the resource
     resource = get_curate_nd_resource(resource_id, curate_instance)
+    children = []
+    if resource.kind == 'container':
+        # Get the children of this item
+        for child in resource.extra['containedFiles']:
+            children.append({
+                'kind': 'item',
+                'kind_name': 'file',
+                'id': child['id'],
+                'container': resource.id,
+                'title': child['label']})
+
     resource_dict = {
         "kind": resource.kind,
         "kind_name": resource.kind_name,
@@ -111,6 +156,7 @@ def curate_nd_fetch_resource(token, resource_id):
         "date_created": resource.date_submitted,
         "date_modified": resource.modified,
         "hashes": {"md5": resource.md5},
-        "extra": resource.extra}
+        "extra": resource.extra,
+        "children": children}
 
     return resource_dict

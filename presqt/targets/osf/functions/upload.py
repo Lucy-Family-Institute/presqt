@@ -4,12 +4,16 @@ import requests
 from rest_framework import status
 
 from presqt.targets.osf.utilities import get_osf_resource
-from presqt.utilities import PresQTInvalidTokenError, PresQTResponseException
+from presqt.utilities import (
+    PresQTInvalidTokenError, PresQTResponseException, update_process_info,
+    update_process_info_message)
 from presqt.targets.osf.classes.main import OSF
+from presqt.targets.utilities import upload_total_files
 
 
 def osf_upload_resource(token, resource_id, resource_main_dir,
-                        hash_algorithm, file_duplicate_action):
+                        hash_algorithm, file_duplicate_action,
+                        process_info_path, action):
     """
     Upload the files found in the resource_main_dir to OSF.
 
@@ -25,6 +29,10 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
         Hash algorithm we are using to check for fixity.
     file_duplicate_action : str
         The action to take when a duplicate file is found
+    process_info_path: str
+        Path to the process info file that keeps track of the action's progress
+    action: str
+        The action being performed
 
     Returns
     -------
@@ -68,6 +76,10 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
     resources_ignored = []
     resources_updated = []
     file_metadata_list = []
+    # Get total amount of files
+    total_files = upload_total_files(resource_main_dir)
+    update_process_info(process_info_path, total_files, action, 'upload')
+    update_process_info_message(process_info_path, action, "Uploading files to OSF...")
 
     # If we are uploading to an existing container
     if resource_id:
@@ -85,12 +97,12 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
             project_id = project.id
             resource.storage('osfstorage').create_directory(
                 resource_main_dir, file_duplicate_action, hashes,
-                resources_ignored, resources_updated, file_metadata_list)
+                resources_ignored, resources_updated, file_metadata_list, process_info_path, action)
 
         else:  # Folder or Storage
             resource.create_directory(
                 resource_main_dir, file_duplicate_action, hashes,
-                resources_ignored, resources_updated, file_metadata_list)
+                resources_ignored, resources_updated, file_metadata_list, process_info_path, action)
             # Get the project class for later metadata work
             if resource.kind_name == 'storage':
                 project_id = resource.node
@@ -112,7 +124,7 @@ def osf_upload_resource(token, resource_id, resource_main_dir,
         # Upload resources into OSFStorage for the new project.
         project.storage('osfstorage').create_directory(
             data_to_upload_path, file_duplicate_action, hashes,
-            resources_ignored, resources_updated, file_metadata_list)
+            resources_ignored, resources_updated, file_metadata_list, process_info_path, action)
 
     for file_metadata in file_metadata_list:
         # Only send forward the hash we need based on the hash_algorithm provided

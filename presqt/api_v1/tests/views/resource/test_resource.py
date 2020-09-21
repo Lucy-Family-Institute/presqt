@@ -11,6 +11,7 @@ from config.settings.base import (OSF_TEST_USER_TOKEN, OSF_UPLOAD_TEST_USER_TOKE
                                   CURATE_ND_TEST_TOKEN)
 from presqt.targets.utilities import process_wait
 from presqt.utilities import read_file
+from presqt.api_v1.utilities import hash_tokens
 from presqt.api_v1.views.resource.base_resource import BaseResource
 from presqt.targets.osf.utilities import delete_users_projects
 
@@ -96,7 +97,8 @@ class TestResourceGETZip(SimpleTestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN}
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN,
+                       'HTTP_PRESQT_EMAIL_OPT_IN': ''}
 
     def test_error_400_target_not_supported_test_target(self):
         """
@@ -157,7 +159,8 @@ class TestResourcePOSTWithFile(SimpleTestCase):
         self.client = APIClient()
         self.token = OSF_UPLOAD_TEST_USER_TOKEN
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token,
-                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.good_zip_file = 'presqt/api_v1/tests/resources/upload/GoodBagIt.zip'
 
     def tearDown(self):
@@ -181,9 +184,8 @@ class TestResourcePOSTWithFile(SimpleTestCase):
         response = self.client.post(url, {'presqt-file': open(good_file, 'rb')}, **self.headers)
         self.assertEqual(response.status_code, 202)
 
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
-        process_info_path = 'mediafiles/uploads/{}/process_info.json'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(hash_tokens(self.token))
+        process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(hash_tokens(self.token))
         process_info = read_file(process_info_path, True)
         resource_main_dir = '{}/{}'.format(ticket_path, next(os.walk(ticket_path))[1][0])
 
@@ -191,13 +193,14 @@ class TestResourcePOSTWithFile(SimpleTestCase):
         process_wait(process_info, ticket_path)
 
         # Create bad hashes with the ticket number and run the upload function manually
-        file_hashes = {'mediafiles/uploads/{}/BagItToUpload/data/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png'.format(
-            ticket_number): '6d33275234b28d77348e4e1049f58b95a485a7a441684a9eb9175d01c7f141e'}
+        file_hashes = {'mediafiles/jobs/{}/BagItToUpload/data/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png'.format(
+            hash_tokens(self.token)): '6d33275234b28d77348e4e1049f58b95a485a7a441684a9eb9175d01c7f141e'}
 
         # Create an instance of the BaseResource and add all of the appropriate class attributes
         # needed for _upload_resource()
         resource_instance = BaseResource()
         resource_instance.resource_main_dir = resource_main_dir
+        resource_instance.ticket_number = hash_tokens(self.token)
         resource_instance.process_info_path = process_info_path
         resource_instance.destination_target_name = 'osf'
         resource_instance.action = 'resource_upload'
@@ -207,19 +210,28 @@ class TestResourcePOSTWithFile(SimpleTestCase):
         resource_instance.file_duplicate_action = 'ignore'
         resource_instance.destination_resource_id = None
         resource_instance.infinite_depth = True
-        resource_instance.process_info_obj = {}
+        resource_instance.process_info_obj = {
+            'presqt-destination-token': hash_tokens(self.token),
+            'status': 'in_progress',
+            'expiration': str('2012-04-28'),
+            'message': 'Saving files to server and validating bag...',
+            'status_code': None,
+            'function_process_id': None,
+            'upload_total_files': 0,
+            'upload_files_finished': 0}
         resource_instance.source_fts_metadata_actions = []
         resource_instance.function_process = multiprocessing.Process()
         resource_instance.all_keywords = []
         resource_instance._upload_resource()
 
         process_info = read_file(process_info_path, True)
-        self.assertEqual(process_info['message'], 'Upload successful but with fixity errors.')
-        self.assertEqual(process_info['failed_fixity'], [
+        self.assertEqual(process_info['resource_upload']['message'],
+                         'Upload successful but with fixity errors.')
+        self.assertEqual(process_info['resource_upload']['failed_fixity'], [
                          '/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png'])
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/uploads/{}'.format(ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(hash_tokens(self.token)))
 
     def test_error_400_target_not_supported_test_target(self):
         """
@@ -243,7 +255,7 @@ class TestResourcePOSTWithFile(SimpleTestCase):
         """
         Return a 400 if the POST method fails because the presqt-destination-token was not provided.
         """
-        headers = {'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+        headers = {'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore', 'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': 'resource_id'})
         response = self.client.post(
             url, {'presqt-file': open('presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip', 'rb')}, **headers)
@@ -280,7 +292,7 @@ class TestResourcePOSTWithFile(SimpleTestCase):
         """
         Return a 400 if the POST fails because "'presqt-file-duplicate-action' missing in headers.
         """
-        headers = {'HTTP_PRESQT_DESTINATION_TOKEN': OSF_UPLOAD_TEST_USER_TOKEN}
+        headers = {'HTTP_PRESQT_DESTINATION_TOKEN': OSF_UPLOAD_TEST_USER_TOKEN, 'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         url = reverse('resource', kwargs={'target_name': 'osf', 'resource_id': 'resource_id'})
         response = self.client.post(
             url, {'presqt-file': open('presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip', 'rb')}, **headers)
@@ -357,7 +369,8 @@ class TestResourcePOSTWithBody(SimpleTestCase):
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.destination_token,
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
-                        'HTTP_PRESQT_KEYWORD_ACTION': 'automatic'}
+                        'HTTP_PRESQT_KEYWORD_ACTION': 'automatic',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
 
     def test_error_400_missing_destination_token(self):
         """
@@ -553,7 +566,7 @@ class TestResourcePOSTWithBody(SimpleTestCase):
             "source_target_name": "osf",
             "source_resource_id": "dj52w379504"}, **self.headers, format='json')
         # Verify the error status code and message
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(
             response.data, {'error': "PresQT Error: keywords was not found in the request body."})
 
@@ -567,6 +580,6 @@ class TestResourcePOSTWithBody(SimpleTestCase):
             "source_resource_id": "dj52w379504",
             "keywords": "oops"}, **self.headers, format='json')
         # Verify the error status code and message
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(
             response.data, {'error': "PresQT Error: keywords must be in list format."})

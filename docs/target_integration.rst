@@ -21,8 +21,9 @@ Target Collection/Details
         name                         str      Name of the Target. This will be used as path parameters in the URL
         readable_name                str      Human readable name of the Target for the front end
         status_url                   str      Url which is 200 OK if the API works.
+        token_url                    str      Url where users can create their API tokens.
         supported_actions            array    Actions the target supports. Only make actions true when action is working
-        resource_collection          bool     Get all resources for the user in this target
+        resource_collection          bool     Get all top level resources for the user in this target
         resource_detail              bool     Get an individual resource's details
         resource_download            bool     Download a resource
         resource_upload              bool     Upload a resource
@@ -46,6 +47,7 @@ Target Collection/Details
                 "name": "osf",
                 "readable_name": "OSF",
                 "status_url": "https://api.osf.io/v2/nodes/",
+                "token_url": "https://osf.io/settings/tokens",
                 "supported_actions": {
                     "resource_collection": true,
                     "resource_detail": true,
@@ -84,8 +86,7 @@ Resource Endpoints
 Resource Collection
 +++++++++++++++++++
 Targets that integrate with the Resources Collection API Endpoint must have a function that returns
-a specifically structured dataset. This structure allows us to recreate the hierarchy of the file
-structure on the front end.
+a specifically structured dataset.
 
 1. Update your target in ``presqt/specs/targets.json`` by setting
 ``supported_actions.resource_collection`` to ``true``.
@@ -97,16 +98,17 @@ structure on the front end.
 
     * The function must have the following parameters **in this order**:
 
-        ================ === ===========================================
-        token            str User's token for the target
-        search_parameter str The search parameter passed to the API View
-        ================ === ===========================================
+        ================= === =======================================================================
+        token             str User's token for the target
+        query_parameter   str The query_parameter parameters passed to the API View
+        ================= === =======================================================================
 
     * The function must return the following **in this order**:
 
-        ========= ==== =============================================
-        resources list list of Python dictionaries for each resource
-        ========= ==== =============================================
+        ========= ==== =======================================================
+        resources list list of Python dictionaries for each top level resource
+        pages     dict dictionary of pagination details
+        ========= ==== =======================================================
 
             **Resource dictionary details:**
 
@@ -116,7 +118,7 @@ structure on the front end.
                               Options: [container, item]
                 kind_name str Target specific name for that kind
 
-                               For example OSF kind_names are: [node, folder, file]
+                               For example OSF kind_names are: [project, folder, file]
                 container str ID of the container for the resource.
 
                               For example if the resource is a file in a folder then the **container** value would be the ID of the folder
@@ -126,31 +128,47 @@ structure on the front end.
                 title     str Title of the resource
                 ========= === =============================================================================================================
 
+            **Page dictionary details:**
+
+                ============= === ================================
+                first_page    str The first page number
+                previous_page str The previous page number
+                next_page     str The next page number
+                last_page     str The last page number
+                total_pages   str The total amount of pages
+                per_page      str The amount of resources per page
+                ============= === ================================
+
     **Example Resource Collection Function:**
 
         .. code-block:: python
 
-            def <your_target_name>_fetch_resources(token, search_parameter):
+            def <your_target_name>_fetch_resources(token, query_parameter):
                 # Process to obtain resource collection IF search_parameter goes here.
                 # Process to obtain resource collection goes here.
                 # Variables below are defined here to show examples of structure.
-                resources = [
-                    {
+                target_resources = get_target_resources()
+
+                resources = []
+                for resource in target_resources:
+                       resource.append({
                         'kind': 'container',
                         'kind_name': 'Project',
-                        'id': '12345',
+                        'id': resource.id,
                         'container': None,
-                        'title': 'New Project
-                    },
-                    {
-                        'kind': 'item',
-                        'kind_name': 'file',
-                        'id': '34567,
-                        'container': '12345',
-                        'title': 'TheFile.jpg'
-                    }
-                ]
-                return resources
+                        'title': resource.title
+                    })
+
+                # Process to obtain page numbers goes here
+                pages = {
+                    "first_page": '1',
+                    "previous_page": None,
+                    "next_page": None,
+                    "last_page": '1',
+                    "total_pages": '1',
+                    "per_page": 10
+                }
+                return resources, pages
 
 3. Add the resource collection function to ``presqt/api_v1/utilities/utils/function_router.py``
 
@@ -204,6 +222,13 @@ a specifically structured dataset that represents the resource.
             extra         dict Any extra target specific data.
 
                                Can be an empty dict
+            children      list A list of children resources, each child in the list must be a 
+                               
+                               dictionary that follows the structure of the resource_collection
+                               
+                               dictionaries listed above. Example: [{'kind': '', 'kind_name': '', 
+                               
+                               'id': '', 'container': '', 'title': ''}]
             ============= ==== ==================================================================
 
         **Example Resource Collection Function:**
@@ -235,7 +260,8 @@ a specifically structured dataset that represents the resource.
                                 "write",
                                 "admin"
                             ],
-                        }
+                        },
+                        "children": []
                     }
                     return resource
 
@@ -255,10 +281,12 @@ Resource Download Endpoint
 
     * The function must have the following parameters **in this order**:
 
-        =========== === =======================================
-        token       str User's token for the target
-        resource_id str ID for the resource we want to download
-        =========== === =======================================
+        ================= === =============================================
+        token             str User's token for the target
+        resource_id       str ID for the resource we want to download
+        process_info_path str The path to this download's process_info_path
+        action            str The type of action occurring
+        ================= === =============================================
 
     * The function must return a **dictionary** with the following keys:
 
@@ -295,12 +323,15 @@ Resource Download Endpoint
             ============== === ============================================================
             sourceUsername str Username of the user making the request at the source target
             ============== === ============================================================
+    * If you want to keep track of the progress of the download there are two functions available
+      to do so. ``update_process_info()`` is for updating the total number of resources in the download
+      and ``increment_process_info()`` is for updating the number of resources gathered thus far.
 
     **Example Resource Download Function:**
 
         .. code-block:: python
 
-            def <your_target_name>_download_resource(token, resource_id):
+            def <your_target_name>_download_resource(token, resource_id, process_info_path):
                 # Process to download resource goes here.
                 # Variables below are defined here to show examples of structure.
                 resources = [
@@ -355,6 +386,8 @@ Resource Upload Endpoint
         file_duplicate_action str The action to take when a duplicate file is found
 
                                   Options: [ignore, update]
+        process_info_path     str The path to this download's process_info_path
+        action                str The type of action occurring
         ===================== === ==========================================================================
 
     * The function must return a **dictionary** with the following keys:

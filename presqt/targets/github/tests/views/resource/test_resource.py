@@ -13,6 +13,7 @@ from presqt.targets.github.functions.upload_metadata import github_upload_metada
 from presqt.targets.github.utilities import delete_github_repo
 from presqt.targets.utilities import shared_upload_function_github, process_wait
 from presqt.utilities import read_file, PresQTError
+from presqt.api_v1.utilities import hash_tokens
 
 
 class TestResourceGETJSON(SimpleTestCase):
@@ -26,7 +27,7 @@ class TestResourceGETJSON(SimpleTestCase):
         self.client = APIClient()
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}
         self.keys = ['kind', 'kind_name', 'id', 'title', 'date_created', 'date_modified', 'hashes',
-                     'extra', 'links', 'actions']
+                     'extra', 'children', 'links', 'actions']
 
     def test_success_repo(self):
         """
@@ -58,6 +59,8 @@ class TestResourceGETJSON(SimpleTestCase):
         self.assertEqual('ProjectTwo', response.data['title'])
         # Download, Upload, Transfer, Detail Links
         self.assertEqual(len(response.data['links']), 4)
+        # Make sure there's 2 children
+        self.assertEqual(len(response.data['children']), 2)
 
     def test_success_file(self):
         """
@@ -70,19 +73,9 @@ class TestResourceGETJSON(SimpleTestCase):
         response = self.client.get(url, **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
-    
-    def test_success_big_file(self):
-        """
-        Returns a 200 if the GET method is successful when getting a GitHub `file` larger than 100MB.
-        """
-        resource_id = '266134247:Media_Files%2F20180726_174402%252Emp4'
 
-        url = reverse('resource', kwargs={'target_name': 'github',
-                                          'resource_id': resource_id,
-                                          'resource_format': 'json'})
-        response = self.client.get(url, **self.header)
-        # Verify the status code
-        self.assertEqual(response.status_code, 200)
+        # Make sure there's 0 children
+        self.assertEqual(len(response.data['children']), 0)
 
     def test_bad_repo_id_file(self):
         """
@@ -108,7 +101,6 @@ class TestResourceGETJSON(SimpleTestCase):
         # Verify the status code
         self.assertEqual(response.status_code, 404)
 
-
     def test_success_folder(self):
         """
         Returns a 200 if the GET method is successful when getting a GitHub `folder`.
@@ -120,6 +112,8 @@ class TestResourceGETJSON(SimpleTestCase):
         response = self.client.get(url, **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
+        # Make sure there's 4 children
+        self.assertEqual(len(response.data['children']), 4)
 
     def test_error_404_not_authorized(self):
         """
@@ -161,8 +155,10 @@ class TestResourcePOST(SimpleTestCase):
     def setUp(self):
         self.client = APIClient()
         self.token = GITHUB_TEST_USER_TOKEN
+        self.ticket_number = hash_tokens(self.token)
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token,
-                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.good_zip_file = 'presqt/api_v1/tests/resources/upload/GoodBagIt.zip'
         self.repo_title = 'NewProject'
 
@@ -171,7 +167,8 @@ class TestResourcePOST(SimpleTestCase):
         self.url = reverse('resource_collection', kwargs={'target_name': 'github'})
         self.file = 'presqt/api_v1/tests/resources/upload/ProjectBagItToUpload.zip'
         self.resources_ignored = []
-        self.failed_fixity = ['/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
+        self.failed_fixity = [
+            '/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
         self.resources_updated = []
         self.hash_algorithm = 'md5'
         self.process_message = "Upload successful. Fixity can't be determined because GitHub may not have provided a file checksum. See PRESQT_FTS_METADATA.json for more details."
@@ -192,7 +189,7 @@ class TestResourcePOST(SimpleTestCase):
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         response_json = self.client.get(
-            self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
+            self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()['resources']
 
         repo_exists = False
         repo_id = None
@@ -216,7 +213,8 @@ class TestResourcePOST(SimpleTestCase):
 
         # Try the same upload again so we get a resource ignored
         self.url = reverse('resource', kwargs={'target_name': 'github', 'resource_id': repo_id})
-        self.resources_ignored = ['/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
+        self.resources_ignored = [
+            '/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
         self.failed_fixity = []
         self.process_message = 'Upload successful.'
         shared_upload_function_github(self)
@@ -227,8 +225,10 @@ class TestResourcePOST(SimpleTestCase):
         # Try the same upload again but with duplicate resources set to update
         self.duplicate_action = 'update'
         self.url = reverse('resource', kwargs={'target_name': 'github', 'resource_id': repo_id})
-        self.resources_updated = ['/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
-        self.failed_fixity = ['/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
+        self.resources_updated = [
+            '/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
+        self.failed_fixity = [
+            '/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
         self.resources_ignored = []
         self.process_message = "Upload successful. Fixity can't be determined because GitHub may not have provided a file checksum. See PRESQT_FTS_METADATA.json for more details."
         shared_upload_function_github(self)
@@ -237,10 +237,12 @@ class TestResourcePOST(SimpleTestCase):
         shutil.rmtree(self.ticket_path)
 
         # Upload to an existing folder
-        self.url = reverse('resource', kwargs={'target_name': 'github', 'resource_id': '{}:funnyfunnyimages'.format(repo_id)})
+        self.url = reverse('resource', kwargs={
+                           'target_name': 'github', 'resource_id': '{}:funnyfunnyimages'.format(repo_id)})
         self.resources_ignored = []
         self.resources_updated = []
-        self.failed_fixity = ['/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
+        self.failed_fixity = [
+            '/NewProject/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
         shared_upload_function_github(self)
 
         # Delete upload folder
@@ -260,12 +262,13 @@ class TestResourcePOST(SimpleTestCase):
         # Delete upload folder
         shutil.rmtree(self.ticket_path)
 
-        self.url = reverse('resource', kwargs={'target_name': 'github', 'resource_id': '58435738573489573498573498573'})
+        self.url = reverse('resource', kwargs={
+                           'target_name': 'github', 'resource_id': '58435738573489573498573498573'})
         self.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = self.duplicate_action
-        response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+        response = self.client.post(
+            self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
 
-        ticket_number = response.data['ticket_number']
-        self.ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        self.ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
         # Verify status code and message
         self.assertEqual(response.status_code, 202)
@@ -274,18 +277,18 @@ class TestResourcePOST(SimpleTestCase):
 
         # Verify process_info file status is 'in_progress' initially
         process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
-        self.assertEqual(process_info['status'], 'in_progress')
+        self.assertEqual(process_info['resource_upload']['status'], 'in_progress')
 
         # Wait until the spawned off process finishes in the background to do further validation
         process_wait(process_info, self.ticket_path)
 
         # Verify process_info.json file data
         process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
-        self.assertEqual(process_info['status'], 'failed')
+        self.assertEqual(process_info['resource_upload']['status'], 'failed')
         self.assertEqual(
-            process_info['message'],
+            process_info['resource_upload']['message'],
             "The resource with id, 58435738573489573498573498573, does not exist for this user.")
-        self.assertEqual(process_info['status_code'], 404)
+        self.assertEqual(process_info['resource_upload']['status_code'], 404)
 
         # Delete upload folder
         shutil.rmtree(self.ticket_path)
@@ -299,7 +302,7 @@ class TestResourcePOST(SimpleTestCase):
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         response_json = self.client.get(
-            self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
+            self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()['resources']
 
         repo_exists = False
         repo_id = None
@@ -326,7 +329,8 @@ class TestResourcePOST(SimpleTestCase):
         """
         Ensure that an error is returned if Github doesn't return a 201 status code.
         """
-        self.assertRaises(PresQTError, github_upload_metadata, self.token, 'eggtest', {"bad": "metadata"})
+        self.assertRaises(PresQTError, github_upload_metadata,
+                          self.token, 'eggtest', {"bad": "metadata"})
 
     def test_error_updating_metadata_file(self):
         """
@@ -348,10 +352,9 @@ class TestResourcePOST(SimpleTestCase):
         self.hash_algorithm = 'md5'
         shared_upload_function_github(self)
 
-
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         response_json = self.client.get(
-            self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
+            self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()['resources']
 
         for repo in response_json:
             if repo['title'] == self.repo_title:
@@ -388,19 +391,19 @@ class TestResourcePOST(SimpleTestCase):
         self.hash_algorithm = 'md5'
         shared_upload_function_github(self)
 
-
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         response_json = self.client.get(
-            self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
+            self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()['resources']
 
         for repo in response_json:
             if repo['title'] == self.repo_title:
                 repo_name = repo['title']
                 repo_id = repo['id']
-        metadata_file_get = requests.get("https://api.github.com/repos/presqt-test-user/{}/contents/PRESQT_FTS_METADATA.json".format(repo_name))
+        metadata_file_get = requests.get(
+            "https://api.github.com/repos/presqt-test-user/{}/contents/PRESQT_FTS_METADATA.json".format(repo_name))
 
         # Update metadata to be invalid for testing purposes.
-        metadata_dict = json.dumps({"bad_metadata":"metadata"}, indent=4).encode('utf-8')
+        metadata_dict = json.dumps({"bad_metadata": "metadata"}, indent=4).encode('utf-8')
         encoded_file = base64.b64encode(metadata_dict).decode('utf-8')
 
         data = {
@@ -412,8 +415,8 @@ class TestResourcePOST(SimpleTestCase):
             "content": encoded_file}
 
         requests.put("https://api.github.com/repos/presqt-test-user/{}/contents/PRESQT_FTS_METADATA.json".format(repo_name),
-                                headers={"Authorization": "token {}".format(GITHUB_TEST_USER_TOKEN)},
-                                data=json.dumps(data))
+                     headers={"Authorization": "token {}".format(GITHUB_TEST_USER_TOKEN)},
+                     data=json.dumps(data))
 
         # Now I'll make an explicit call to our metadata function with a mocked server error and ensure
         # it is raising an exception.
@@ -435,7 +438,7 @@ class TestResourcePOST(SimpleTestCase):
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         response_json = self.client.get(
-            self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
+            self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()['resources']
 
         for repo in response_json:
             if repo['title'] == self.repo_title:
@@ -448,13 +451,14 @@ class TestResourcePOST(SimpleTestCase):
         shutil.rmtree(self.ticket_path)
 
         # Upload to the newly created project
-        resource_id = '{}:funnyfunnyimages%2FScreen_Shot_2019-07-15_at_3%2E26%2E49_PM%2Epng'.format(repo_id)
+        resource_id = '{}:funnyfunnyimages%2FScreen_Shot_2019-07-15_at_3%2E26%2E49_PM%2Epng'.format(
+            repo_id)
         self.url = reverse('resource', kwargs={'target_name': 'github', 'resource_id': resource_id})
 
-        response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
+        response = self.client.post(
+            self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
 
-        ticket_number = response.data['ticket_number']
-        self.ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        self.ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
         # Verify status code and message
         self.assertEqual(response.status_code, 202)
@@ -463,16 +467,17 @@ class TestResourcePOST(SimpleTestCase):
 
         # Verify process_info file status is 'in_progress' initially
         process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
-        self.assertEqual(process_info['status'], 'in_progress')
+        self.assertEqual(process_info['resource_upload']['status'], 'in_progress')
 
         # Wait until the spawned off process finishes in the background to do further validation
         process_wait(process_info, self.ticket_path)
 
         # Verify process_info.json file data
         process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
-        self.assertEqual(process_info['status'], 'failed')
-        self.assertEqual(process_info['message'], "The Resource provided, {}, is not a container".format(resource_id))
-        self.assertEqual(process_info['status_code'], 400)
+        self.assertEqual(process_info['resource_upload']['status'], 'failed')
+        self.assertEqual(process_info['resource_upload']['message'],
+                         "The Resource provided, {}, is not a container".format(resource_id))
+        self.assertEqual(process_info['resource_upload']['status_code'], 400)
 
     def test_failed_upload(self):
         # Mock a server error for when a put request is made.
@@ -487,7 +492,7 @@ class TestResourcePOST(SimpleTestCase):
 
         # Verify the new repo exists on the PresQT Resource Collection endpoint.
         response_json = self.client.get(
-            self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
+            self.url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()['resources']
 
         repo_exists = False
         repo_id = None
@@ -513,8 +518,7 @@ class TestResourcePOST(SimpleTestCase):
             response = self.client.post(self.url, {'presqt-file': open(
                 self.file, 'rb')}, **self.headers)
 
-            ticket_number = response.data['ticket_number']
-            self.ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+            self.ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
             # Verify status code and message
             self.assertEqual(response.status_code, 202)
@@ -523,7 +527,7 @@ class TestResourcePOST(SimpleTestCase):
 
             # Verify process_info file status is 'in_progress' initially
             process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
-            self.assertEqual(process_info['status'], 'in_progress')
+            self.assertEqual(process_info['resource_upload']['status'], 'in_progress')
 
             # Wait until the spawned off process finishes in the background to do further validation
             process_wait(process_info, self.ticket_path)
@@ -531,9 +535,10 @@ class TestResourcePOST(SimpleTestCase):
             # Verify process_info.json file data
             process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
 
-            self.assertEqual(process_info['status'], 'failed')
-            self.assertEqual(process_info['message'], "Upload failed with a status code of 500")
-            self.assertEqual(process_info['status_code'], 400)
+            self.assertEqual(process_info['resource_upload']['status'], 'failed')
+            self.assertEqual(process_info['resource_upload']['message'],
+                             "Upload failed with a status code of 500")
+            self.assertEqual(process_info['resource_upload']['status_code'], 400)
 
         # Delete upload folder
         shutil.rmtree(self.ticket_path)

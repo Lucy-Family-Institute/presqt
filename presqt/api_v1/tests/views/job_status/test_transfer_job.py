@@ -6,6 +6,8 @@ import requests
 import shutil
 from unittest.mock import patch
 
+from django.core import mailP
+
 from django.test import SimpleTestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
@@ -13,14 +15,14 @@ from rest_framework.test import APIClient
 from config.settings.base import (OSF_UPLOAD_TEST_USER_TOKEN, GITHUB_TEST_USER_TOKEN,
                                   ZENODO_TEST_USER_TOKEN, OSF_TEST_USER_TOKEN)
 
-from presqt.api_v1.utilities import transfer_target_validation
+from presqt.api_v1.utilities import transfer_target_validation, hash_tokens
 from presqt.utilities import read_file, PresQTValidationError
 from presqt.targets.osf.utilities import delete_users_projects
 
 
 class TestTransferJobGET(SimpleTestCase):
     """
-    Test the `api_v1/transfer/<ticket_id>/` endpoint's GET method.
+    Test the `api_v1/job_status/transfer/` endpoint's GET method.
 
     Testing only PresQT core code.
     """
@@ -32,7 +34,10 @@ class TestTransferJobGET(SimpleTestCase):
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.destination_token,
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
-                        'HTTP_PRESQT_KEYWORD_ACTION': 'manual'}
+                        'HTTP_PRESQT_KEYWORD_ACTION': 'manual',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
+        self.ticket_number = "{}_{}".format(hash_tokens(
+            self.source_token), hash_tokens(self.destination_token))
         self.resource_id = '209373660'
         self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
 
@@ -53,27 +58,22 @@ class TestTransferJobGET(SimpleTestCase):
             **self.headers,
             format='json')
 
-        self.ticket_number = response.data['ticket_number']
-        self.process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
-            self.ticket_number)
+        self.process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(self.ticket_number)
         self.transfer_job = response.data['transfer_job']
         process_info = read_file(self.process_info_path, True)
-
-        self.assertEqual(self.transfer_job, ('http://testserver{}'.format(reverse(
-            'transfer_job', kwargs={'ticket_number': self.ticket_number}))))
 
         response = self.client.get(self.transfer_job, **self.headers)
         self.assertEqual(response.data['message'], 'Transfer is being processed on the server')
 
         # Wait until the spawned off process finishes in the background
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_transfer_in']['status'] == 'in_progress':
             try:
                 process_info = read_file(self.process_info_path, True)
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
 
-        self.assertNotEqual(process_info['status'], 'in_progress')
+        self.assertNotEqual(process_info['resource_transfer_in']['status'], 'in_progress')
 
         # Check that transfer was successful
         response = self.client.get(self.transfer_job, **self.headers)
@@ -83,35 +83,36 @@ class TestTransferJobGET(SimpleTestCase):
                          "Transfer successful. Fixity can't be determined because GitHub may not have provided a file checksum. See PRESQT_FTS_METADATA.json for more details.")
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/transfers/{}'.format(self.ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
+
+        # Ensure no email was sent for this request as no email was provided.
+        self.assertEqual(len(mail.outbox), 0)
 
     def test_call_transfer_success_finite_depth(self):
         """
-        Make a POST request to `resource` to begin transfering a resource.
+        Make a POST request to `resource` to begin transferring a resource.
         """
         self.url = reverse('resource_collection', kwargs={'target_name': 'zenodo'})
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': ZENODO_TEST_USER_TOKEN,
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
-                        'HTTP_PRESQT_KEYWORD_ACTION': 'automatic'}
+                        'HTTP_PRESQT_KEYWORD_ACTION': 'automatic',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': 'eggs@test.com'}
+        self.ticket_number = "{}_{}".format(hash_tokens(
+            self.source_token), hash_tokens(ZENODO_TEST_USER_TOKEN))
         response = self.client.post(self.url, {"source_target_name": "github",
                                                "source_resource_id": self.resource_id,
                                                "keywords": []},
                                     **self.headers, format='json')
-        self.ticket_number = response.data['ticket_number']
-        self.process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
-            self.ticket_number)
+        self.process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(self.ticket_number)
         self.transfer_job = response.data['transfer_job']
         process_info = read_file(self.process_info_path, True)
-
-        self.assertEqual(self.transfer_job, ('http://testserver{}'.format(reverse(
-            'transfer_job', kwargs={'ticket_number': self.ticket_number}))))
 
         response = self.client.get(self.transfer_job, **self.headers)
         self.assertEqual(response.data['message'], 'Transfer is being processed on the server')
 
         # Wait until the spawned off process finishes in the background
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_transfer_in']['status'] == 'in_progress':
             try:
                 process_info = read_file(self.process_info_path, True)
             except json.decoder.JSONDecodeError:
@@ -133,7 +134,7 @@ class TestTransferJobGET(SimpleTestCase):
                                 'access_token': ZENODO_TEST_USER_TOKEN})
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/transfers/{}'.format(self.ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
     def test_transfer_keyword_enhancement_automatic(self):
         """
@@ -149,25 +150,20 @@ class TestTransferJobGET(SimpleTestCase):
             "source_resource_id": github_project_id,
             "keywords": []}, **self.headers, format='json')
 
-        self.ticket_number = response.data['ticket_number']
-        self.process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
-            self.ticket_number)
+        self.process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(self.ticket_number)
         self.transfer_job = response.data['transfer_job']
         process_info = read_file(self.process_info_path, True)
-
-        self.assertEqual(self.transfer_job, ('http://testserver{}'.format(reverse(
-            'transfer_job', kwargs={'ticket_number': self.ticket_number}))))
 
         response = self.client.get(self.transfer_job, **self.headers)
         self.assertEqual(response.data['message'], 'Transfer is being processed on the server')
 
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_transfer_in']['status'] == 'in_progress':
             try:
                 process_info = read_file(self.process_info_path, True)
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
-        self.assertNotEqual(process_info['status'], 'in_progress')
+        self.assertNotEqual(process_info['resource_transfer_in']['status'], 'in_progress')
 
         # VALIDATE KEYWORD AND METADATA FILE IN GITHUB
         headers = {"Authorization": "token {}".format(GITHUB_TEST_USER_TOKEN),
@@ -210,7 +206,7 @@ class TestTransferJobGET(SimpleTestCase):
         osf_headers = {'HTTP_PRESQT_SOURCE_TOKEN': self.destination_token}
         osf_collection_response = self.client.get(self.url, **osf_headers)
         self.assertEqual(osf_collection_response.status_code, 200)
-        osf_id = osf_collection_response.data[0]['id']
+        osf_id = osf_collection_response.data['resources'][0]['id']
         # Get project details
         osf_detail_response = self.client.get(
             reverse('resource', kwargs={"target_name": "osf", "resource_id": osf_id}), **osf_headers)
@@ -238,7 +234,7 @@ class TestTransferJobGET(SimpleTestCase):
         self.assertGreater(len(metadata['actions'][0]['keywords'].keys()), 0)
 
         # DELETE TICKET FOLDER
-        shutil.rmtree('mediafiles/transfers/{}'.format(self.ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
     def test_transfer_keyword_enhancement_enhance_existing_keywords(self):
         """
@@ -257,25 +253,21 @@ class TestTransferJobGET(SimpleTestCase):
             "source_resource_id": github_project_id,
             "keywords": []}, **self.headers, format='json')
 
-        self.ticket_number = response.data['ticket_number']
-        self.process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
+        self.process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(
             self.ticket_number)
         self.transfer_job = response.data['transfer_job']
         process_info = read_file(self.process_info_path, True)
 
-        self.assertEqual(self.transfer_job, ('http://testserver{}'.format(reverse(
-            'transfer_job', kwargs={'ticket_number': self.ticket_number}))))
-
         response = self.client.get(self.transfer_job, **self.headers)
         self.assertEqual(response.data['message'], 'Transfer is being processed on the server')
 
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_transfer_in']['status'] == 'in_progress':
             try:
                 process_info = read_file(self.process_info_path, True)
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
-        self.assertNotEqual(process_info['status'], 'in_progress')
+        self.assertNotEqual(process_info['resource_transfer_in']['status'], 'in_progress')
 
         # VALIDATE KEYWORD AND METADATA FILE IN GITHUB
         headers = {"Authorization": "token {}".format(GITHUB_TEST_USER_TOKEN),
@@ -321,7 +313,7 @@ class TestTransferJobGET(SimpleTestCase):
         osf_headers = {'HTTP_PRESQT_SOURCE_TOKEN': self.destination_token}
         osf_collection_response = self.client.get(self.url, **osf_headers)
         self.assertEqual(osf_collection_response.status_code, 200)
-        osf_id = osf_collection_response.data[0]['id']
+        osf_id = osf_collection_response.data['resources'][0]['id']
         # Get project details
         osf_detail_response = self.client.get(
             reverse('resource', kwargs={"target_name": "osf", "resource_id": osf_id}), **osf_headers)
@@ -352,7 +344,7 @@ class TestTransferJobGET(SimpleTestCase):
         self.assertGreater(len(metadata['actions'][0]['keywords'].keys()), 0)
 
         # DELETE TICKET FOLDER
-        shutil.rmtree('mediafiles/transfers/{}'.format(self.ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
     def test_transfer_keyword_enhancement_manual(self):
         """
@@ -369,25 +361,21 @@ class TestTransferJobGET(SimpleTestCase):
             "source_resource_id": github_project_id,
             "keywords": ["test", "words"]}, **self.headers, format='json')
 
-        self.ticket_number = response.data['ticket_number']
-        self.process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
+        self.process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(
             self.ticket_number)
         self.transfer_job = response.data['transfer_job']
         process_info = read_file(self.process_info_path, True)
 
-        self.assertEqual(self.transfer_job, ('http://testserver{}'.format(reverse(
-            'transfer_job', kwargs={'ticket_number': self.ticket_number}))))
-
         response = self.client.get(self.transfer_job, **self.headers)
         self.assertEqual(response.data['message'], 'Transfer is being processed on the server')
 
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_transfer_in']['status'] == 'in_progress':
             try:
                 process_info = read_file(self.process_info_path, True)
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
-        self.assertNotEqual(process_info['status'], 'in_progress')
+        self.assertNotEqual(process_info['resource_transfer_in']['status'], 'in_progress')
 
         response = self.client.get(self.transfer_job, **self.headers)
         for keyword in response.data['initial_keywords']:
@@ -449,28 +437,27 @@ class TestTransferJobGET(SimpleTestCase):
         self.assertEqual(len(metadata['actions'][0]['keywords'].keys()), 3)
 
         # DELETE TICKET FOLDER
-        shutil.rmtree('mediafiles/transfers/{}'.format(self.ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
     def test_get_error_400(self):
         """
         Return a 400 if the `presqt-destination-token` is missing in the headers.
         """
-        response = self.client.post(self.url, {
+        self.client.post(self.url, {
             "source_target_name": "github",
             "source_resource_id": self.resource_id,
             "keywords": []}, **self.headers, format='json')
-        ticket_number = response.data['ticket_number']
-        process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(ticket_number)
+        process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(self.ticket_number)
         process_info = read_file(process_info_path, True)
 
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_transfer_in']['status'] == 'in_progress':
             try:
                 process_info = read_file(process_info_path, True)
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
 
-        url = reverse('transfer_job', kwargs={'ticket_number': ticket_number})
+        url = reverse('job_status', kwargs={'action': 'transfer'})
         headers = {'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
         response = self.client.get(url, **headers)
 
@@ -480,58 +467,24 @@ class TestTransferJobGET(SimpleTestCase):
                          "PresQT Error: 'presqt-destination-token' missing in the request headers.")
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/transfers/{}'.format(ticket_number))
-
-    def test_get_error_401(self):
-        """
-        Return a 401 if the 'presqt-destination-token' provided in the header does not match
-        the 'presqt-destination-token' in the process_info file.
-        """
-        response = self.client.post(self.url, data={"source_target_name": "github",
-                                                    "source_resource_id": self.resource_id, "keywords": []},
-                                    **self.headers, format='json')
-
-        ticket_number = response.data['ticket_number']
-        process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
-            ticket_number)
-        process_info = read_file(process_info_path, True)
-
-        headers = {'HTTP_PRESQT_DESTINATION_TOKEN': 'EGGS',
-                   'HTTP_PRESQT_SOURCE_TOKEN': self.source_token}
-        response = self.client.get(response.data['transfer_job'], **headers)
-
-        # Verify the status code and content
-        self.assertEqual(response.status_code, 401)
-        self.assertEqual(response.data['error'],
-                         "PresQT Error: Header 'presqt-destination-token' does not match the 'presqt-destination-token' for this server process.")
-
-        while process_info['status'] == 'in_progress':
-            try:
-                process_info = read_file(process_info_path, True)
-            except json.decoder.JSONDecodeError:
-                # Pass while the process_info file is being written to
-                pass
-
-        # Delete corresponding folder
-        shutil.rmtree('mediafiles/transfers/{}'.format(ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
     def test_get_error_500_401_token_invalid(self):
         """
         Return a 500 if the BaseResource._transfer_resource method running on the server gets a 401 error because the token is invalid.
         """
         self.headers['HTTP_PRESQT_DESTINATION_TOKEN'] = 'bad_token'
-        response = self.client.post(self.url, {
+        self.client.post(self.url, {
             "source_target_name": "github",
             "source_resource_id": self.resource_id, "keywords": []},
             **self.headers, format='json')
-        ticket_number = response.data['ticket_number']
-        process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
-            ticket_number)
+        self.ticket_number = '{}_{}'.format(hash_tokens(
+            self.source_token), hash_tokens('bad_token'))
+        process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(self.ticket_number)
         process_info = read_file(process_info_path, True)
+        url = reverse('job_status', kwargs={'action': 'transfer'})
 
-        url = reverse('transfer_job', kwargs={'ticket_number': ticket_number})
-
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_transfer_in']['status'] == 'in_progress':
             try:
                 process_info = read_file(process_info_path, True)
             except json.decoder.JSONDecodeError:
@@ -541,12 +494,11 @@ class TestTransferJobGET(SimpleTestCase):
         response = self.client.get(url, **self.headers)
 
         self.assertEqual(response.status_code, 500)
-        self.assertEqual(response.data,
-                         {'message': "Token is invalid. Response returned a 401 status code.",
-                          'status_code': 401})
+        self.assertEqual(response.data['message'],
+                         "Token is invalid. Response returned a 401 status code.")
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/transfers/{}'.format(ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
     def test_get_error_500_500_server_error_upload(self):
         """
@@ -568,12 +520,10 @@ class TestTransferJobGET(SimpleTestCase):
                 "source_target_name": "github",
                 "source_resource_id": self.resource_id, "keywords": []},
                 **self.headers, format='json')
-            ticket_number = response.data['ticket_number']
-            process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
-                ticket_number)
+            process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(self.ticket_number)
             process_info = read_file(process_info_path, True)
 
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_transfer_in']['status'] == 'in_progress':
             try:
                 process_info = read_file(process_info_path, True)
             except json.decoder.JSONDecodeError:
@@ -581,14 +531,13 @@ class TestTransferJobGET(SimpleTestCase):
                 pass
 
         # Check in on the transfer job and verify we got the 500 for the server error
-        url = reverse('transfer_job', kwargs={'ticket_number': ticket_number})
+        url = reverse('job_status', kwargs={'action': 'transfer'})
         response = self.client.get(url, **self.headers)
         self.assertEqual(response.status_code, 500)
-        self.assertEqual(response.data,
-                         {'message': "Response has status code 500 while creating project ProjectTwelve",
-                          'status_code': 400})
+        self.assertEqual(response.data['message'],
+                         "Response has status code 500 while creating project ProjectTwelve")
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/transfers/{}'.format(ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
     def test_get_error_500_500_server_error_download(self):
         """
@@ -609,12 +558,10 @@ class TestTransferJobGET(SimpleTestCase):
                 "source_target_name": "github",
                 "source_resource_id": "garbage_id", "keywords": []},
                 **self.headers, format='json')
-            ticket_number = response.data['ticket_number']
-            process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
-                ticket_number)
+            process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(self.ticket_number)
             process_info = read_file(process_info_path, True)
 
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_transfer_in']['status'] == 'in_progress':
             try:
                 process_info = read_file(process_info_path, True)
             except json.decoder.JSONDecodeError:
@@ -622,15 +569,14 @@ class TestTransferJobGET(SimpleTestCase):
                 pass
 
         # Check in on the transfer job and verify we got the 500 for the server error
-        url = reverse('transfer_job', kwargs={'ticket_number': ticket_number})
+        url = reverse('job_status', kwargs={'action': 'transfer'})
         response = self.client.get(url, **self.headers)
 
-        self.assertEqual(response.data,
-                         {'message': "The resource with id, garbage_id, does not exist for this user.",
-                          'status_code': 404})
+        self.assertEqual(response.data['message'],
+                         "The resource with id, garbage_id, does not exist for this user.")
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/transfers/{}'.format(ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
     def test_transfer_invalid_requests(self):
         """
@@ -670,36 +616,37 @@ class TestTransferJobGET(SimpleTestCase):
         headers = {'HTTP_PRESQT_DESTINATION_TOKEN': GITHUB_TEST_USER_TOKEN,
                    'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN,
                    'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
-                   'HTTP_PRESQT_KEYWORD_ACTION': 'automatic'}
+                   'HTTP_PRESQT_KEYWORD_ACTION': 'automatic',
+                   'HTTP_PRESQT_EMAIL_OPT_IN': ''}
+        self.ticket_number = '{}_{}'.format(hash_tokens(
+            OSF_TEST_USER_TOKEN), hash_tokens(GITHUB_TEST_USER_TOKEN))
         url = reverse('resource_collection', kwargs={'target_name': 'github'})
 
-        response = self.client.post(url, {
+        self.client.post(url, {
             "source_target_name": "osf",
-            "source_resource_id": '5db34c37af84c3000ee1487d', "keywords": []},
+            "source_resource_id": '5db70f51f3bb87000c853575', "keywords": []},
             **headers, format='json')
 
-        ticket_number = response.data['ticket_number']
-        process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(ticket_number)
+        process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(self.ticket_number)
         process_info = read_file(process_info_path, True)
 
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_transfer_in']['status'] == 'in_progress':
             try:
                 process_info = read_file(process_info_path, True)
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
 
-        url = reverse('transfer_job', kwargs={'ticket_number': ticket_number})
+        url = reverse('job_status', kwargs={'action': 'transfer'})
         response = self.client.get(url, **headers)
 
         # Verify the status code and content
         self.assertEqual(response.status_code, 500)
-        self.assertEqual(response.data,
-                         {'message': "PresQT Error: PresQT FTS metadata cannot not be transferred by itself.",
-                          'status_code': 400})
+        self.assertEqual(response.data['message'],
+                         "PresQT Error: PresQT FTS metadata cannot not be transferred by itself.")
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/transfers/{}'.format(ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
     def test_transfer_target_keyword_error(self):
         """
@@ -715,28 +662,23 @@ class TestTransferJobGET(SimpleTestCase):
             "keywords": []},
             **self.headers, format='json')
 
-        self.ticket_number = response.data['ticket_number']
-        self.process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
-            self.ticket_number)
+        self.process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(self.ticket_number)
         self.transfer_job = response.data['transfer_job']
         process_info = read_file(self.process_info_path, True)
-
-        self.assertEqual(self.transfer_job, ('http://testserver{}'.format(reverse(
-            'transfer_job', kwargs={'ticket_number': self.ticket_number}))))
 
         response = self.client.get(self.transfer_job, **self.headers)
         self.assertEqual(response.data['message'], 'Transfer is being processed on the server')
 
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_transfer_in']['status'] == 'in_progress':
             try:
                 process_info = read_file(self.process_info_path, True)
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
-        self.assertNotEqual(process_info['status'], 'in_progress')
+        self.assertNotEqual(process_info['resource_transfer_in']['status'], 'in_progress')
 
         # DELETE TICKET FOLDER
-        shutil.rmtree('mediafiles/transfers/{}'.format(self.ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
     def test_keyword_upload_raises_error_during_transfer(self):
         """
@@ -763,28 +705,24 @@ class TestTransferJobGET(SimpleTestCase):
                 "source_resource_id": github_id,
                 "keywords": []}, **self.headers, format='json')
 
-            self.ticket_number = response.data['ticket_number']
-            self.process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
+            self.process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(
                 self.ticket_number)
             self.transfer_job = response.data['transfer_job']
             process_info = read_file(self.process_info_path, True)
 
-            self.assertEqual(self.transfer_job, ('http://testserver{}'.format(reverse(
-                'transfer_job', kwargs={'ticket_number': self.ticket_number}))))
-
             response = self.client.get(self.transfer_job, **self.headers)
             self.assertEqual(response.data['message'], 'Transfer is being processed on the server')
 
-            while process_info['status'] == 'in_progress':
+            while process_info['resource_transfer_in']['status'] == 'in_progress':
                 try:
                     process_info = read_file(self.process_info_path, True)
                 except json.decoder.JSONDecodeError:
                     # Pass while the process_info file is being written to
                     pass
-            self.assertNotEqual(process_info['status'], 'in_progress')
+            self.assertNotEqual(process_info['resource_transfer_in']['status'], 'in_progress')
 
             # DELETE TICKET FOLDER
-            shutil.rmtree('mediafiles/transfers/{}'.format(self.ticket_number))
+            shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
         with patch('requests.patch') as mock_request:
             mock_request.return_value = mock_req
@@ -797,33 +735,29 @@ class TestTransferJobGET(SimpleTestCase):
                 "source_resource_id": github_id,
                 "keywords": []}, **self.headers, format='json')
 
-            self.ticket_number = response.data['ticket_number']
-            self.process_info_path = 'mediafiles/transfers/{}/process_info.json'.format(
+            self.process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(
                 self.ticket_number)
             self.transfer_job = response.data['transfer_job']
             process_info = read_file(self.process_info_path, True)
 
-            self.assertEqual(self.transfer_job, ('http://testserver{}'.format(reverse(
-                'transfer_job', kwargs={'ticket_number': self.ticket_number}))))
-
             response = self.client.get(self.transfer_job, **self.headers)
             self.assertEqual(response.data['message'], 'Transfer is being processed on the server')
 
-            while process_info['status'] == 'in_progress':
+            while process_info['resource_transfer_in']['status'] == 'in_progress':
                 try:
                     process_info = read_file(self.process_info_path, True)
                 except json.decoder.JSONDecodeError:
                     # Pass while the process_info file is being written to
                     pass
-            self.assertNotEqual(process_info['status'], 'in_progress')
+            self.assertNotEqual(process_info['resource_transfer_in']['status'], 'in_progress')
 
             # DELETE TICKET FOLDER
-            shutil.rmtree('mediafiles/transfers/{}'.format(self.ticket_number))
+            shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
 
 class TestTransferJobPATCH(SimpleTestCase):
     """
-    Test the `api_v1/transfer/<ticket_id>/` endpoint's PATCH method.
+    Test the `api_v1/job_status/transfer/` endpoint's PATCH method.
 
     Testing only PresQT core code.
     """
@@ -832,10 +766,13 @@ class TestTransferJobPATCH(SimpleTestCase):
         self.client = APIClient()
         self.destination_token = OSF_UPLOAD_TEST_USER_TOKEN
         self.source_token = GITHUB_TEST_USER_TOKEN
+        self.ticket_number = '{}_{}'.format(hash_tokens(
+            self.source_token), hash_tokens(self.destination_token))
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.destination_token,
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
-                        'HTTP_PRESQT_KEYWORD_ACTION': 'manual'}
+                        'HTTP_PRESQT_KEYWORD_ACTION': 'manual',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.resource_id = '209373660'
         self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
 
@@ -843,26 +780,26 @@ class TestTransferJobPATCH(SimpleTestCase):
         """
         Return a 200 for successful cancelled transfer process.
         """
-        transfer_response = self.client.post(self.url, {
+        self.client.post(self.url, {
             "source_target_name": "github",
             "source_resource_id": self.resource_id,
             "keywords": []}, **self.headers, format='json')
 
-        ticket_number = transfer_response.data['ticket_number']
-        ticket_path = 'mediafiles/transfers/{}'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
+
         # Verify process_info file status is 'in_progress' initially
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        self.assertEqual(process_info['status'], 'in_progress')
+        self.assertEqual(process_info['resource_transfer_in']['status'], 'in_progress')
 
         # Wait until the spawned off process has a function_process_id to cancel the transfer
-        while not process_info['function_process_id']:
+        while not process_info['resource_transfer_in']['function_process_id']:
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
 
-        transfer_patch_url = reverse('transfer_job', kwargs={'ticket_number': ticket_number})
+        transfer_patch_url = reverse('job_status', kwargs={'action': 'transfer'})
         transfers_patch_url_response = self.client.patch(transfer_patch_url, **self.headers)
 
         self.assertEquals(transfers_patch_url_response.status_code, 200)
@@ -872,36 +809,38 @@ class TestTransferJobPATCH(SimpleTestCase):
 
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
 
-        self.assertEquals(process_info['message'], 'Transfer was cancelled by the user')
-        self.assertEquals(process_info['status'], 'failed')
-        self.assertEquals(process_info['status_code'], '499')
+        self.assertEquals(process_info['resource_transfer_in']
+                          ['message'], 'Transfer was cancelled by the user')
+        self.assertEquals(process_info['resource_transfer_in']['status'], 'failed')
+        self.assertEquals(process_info['resource_transfer_in']['status_code'], '499')
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/transfers/{}'.format(ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
     def test_success_406(self):
         """
         Return a 406 for unsuccessful cancel because the transfer finished already.
         """
-        transfer_response = self.client.post(self.url, {
+        self.client.post(self.url, {
             "source_target_name": "github",
             "source_resource_id": self.resource_id,
             "keywords": []}, **self.headers, format='json')
-        ticket_number = transfer_response.data['ticket_number']
-        ticket_path = 'mediafiles/transfers/{}'.format(ticket_number)
+
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
+
         # Verify process_info file status is 'in_progress' initially
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        self.assertEqual(process_info['status'], 'in_progress')
+        self.assertEqual(process_info['resource_transfer_in']['status'], 'in_progress')
 
         # Wait until the spawned off process finishes to attempt to cancel transfer
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_transfer_in']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
 
-        transfer_patch_url = reverse('transfer_job', kwargs={'ticket_number': ticket_number})
+        transfer_patch_url = reverse('job_status', kwargs={'action': 'transfer'})
         transfers_patch_url_response = self.client.patch(transfer_patch_url, **self.headers)
 
         self.assertEquals(transfers_patch_url_response.status_code, 406)
@@ -910,33 +849,35 @@ class TestTransferJobPATCH(SimpleTestCase):
 
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
 
-        self.assertEquals(process_info['message'],
+        self.assertEquals(process_info['resource_transfer_in']['message'],
                           "Transfer successful. Fixity can't be determined because GitHub may not have provided a file checksum. See PRESQT_FTS_METADATA.json for more details.")
-        self.assertEquals(process_info['status'], 'finished')
-        self.assertEquals(process_info['status_code'], '200')
+        self.assertEquals(process_info['resource_transfer_in']['status'], 'finished')
+        self.assertEquals(process_info['resource_transfer_in']['status_code'], '200')
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/transfers/{}'.format(ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
     def test_get_error_400(self):
         """
         Return a 400 if the `presqt-destination-token` is missing in the headers.
         """
-        response = self.client.post(self.url, {
+        self.client.post(self.url, {
             "source_target_name": "github",
             "source_resource_id": self.resource_id,
             "keywords": []},
             **self.headers, format='json')
-        ticket_number = response.data['ticket_number']
 
-        url = reverse('transfer_job', kwargs={'ticket_number': ticket_number})
+        url = reverse('job_status', kwargs={'action': 'transfer'})
         headers = {'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
         response = self.client.patch(url, **headers)
+        correct_cancel_response = self.client.patch(url, **self.headers)
 
         # Verify the status code and content
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['error'],
                          "PresQT Error: 'presqt-destination-token' missing in the request headers.")
 
+        self.assertEqual(correct_cancel_response.status_code, 200)
+
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/transfers/{}'.format(ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))

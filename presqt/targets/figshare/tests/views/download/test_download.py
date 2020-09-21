@@ -8,6 +8,7 @@ from rest_framework.test import APIClient
 
 from presqt.utilities import read_file
 from presqt.targets.utilities import shared_call_get_resource_zip
+from presqt.api_v1.utilities import hash_tokens
 
 from config.settings.base import FIGSHARE_TEST_USER_TOKEN
 
@@ -21,8 +22,10 @@ class TestDownload(SimpleTestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': FIGSHARE_TEST_USER_TOKEN}
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': FIGSHARE_TEST_USER_TOKEN,
+                       'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.target_name = 'figshare'
+        self.token = FIGSHARE_TEST_USER_TOKEN
 
     def test_success_download_private_project(self):
         """
@@ -31,8 +34,8 @@ class TestDownload(SimpleTestCase):
         resource_id = '83375'
         shared_call_get_resource_zip(self, resource_id)
 
-        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number,
-                                              'response_format': 'zip'})
+        url = reverse('job_status', kwargs={'action': 'download',
+                                            'response_format': 'zip'})
         response = self.client.get(url, **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
@@ -48,7 +51,7 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(len(zip_file.namelist()), 14)
 
         # Verify the fixity file is empty as there was nothing to check.
-        with zip_file.open('figshare_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
+        with zip_file.open('figshare_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 1)
 
@@ -61,7 +64,7 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(count_of_file_references, 1)
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(hash_tokens(self.token)))
 
     def test_success_download_public_project(self):
         """
@@ -70,8 +73,8 @@ class TestDownload(SimpleTestCase):
         resource_id = '82718'
         shared_call_get_resource_zip(self, resource_id)
 
-        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number,
-                                              'response_format': 'zip'})
+        url = reverse('job_status', kwargs={'action': 'download',
+                                            'response_format': 'zip'})
         response = self.client.get(url, **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
@@ -87,7 +90,7 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(len(zip_file.namelist()), 71)
 
         # Verify the fixity file is empty as there was nothing to check.
-        with zip_file.open('figshare_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
+        with zip_file.open('figshare_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 57)
 
@@ -100,7 +103,7 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(count_of_file_references, 1)
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(hash_tokens(self.token)))
 
     def test_success_download_private_article(self):
         """
@@ -109,8 +112,8 @@ class TestDownload(SimpleTestCase):
         resource_id = '83375:12533801'
         shared_call_get_resource_zip(self, resource_id)
 
-        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number,
-                                              'response_format': 'zip'})
+        url = reverse('job_status', kwargs={'action': 'download',
+                                            'response_format': 'zip'})
         response = self.client.get(url, **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
@@ -126,7 +129,7 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(len(zip_file.namelist()), 13)
 
         # Verify the fixity file is empty as there was nothing to check.
-        with zip_file.open('figshare_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
+        with zip_file.open('figshare_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 1)
 
@@ -139,7 +142,7 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(count_of_file_references, 1)
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(hash_tokens(self.token)))
 
     def test_success_download_public_article(self):
         """
@@ -148,8 +151,8 @@ class TestDownload(SimpleTestCase):
         resource_id = '82529:12541559'
         shared_call_get_resource_zip(self, resource_id)
 
-        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number,
-                                              'response_format': 'zip'})
+        url = reverse('job_status', kwargs={'action': 'download',
+                                            'response_format': 'zip'})
         response = self.client.get(url, **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
@@ -165,12 +168,12 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(len(zip_file.namelist()), 14)
 
         # Verify the fixity file is empty as there was nothing to check.
-        with zip_file.open('figshare_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
+        with zip_file.open('figshare_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 2)
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(hash_tokens(self.token)))
 
     def test_success_download_private_file(self):
         """
@@ -179,8 +182,8 @@ class TestDownload(SimpleTestCase):
         resource_id = '83375:12533801:23301149'
         shared_call_get_resource_zip(self, resource_id)
 
-        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number,
-                                              'response_format': 'zip'})
+        url = reverse('job_status', kwargs={'action': 'download',
+                                            'response_format': 'zip'})
         response = self.client.get(url, **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
@@ -196,7 +199,7 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(len(zip_file.namelist()), 13)
 
         # Verify the fixity file is empty as there was nothing to check.
-        with zip_file.open('figshare_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
+        with zip_file.open('figshare_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 1)
 
@@ -209,7 +212,7 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(count_of_file_references, 1)
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(hash_tokens(self.token)))
 
     def test_success_download_public_file(self):
         """
@@ -218,8 +221,8 @@ class TestDownload(SimpleTestCase):
         resource_id = '82529:12541559:23316914'
         shared_call_get_resource_zip(self, resource_id)
 
-        url = reverse('download_job', kwargs={'ticket_number': self.ticket_number,
-                                              'response_format': 'zip'})
+        url = reverse('job_status', kwargs={'action': 'download',
+                                            'response_format': 'zip'})
         response = self.client.get(url, **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
@@ -235,7 +238,7 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(len(zip_file.namelist()), 13)
 
         # Verify the fixity file is empty as there was nothing to check.
-        with zip_file.open('figshare_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
+        with zip_file.open('figshare_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 1)
 
@@ -248,7 +251,7 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(count_of_file_references, 1)
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/downloads/{}'.format(self.ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(hash_tokens(self.token)))
 
     def test_error_500_401(self):
         """
@@ -258,13 +261,12 @@ class TestDownload(SimpleTestCase):
                                           'resource_id': '209373160',
                                           'resource_format': 'zip'})
 
-        response = self.client.get(url, **{'HTTP_PRESQT_SOURCE_TOKEN': 'eggs'})
-        ticket_number = response.data['ticket_number']
+        response = self.client.get(url, **{'HTTP_PRESQT_SOURCE_TOKEN': 'eggs', 'HTTP_PRESQT_EMAIL_OPT_IN': ''})
         download_url = response.data['download_job_zip']
-        process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(ticket_number)
+        process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(hash_tokens('eggs'))
         process_info = read_file(process_info_path, True)
 
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_download']['status'] == 'in_progress':
             try:
                 process_info = read_file(process_info_path, True)
             except json.decoder.JSONDecodeError:
@@ -279,8 +281,8 @@ class TestDownload(SimpleTestCase):
                          "Token is invalid. Response returned a 401 status code.")
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/downloads/{}'.format(ticket_number))
-    
+        shutil.rmtree('mediafiles/jobs/{}'.format(hash_tokens('eggs')))
+
     def test_error_500_404_bad_project_id(self):
         """
         Return a 500 if an invalid resource_id is provided.
@@ -290,12 +292,11 @@ class TestDownload(SimpleTestCase):
                                           'resource_format': 'zip'})
 
         response = self.client.get(url, **self.header)
-        ticket_number = response.data['ticket_number']
         download_url = response.data['download_job_zip']
-        process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(ticket_number)
+        process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(hash_tokens(self.token))
         process_info = read_file(process_info_path, True)
 
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_download']['status'] == 'in_progress':
             try:
                 process_info = read_file(process_info_path, True)
             except json.decoder.JSONDecodeError:
@@ -310,8 +311,8 @@ class TestDownload(SimpleTestCase):
                          "The resource could not be found by the requesting user.")
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/downloads/{}'.format(ticket_number))
-    
+        shutil.rmtree('mediafiles/jobs/{}'.format(hash_tokens(self.token)))
+
     def test_error_500_404_bad_article_id(self):
         """
         Return a 500 if an invalid resource_id is provided.
@@ -321,12 +322,12 @@ class TestDownload(SimpleTestCase):
                                           'resource_format': 'zip'})
 
         response = self.client.get(url, **self.header)
-        ticket_number = response.data['ticket_number']
+        ticket_number = hash_tokens(self.token)
         download_url = response.data['download_job_zip']
-        process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(ticket_number)
+        process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(ticket_number)
         process_info = read_file(process_info_path, True)
 
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_download']['status'] == 'in_progress':
             try:
                 process_info = read_file(process_info_path, True)
             except json.decoder.JSONDecodeError:
@@ -341,8 +342,8 @@ class TestDownload(SimpleTestCase):
                          "The resource could not be found by the requesting user.")
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/downloads/{}'.format(ticket_number))
-    
+        shutil.rmtree('mediafiles/jobs/{}'.format(ticket_number))
+
     def test_error_500_404_bad_file_id(self):
         """
         Return a 500 if an invalid resource_id is provided.
@@ -352,12 +353,12 @@ class TestDownload(SimpleTestCase):
                                           'resource_format': 'zip'})
 
         response = self.client.get(url, **self.header)
-        ticket_number = response.data['ticket_number']
+        ticket_number = hash_tokens(self.token)
         download_url = response.data['download_job_zip']
-        process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(ticket_number)
+        process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(ticket_number)
         process_info = read_file(process_info_path, True)
 
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_download']['status'] == 'in_progress':
             try:
                 process_info = read_file(process_info_path, True)
             except json.decoder.JSONDecodeError:
@@ -372,4 +373,4 @@ class TestDownload(SimpleTestCase):
                          "The resource could not be found by the requesting user.")
 
         # Delete corresponding folder
-        shutil.rmtree('mediafiles/downloads/{}'.format(ticket_number))
+        shutil.rmtree('mediafiles/jobs/{}'.format(ticket_number))
