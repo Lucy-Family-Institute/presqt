@@ -56,12 +56,7 @@ def update_targets_keywords(self, project_id):
                     'sourceUsername': self.source_username,
                     'destinationTargetName': self.source_target_name,
                     'destinationUsername': self.source_username,
-                    'keywords': {
-                        'sourceKeywordsAdded': [],
-                        'sourceKeywordsEnhanced': self.enhanced_keywords + self.keywords,
-                        'enhancer': 'scigraph'
-
-                    },
+                    'keywords': self.keyword_dict,
                     'files': {
                         'created': [],
                         'updated': [],
