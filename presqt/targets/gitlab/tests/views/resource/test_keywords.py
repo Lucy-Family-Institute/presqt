@@ -1,3 +1,5 @@
+import base64
+import json
 import requests
 from unittest.mock import patch
 
@@ -109,13 +111,19 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
 
         # We also need to delete the metadata file.
-        delete_url = "https://gitlab.com/api/v4/projects/{}/repository/files/PRESQT_FTS_METADATA%2Ejson?ref=master".format(
-            resource_id)
+        url = "https://gitlab.com/api/v4/projects/17993268/repository/files/PRESQT_FTS_METADATA%2Ejson?ref=master"
+        response = requests.get(url, headers=headers)
+        metadata_file = json.loads(base64.b64decode(response.json()['content']))
+
+        for key, value in metadata_file['actions'][0]['keywords']['ontologies'][0].items():
+            # Ensure all the keyword keys are here
+            self.assertIn(key, ['keywords', 'ontology', 'ontology_id', 'categories'])
+
         data = {
             "branch": "master",
             "commit_message": "PRESQT DELETE METADATA"
         }
-        delete_response = requests.delete(delete_url, headers=headers, data=data)
+        delete_response = requests.delete(url, headers=headers, data=data)
         self.assertEqual(delete_response.status_code, 204)
 
     def test_error_project_keywords(self):

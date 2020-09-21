@@ -117,9 +117,16 @@ class TestResourceKeywordsPOST(SimpleTestCase):
                     "{}/files".format(article['url']), headers=headers).json()
                 for file in project_files:
                     if file['name'] == "PRESQT_FTS_METADATA.json":
+                        metadata_info = requests.get("https://api.figshare.com/v2/account/articles/{}/files/{}".format(
+                            article['id'], file['id']), headers=headers).json()
+                        # Get the metadata file
+                        metadata_file = json.loads(requests.get(metadata_info['download_url'], headers=headers).content)
+                        # Test that the metadata has the keys we expect
+                        for key, value in metadata_file['actions'][0]['keywords']['ontologies'][0].items():
+                            self.assertIn(key, ['keywords', 'ontology', 'ontology_id', 'categories'])
+                        # Delete the file
                         response = requests.delete("https://api.figshare.com/v2/account/articles/{}/files/{}".format(
-                            article['id'], file['id']),
-                            headers=headers)
+                            article['id'], file['id']), headers=headers)
                         self.assertEqual(response.status_code, 204)
                 # Also delete the article
                 response = requests.delete(article['url'], headers=headers)
