@@ -38,7 +38,7 @@
                   },
                   "ontology": { "type": "string" },
                   "ontology_id": { "type": "string" },
-                  "categroies": { "type": "string" }
+                  "categories": { "type": "string" }
                 }
               },
               "enhancer": { "type": "string" }
