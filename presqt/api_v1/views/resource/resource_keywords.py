@@ -167,11 +167,11 @@ class ResourceKeywords(APIView):
         }
         or
         {
-            "error": "PresQT Error: <keyword_type> is missing from the request body."
+            "error": "PresQT Error: keywords is missing from the request body."
         }
         or
         {
-            "error": "PresQT Error: <keyword_type> must be in list format."
+            "error": "PresQT Error: keywords must be in list format."
         }
 
         401: Unauthorized
@@ -195,7 +195,7 @@ class ResourceKeywords(APIView):
             token = get_source_token(request)
             target_validation(target_name, action)
             target_validation(target_name, 'keywords')
-            enhanced_keywords, custom_keywords = keyword_post_validation(request)
+            keywords = keyword_post_validation(request)
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
@@ -211,7 +211,7 @@ class ResourceKeywords(APIView):
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Add the keywords
-        all_keywords = initial_keywords['keywords'] + enhanced_keywords + custom_keywords
+        all_keywords = initial_keywords['keywords'] + keywords
 
         # Fetch the update keywords function
         func = FunctionRouter.get_function(target_name, action)
@@ -225,7 +225,7 @@ class ResourceKeywords(APIView):
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Get ontologies for enhanced keywords
-        ontologies = fetch_ontologies(enhanced_keywords)
+        ontologies = fetch_ontologies(keywords)
 
         # Build the metadata dictionary for this action.
         source_target_data = get_target_data(target_name)
@@ -242,7 +242,7 @@ class ResourceKeywords(APIView):
                 'destinationUsername': 'N/A',
                 'keywords': {
                     'sourceKeywordsAdded': [],
-                    'sourceKeywordsEnhanced': enhanced_keywords + custom_keywords,
+                    'sourceKeywordsEnhanced': keywords,
                     'ontologies': ontologies,
                     'enhancer': 'scigraph'
                 },
@@ -267,6 +267,6 @@ class ResourceKeywords(APIView):
 
         return Response(data={
             'initial_keywords': initial_keywords,
-            'keywords_added': enhanced_keywords + custom_keywords,
+            'keywords_added': keywords,
             'final_keywords': updated_keywords['updated_keywords']},
             status=status.HTTP_202_ACCEPTED)

@@ -37,12 +37,4 @@ def keyword_enhancer(keywords):
                     new_list_of_keywords.append(label)
                     final_list_of_keywords.append(label)
 
-        # Get SciGraph 'suggestions' keyword suggestions
-        suggestion_response = requests.get('http://ec-scigraph.sdsc.edu:9000/scigraph/vocabulary/suggestions/{}/'.format(keyword))
-        if suggestion_response.status_code == 200:
-            for suggested_keyword in suggestion_response.json():
-                if suggested_keyword not in keywords:
-                    new_list_of_keywords.append(suggested_keyword)
-                    final_list_of_keywords.append(suggested_keyword)
-
     return list(set(new_list_of_keywords)), list(set(final_list_of_keywords))
