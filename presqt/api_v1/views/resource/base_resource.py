@@ -372,13 +372,13 @@ class BaseResource(APIView):
                                          resource['path']), resource['file'])
 
         # Enhance the source keywords
-        keyword_dict = {}
+        self.keyword_dict = {}
         if self.action == 'resource_transfer_in':
             if self.supports_keywords:
                 if self.keyword_action == 'automatic':
-                    keyword_dict = automatic_keywords(self)
+                    self.keyword_dict = automatic_keywords(self)
                 elif self.keyword_action == 'manual':
-                    keyword_dict = manual_keywords(self)
+                    self.keyword_dict = manual_keywords(self)
         self.keyword_enhancement_successful = True
 
         # Create PresQT action metadata
@@ -403,7 +403,7 @@ class BaseResource(APIView):
             'sourceUsername': self.source_username,
             'destinationTargetName': 'Local Machine',
             'destinationUsername': None,
-            'keywords': keyword_dict,
+            'keywords': self.keyword_dict,
             'files': {
                 'created': self.new_fts_metadata_files,
                 'updated': [],

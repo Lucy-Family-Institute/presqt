@@ -155,7 +155,7 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         initial_keywords = len(get_response.data['keywords'])
 
         # Get the contents of  the FTS_METADATA file
-        metadata_url = 'https://api.osf.io/v2/files/5f29c2b55f705a0257619e71/'
+        metadata_url = 'https://api.osf.io/v2/files/5f68f42f46080900ba1aebd1/'
         metadata_headers = {'Authorization': 'Bearer {}'.format(OSF_TEST_USER_TOKEN)}
         metadata_json = requests.get(metadata_url, headers=metadata_headers).json()
         metadata_contents = requests.get(
@@ -179,6 +179,14 @@ class TestResourceKeywordsPOST(SimpleTestCase):
 
         response = requests.patch(patch_url, headers=headers, data=json.dumps(data))
         self.assertEqual(response.status_code, 200)
+
+        post_metadata_json = requests.get(metadata_url, headers=metadata_headers).json()
+        post_metadata_contents = json.loads(requests.get(
+            post_metadata_json['data']['links']['move'], headers=metadata_headers).content)
+
+        # Check that the metadata keyword keys are there
+        for key, value in post_metadata_contents['actions'][0]['keywords']['ontologies'][0].items():
+            self.assertIn(key, ['keywords', 'ontology', 'ontology_id', 'categories'])
 
         # Set the metadata back to what it was.
         metadata_response = requests.put(metadata_json['data']['links']['upload'], headers=metadata_headers, params={

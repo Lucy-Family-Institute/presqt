@@ -190,6 +190,7 @@ sourceKeywordsAdded*    array  The source keywords added during this action
                                This includes keywords in the target keywords found in FTS metadata file
 
 sourceKeywordsEnhanced* array  The new keyword enhancements added to the target
+ontologies              array  Ontologies connected to the enhanced keywords added.
 enhancer*               str    The enhancement service used to enhance the keywords
 
 files                   array  Array of files that were involved in the PresQT action
@@ -213,7 +214,7 @@ destinationHashes       dict   Object that contains the file hashes at the desti
 .. code-block:: json
 
     {
-        "allKeywords": ["cat", "dog", "feline", "doggo"],
+        "allKeywords": ["cat", "dog", "feline", "doggo", "pupper"],
         "actions": [
             {
                 "id": "bc5a48dc-d1f9-46bd-9137-48fe4843df77",
@@ -225,7 +226,30 @@ destinationHashes       dict   Object that contains the file hashes at the desti
                 "destinationUsername": "osf_username",
                 "keywords": {
                     "sourceKeywordsAdded": ["cat", "dog"],
-                    "sourceKeywordsEnhanced": ["feline", "doggo"],
+                    "sourceKeywordsEnhanced": ["feline", "doggo", "pupper"],
+                    "ontologies": [
+                        {
+                            "keywords": [
+                                "doggo",
+                                "pupper"
+                            ],
+                            "ontology": "http://purl.obolibrary.org/obo/CHEBI_153377",
+                            "ontology_id": "CHEBI_153377",
+                            "categories": [
+                                "canine"
+                            ]
+                        },
+                        {
+                            "keywords": [
+                                "feline"
+                            ],
+                            "ontology": "http://purl.obolibrary.org/obo/CHEBI_153377",
+                            "ontology_id": "CHEBI_153377",
+                            "categories": [
+                                "felines"
+                            ]
+                        },
+                    ],
                     "enhancer": "scigraph"
                 },
                 "files": {
@@ -273,7 +297,7 @@ destinationHashes       dict   Object that contains the file hashes at the desti
 .. code-block:: json
 
     {
-        "allKeywords": ["cat", "dog", "feline", "doggo"],
+        "allKeywords": ["cat", "dog", "feline", "doggo", "pupper"],
         "actions": [
             {
                 "id": "bc5a48dc-d1f9-46bd-9137-48fe4843df77",
@@ -286,6 +310,29 @@ destinationHashes       dict   Object that contains the file hashes at the desti
                 "keywords": {
                     "sourceKeywordsAdded": ["cat", "dog"],
                     "sourceKeywordsEnhanced": ["feline", "doggo"],
+                    "ontologies": [
+                        {
+                            "keywords": [
+                                "doggo",
+                                "pupper"
+                            ],
+                            "ontology": "http://purl.obolibrary.org/obo/CHEBI_153377",
+                            "ontology_id": "CHEBI_153377",
+                            "categories": [
+                                "canine"
+                            ]
+                        },
+                        {
+                            "keywords": [
+                                "feline"
+                            ],
+                            "ontology": "http://purl.obolibrary.org/obo/CHEBI_153377",
+                            "ontology_id": "CHEBI_153377",
+                            "categories": [
+                                "felines"
+                            ]
+                        },
+                    ],
                     "enhancer": "scigraph"
                 },
                 "files": {

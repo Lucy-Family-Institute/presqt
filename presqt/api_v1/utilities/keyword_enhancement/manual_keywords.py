@@ -17,8 +17,13 @@ def manual_keywords(self):
 
     self.all_keywords = list(set(source_keywords + self.all_keywords + self.keywords))
 
+    # Get ontology information for each keyword
+    from presqt.api_v1.utilities import fetch_ontologies
+    ontologies = fetch_ontologies(self.keywords)
+
     return {
         'sourceKeywordsAdded': self.initial_keywords,
         'sourceKeywordsEnhanced': self.keywords,
+        'ontologies': ontologies,
         'enhancer': 'scigraph'
     }
