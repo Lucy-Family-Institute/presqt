@@ -22,7 +22,8 @@ class TestDownload(SimpleTestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_TEST_USER_TOKEN}
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_TEST_USER_TOKEN,
+                       'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.target_name = 'gitlab'
         self.token = GITLAB_TEST_USER_TOKEN
 
@@ -50,7 +51,7 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(len(zip_file.namelist()), 13)
 
         # Verify the fixity file is empty as there was nothing to check.
-        with zip_file.open('gitlab_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
+        with zip_file.open('gitlab_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 2)
 
@@ -74,7 +75,7 @@ class TestDownload(SimpleTestCase):
         shared_call_get_resource_zip(self, resource_id)
 
         url = reverse('job_status', kwargs={'action': 'download',
-                                              'response_format': 'zip'})
+                                            'response_format': 'zip'})
         response = self.client.get(url, **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
@@ -90,7 +91,7 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(len(zip_file.namelist()), 13)
 
         # Verify the fixity file is empty as there was nothing to check.
-        with zip_file.open('gitlab_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
+        with zip_file.open('gitlab_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 1)
 
@@ -114,7 +115,7 @@ class TestDownload(SimpleTestCase):
         shared_call_get_resource_zip(self, resource_id)
 
         url = reverse('job_status', kwargs={'action': 'download',
-                                              'response_format': 'zip'})
+                                            'response_format': 'zip'})
         response = self.client.get(url, **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
@@ -130,7 +131,7 @@ class TestDownload(SimpleTestCase):
         # self.assertEqual(len(zip_file.namelist()), 13)
 
         # Verify the fixity file is empty as there was nothing to check.
-        with zip_file.open('gitlab_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
+        with zip_file.open('gitlab_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 72)
 
@@ -149,7 +150,7 @@ class TestDownload(SimpleTestCase):
         shared_call_get_resource_zip(self, resource_id)
 
         url = reverse('job_status', kwargs={'action': 'download',
-                                              'response_format': 'zip'})
+                                            'response_format': 'zip'})
         response = self.client.get(url, **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
@@ -165,7 +166,7 @@ class TestDownload(SimpleTestCase):
         # self.assertEqual(len(zip_file.namelist()), 13)
 
         # Verify the fixity file is empty as there was nothing to check.
-        with zip_file.open('gitlab_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
+        with zip_file.open('gitlab_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 1)
 
@@ -184,7 +185,7 @@ class TestDownload(SimpleTestCase):
         shared_call_get_resource_zip(self, resource_id)
 
         url = reverse('job_status', kwargs={'action': 'download',
-                                              'response_format': 'zip'})
+                                            'response_format': 'zip'})
         response = self.client.get(url, **self.header)
         # Verify the status code
         self.assertEqual(response.status_code, 200)
@@ -200,7 +201,7 @@ class TestDownload(SimpleTestCase):
         # self.assertEqual(len(zip_file.namelist()), 13)
 
         # Verify the fixity file is empty as there was nothing to check.
-        with zip_file.open('gitlab_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
+        with zip_file.open('gitlab_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 1)
 

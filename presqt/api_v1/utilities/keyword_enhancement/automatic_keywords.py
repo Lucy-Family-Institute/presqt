@@ -28,9 +28,14 @@ def automatic_keywords(self):
 
     self.all_keywords = self.all_keywords + self.keywords
 
+    # Get ontology information for each keyword
+    from presqt.api_v1.utilities import fetch_ontologies
+    ontologies = fetch_ontologies(self.enhanced_keywords)
+
     keyword_dict = {
         'sourceKeywordsAdded': self.initial_keywords,
         'sourceKeywordsEnhanced': list(set(self.enhanced_keywords + self.keywords)),
+        'ontologies': ontologies,
         'enhancer': 'scigraph'
     }
 

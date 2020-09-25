@@ -23,12 +23,13 @@ from presqt.api_v1.utilities import (target_validation, transfer_target_validati
                                      keyword_action_validation,
                                      automatic_keywords, update_targets_keywords, manual_keywords,
                                      get_target_data, get_keyword_support,
-                                     update_or_create_process_info)
+                                     update_or_create_process_info, get_user_email_opt)
 from presqt.api_v1.utilities.utils.multiple_process_check import multiple_process_check
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.metadata.download_metadata import validate_metadata
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
+from presqt.api_v1.utilities.utils.send_email import transfer_upload_email_blaster, download_email_blaster
 from presqt.json_schemas.schema_handlers import schema_validator
 from presqt.utilities import (PresQTValidationError, PresQTResponseException, write_file,
                               zip_directory, read_file, update_process_info_message, increment_process_info)
@@ -87,6 +88,10 @@ class BaseResource(APIView):
         or
         {
             "error": "PresQT Error: 'presqt-file-duplicate-action' missing in the request headers."
+        }
+        or
+        {
+            "error": "PresQT Error: 'presqt-email-opt-in' missing in the request headers."
         }
         or
         {
@@ -192,21 +197,22 @@ class BaseResource(APIView):
         try:
             self.destination_token = get_destination_token(self.request)
             self.file_duplicate_action = file_duplicate_action_validation(self.request)
+            self.email = get_user_email_opt(self.request)
             target_valid, self.infinite_depth = target_validation(
                 self.destination_target_name, self.action)
             resource = file_validation(self.request)
-
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
         self.ticket_number = hash_tokens(self.destination_token)
-        self.ticket_path = os.path.join('mediafiles', 'jobs', str(self.ticket_number))
-
+        ticket_path = os.path.join('mediafiles', 'jobs', str(self.ticket_number))
         # Check if this user currently has any other process in progress
-        user_has_process_running = multiple_process_check(self.ticket_path)
+        user_has_process_running = multiple_process_check(ticket_path)
         if user_has_process_running:
             return Response(data={'error': 'User currently has processes in progress.'},
                             status=status.HTTP_400_BAD_REQUEST)
+        
+        self.ticket_path = os.path.join('mediafiles', 'jobs', str(self.ticket_number), 'upload')
 
         # Remove any resources that already exist in this user's job directory
         if os.path.exists(self.ticket_path):
@@ -366,13 +372,13 @@ class BaseResource(APIView):
                                          resource['path']), resource['file'])
 
         # Enhance the source keywords
-        keyword_dict = {}
+        self.keyword_dict = {}
         if self.action == 'resource_transfer_in':
             if self.supports_keywords:
                 if self.keyword_action == 'automatic':
-                    keyword_dict = automatic_keywords(self)
+                    self.keyword_dict = automatic_keywords(self)
                 elif self.keyword_action == 'manual':
-                    keyword_dict = manual_keywords(self)
+                    self.keyword_dict = manual_keywords(self)
         self.keyword_enhancement_successful = True
 
         # Create PresQT action metadata
@@ -397,7 +403,7 @@ class BaseResource(APIView):
             'sourceUsername': self.source_username,
             'destinationTargetName': 'Local Machine',
             'destinationUsername': None,
-            'keywords': keyword_dict,
+            'keywords': self.keyword_dict,
             'files': {
                 'created': self.new_fts_metadata_files,
                 'updated': [],
@@ -429,11 +435,9 @@ class BaseResource(APIView):
         # If we are only downloading the resource then create metadata, bag, zip,
         # and update the server process file.
         else:
-            # Create and write metadata file.
+            # Create Metadata file
             final_fts_metadata_data = create_fts_metadata(self.all_keywords, self.action_metadata,
                                                           self.source_fts_metadata_actions)
-            write_file(os.path.join(self.resource_main_dir, 'PRESQT_FTS_METADATA.json'),
-                       final_fts_metadata_data, True)
 
             # Validate the final metadata
             metadata_validation = schema_validator('presqt/json_schemas/metadata_schema.json',
@@ -441,11 +445,16 @@ class BaseResource(APIView):
             self.process_info_obj['message'] = get_action_message(self, 'Download', self.download_fixity,
                                                                   metadata_validation, self.action_metadata)
 
+            # Make a BagIt 'bag' of the resources.
+            bagit.make_bag(self.resource_main_dir, checksums=['md5', 'sha1', 'sha256', 'sha512'])
+
+            # Write metadata file.
+            write_file(os.path.join(self.resource_main_dir, 'PRESQT_FTS_METADATA.json'),
+                       final_fts_metadata_data, True)
+
             # Add the fixity file to the disk directory
             write_file(os.path.join(self.resource_main_dir, 'fixity_info.json'), fixity_info, True)
 
-            # Make a BagIt 'bag' of the resources.
-            bagit.make_bag(self.resource_main_dir, checksums=['md5', 'sha1', 'sha256', 'sha512'])
 
             # Zip the BagIt 'bag' to send forward.
             zip_directory(self.resource_main_dir, "{}.zip".format(self.resource_main_dir),
@@ -457,6 +466,13 @@ class BaseResource(APIView):
             self.process_info_obj['zip_name'] = '{}.zip'.format(self.base_directory_name)
             self.process_info_obj['failed_fixity'] = self.download_failed_fixity
             update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
+            if self.email:
+                # BOLD HEADER
+                header = "-----Download Details-----"
+                # Make the message to add to the email body
+                message = 'The download you started on PresQT has finished. It has been attached to this email.\n\n{}\nDownload Message: {}\n\nFailed Fixity: {}'.format(
+                    header, self.process_info_obj['message'], self.process_info_obj['failed_fixity'])
+                download_email_blaster(self.email, "{}.zip".format(self.resource_main_dir), message)
 
         return True
 
@@ -625,6 +641,14 @@ class BaseResource(APIView):
             self.process_info_obj['upload_status'] = upload_message
             update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
 
+            if self.email:
+                # BOLD HEADER
+                header = "-----Upload Details-----"
+                # Build the message for the email
+                message = 'The upload you started on PresQT has finished.\n\n{}\nUpload message: {}\n\nFailed Fixity: {}'.format(
+                    header, upload_message, self.upload_failed_fixity)
+                transfer_upload_email_blaster(self.email, self.action, message)
+
         return True
 
     def transfer_post(self):
@@ -638,6 +662,7 @@ class BaseResource(APIView):
         try:
             self.destination_token = get_destination_token(self.request)
             self.source_token = get_source_token(self.request)
+            self.email = get_user_email_opt(self.request)
             self.file_duplicate_action = file_duplicate_action_validation(self.request)
             self.keyword_action = keyword_action_validation(self.request)
             self.source_target_name, self.source_resource_id, self.keywords = transfer_post_body_validation(
@@ -654,13 +679,15 @@ class BaseResource(APIView):
         # Generate ticket number
         self.ticket_number = '{}_{}'.format(hash_tokens(
             self.source_token), hash_tokens(self.destination_token))
-        self.ticket_path = os.path.join("mediafiles", "jobs", str(self.ticket_number))
+        ticket_path = os.path.join("mediafiles", "jobs", str(self.ticket_number))
         
         # Check if this user currently has any other process in progress
-        user_has_process_running = multiple_process_check(self.ticket_path)
+        user_has_process_running = multiple_process_check(ticket_path)
         if user_has_process_running:
             return Response(data={'error': 'User currently has processes in progress.'},
                             status=status.HTTP_400_BAD_REQUEST)
+
+        self.ticket_path = os.path.join('mediafiles', 'jobs', str(self.ticket_number), 'transfer')
 
         # Create directory and process_info json file
         self.process_info_obj = {
@@ -756,5 +783,13 @@ class BaseResource(APIView):
             self, 'Transfer', transfer_fixity, self.metadata_validation, self.action_metadata)
 
         update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
+
+        if self.email:
+            # BOLD HEADER
+            header = "-----Transfer Details-----"
+            # Build the message for the email
+            message = 'The transfer you started on PresQT has finished.\n\n{}\nTransfer message: {}\n\nFailed Fixity: {}\n\nEnhanced Keywords: {}'.format(
+                header, self.process_info_obj['message'], self.process_info_obj['failed_fixity'], self.process_info_obj['enhanced_keywords'])
+            transfer_upload_email_blaster(self.email, self.action, message)
 
         return

@@ -6,7 +6,8 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from presqt.api_v1.utilities import (
-    get_source_token, target_validation, FunctionRouter, keyword_enhancer, get_target_data)
+    get_source_token, target_validation, FunctionRouter, keyword_enhancer, get_target_data,
+    keyword_post_validation, fetch_ontologies)
 from presqt.utilities import PresQTValidationError, PresQTResponseException, PresQTError
 
 
@@ -191,18 +192,10 @@ class ResourceKeywords(APIView):
         action = "keywords_upload"
 
         try:
-            keywords = request.data['keywords']
-        except KeyError:
-            return Response(data={"error": "PresQT Error: keywords is missing from the request body."},
-                            status=status.HTTP_400_BAD_REQUEST)
-
-        if type(keywords) is not list:
-            return Response(data={"error": "PresQT Error: keywords must be in list format."},
-                            status=status.HTTP_400_BAD_REQUEST)
-        try:
             token = get_source_token(request)
             target_validation(target_name, action)
             target_validation(target_name, 'keywords')
+            keywords = keyword_post_validation(request)
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
@@ -217,11 +210,11 @@ class ResourceKeywords(APIView):
             # Catch any errors that happen
             return Response(data={'error': e.data}, status=e.status_code)
 
-        # Fetch the update keywords function
-        func = FunctionRouter.get_function(target_name, action)
-
         # Add the keywords
         all_keywords = initial_keywords['keywords'] + keywords
+
+        # Fetch the update keywords function
+        func = FunctionRouter.get_function(target_name, action)
 
         # Function will upload new keywords to the selected resource
         try:
@@ -231,12 +224,11 @@ class ResourceKeywords(APIView):
             # Catch any errors that happen within the target fetch
             return Response(data={'error': e.data}, status=e.status_code)
 
-        # Update the metadata file, or create a new one.
-        metadata_func = FunctionRouter.get_function(target_name, 'metadata_upload')
+        # Get ontologies for enhanced keywords
+        ontologies = fetch_ontologies(keywords)
 
         # Build the metadata dictionary for this action.
         source_target_data = get_target_data(target_name)
-
         metadata_dict = {
             "allKeywords": updated_keywords['updated_keywords'],
             "actions": [{
@@ -251,6 +243,7 @@ class ResourceKeywords(APIView):
                 'keywords': {
                     'sourceKeywordsAdded': [],
                     'sourceKeywordsEnhanced': keywords,
+                    'ontologies': ontologies,
                     'enhancer': 'scigraph'
                 },
                 'files': {
@@ -261,6 +254,8 @@ class ResourceKeywords(APIView):
             }]
         }
 
+        # Update the metadata file, or create a new one.
+        metadata_func = FunctionRouter.get_function(target_name, 'metadata_upload')
         try:
             metadata_func(token, updated_keywords['project_id'], metadata_dict)
         except PresQTError:

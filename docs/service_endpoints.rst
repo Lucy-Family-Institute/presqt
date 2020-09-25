@@ -116,7 +116,11 @@ Submit EaaSI Proposal
         }
 
     :statuscode 200: Proposal successfully started.
-    :statuscode 404: ``ticket_number`` missing in the request body.
+    :statuscode 400: 'presqt-source-token' missing in request headers
+    :statuscode 400: A download does not exist for this user on the server.
+    :statuscode 404: Invalid ticket number
+    :statuscode 404: A resource_download does not exist for this user on the server.
+
 
 Get EaaSI Proposal
 ++++++++++++++++++
@@ -190,3 +194,5 @@ EaaSI Download
     :statuscode 400: ``eaasi_token`` not found as query parameter.
     :statuscode 401: ``eaasi_token`` does not match the 'eaasi_token' for this server process.
     :statuscode 404: File unavailable.
+    :statuscode 404: Invalid ticket number.
+    :statuscode 404: A resource_download does not exist for this user on the server.

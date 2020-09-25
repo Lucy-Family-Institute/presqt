@@ -79,7 +79,7 @@ class JobStatus(APIView):
         try:
             source_token = get_source_token(self.request)
             self.ticket_number = hash_tokens(source_token)
-            self.process_data = get_process_info_data('jobs', self.ticket_number)
+            self.process_data = get_process_info_data(self.ticket_number)
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
@@ -109,7 +109,8 @@ class JobStatus(APIView):
             if self.response_format == 'zip':
                 # Path to the file to be downloaded
                 zip_name = download_process_data['zip_name']
-                zip_file_path = os.path.join('mediafiles', 'jobs', self.ticket_number, zip_name)
+                zip_file_path = os.path.join('mediafiles', 'jobs', self.ticket_number,
+                                             'download', zip_name)
 
                 response = HttpResponse(open(zip_file_path, 'rb'), content_type='application/zip')
                 response['Content-Disposition'] = 'attachment; filename={}'.format(zip_name)
@@ -144,7 +145,7 @@ class JobStatus(APIView):
         try:
             destination_token = get_destination_token(self.request)
             self.ticket_number = hash_tokens(destination_token)
-            self.process_data = get_process_info_data('jobs', self.ticket_number)
+            self.process_data = get_process_info_data(self.ticket_number)
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
@@ -193,7 +194,7 @@ class JobStatus(APIView):
             source_token = get_source_token(self.request)
             self.ticket_number = '{}_{}'.format(hash_tokens(source_token),
                                                 hash_tokens(destination_token))
-            self.process_data = get_process_info_data('jobs', self.ticket_number)
+            self.process_data = get_process_info_data(self.ticket_number)
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
@@ -286,7 +287,7 @@ class JobStatus(APIView):
         try:
             source_token = get_source_token(self.request)
             self.ticket_number = hash_tokens(source_token)
-            self.process_data = get_process_info_data('jobs', self.ticket_number)
+            self.process_data = get_process_info_data(self.ticket_number)
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
@@ -300,7 +301,7 @@ class JobStatus(APIView):
         # Wait until the spawned off process has started to cancel the download
         while self.process_data['resource_download']['function_process_id'] is None:
             try:
-                self.process_data = get_process_info_data('jobs', self.ticket_number)
+                self.process_data = get_process_info_data(self.ticket_number)
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
@@ -340,14 +341,14 @@ class JobStatus(APIView):
         try:
             destination_token = get_destination_token(self.request)
             self.ticket_number = hash_tokens(destination_token)
-            self.process_data = get_process_info_data('jobs', self.ticket_number)
+            self.process_data = get_process_info_data(self.ticket_number)
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Wait until the spawned off process has started to cancel the upload
         while self.process_data['resource_upload']['function_process_id'] is None:
             try:
-                self.process_data = get_process_info_data('jobs', self.ticket_number)
+                self.process_data = get_process_info_data(self.ticket_number)
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass
@@ -387,14 +388,14 @@ class JobStatus(APIView):
             source_token = get_source_token(self.request)
             self.ticket_number = '{}_{}'.format(hash_tokens(source_token),
                                                 hash_tokens(destination_token))
-            process_data = get_process_info_data('jobs', self.ticket_number)
+            process_data = get_process_info_data(self.ticket_number)
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Wait until the spawned off process has started to cancel the transfer
         while process_data['resource_transfer_in']['function_process_id'] is None:
             try:
-                process_data = get_process_info_data('jobs', self.ticket_number)
+                process_data = get_process_info_data(self.ticket_number)
             except json.decoder.JSONDecodeError:
                 # Pass while the process_info file is being written to
                 pass

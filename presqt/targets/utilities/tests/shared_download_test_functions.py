@@ -65,7 +65,7 @@ def shared_get_success_function_202(test_case_instance):
     shutil.rmtree(ticket_path)
 
     # Return fixity info JSON
-    fixity_file = test_case_instance.zip_file.open('{}/data/fixity_info.json'.format(base_name))
+    fixity_file = test_case_instance.zip_file.open('{}/fixity_info.json'.format(base_name))
     return json.load(fixity_file)
 
 

@@ -261,7 +261,8 @@ class TestResourcePost(SimpleTestCase):
         self.token = FIGSHARE_TEST_USER_TOKEN
         self.ticket_number = hash_tokens(self.token)
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.token,
-                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+                        'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.good_zip_file = 'presqt/api_v1/tests/resources/upload/GoodBagIt.zip'
         self.resource_id = None
         self.duplicate_action = 'ignore'
@@ -385,7 +386,8 @@ class TestResourcePost(SimpleTestCase):
         If a user does not have a valid FigShare API token, we should return a 401 unauthorized status.
         """
         headers = {'HTTP_PRESQT_DESTINATION_TOKEN': 'eggyboi',
-                   'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore'}
+                   'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
+                   'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.url = reverse('resource_collection', kwargs={'target_name': 'figshare'})
         response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **headers)
 

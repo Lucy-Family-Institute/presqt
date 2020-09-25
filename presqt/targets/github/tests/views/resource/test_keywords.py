@@ -115,7 +115,14 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         # Delete the metadata file
         # First get the sha, which will ensure the metadata file exists....
         file_url = 'https://api.github.com/repos/presqt-test-user/PrivateProject/contents/PRESQT_FTS_METADATA.json'
-        file_sha = requests.get(file_url, headers=headers).json()['sha']
+        file = requests.get(file_url, headers=headers).json()
+        file_sha = file['sha']
+        file_contents_raw = requests.get("https://raw.githubusercontent.com/presqt-test-user/PrivateProject/master/PRESQT_FTS_METADATA.json", headers=headers).content
+        file_contents = json.loads(file_contents_raw)
+
+        # Check keys in keywords
+        for key, value in file_contents['actions'][0]['keywords']['ontologies'][0].items():
+            self.assertIn(key, ['keywords', 'ontology', 'ontology_id', 'categories'])
 
         data = {
             "message": "Delete Metadata",

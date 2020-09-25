@@ -11,7 +11,7 @@ from rest_framework.reverse import reverse
 from presqt.api_v1.serializers.resource import ResourceSerializer
 from presqt.api_v1.utilities import (get_source_token, target_validation, FunctionRouter,
                                      spawn_action_process, hash_tokens,
-                                     update_or_create_process_info)
+                                     update_or_create_process_info, get_user_email_opt)
 from presqt.api_v1.utilities.utils.multiple_process_check import multiple_process_check
 from presqt.api_v1.views.resource.base_resource import BaseResource
 from presqt.utilities import PresQTValidationError, PresQTResponseException
@@ -102,6 +102,10 @@ class Resource(BaseResource):
         or
         {
             "error": "PresQT Error: 'presqt-source-token' missing in the request headers."
+        }
+        or
+        {
+            "error": "PresQT Error: 'presqt-email-opt-in' missing in the request headers."
         }
         or
         {
@@ -196,19 +200,22 @@ class Resource(BaseResource):
         # Perform token, target, and action validation
         try:
             self.source_token = get_source_token(self.request)
+            self.email = get_user_email_opt(self.request)
             target_validation(self.source_target_name, self.action)
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
 
         # Generate ticket number
         self.ticket_number = hash_tokens(self.source_token)
-        self.ticket_path = os.path.join('mediafiles', 'jobs', str(self.ticket_number))
+        ticket_path = os.path.join('mediafiles', 'jobs', str(self.ticket_number))
 
         # Check if this user currently has any other process in progress
-        user_has_process_running = multiple_process_check(self.ticket_path)
+        user_has_process_running = multiple_process_check(ticket_path)
         if user_has_process_running:
             return Response(data={'error': 'User currently has processes in progress.'},
                             status=status.HTTP_400_BAD_REQUEST)
+
+        self.ticket_path = os.path.join('mediafiles', 'jobs', str(self.ticket_number), 'download')
 
         # Create directory and process_info json file
         self.process_info_obj = {
@@ -227,7 +234,7 @@ class Resource(BaseResource):
         self.base_directory_name = '{}_download_{}'.format(self.source_target_name,
                                                            self.source_resource_id)
 
-        # Remove any resources that already exist in this user's job directory
+        # Remove any resources that already exist in this user's job download directory
         if os.path.exists(self.ticket_path):
             for folder in next(os.walk(self.ticket_path))[1]:
                 shutil.rmtree(os.path.join(self.ticket_path, folder))

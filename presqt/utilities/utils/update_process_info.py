@@ -50,7 +50,7 @@ def increment_process_info(process_info_path, action, function):
 
     # Get the proper dict key
     if function == 'upload':
-            key = 'upload_files_finished'
+        key = 'upload_files_finished'
     elif function == 'download':
         key = 'download_files_finished'
     else:

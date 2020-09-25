@@ -6,6 +6,8 @@ import requests
 import shutil
 from unittest.mock import patch
 
+from django.core import mailP
+
 from django.test import SimpleTestCase
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
@@ -32,8 +34,10 @@ class TestTransferJobGET(SimpleTestCase):
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.destination_token,
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
-                        'HTTP_PRESQT_KEYWORD_ACTION': 'manual'}
-        self.ticket_number = "{}_{}".format(hash_tokens(self.source_token), hash_tokens(self.destination_token))
+                        'HTTP_PRESQT_KEYWORD_ACTION': 'manual',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
+        self.ticket_number = "{}_{}".format(hash_tokens(
+            self.source_token), hash_tokens(self.destination_token))
         self.resource_id = '209373660'
         self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
 
@@ -81,6 +85,9 @@ class TestTransferJobGET(SimpleTestCase):
         # Delete corresponding folder
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
 
+        # Ensure no email was sent for this request as no email was provided.
+        self.assertEqual(len(mail.outbox), 0)
+
     def test_call_transfer_success_finite_depth(self):
         """
         Make a POST request to `resource` to begin transferring a resource.
@@ -89,8 +96,10 @@ class TestTransferJobGET(SimpleTestCase):
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': ZENODO_TEST_USER_TOKEN,
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
-                        'HTTP_PRESQT_KEYWORD_ACTION': 'automatic'}
-        self.ticket_number = "{}_{}".format(hash_tokens(self.source_token), hash_tokens(ZENODO_TEST_USER_TOKEN))
+                        'HTTP_PRESQT_KEYWORD_ACTION': 'automatic',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': 'eggs@test.com'}
+        self.ticket_number = "{}_{}".format(hash_tokens(
+            self.source_token), hash_tokens(ZENODO_TEST_USER_TOKEN))
         response = self.client.post(self.url, {"source_target_name": "github",
                                                "source_resource_id": self.resource_id,
                                                "keywords": []},
@@ -469,7 +478,8 @@ class TestTransferJobGET(SimpleTestCase):
             "source_target_name": "github",
             "source_resource_id": self.resource_id, "keywords": []},
             **self.headers, format='json')
-        self.ticket_number = '{}_{}'.format(hash_tokens(self.source_token), hash_tokens('bad_token'))
+        self.ticket_number = '{}_{}'.format(hash_tokens(
+            self.source_token), hash_tokens('bad_token'))
         process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(self.ticket_number)
         process_info = read_file(process_info_path, True)
         url = reverse('job_status', kwargs={'action': 'transfer'})
@@ -606,8 +616,10 @@ class TestTransferJobGET(SimpleTestCase):
         headers = {'HTTP_PRESQT_DESTINATION_TOKEN': GITHUB_TEST_USER_TOKEN,
                    'HTTP_PRESQT_SOURCE_TOKEN': OSF_TEST_USER_TOKEN,
                    'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
-                   'HTTP_PRESQT_KEYWORD_ACTION': 'automatic'}
-        self.ticket_number = '{}_{}'.format(hash_tokens(OSF_TEST_USER_TOKEN), hash_tokens(GITHUB_TEST_USER_TOKEN))
+                   'HTTP_PRESQT_KEYWORD_ACTION': 'automatic',
+                   'HTTP_PRESQT_EMAIL_OPT_IN': ''}
+        self.ticket_number = '{}_{}'.format(hash_tokens(
+            OSF_TEST_USER_TOKEN), hash_tokens(GITHUB_TEST_USER_TOKEN))
         url = reverse('resource_collection', kwargs={'target_name': 'github'})
 
         self.client.post(url, {
@@ -693,7 +705,8 @@ class TestTransferJobGET(SimpleTestCase):
                 "source_resource_id": github_id,
                 "keywords": []}, **self.headers, format='json')
 
-            self.process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(self.ticket_number)
+            self.process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(
+                self.ticket_number)
             self.transfer_job = response.data['transfer_job']
             process_info = read_file(self.process_info_path, True)
 
@@ -722,7 +735,8 @@ class TestTransferJobGET(SimpleTestCase):
                 "source_resource_id": github_id,
                 "keywords": []}, **self.headers, format='json')
 
-            self.process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(self.ticket_number)
+            self.process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(
+                self.ticket_number)
             self.transfer_job = response.data['transfer_job']
             process_info = read_file(self.process_info_path, True)
 
@@ -752,11 +766,13 @@ class TestTransferJobPATCH(SimpleTestCase):
         self.client = APIClient()
         self.destination_token = OSF_UPLOAD_TEST_USER_TOKEN
         self.source_token = GITHUB_TEST_USER_TOKEN
-        self.ticket_number = '{}_{}'.format(hash_tokens(self.source_token), hash_tokens(self.destination_token))
+        self.ticket_number = '{}_{}'.format(hash_tokens(
+            self.source_token), hash_tokens(self.destination_token))
         self.headers = {'HTTP_PRESQT_DESTINATION_TOKEN': self.destination_token,
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
-                        'HTTP_PRESQT_KEYWORD_ACTION': 'manual'}
+                        'HTTP_PRESQT_KEYWORD_ACTION': 'manual',
+                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.resource_id = '209373660'
         self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
 
@@ -793,7 +809,8 @@ class TestTransferJobPATCH(SimpleTestCase):
 
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
 
-        self.assertEquals(process_info['resource_transfer_in']['message'], 'Transfer was cancelled by the user')
+        self.assertEquals(process_info['resource_transfer_in']
+                          ['message'], 'Transfer was cancelled by the user')
         self.assertEquals(process_info['resource_transfer_in']['status'], 'failed')
         self.assertEquals(process_info['resource_transfer_in']['status_code'], '499')
 

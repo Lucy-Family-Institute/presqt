@@ -122,6 +122,12 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         project_info = requests.get(put_url, params=headers).json()
         for file in project_info['files']:
             if file['filename'] == 'PRESQT_FTS_METADATA.json':
+                # Get the contents
+                response = requests.get(file['links']['download'], params=headers)
+                metadata_file = json.loads(response.content)
+                # Check keys
+                for key, value in metadata_file['actions'][0]['keywords']['ontologies'][0].items():
+                    self.assertIn(key, ['keywords', 'ontology', 'ontology_id', 'categories'])
                 # 2. Delete the metadata
                 delete_url = file['links']['self']
                 response = requests.delete(delete_url, params=headers)

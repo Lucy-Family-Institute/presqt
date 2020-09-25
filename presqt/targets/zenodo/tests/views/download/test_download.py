@@ -22,7 +22,8 @@ class TestDownload(SimpleTestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': ZENODO_TEST_USER_TOKEN}
+        self.header = {'HTTP_PRESQT_SOURCE_TOKEN': ZENODO_TEST_USER_TOKEN,
+                       'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.target_name = 'zenodo'
         self.token = ZENODO_TEST_USER_TOKEN
 
@@ -50,7 +51,7 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(len(zip_file.namelist()), 14)
 
         # Verify the fixity file has the two file entries
-        with zip_file.open('zenodo_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
+        with zip_file.open('zenodo_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 2)
 
@@ -96,7 +97,7 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(len(zip_file.namelist()), 13)
 
         # Verify the fixity file has the one file entry
-        with zip_file.open('zenodo_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
+        with zip_file.open('zenodo_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 1)
 
@@ -136,7 +137,7 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(len(zip_file.namelist()), 13)
 
         # Verify the fixity file has the one file entry
-        with zip_file.open('zenodo_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
+        with zip_file.open('zenodo_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 1)
 
@@ -176,7 +177,7 @@ class TestDownload(SimpleTestCase):
         self.assertEqual(len(zip_file.namelist()), 13)
 
         # Verify the fixity file has the one file entry
-        with zip_file.open('zenodo_download_{}/data/fixity_info.json'.format(resource_id)) as fixityfile:
+        with zip_file.open('zenodo_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 1)
 
@@ -200,7 +201,7 @@ class TestDownload(SimpleTestCase):
                                           'resource_id': '209373160',
                                           'resource_format': 'zip'})
 
-        response = self.client.get(url, **{'HTTP_PRESQT_SOURCE_TOKEN': 'eggs'})
+        response = self.client.get(url, **{'HTTP_PRESQT_SOURCE_TOKEN': 'eggs', 'HTTP_PRESQT_EMAIL_OPT_IN': ''})
         ticket_number = hash_tokens('eggs')
         download_url = response.data['download_job_zip']
         process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(ticket_number)
