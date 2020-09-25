@@ -392,7 +392,7 @@ Resource Upload Endpoint
 
     * The function must return a **dictionary** with the following keys:
 
-        ================== ===== =================================================================================
+        ================== ===== =========================================================================================
         resources_ignored  array Array of string paths of files that were ignored when uploading the resource
 
                                  Path should have the same base as resource_main_dir
@@ -402,7 +402,8 @@ Resource Upload Endpoint
         file_metadata_list list  List of dictionaries that contains FTS metadata and hash info for each file
         action_metadata    dict  Dictionary containing FTS metadata about the action occurring
         project_id         str   ID of the parent project for this upload. Needed for metadata upload
-        ================== ===== =================================================================================
+        project_link       str   The link to either the resource or the home page of the user if not available through API
+        ================== ===== =========================================================================================
 
         **Metadata Dictionary Details**
 
@@ -452,7 +453,8 @@ Resource Upload Endpoint
                     'resources_updated': resources_updated,
                     'action_metadata': action_metadata,
                     'file_metadata_list': file_metadata_list,
-                    'project_id': '1234'
+                    'project_id': '1234',
+                    'project_link': 'https://osf.io/1234'
                 }
 
 3. Add a function to upload FTS metadata to the correct location within the resource's parent project.
