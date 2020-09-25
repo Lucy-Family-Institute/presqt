@@ -93,6 +93,7 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         if response.status_code == 201:
             project_id = response.json()['id']
             project_name = response.json()['name']
+            web_url = response.json()['web_url']
         else:
             raise PresQTResponseException(
                 "Response has status code {} while creating project {}.".format(
@@ -166,6 +167,7 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
             raise PresQTResponseException("Project with id, {}, could not be found.".format(
                 project_id), status.HTTP_404_NOT_FOUND)
         project_name = project.json()['name']
+        web_url = project.json()['web_url']
 
         for path, subdirs, files in os.walk(resource_main_dir):
             if not subdirs and not files:
@@ -245,5 +247,5 @@ def gitlab_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         'action_metadata': action_metadata,
         'file_metadata_list': file_metadata_list,
         'project_id': project_id,
-        'project_link': "https://gitlab.com/dashboard/projects"
+        'project_link': web_url
     }
