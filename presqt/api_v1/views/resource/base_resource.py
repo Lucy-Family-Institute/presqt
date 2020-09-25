@@ -560,7 +560,7 @@ class BaseResource(APIView):
         #    }
         try:
             structure_validation(self)
-            func_dict = func(self.destination_token, self.destination_resource_id,
+            self.func_dict = func(self.destination_token, self.destination_resource_id,
                              self.data_directory, self.hash_algorithm, self.file_duplicate_action,
                              self.process_info_path, self.action)
         except PresQTResponseException as e:
@@ -584,10 +584,10 @@ class BaseResource(APIView):
         self.upload_fixity = True
         self.upload_failed_fixity = []
 
-        for resource in func_dict['file_metadata_list']:
+        for resource in self.func_dict['file_metadata_list']:
             resource['failed_fixity_info'] = []
             if resource['destinationHash'] != self.file_hashes[resource['actionRootPath']] \
-                    and resource['actionRootPath'] not in func_dict['resources_ignored']:
+                    and resource['actionRootPath'] not in self.func_dict['resources_ignored']:
                 self.upload_fixity = False
                 self.upload_failed_fixity.append(resource['actionRootPath']
                                                  [len(self.data_directory):])
@@ -599,27 +599,27 @@ class BaseResource(APIView):
 
         # Strip the server created directory prefix of the file paths for ignored and updated files
         resources_ignored = [file[len(self.data_directory):]
-                             for file in func_dict['resources_ignored']]
+                             for file in self.func_dict['resources_ignored']]
         self.process_info_obj['resources_ignored'] = resources_ignored
         resources_updated = [file[len(self.data_directory):]
-                             for file in func_dict['resources_updated']]
+                             for file in self.func_dict['resources_updated']]
         self.process_info_obj['resources_updated'] = resources_updated
 
         if self.action == 'resource_transfer_in':
             self.keyword_enhancement_successful = True
             if not self.destination_resource_id:
-                self.destination_resource_id = func_dict['project_id']
+                self.destination_resource_id = self.func_dict['project_id']
             if self.supports_keywords:
                 self.keyword_enhancement_successful, self.destination_initial_keywords = update_targets_keywords(
-                    self, func_dict['project_id'])
+                    self, self.func_dict['project_id'])
 
                 # Add the destination initial keywords to all keywords for accurate metadata list
                 self.all_keywords = self.all_keywords + self.destination_initial_keywords
 
         self.metadata_validation = create_upload_metadata(self,
-                                                          func_dict['file_metadata_list'],
-                                                          func_dict['action_metadata'],
-                                                          func_dict['project_id'],
+                                                          self.func_dict['file_metadata_list'],
+                                                          self.func_dict['action_metadata'],
+                                                          self.func_dict['project_id'],
                                                           resources_ignored,
                                                           resources_updated)
         # Increment process_info one last time
@@ -645,8 +645,8 @@ class BaseResource(APIView):
                 # BOLD HEADER
                 header = "-----Upload Details-----"
                 # Build the message for the email
-                message = 'The upload you started on PresQT has finished.\n\n{}\nUpload message: {}\n\nFailed Fixity: {}'.format(
-                    header, upload_message, self.upload_failed_fixity)
+                message = 'The upload you started on PresQT has finished. It can be found here: {}\n\n{}\nUpload message: {}\n\nFailed Fixity: {}'.format(
+                    self.func_dict["project_link"], header, upload_message, self.upload_failed_fixity)
                 transfer_upload_email_blaster(self.email, self.action, message)
 
         return True
@@ -788,8 +788,8 @@ class BaseResource(APIView):
             # BOLD HEADER
             header = "-----Transfer Details-----"
             # Build the message for the email
-            message = 'The transfer you started on PresQT has finished.\n\n{}\nTransfer message: {}\n\nFailed Fixity: {}\n\nEnhanced Keywords: {}'.format(
-                header, self.process_info_obj['message'], self.process_info_obj['failed_fixity'], self.process_info_obj['enhanced_keywords'])
+            message = 'The transfer you started on PresQT has finished. It can be found here: {}\n\n{}\nTransfer message: {}\n\nFailed Fixity: {}\n\nEnhanced Keywords: {}'.format(
+                self.func_dict["project_link"], header, self.process_info_obj['message'], self.process_info_obj['failed_fixity'], self.process_info_obj['enhanced_keywords'])
             transfer_upload_email_blaster(self.email, self.action, message)
 
         return
