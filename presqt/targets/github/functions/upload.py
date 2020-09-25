@@ -56,6 +56,7 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                                     "destinationHash": {'hash_algorithm': 'the_hash'}}
                                 }
         'project_id': ID of the parent project for this upload. Needed for metadata upload.
+        'project_link': The link to either the resource or the home page of the user if not available through API
     """
     try:
         header, username = validation_check(token)
@@ -210,5 +211,6 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         'resources_updated': resources_updated,
         'action_metadata': action_metadata,
         'file_metadata_list': file_metadata_list,
-        'project_id': repo_id
+        'project_id': repo_id,
+        "project_link": "https://github.com/{}?tab=repositories".format(username)
     }
