@@ -59,7 +59,8 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
                                     "title": 'file_title',
                                     "destinationHash": {'hash_algorithm': 'the_hash'}}
                                 }
-        'project_id': ID of the parent project for this upload. Needed for metadata upload.
+        'project_id': ID of the parent project for this upload. Needed for metadata upload. 
+        'project_link': The link to either the resource or the home page of the user if not available through API
 
     FigShare's Upload Process
         1. Initiate new file upload (POST) within the article. Send file size, md5, and name but no file contents yet.
@@ -150,5 +151,6 @@ def figshare_upload_resource(token, resource_id, resource_main_dir, hash_algorit
         "resources_updated": resources_updated,
         "action_metadata": action_metadata,
         "file_metadata_list": file_metadata_list,
-        "project_id": "{}:{}".format(project_id, article_id)
+        "project_id": "{}:{}".format(project_id, article_id),
+        "project_link": "https://figshare.com/account/home#/projects"
     }
