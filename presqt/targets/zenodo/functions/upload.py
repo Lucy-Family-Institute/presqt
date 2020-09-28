@@ -57,6 +57,7 @@ def zenodo_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                                     "destinationHash": {'hash_algorithm': 'the_hash'}}
                                 }
         'project_id': ID of the parent project for this upload. Needed for metadata upload.
+        'project_link': The link to either the resource or the home page of the user if not available through API
     """
     try:
         auth_parameter = zenodo_validation_check(token)
@@ -207,4 +208,5 @@ def zenodo_upload_loop(action_metadata, resource_id, resource_main_dir, post_url
         "action_metadata": action_metadata,
         "file_metadata_list": file_metadata_list,
         "project_id": resource_id,
+        "project_link": "https://zenodo.org/deposit?page=1&size=20"
     }
