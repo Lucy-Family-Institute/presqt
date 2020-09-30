@@ -1,5 +1,7 @@
 import json
 
+from presqt.utilities import read_file
+
 
 def fairshare_results(response_json):
     """
@@ -18,11 +20,15 @@ def fairshare_results(response_json):
     evaluation_results = response_json['evaluationResult']
     evaluation_results_json = json.loads(evaluation_results)
     results_list = []
+    fairshare_test_info = read_file("presqt/specs/services/fairshare/fairshare_description_fetch.json",
+                                    True)
 
     # Loop through evaluations and build some dicts
     for metric, results in evaluation_results_json.items():
         result_dict = {
             'metric_link': metric,
+            'test_name': fairshare_test_info[metric]['test_name'],
+            'description': fairshare_test_info[metric]['description'],
             'successes': [],
             'failures': [],
             'warnings': []
