@@ -169,6 +169,7 @@ def zenodo_fetch_resource(token, resource_id):
                             "kind": "item",
                             "kind_name": "file",
                             "id": resource_id,
+                            "doi": None,
                             "title": file['filename'],
                             "date_created": None,
                             "date_modified": None,

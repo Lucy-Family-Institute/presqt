@@ -152,6 +152,7 @@ def curate_nd_fetch_resource(token, resource_id):
         "kind": resource.kind,
         "kind_name": resource.kind_name,
         "id": resource.id,
+        "doi": None,
         "title": resource.title,
         "date_created": resource.date_submitted,
         "date_modified": resource.modified,
