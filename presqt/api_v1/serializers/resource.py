@@ -45,6 +45,7 @@ class ResourceSerializer(serializers.Serializer):
     kind = serializers.CharField(max_length=256)
     kind_name = serializers.CharField(max_length=256)
     id = serializers.CharField(max_length=256)
+    doi = serializers.CharField(max_length=256)
     title = serializers.CharField(max_length=256)
     date_created = serializers.DateField()
     date_modified = serializers.DateField()
