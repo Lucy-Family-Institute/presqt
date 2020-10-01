@@ -39,3 +39,4 @@ from presqt.api_v1.utilities.validation.get_process_info_action import get_proce
 from presqt.api_v1.utilities.validation.keyword_post_validation import keyword_post_validation
 from presqt.api_v1.utilities.keyword_enhancement.fetch_ontologies import fetch_ontologies
 from presqt.api_v1.utilities.service_helpers.fairshare_results import fairshare_results
+from presqt.api_v1.utilities.validation.fairshare_validation import fairshare_request_validator, fairshare_test_validator

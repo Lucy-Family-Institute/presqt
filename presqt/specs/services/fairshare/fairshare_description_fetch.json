@@ -1,11 +1,11 @@
 {
     "https://w3id.org/FAIR_Evaluator/metrics/1": {
         "description": "Metric to test if the metadata resource has a unique identifier. This is done by comparing the GUID to the patterns (by regexp) of known GUID schemas such as URLs and DOIs. Known schema are registered in FAIRSharing (https://fairsharing.org/standards/?q=&selected_facets=type_exact:identifier%20schema)",
-        "test_name": "FAIR Metrics Gen2- Unique Identifier "
+        "test_name": "FAIR Metrics Gen2- Unique Identifier"
     },
     "https://w3id.org/FAIR_Evaluator/metrics/2": {
         "description": "Metric to test if the unique identifier of the metadata resource is likely to be persistent. Known schema are registered in FAIRSharing (https://fairsharing.org/standards/?q=&selected_facets=type_exact:identifier%20schema). For URLs that don't follow a schema in FAIRSharing we test known URL persistence schemas (purl, oclc, fdlp, purlz, w3id, ark).",
-        "test_name": "FAIR Metrics Gen2 - Identifier Persistence "
+        "test_name": "FAIR Metrics Gen2 - Identifier Persistence"
     },
     "https://w3id.org/FAIR_Evaluator/metrics/4": {
         "description": "Tests whether a machine is able to find structured metadata. This could be (for example) RDFa, embedded json, json-ld, or content-negotiated structured metadata such as RDF Turtle",
@@ -29,7 +29,7 @@
     },
     "https://w3id.org/FAIR_Evaluator/metrics/10": {
         "description": "Metadata may be retrieved by an open and free protocol. Tests metadata GUID for its resolution protocol. Currently passes InChI Keys, DOIs, Handles, and URLs. Recognition of other identifiers will be added upon request by the community.",
-        "test_name": " FAIR Metrics Gen2 - Uses open free protocol for metadata retrieval"
+        "test_name": "FAIR Metrics Gen2 - Uses open free protocol for metadata retrieval"
     },
     "https://w3id.org/FAIR_Evaluator/metrics/13": {
         "description": "Metric to test if the metadata contains a persistence policy, explicitly identified by a persistencePolicy key (in hashed data) or a http://www.w3.org/2000/10/swap/pim/doc#persistencePolicy predicate in Linked Data.",
@@ -37,7 +37,7 @@
     },
     "https://w3id.org/FAIR_Evaluator/metrics/17": {
         "description": "Maturity Indicator to test if the data uses a formal language broadly applicable for knowledge representation. This particular test takes a broad view of what defines a 'knowledge representation language'; in this evaluation, a knowledge representation language is interpreted as one in which terms are semantically-grounded in ontologies. Any form of ontologically-grounded linked data will pass this test.",
-        "test_name": " FAIR Metrics Gen2 - Data Knowledge Representation Language (strong)"
+        "test_name": "FAIR Metrics Gen2 - Data Knowledge Representation Language (strong)"
     },
     "https://w3id.org/FAIR_Evaluator/metrics/19": {
         "description": "Maturity Indicator to test if the linked data metadata uses terms that resolve to linked (FAIR) data.",
