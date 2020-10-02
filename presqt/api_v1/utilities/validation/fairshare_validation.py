@@ -55,6 +55,12 @@ def fairshare_test_validator(test_list, valid_tests):
     """
     list_of_valid_tests = [value['test_name'] for key, value in valid_tests.items()]
 
+    # Check if empty list
+    if len(test_list) == 0:
+        raise PresQTValidationError(
+            "At least one test is required. Options are: {}".format(list_of_valid_tests),
+            status.HTTP_400_BAD_REQUEST)
+
     # Ensure all tests in passed in list are valid
     for test in test_list:
         if test not in list_of_valid_tests:
