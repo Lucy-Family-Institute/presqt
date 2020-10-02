@@ -27,7 +27,7 @@ def fairshare_results(response_json, test_list):
     # Loop through evaluations and build some dicts
     for metric, results in evaluation_results_json.items():
         # Only return results for the tests specified by the user...
-        if fairshare_test_info[metric]['test_name'] in test_list:
+        if int(metric.rpartition("/")[2]) in test_list:
             result_dict = {
                 'metric_link': metric,
                 'test_name': fairshare_test_info[metric]['test_name'],
