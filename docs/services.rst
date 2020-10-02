@@ -38,3 +38,9 @@ user know the proposal task is still in progress.
    :align:   center
 
    Image 1: Workflow of getting an EaaSI Emulation Environment of a given resource
+
+FAIRshare Evaluator Service
+---------------------------
+PresQT takes advantage of `FAIRshare's <https://fairsharing.github.io/FAIR-Evaluator-FrontEnd/#!/#%2F! />`_
+prebuilt maturity indicator tests. Our PresQT API calls use an approved `collection of tests <https://fairsharing.github.io/FAIR-Evaluator-FrontEnd/#!/collections/16 />`_ identified by the
+PI's and community.
