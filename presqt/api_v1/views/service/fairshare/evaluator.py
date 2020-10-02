@@ -24,10 +24,12 @@ class FairshareEvaluator(APIView):
             {
                 "test_name": "FAIR Metrics Gen2- Unique Identifier "
                 "description": "Metric to test if the metadata resource has a unique identifier. This is done by comparing the GUID to the patterns (by regexp) of known GUID schemas such as URLs and DOIs. Known schema are registered in FAIRSharing (https://fairsharing.org/standards/?q=&selected_facets=type_exact:identifier%20schema)",
+                "test_id": 1
             },
             {
                 "test_name": "FAIR Metrics Gen2 - Identifier Persistence "
                 "description": "Metric to test if the unique identifier of the metadata resource is likely to be persistent. Known schema are registered in FAIRSharing (https://fairsharing.org/standards/?q=&selected_facets=type_exact:identifier%20schema). For URLs that don't follow a schema in FAIRSharing we test known URL persistence schemas (purl, oclc, fdlp, purlz, w3id, ark).",
+                "test_id": 2
             }...
         ]
         """
@@ -51,8 +53,7 @@ class FairshareEvaluator(APIView):
         [
             {
                 "metric_link": "https://w3id.org/FAIR_Evaluator/metrics/1",
-                "test_naP
-                me": "FAIR Metrics Gen2- Unique Identifier ",
+                "test_name": "FAIR Metrics Gen2- Unique Identifier ",
                 "description": "Metric to test if the metadata resource has a unique identifier. This is done by comparing the GUID to the patterns (by regexp) of known GUID schemas such as URLs and DOIs. Known schema are registered in FAIRSharing (https://fairsharing.org/standards/?q=&selected_facets=type_exact:identifier%20schema)",
                 "successes": [
                     "Found an identifier of type 'doi'"
