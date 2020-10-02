@@ -12,6 +12,7 @@ from presqt.utilities import PresQTValidationError, read_file
 class FairshareEvaluator(APIView):
     """
     """
+
     def get(self, request):
         """
         Returns the list of tests available to the user.
@@ -19,20 +20,25 @@ class FairshareEvaluator(APIView):
         Returns
         -------
         200: OK
-        {
-            "https://w3id.org/FAIR_Evaluator/metrics/1": {
-                "description": "Metric to test if the metadata resource has a unique identifier. This is done by comparing the GUID to the patterns (by regexp) of known GUID schemas such as URLs and DOIs. Known schema are registered in FAIRSharing (https://fairsharing.org/standards/?q=&selected_facets=type_exact:identifier%20schema)",
+        [
+            {
                 "test_name": "FAIR Metrics Gen2- Unique Identifier "
+                "description": "Metric to test if the metadata resource has a unique identifier. This is done by comparing the GUID to the patterns (by regexp) of known GUID schemas such as URLs and DOIs. Known schema are registered in FAIRSharing (https://fairsharing.org/standards/?q=&selected_facets=type_exact:identifier%20schema)",
             },
-            "https://w3id.org/FAIR_Evaluator/metrics/2": {
-                "description": "Metric to test if the unique identifier of the metadata resource is likely to be persistent. Known schema are registered in FAIRSharing (https://fairsharing.org/standards/?q=&selected_facets=type_exact:identifier%20schema). For URLs that don't follow a schema in FAIRSharing we test known URL persistence schemas (purl, oclc, fdlp, purlz, w3id, ark).",
+            {
                 "test_name": "FAIR Metrics Gen2 - Identifier Persistence "
+                "description": "Metric to test if the unique identifier of the metadata resource is likely to be persistent. Known schema are registered in FAIRSharing (https://fairsharing.org/standards/?q=&selected_facets=type_exact:identifier%20schema). For URLs that don't follow a schema in FAIRSharing we test known URL persistence schemas (purl, oclc, fdlp, purlz, w3id, ark).",
             }...
-        }
+        ]
         """
         fairshare_test_info = read_file("presqt/specs/services/fairshare/fairshare_description_fetch.json",
                                         True)
-        return Response(status=status.HTTP_200_OK, data=fairshare_test_info)
+        test_list = [
+            {"test_name": value['test_name'],
+             "description": value['description']
+             } for key, value in fairshare_test_info.items()]
+
+        return Response(status=status.HTTP_200_OK, data=test_list)
 
     def post(self, request):
         """
