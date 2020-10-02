@@ -2,6 +2,7 @@ from django.urls import path
 
 from presqt.api_v1.views.job_status.job_status import JobStatus
 from presqt.api_v1.views.bag_and_zip.bag_and_zip import BagAndZip
+from presqt.api_v1.views.service.fairshare.evaluator import FairshareEvaluator
 from presqt.api_v1.views.status.status import StatusCollection
 from presqt.api_v1 import api_root
 from presqt.api_v1.views.resource.resource import Resource
@@ -46,5 +47,8 @@ api_v1_endpoints = [
 
     # Job Status
     path('job_status/<str:action>.<str:response_format>/', JobStatus.as_view(), name='job_status'),
-    path('job_status/<str:action>/', JobStatus.as_view(), name='job_status')
+    path('job_status/<str:action>/', JobStatus.as_view(), name='job_status'),
+
+    # FAIRshare Evaluator
+    path('services/fairshare/evaluator/', FairshareEvaluator.as_view(), name='fairshare')
 ]
