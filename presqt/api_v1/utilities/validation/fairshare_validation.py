@@ -53,7 +53,7 @@ def fairshare_test_validator(test_list, valid_tests):
     -------
         The users list of tests.
     """
-    list_of_valid_tests = [value['test_name'] for key, value in valid_tests.items()]
+    list_of_valid_tests = [int(key.rpartition('/')[2]) for key, value in valid_tests.items()]
 
     # Check if empty list
     if len(test_list) == 0:

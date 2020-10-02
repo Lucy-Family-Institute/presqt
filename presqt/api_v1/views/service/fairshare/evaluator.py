@@ -35,7 +35,8 @@ class FairshareEvaluator(APIView):
                                         True)
         test_list = [
             {"test_name": value['test_name'],
-             "description": value['description']
+             "description": value['description'],
+             "test_id": int(key.rpartition("/")[2])
              } for key, value in fairshare_test_info.items()]
 
         return Response(status=status.HTTP_200_OK, data=test_list)
