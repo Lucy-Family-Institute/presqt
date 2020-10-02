@@ -65,7 +65,7 @@ def fairshare_test_validator(test_list, valid_tests):
     for test in test_list:
         if test not in list_of_valid_tests:
             raise PresQTValidationError(
-                "PresQT Error: '{}' not a valid test name. Options are: {}".format(test, list_of_valid_tests),
+                "PresQT Error: '{}' not a valid test id. Options are: {}".format(test, list_of_valid_tests),
                 status.HTTP_400_BAD_REQUEST)
 
     return test_list
