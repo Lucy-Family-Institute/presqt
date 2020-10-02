@@ -11,11 +11,12 @@ def fairshare_results(response_json, test_list):
     ----------
     response_json : dict
         The dictionary returned by FAIRshare
+    test_list : list
+        The list of tests the user would like results for.
 
     Returns
     -------
         A list of dictionaries with result information
-
     """
     evaluation_results = response_json['evaluationResult']
     evaluation_results_json = json.loads(evaluation_results)

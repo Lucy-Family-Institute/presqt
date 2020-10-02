@@ -76,6 +76,26 @@ class FairshareEvaluator(APIView):
             "error": "PresQT Error: 'resource_id' missing in the request body."
         }
         or
+        400: Bad Request
+        {
+            "error": "PresQT Error: 'tests' missing in the request body."
+        }
+        or
+        400: Bad Request
+        {
+            "error": "PresQT Error: 'tests' must be in list format."
+        }
+        or
+        400: Bad Request
+        {
+            "error": "PresQT Error: At least one test is required. Options are: [.......]"
+        }
+        or
+        400: Bad Request
+        {
+            "error": "PresQT Error: 'eggs' not a valid test name. Options are: [.......]"
+        }
+        or
         503: Service Unavailable
         {
             "error": "FAIRshare returned a <status_code> error trying to process the request"
