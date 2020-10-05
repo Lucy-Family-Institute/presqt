@@ -29,7 +29,7 @@ from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.metadata.download_metadata import validate_metadata
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
-from presqt.api_v1.utilities.utils.send_email import transfer_upload_email_blaster, download_email_blaster
+from presqt.api_v1.utilities.utils.send_email import email_blaster
 from presqt.json_schemas.schema_handlers import schema_validator
 from presqt.utilities import (PresQTValidationError, PresQTResponseException, write_file,
                               zip_directory, read_file, update_process_info_message, increment_process_info)
@@ -467,12 +467,18 @@ class BaseResource(APIView):
             self.process_info_obj['failed_fixity'] = self.download_failed_fixity
             update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
             if self.email:
+                # Build link to retrieve the download
+                download_reverse = reverse('job_status', kwargs={
+                    "action": "download",
+                    "response_format": "zip"})
+                download_url = self.request.build_absolute_uri(download_reverse)
+                final_download_url = "{}?ticket_number={}".format(download_url, self.ticket_number)
                 # BOLD HEADER
                 header = "-----Download Details-----"
                 # Make the message to add to the email body
-                message = 'The download you started on PresQT has finished. It has been attached to this email.\n\n{}\nDownload Message: {}\n\nFailed Fixity: {}'.format(
-                    header, self.process_info_obj['message'], self.process_info_obj['failed_fixity'])
-                download_email_blaster(self.email, "{}.zip".format(self.resource_main_dir), message)
+                message = 'The download you started on PresQT has finished. It can be retrieved here: {}\n\n{}\nDownload Message: {}\n\nFailed Fixity: {}'.format(
+                    final_download_url, header, self.process_info_obj['message'], self.process_info_obj['failed_fixity'])
+                email_blaster(self.email, self.action, message)
 
         return True
 
@@ -647,7 +653,7 @@ class BaseResource(APIView):
                 # Build the message for the email
                 message = 'The upload you started on PresQT has finished. It can be found here: {}\n\n{}\nUpload message: {}\n\nFailed Fixity: {}'.format(
                     self.func_dict["project_link"], header, upload_message, self.upload_failed_fixity)
-                transfer_upload_email_blaster(self.email, self.action, message)
+                email_blaster(self.email, self.action, message)
 
         return True
 
@@ -793,6 +799,6 @@ class BaseResource(APIView):
             # Build the message for the email
             message = 'The transfer you started on PresQT has finished. It can be found here: {}\n\n{}\nTransfer message: {}\n\nFailed Fixity: {}\n\nEnhanced Keywords: {}'.format(
                 self.func_dict["project_link"], header, self.process_info_obj['message'], self.process_info_obj['failed_fixity'], self.process_info_obj['enhanced_keywords'])
-            transfer_upload_email_blaster(self.email, self.action, message)
+            email_blaster(self.email, self.action, message)
 
         return
