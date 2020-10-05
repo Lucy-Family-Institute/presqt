@@ -11,10 +11,10 @@ def keyword_action_validation(request):
             "PresQT Error: 'presqt-keyword-action' missing in the request headers.",
             status.HTTP_400_BAD_REQUEST)
 
-    if keyword_action not in ['automatic', 'manual']:
+    if keyword_action not in ['automatic', 'manual', "none"]:
         raise PresQTValidationError(
             "PresQT Error: '{}' is not a valid keyword_action. "
-            "The options are 'automatic' or 'manual'.".format(keyword_action),
+            "The options are 'automatic', 'manual', or 'none'.".format(keyword_action),
             status.HTTP_400_BAD_REQUEST)
 
     return keyword_action
