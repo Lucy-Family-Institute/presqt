@@ -30,15 +30,21 @@
                 "items": { "type": "string" }
               },
               "ontologies": {
-                "type": "object",
-                "properties": {
-                  "keywords": {
-                    "type": "array",
-                    "items": {"type": "string"}
-                  },
-                  "ontology": { "type": "string" },
-                  "ontology_id": { "type": "string" },
-                  "categories": { "type": "string" }
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "keywords": {
+                      "type": "array",
+                      "items": { "type": "string" }
+                    },
+                    "ontology": { "type": "string" },
+                    "ontology_id": { "type": "string" },
+                    "categories": {
+                      "type": "array",
+                      "items": { "type": "string" }
+                    }
+                  }
                 }
               },
               "enhancer": { "type": "string" }
