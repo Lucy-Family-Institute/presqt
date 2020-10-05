@@ -29,6 +29,8 @@ def automatic_keywords(self):
 
     self.all_keywords = self.all_keywords + self.keywords
     self.all_keywords = [keyword.lower() for keyword in self.all_keywords]
+    self.keywords = list(set([keyword.lower() for keyword in self.keywords]))
+
     # Get ontology information for each keyword
     from presqt.api_v1.utilities import fetch_ontologies
     ontologies = fetch_ontologies(self.enhanced_keywords)
