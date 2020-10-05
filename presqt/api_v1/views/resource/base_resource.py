@@ -774,9 +774,12 @@ class BaseResource(APIView):
         if self.keyword_action == 'automatic':
             self.process_info_obj['enhanced_keywords'] = self.enhanced_keywords + self.keywords
             self.process_info_obj['initial_keywords'] = self.initial_keywords
-        else:  # manual
+        elif self.keyword_action == 'manual':
             self.process_info_obj['enhanced_keywords'] = self.keywords
             self.process_info_obj['initial_keywords'] = self.initial_keywords
+        else: # no enhancement
+            self.process_info_obj['enhanced_keywords'] = []
+            self.process_info_obj['initial_keywords'] = []
 
         transfer_fixity = False if not self.download_fixity or not self.upload_fixity else True
         self.process_info_obj['message'] = get_action_message(
