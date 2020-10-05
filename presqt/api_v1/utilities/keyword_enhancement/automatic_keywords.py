@@ -13,6 +13,7 @@ def automatic_keywords(self):
     keyword_fetch_func = FunctionRouter.get_function(self.source_target_name, 'keywords')
     try:
         source_keywords = keyword_fetch_func(self.source_token, self.source_resource_id)['keywords']
+        source_keywords = [keyword.lower() for keyword in source_keywords]
     except PresQTResponseException:
         return {}
 
@@ -27,7 +28,7 @@ def automatic_keywords(self):
         self.enhanced_keywords = []
 
     self.all_keywords = self.all_keywords + self.keywords
-
+    self.all_keywords = [keyword.lower() for keyword in self.all_keywords]
     # Get ontology information for each keyword
     from presqt.api_v1.utilities import fetch_ontologies
     ontologies = fetch_ontologies(self.enhanced_keywords)

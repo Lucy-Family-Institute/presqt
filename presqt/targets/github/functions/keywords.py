@@ -119,6 +119,7 @@ def github_upload_keywords(token, resource_id, keywords):
     # Start the new_keywords list with the resource's original topics
     new_keywords = resource['extra']['topics']
     for keyword in keywords:
+        print(keyword)
         # Github can't have more than 20 topics
         if len(new_keywords) > 19:
             break
