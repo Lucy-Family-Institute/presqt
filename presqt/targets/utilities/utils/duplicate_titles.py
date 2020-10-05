@@ -32,7 +32,13 @@ def get_duplicate_title(title, titles, duplicate_format):
         return ("{}{}".format(title, duplicate_format.replace('*', '1')))
 
     elif duplicate_project_list:
-        highest_duplicate_project = natsorted(duplicate_project_list)
+        # Just build a list of the last numbers in the string and the last special character,
+        # natsort unfortunately takes into account numbers in duplicate projects....so if we transfer 
+        # or upload 'ProjectNine_-PresQT3-' but we already have 'ProjectNine_-PresQT3--PresQT1-' on
+        # the target, natsort would set the next entry at 'ProjectNine_-PresQT3--PresQT4-'
+        duplicate_project_list_numbers = [
+            number.rpartition("PresQT")[2] for number in duplicate_project_list]
+        highest_duplicate_project = natsorted(duplicate_project_list_numbers)
         # findall takes a regular expression and a string, here we pass it the last number in
         # highest duplicate project, and it is returned as a list. int requires a string as an
         # argument, so the [0] is grabbing the only number in the list and converting it.
