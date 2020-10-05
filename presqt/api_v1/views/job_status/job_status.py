@@ -3,6 +3,7 @@ import multiprocessing
 import os
 
 from dateutil.relativedelta import relativedelta
+from django.utils.datastructures import MultiValueDictKeyError
 from django.http import HttpResponse
 from django.utils import timezone
 from rest_framework import status
@@ -75,13 +76,22 @@ class JobStatus(APIView):
         Will return either a json object or a file bytes depending on the 'resource_format' url
         parameter
         """
-        # Perform token validation. Read data from the process_info file.
-        try:
-            source_token = get_source_token(self.request)
-            self.ticket_number = hash_tokens(source_token)
-            self.process_data = get_process_info_data(self.ticket_number)
-        except PresQTValidationError as e:
-            return Response(data={'error': e.data}, status=e.status_code)
+        if self.request.query_params:
+            try:
+                # This check will run for the email links we generate
+                self.ticket_number = self.request.query_params['ticket_number']
+                self.process_data = get_process_info_data(self.ticket_number)
+            except (MultiValueDictKeyError, PresQTValidationError):
+                return Response(data={'error': "'ticket_number' not found as query parameter or invalid 'ticket_number' provided."},
+                                status=status.HTTP_400_BAD_REQUEST)
+        else:
+            # Perform token validation. Read data from the process_info file.
+            try:
+                source_token = get_source_token(self.request)
+                self.ticket_number = hash_tokens(source_token)
+                self.process_data = get_process_info_data(self.ticket_number)
+            except PresQTValidationError as e:
+                return Response(data={'error': e.data}, status=e.status_code)
 
         # Verify that the only acceptable response format was provided.
         if self.response_format and self.response_format not in ['json', 'zip']:
