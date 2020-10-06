@@ -5,7 +5,9 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from presqt.api_v1.utilities import fairshare_results, fairshare_request_validator, fairshare_test_validator
+from presqt.api_v1.utilities import (
+    fairshare_results, fairshare_request_validator, fairshare_test_validator, get_user_email_opt)
+from presqt.api_v1.utilities.utils.send_email import email_blaster
 from presqt.utilities import PresQTValidationError, read_file
 
 
@@ -107,6 +109,7 @@ class FairshareEvaluator(APIView):
         """
         try:
             resource_id, tests = fairshare_request_validator(request)
+            email = get_user_email_opt(request)
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
         fairshare_test_info = read_file("presqt/specs/services/fairshare/fairshare_description_fetch.json",
@@ -134,5 +137,11 @@ class FairshareEvaluator(APIView):
 
         response_json = response.json()
         results = fairshare_results(response_json, test_list)
+
+        if email:
+            message = "The FAIRshare Evaluator process you started on PresQT for doi '{}' has finished.\n\n ----EVALUATION RESULTS----\n".format(resource_id)
+            details = "{}{}".format(message, json.dumps(results, indent=4))
+            # Send the email
+            email_blaster(email, "PresQT FAIRshare Evaluator Results", details)
 
         return Response(status=status.HTTP_200_OK, data=results)
