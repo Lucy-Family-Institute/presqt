@@ -478,7 +478,7 @@ class BaseResource(APIView):
                 # Make the message to add to the email body
                 message = 'The download you started on PresQT has finished. It can be retrieved here: {}\n\n{}\nDownload Message: {}\n\nFailed Fixity: {}'.format(
                     final_download_url, header, self.process_info_obj['message'], self.process_info_obj['failed_fixity'])
-                email_blaster(self.email, self.action, message)
+                email_blaster(self.email, "PresQT Download Complete", message)
 
         return True
 
@@ -653,7 +653,7 @@ class BaseResource(APIView):
                 # Build the message for the email
                 message = 'The upload you started on PresQT has finished. It can be found here: {}\n\n{}\nUpload message: {}\n\nFailed Fixity: {}'.format(
                     self.func_dict["project_link"], header, upload_message, self.upload_failed_fixity)
-                email_blaster(self.email, self.action, message)
+                email_blaster(self.email, "PresQT Upload Complete", message)
 
         return True
 
@@ -799,6 +799,6 @@ class BaseResource(APIView):
             # Build the message for the email
             message = 'The transfer you started on PresQT has finished. It can be found here: {}\n\n{}\nTransfer message: {}\n\nFailed Fixity: {}\n\nEnhanced Keywords: {}'.format(
                 self.func_dict["project_link"], header, self.process_info_obj['message'], self.process_info_obj['failed_fixity'], self.process_info_obj['enhanced_keywords'])
-            email_blaster(self.email, self.action, message)
+            email_blaster(self.email, "PresQT Transfer Complete", message)
 
         return
