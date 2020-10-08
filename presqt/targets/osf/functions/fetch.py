@@ -216,6 +216,7 @@ def osf_fetch_resource(token, resource_id):
             'kind': resource_object.kind,
             'kind_name': resource_object.kind_name,
             'id': resource_object.id,
+            'doi': None,
             'title': resource_object.title,
             'date_created': resource_object.date_created,
             'date_modified': resource_object.date_modified,
@@ -241,6 +242,15 @@ def osf_fetch_resource(token, resource_id):
                 'size': resource_object.size
             }
         elif resource_object.kind_name == 'project':
+            # Try and find a DOI for this resource
+            headers = {'Authorization': 'Bearer {}'.format(token)}
+            identifiers = requests.get(
+                'https://api.osf.io/v2/nodes/{}/identifiers/'.format(resource_id), headers=headers).json()['data']
+            for entry in identifiers:
+                if entry['attributes']['category'] == 'doi':
+                    resource_object_obj['doi'] = entry['attributes']['value']
+                    break
+
             resource_object_obj['extra'] = {
                 'category': resource_object.category,
                 'fork': resource_object.fork,

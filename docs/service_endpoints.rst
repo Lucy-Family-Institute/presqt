@@ -196,3 +196,103 @@ EaaSI Download
     :statuscode 404: File unavailable.
     :statuscode 404: Invalid ticket number.
     :statuscode 404: A resource_download does not exist for this user on the server.
+
+
+FAIRshare Endpoints
+-------------------
+
+Get FAIRshare Tests
++++++++++++++++++++
+
+.. http:get:: /api_v1/services/fairshare/evaluator/
+
+    Get a list of tests from FAIRshare that are currently supported by PresQT.
+
+    **Example request**:
+
+    .. sourcecode:: http
+
+        GET /api_v1/services/fairshare/evaluator/ HTTP/1.1
+        Host: presqt-prod.crc.nd.edu
+        Accept: application/json
+
+    **Example response**:
+
+    .. sourcecode:: http
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json
+
+        [
+            {
+                "test_name": "FAIR Metrics Gen2- Unique Identifier "
+                "description": "Metric to test if the metadata resource has a unique identifier. This is done by comparing the GUID to the patterns (by regexp) of known GUID schemas such as URLs and DOIs. Known schema are registered in FAIRSharing (https://fairsharing.org/standards/?q=&selected_facets=type_exact:identifier%20schema)",
+                "test_id": 1
+            },
+            {
+                "test_name": "FAIR Metrics Gen2 - Identifier Persistence "
+                "description": "Metric to test if the unique identifier of the metadata resource is likely to be persistent. Known schema are registered in FAIRSharing (https://fairsharing.org/standards/?q=&selected_facets=type_exact:identifier%20schema). For URLs that don't follow a schema in FAIRSharing we test known URL persistence schemas (purl, oclc, fdlp, purlz, w3id, ark).",
+                "test_id": 2
+            }...
+        ]
+
+
+    :statuscode 200: Tests returned successfully
+
+POST FAIRshare Evaluator
+++++++++++++++++++++++++
+
+.. http:post:: /api_v1/services/fairshare/evaluator/
+
+    Submit a FAIRshare Evaluation request with a doi and list of test ids.
+
+    **Example request**:
+
+    .. sourcecode:: http
+
+        POST /api_v1/services/fairshare/evaluator/ HTTP/1.1
+        Host: presqt-prod.crc.nd.edu
+        Accept: application/json
+
+        Example body json:
+            {
+                "resource_id":"10.17605/OSF.IO/EGGS12",
+                "tests": [1, 2]
+            }
+
+    **Example response**:
+
+    .. sourcecode:: http
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json
+
+        [
+            {
+                "metric_link": "https://w3id.org/FAIR_Evaluator/metrics/1",
+                "test_name": "FAIR Metrics Gen2- Unique Identifier ",
+                "description": "Metric to test if the metadata resource has a unique identifier. This is done by comparing the GUID to the patterns (by regexp) of known GUID schemas such as URLs and DOIs. Known schema are registered in FAIRSharing (https://fairsharing.org/standards/?q=&selected_facets=type_exact:identifier%20schema)",
+                "successes": [
+                    "Found an identifier of type 'doi'"
+                ],
+                "failures": [],
+                "warnings": []
+            },
+            {
+                "metric_link": "https://w3id.org/FAIR_Evaluator/metrics/2",
+                "test_name": "FAIR Metrics Gen2 - Identifier Persistence ",
+                "description": "Metric to test if the unique identifier of the metadata resource is likely to be persistent. Known schema are registered in FAIRSharing (https://fairsharing.org/standards/?q=&selected_facets=type_exact:identifier%20schema). For URLs that don't follow a schema in FAIRSharing we test known URL persistence schemas (purl, oclc, fdlp, purlz, w3id, ark).",
+                "successes": [
+                    "The GUID of the metadata is a doi, which is known to be persistent."
+                ],
+                "failures": [],
+                "warnings": []
+            }
+        ]
+    :statuscode 200: Evaluation completed successfully.
+    :statuscode 400: 'resource_id' missing in the request body.
+    :statuscode 400: 'tests' missing in the request body.
+    :statuscode 400: 'tests' must be in list format.
+    :statuscode 400: At least one test is required. Options are: [.......]
+    :statuscode 400: 'eggs' not a valid test name. Options are: [.......]
+    :statuscode 503: FAIRshare returned a <status_code> error trying to process the request
