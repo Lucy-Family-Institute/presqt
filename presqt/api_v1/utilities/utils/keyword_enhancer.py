@@ -32,7 +32,7 @@ def keyword_enhancer(keywords):
         if response.status_code == 200:
             for label in response.json()[0]['labels']:
                 label_lower_case = label.lower()
-                if label not in keywords:
+                if label_lower_case not in keyword_lower_case:
                     new_list_of_keywords.append(label_lower_case)
                     final_list_of_keywords.append(label_lower_case)
     return list(set(new_list_of_keywords)), list(set(final_list_of_keywords))
