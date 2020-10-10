@@ -1,7 +1,10 @@
-from django.core.mail import send_mail, EmailMessage
+import html2text
+
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import get_template
 
 
-def email_blaster(email_address, title, message):
+def email_blaster(email_address, title, context, template_path):
     """
     Function to send emails when a subprocess has finished running on the server.
 
@@ -11,12 +14,18 @@ def email_blaster(email_address, title, message):
         The user's email address
     title : str
         The email subject line
-    message : str
-        The message to put in the body of the email
+    context : dict
+        Info to inject into templates
+    template_path : str
+        The path to the email template
     """
-    send_mail(
-        title,
-        message,
-        'noreply@presqt.crc.nd.edu',
-        [email_address],
-        fail_silently=True)
+    template = get_template(template_path)
+    html_code = template.render(context)
+
+    from_email = "PresQT <noreply@presqt.crc.nd.edu>"
+    to = [email_address]
+    text_content = html2text.html2text(html_code)
+    msg = EmailMultiAlternatives(title, text_content, from_email, to)
+    msg.attach_alternative(html_code, "text/html")
+    msg.send()
+
