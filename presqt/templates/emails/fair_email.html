@@ -80,6 +80,7 @@
           {% for result in results_list%}
           <h4>{{result.test_name}}</h4>
           <span class="italic tab">{{result.description}}</span>
+          <br />
           {% if result.successes|length > 0 %}
           <span class="italic tab">Success:</span>
           <ul>
