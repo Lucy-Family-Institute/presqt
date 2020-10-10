@@ -2,6 +2,7 @@ import html2text
 
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
+from django.core.mail import send_mail
 
 
 def email_blaster(email_address, title, context, template_path):
@@ -22,10 +23,10 @@ def email_blaster(email_address, title, context, template_path):
     template = get_template(template_path)
     html_code = template.render(context)
 
-    from_email = "PresQT <noreply@presqt.crc.nd.edu>"
-    to = [email_address]
-    text_content = html2text.html2text(html_code)
-    msg = EmailMultiAlternatives(title, text_content, from_email, to)
-    msg.attach_alternative(html_code, "text/html")
-    msg.send()
-
+    send_mail(
+        subject=title,
+        message=html2text.html2text(html_code),
+        html_message=html_code,
+        from_email="PresQT <noreply@presqt.crc.nd.edu>",
+        recipient_list=[email_address],
+        fail_silently=True)
