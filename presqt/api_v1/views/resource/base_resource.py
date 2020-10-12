@@ -1,6 +1,8 @@
 import os
 import shutil
 import zipfile
+import requests
+import json
 from uuid import uuid4
 
 import bagit
@@ -23,7 +25,8 @@ from presqt.api_v1.utilities import (target_validation, transfer_target_validati
                                      keyword_action_validation,
                                      automatic_keywords, update_targets_keywords, manual_keywords,
                                      get_target_data, get_keyword_support,
-                                     update_or_create_process_info, get_user_email_opt)
+                                     update_or_create_process_info, get_user_email_opt,
+                                     fairshare_evaluator_validation, fairshare_results)
 from presqt.api_v1.utilities.utils.multiple_process_check import multiple_process_check
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.metadata.download_metadata import validate_metadata
@@ -671,6 +674,7 @@ class BaseResource(APIView):
             self.email = get_user_email_opt(self.request)
             self.file_duplicate_action = file_duplicate_action_validation(self.request)
             self.keyword_action = keyword_action_validation(self.request)
+            self.fairshare_evaluator_action = fairshare_evaluator_validation(self.request)
             self.source_target_name, self.source_resource_id, self.keywords = transfer_post_body_validation(
                 self.request)
             target_valid, self.infinite_depth = target_validation(
@@ -771,7 +775,6 @@ class BaseResource(APIView):
         ####### TRANSFER COMPLETE #######
         # Transfer was a success so update the server metadata file.
         self.process_info_obj['status_code'] = '200'
-        self.process_info_obj['status'] = 'finished'
         self.process_info_obj['failed_fixity'] = list(
             set(self.download_failed_fixity + self.upload_failed_fixity))
         self.process_info_obj['source_resource_id'] = self.source_resource_id
@@ -788,9 +791,38 @@ class BaseResource(APIView):
             self.process_info_obj['initial_keywords'] = []
 
         transfer_fixity = False if not self.download_fixity or not self.upload_fixity else True
+        if self.fairshare_evaluator_action:
+            self.process_info_obj['message'] = "Running FAIRshare Evaluator Service, this may take several minutes..."
+        else:
+            self.process_info_obj['message'] = "Making final metadata updates..."
+
+        update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
+
+        if self.fairshare_evaluator_action:
+            # Do the evaluation on the newly created project's url
+            data = {
+                'resource': self.func_dict["project_link"],
+                'executor': "PresQT",
+                'title': "PresQT Fair Evaluation"
+                }
+
+            # 16 is the id of the PresQT test collection
+            response = requests.post(
+                'https://w3id.org/FAIR_Evaluator/collections/16/evaluate',
+                headers={"Content-Type": "application/json", "Accept": "application/json"},
+                data=json.dumps(data))
+            if response.status_code != 200:
+                results = "FAIRshare errored during the Evaluator process."
+            else:
+                results = fairshare_results(response.json(), [1, 2, 4, 5, 6, 7, 8, 10, 13, 17, 19, 22])
+
+        else:
+            results = 'FAIRshare Evaluator service was not run by the user.'
+
         self.process_info_obj['message'] = get_action_message(
             self, 'Transfer', transfer_fixity, self.metadata_validation, self.action_metadata)
-
+        self.process_info_obj['status'] = 'finished'
+        self.process_info_obj['fairshare_evaluation_results'] = results
         update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
 
         if self.email:
