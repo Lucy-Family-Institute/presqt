@@ -919,7 +919,7 @@ Transfer New Top Level Resource
     :reqheader presqt-destination-token: User's ``Token`` for the destination target
     :reqheader presqt-source-token: User's ``Token`` for the source target
     :reqheader presqt-file-duplicate-action: Action to be taken if a duplicate file is found (Either ``update`` or ``ignore``)
-    :reqheader presqt-keyword-action: Type of keyword action to perform (Either ``automatic`` or ``manual``)
+    :reqheader presqt-keyword-action: Type of keyword action to perform (Either ``automatic``, ``manual`` or ``none``)
     :jsonparam string source_target_name: The ``Source Target`` where the ``Resource`` being ``Transferred`` exists
     :jsonparam string source_resource_id: The ID of the ``Resource`` to ``Transfer``
     :statuscode 202: ``Resource`` has begun transferring
@@ -937,7 +937,7 @@ Transfer New Top Level Resource
     :statuscode 400: ``keywords`` must be in list format.
     :statuscode 400: Source target does not allow transfer to the destination target
     :statuscode 400: Destination target does not allow transfer to the source target
-    :statuscode 400: Invalid ``presqt-keyword-action`` header given. The options are ``automatic`` or ``manual``
+    :statuscode 400: Invalid ``presqt-keyword-action`` header given. The options are ``automatic``, ``manual``, or ``none``
     :statuscode 400: ``presqt-keyword-action`` missing in the request headers
     :statuscode 400: User currently has processes in progress.
     :statuscode 401: ``Source Token`` is invalid
@@ -986,7 +986,7 @@ Transfer To Existing Resource
     :reqheader presqt-destination-token: User's ``Token`` for the destination target
     :reqheader presqt-source-token: User's ``Token`` for the source target
     :reqheader presqt-file-duplicate-action: Action to be taken if a duplicate file is found (Either ``update`` or ``ignore``)
-    :reqheader presqt-keyword-action: Type of keyword action to perform (Either ``automatic`` or ``manual``)
+    :reqheader presqt-keyword-action: Type of keyword action to perform (Either ``automatic``, ``manual``, or ``none``)
     :jsonparam string source_target_name: The ``Source Target`` where the ``Resource`` being ``Transferred`` exists
     :jsonparam string source_resource_id: The ID of the ``Resource`` to ``Transfer``
     :statuscode 202: ``Resource`` has begun transferring
@@ -1004,7 +1004,7 @@ Transfer To Existing Resource
     :statuscode 400: ``keywords`` must be in list format.
     :statuscode 400: Source target does not allow transfer to the destination target
     :statuscode 400: Destination target does not allow transfer to the source target
-    :statuscode 400: Invalid ``presqt-keyword-action`` header given. The options are ``automatic`` or ``manual``
+    :statuscode 400: Invalid ``presqt-keyword-action`` header given. The options are ``automatic``, ``manual`` or ``none``
     :statuscode 400: ``presqt-keyword-action`` missing in the request headers
     :statuscode 400: User currently has processes in progress.
     :statuscode 401: ``Source Token`` is invalid

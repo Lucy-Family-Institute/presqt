@@ -56,6 +56,7 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                                     "destinationHash": {'hash_algorithm': 'the_hash'}}
                                 }
         'project_id': ID of the parent project for this upload. Needed for metadata upload.
+        'project_link': The link to either the resource or the home page of the user if not available through API
     """
     try:
         header, username = validation_check(token)
@@ -72,10 +73,9 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
     # Upload a new repository
     if not resource_id:
         # Create a new repository with the name being the top level directory's name.
-        # Note: GitHub doesn't allow spaces in repo_names
-        repo_title = os_path[1][0].replace(' ', '_')
-        repo_name, repo_id = create_repository(repo_title, token)
-        repo_name = repo_name.replace('(', '-').replace(')', '-')
+        # Note: GitHub doesn't allow spaces, or circlebois in repo_names
+        repo_title = os_path[1][0].replace(' ', '_').replace("(", "-").replace(")", "-")
+        repo_name, repo_id, repo_url = create_repository(repo_title, token)
 
         resources_ignored = []
         resources_updated = []
@@ -132,6 +132,7 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                 status.HTTP_404_NOT_FOUND)
         repo_data = response.json()
         repo_name = repo_data['name']
+        repo_url = repo_data['svn_url']
 
         # Get all repo resources so we can check if any files already exist
         repo_resources = requests.get(
@@ -210,5 +211,6 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         'resources_updated': resources_updated,
         'action_metadata': action_metadata,
         'file_metadata_list': file_metadata_list,
-        'project_id': repo_id
+        'project_id': repo_id,
+        "project_link": repo_url
     }

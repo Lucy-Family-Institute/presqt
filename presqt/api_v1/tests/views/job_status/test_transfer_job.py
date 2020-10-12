@@ -6,7 +6,7 @@ import requests
 import shutil
 from unittest.mock import patch
 
-from django.core import mailP
+from django.core import mail
 
 from django.test import SimpleTestCase
 from rest_framework.reverse import reverse
@@ -35,7 +35,8 @@ class TestTransferJobGET(SimpleTestCase):
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
                         'HTTP_PRESQT_KEYWORD_ACTION': 'manual',
-                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
+                        'HTTP_PRESQT_EMAIL_OPT_IN': '',
+                        'HTTP_PRESQT_FAIRSHARE_EVALUATOR_OPT_IN': 'no'}
         self.ticket_number = "{}_{}".format(hash_tokens(
             self.source_token), hash_tokens(self.destination_token))
         self.resource_id = '209373660'
@@ -51,6 +52,8 @@ class TestTransferJobGET(SimpleTestCase):
         """
         Make a POST request to `resource` to begin transferring a resource.
         """
+        self.headers['HTTP_PRESQT_FAIRSHARE_EVALUATOR_OPT_IN'] = 'yes'
+        
         response = self.client.post(self.url, {
             "source_target_name": "github",
             "source_resource_id": self.resource_id,
@@ -81,6 +84,8 @@ class TestTransferJobGET(SimpleTestCase):
         # Fixity errors because we're dealing with GitHub
         self.assertEqual(response.data['message'],
                          "Transfer successful. Fixity can't be determined because GitHub may not have provided a file checksum. See PRESQT_FTS_METADATA.json for more details.")
+        # Ensure we have results for the 12 FAIRshare tests
+        self.assertEqual(len(response.data['fairshare_evaluation_results']), 12)
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
@@ -97,7 +102,8 @@ class TestTransferJobGET(SimpleTestCase):
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
                         'HTTP_PRESQT_KEYWORD_ACTION': 'automatic',
-                        'HTTP_PRESQT_EMAIL_OPT_IN': 'eggs@test.com'}
+                        'HTTP_PRESQT_EMAIL_OPT_IN': 'eggs@test.com',
+                        'HTTP_PRESQT_FAIRSHARE_EVALUATOR_OPT_IN': 'no'}
         self.ticket_number = "{}_{}".format(hash_tokens(
             self.source_token), hash_tokens(ZENODO_TEST_USER_TOKEN))
         response = self.client.post(self.url, {"source_target_name": "github",
@@ -125,6 +131,8 @@ class TestTransferJobGET(SimpleTestCase):
         # Fixity errors because we're dealing with GitHub
         self.assertEqual(response.data['message'],
                          'Transfer successful but with fixity errors.')
+        # Ensure we did not run the 12 FAIRshare tests
+        self.assertEqual(response.data['fairshare_evaluation_results'], [])
 
         test_user_projects = requests.get('https://zenodo.org/api/deposit/depositions',
                                           params={'access_token': ZENODO_TEST_USER_TOKEN}).json()
@@ -232,6 +240,70 @@ class TestTransferJobGET(SimpleTestCase):
 
         self.assertGreater(len(metadata['allKeywords']), 0)
         self.assertGreater(len(metadata['actions'][0]['keywords'].keys()), 0)
+
+        # DELETE TICKET FOLDER
+        shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
+    
+    def test_transfer_no_keyword_enhancement(self):
+        """
+        Test that the keywords are not getting enhanced during a transfer with keyword action
+        set to 'none'.
+        """
+        github_project_id = "209372336"
+        github_target_keywords = ["animals", "eggs", "water"]
+        self.headers['HTTP_PRESQT_KEYWORD_ACTION'] = 'none'
+        # TRANSFER RESOURCE TO OSF
+        response = self.client.post(self.url, {
+            "source_target_name": "github",
+            "source_resource_id": github_project_id,
+            "keywords": []}, **self.headers, format='json')
+
+        self.process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(self.ticket_number)
+        self.transfer_job = response.data['transfer_job']
+        process_info = read_file(self.process_info_path, True)
+
+        response = self.client.get(self.transfer_job, **self.headers)
+        self.assertEqual(response.data['message'], 'Transfer is being processed on the server')
+
+        while process_info['resource_transfer_in']['status'] == 'in_progress':
+            try:
+                process_info = read_file(self.process_info_path, True)
+            except json.decoder.JSONDecodeError:
+                # Pass while the process_info file is being written to
+                pass
+        self.assertNotEqual(process_info['resource_transfer_in']['status'], 'in_progress')
+
+        # VALIDATE KEYWORDS IN OSF
+        # Get project ID
+        osf_headers = {'HTTP_PRESQT_SOURCE_TOKEN': self.destination_token}
+        osf_collection_response = self.client.get(self.url, **osf_headers)
+        self.assertEqual(osf_collection_response.status_code, 200)
+        osf_id = osf_collection_response.data['resources'][0]['id']
+        # Get project details
+        osf_detail_response = self.client.get(
+            reverse('resource', kwargs={"target_name": "osf", "resource_id": osf_id}), **osf_headers)
+        self.assertEqual(osf_detail_response.status_code, 200)
+        self.assertEqual(len(osf_detail_response.data['extra']['tags']), 0)
+
+        # VALIDATE METADATA FILE IN OSF
+        headers = {'Authorization': 'Bearer {}'.format(OSF_UPLOAD_TEST_USER_TOKEN)}
+        for node in requests.get('http://api.osf.io/v2/users/me/nodes', headers=headers).json()['data']:
+            if node['attributes']['title'] == 'PrivateProject':
+                storage_data = requests.get(
+                    node['relationships']['files']['links']['related']['href'], headers=headers).json()
+                folder_data = requests.get(
+                    storage_data['data'][0]['relationships']['files']['links']['related']['href'], headers=headers).json()
+
+        # Get the metadata file
+        for data in folder_data['data']:
+            if data['attributes']['name'] == 'PRESQT_FTS_METADATA.json':
+                # Download the content of the metadata file
+                metadata = requests.get(data['links']['move'], headers=headers).content
+                break
+        metadata = json.loads(metadata)
+
+        self.assertEqual(len(metadata['allKeywords']), 0)
+        self.assertEqual(len(metadata['actions'][0]['keywords'].keys()), 0)
 
         # DELETE TICKET FOLDER
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))

@@ -1,7 +1,5 @@
 import requests
-
 from rest_framework import status
-
 from presqt.utilities import PresQTResponseException
 
 
@@ -24,17 +22,17 @@ def keyword_enhancer(keywords):
 
     new_list_of_keywords = []
     final_list_of_keywords = []
-
+    keyword_lower_case = [keyword.lower() for keyword in keywords]
     # Get the new keyword suggestions from Sci-Graph
-    for keyword in keywords:
+    for keyword in keyword_lower_case:
         final_list_of_keywords.append(keyword)
         # Get SciGraph 'term' keyword suggestions
         response = requests.get(
             'http://ec-scigraph.sdsc.edu:9000/scigraph/vocabulary/term/{}?limit=20'.format(keyword))
         if response.status_code == 200:
             for label in response.json()[0]['labels']:
-                if label not in keywords:
-                    new_list_of_keywords.append(label)
-                    final_list_of_keywords.append(label)
-
+                label_lower_case = label.lower()
+                if label_lower_case not in keyword_lower_case:
+                    new_list_of_keywords.append(label_lower_case)
+                    final_list_of_keywords.append(label_lower_case)
     return list(set(new_list_of_keywords)), list(set(final_list_of_keywords))

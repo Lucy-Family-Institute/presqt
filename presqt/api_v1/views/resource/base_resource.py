@@ -1,6 +1,8 @@
 import os
 import shutil
 import zipfile
+import requests
+import json
 from uuid import uuid4
 
 import bagit
@@ -23,13 +25,14 @@ from presqt.api_v1.utilities import (target_validation, transfer_target_validati
                                      keyword_action_validation,
                                      automatic_keywords, update_targets_keywords, manual_keywords,
                                      get_target_data, get_keyword_support,
-                                     update_or_create_process_info, get_user_email_opt)
+                                     update_or_create_process_info, get_user_email_opt,
+                                     fairshare_evaluator_validation, fairshare_results)
 from presqt.api_v1.utilities.utils.multiple_process_check import multiple_process_check
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.metadata.download_metadata import validate_metadata
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
 from presqt.api_v1.utilities.validation.file_validation import file_validation
-from presqt.api_v1.utilities.utils.send_email import transfer_upload_email_blaster, download_email_blaster
+from presqt.api_v1.utilities.utils.send_email import email_blaster
 from presqt.json_schemas.schema_handlers import schema_validator
 from presqt.utilities import (PresQTValidationError, PresQTResponseException, write_file,
                               zip_directory, read_file, update_process_info_message, increment_process_info)
@@ -467,12 +470,18 @@ class BaseResource(APIView):
             self.process_info_obj['failed_fixity'] = self.download_failed_fixity
             update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
             if self.email:
-                # BOLD HEADER
-                header = "-----Download Details-----"
-                # Make the message to add to the email body
-                message = 'The download you started on PresQT has finished. It has been attached to this email.\n\n{}\nDownload Message: {}\n\nFailed Fixity: {}'.format(
-                    header, self.process_info_obj['message'], self.process_info_obj['failed_fixity'])
-                download_email_blaster(self.email, "{}.zip".format(self.resource_main_dir), message)
+                # Build link to retrieve the download
+                download_reverse = reverse('job_status', kwargs={
+                    "action": "download",
+                    "response_format": "zip"})
+                download_url = self.request.build_absolute_uri(download_reverse)
+                final_download_url = "{}?ticket_number={}".format(download_url, self.ticket_number)
+                context = {
+                    "download_url": final_download_url,
+                    "download_message": self.process_info_obj['message'],
+                    "failed_fixity": self.process_info_obj['failed_fixity']
+                }
+                email_blaster(self.email, "PresQT Download Complete", context, "emails/download_email.html")
 
         return True
 
@@ -560,7 +569,7 @@ class BaseResource(APIView):
         #    }
         try:
             structure_validation(self)
-            func_dict = func(self.destination_token, self.destination_resource_id,
+            self.func_dict = func(self.destination_token, self.destination_resource_id,
                              self.data_directory, self.hash_algorithm, self.file_duplicate_action,
                              self.process_info_path, self.action)
         except PresQTResponseException as e:
@@ -584,10 +593,10 @@ class BaseResource(APIView):
         self.upload_fixity = True
         self.upload_failed_fixity = []
 
-        for resource in func_dict['file_metadata_list']:
+        for resource in self.func_dict['file_metadata_list']:
             resource['failed_fixity_info'] = []
             if resource['destinationHash'] != self.file_hashes[resource['actionRootPath']] \
-                    and resource['actionRootPath'] not in func_dict['resources_ignored']:
+                    and resource['actionRootPath'] not in self.func_dict['resources_ignored']:
                 self.upload_fixity = False
                 self.upload_failed_fixity.append(resource['actionRootPath']
                                                  [len(self.data_directory):])
@@ -599,27 +608,27 @@ class BaseResource(APIView):
 
         # Strip the server created directory prefix of the file paths for ignored and updated files
         resources_ignored = [file[len(self.data_directory):]
-                             for file in func_dict['resources_ignored']]
+                             for file in self.func_dict['resources_ignored']]
         self.process_info_obj['resources_ignored'] = resources_ignored
         resources_updated = [file[len(self.data_directory):]
-                             for file in func_dict['resources_updated']]
+                             for file in self.func_dict['resources_updated']]
         self.process_info_obj['resources_updated'] = resources_updated
 
         if self.action == 'resource_transfer_in':
             self.keyword_enhancement_successful = True
             if not self.destination_resource_id:
-                self.destination_resource_id = func_dict['project_id']
+                self.destination_resource_id = self.func_dict['project_id']
             if self.supports_keywords:
                 self.keyword_enhancement_successful, self.destination_initial_keywords = update_targets_keywords(
-                    self, func_dict['project_id'])
+                    self, self.func_dict['project_id'])
 
                 # Add the destination initial keywords to all keywords for accurate metadata list
                 self.all_keywords = self.all_keywords + self.destination_initial_keywords
 
         self.metadata_validation = create_upload_metadata(self,
-                                                          func_dict['file_metadata_list'],
-                                                          func_dict['action_metadata'],
-                                                          func_dict['project_id'],
+                                                          self.func_dict['file_metadata_list'],
+                                                          self.func_dict['action_metadata'],
+                                                          self.func_dict['project_id'],
                                                           resources_ignored,
                                                           resources_updated)
         # Increment process_info one last time
@@ -642,12 +651,12 @@ class BaseResource(APIView):
             update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
 
             if self.email:
-                # BOLD HEADER
-                header = "-----Upload Details-----"
-                # Build the message for the email
-                message = 'The upload you started on PresQT has finished.\n\n{}\nUpload message: {}\n\nFailed Fixity: {}'.format(
-                    header, upload_message, self.upload_failed_fixity)
-                transfer_upload_email_blaster(self.email, self.action, message)
+                context = {
+                    "upload_url": self.func_dict["project_link"],
+                    "upload_message": upload_message,
+                    "failed_fixity": self.upload_failed_fixity
+                }
+                email_blaster(self.email, "PresQT Upload Complete", context, "emails/upload_email.html")
 
         return True
 
@@ -665,6 +674,7 @@ class BaseResource(APIView):
             self.email = get_user_email_opt(self.request)
             self.file_duplicate_action = file_duplicate_action_validation(self.request)
             self.keyword_action = keyword_action_validation(self.request)
+            self.fairshare_evaluator_action = fairshare_evaluator_validation(self.request)
             self.source_target_name, self.source_resource_id, self.keywords = transfer_post_body_validation(
                 self.request)
             target_valid, self.infinite_depth = target_validation(
@@ -765,7 +775,6 @@ class BaseResource(APIView):
         ####### TRANSFER COMPLETE #######
         # Transfer was a success so update the server metadata file.
         self.process_info_obj['status_code'] = '200'
-        self.process_info_obj['status'] = 'finished'
         self.process_info_obj['failed_fixity'] = list(
             set(self.download_failed_fixity + self.upload_failed_fixity))
         self.process_info_obj['source_resource_id'] = self.source_resource_id
@@ -774,22 +783,57 @@ class BaseResource(APIView):
         if self.keyword_action == 'automatic':
             self.process_info_obj['enhanced_keywords'] = self.enhanced_keywords + self.keywords
             self.process_info_obj['initial_keywords'] = self.initial_keywords
-        else:  # manual
+        elif self.keyword_action == 'manual':
             self.process_info_obj['enhanced_keywords'] = self.keywords
             self.process_info_obj['initial_keywords'] = self.initial_keywords
+        else: # no enhancement
+            self.process_info_obj['enhanced_keywords'] = []
+            self.process_info_obj['initial_keywords'] = []
 
         transfer_fixity = False if not self.download_fixity or not self.upload_fixity else True
-        self.process_info_obj['message'] = get_action_message(
-            self, 'Transfer', transfer_fixity, self.metadata_validation, self.action_metadata)
+        if self.fairshare_evaluator_action:
+            self.process_info_obj['message'] = "Running FAIRshare Evaluator Service, this may take several minutes..."
+        else:
+            self.process_info_obj['message'] = "Making final metadata updates..."
 
         update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
 
+        if self.fairshare_evaluator_action:
+            # Do the evaluation on the newly created project's url
+            data = {
+                'resource': self.func_dict["project_link"],
+                'executor': "PresQT",
+                'title': "PresQT Fair Evaluation"
+                }
+
+            # 16 is the id of the PresQT test collection
+            response = requests.post(
+                'https://w3id.org/FAIR_Evaluator/collections/16/evaluate',
+                headers={"Content-Type": "application/json", "Accept": "application/json"},
+                data=json.dumps(data))
+            if response.status_code != 200:
+                results = [{"error": "FAIRshare returned an error trying to process your request."}]
+            else:
+                results = fairshare_results(response.json(), [1, 2, 4, 5, 6, 7, 8, 10, 13, 17, 19, 22])
+
+        else:
+            results = []
+
+        self.process_info_obj['message'] = get_action_message(
+            self, 'Transfer', transfer_fixity, self.metadata_validation, self.action_metadata)
+        self.process_info_obj['status'] = 'finished'
+        self.process_info_obj['fairshare_evaluation_results'] = results
+        update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
+
         if self.email:
-            # BOLD HEADER
-            header = "-----Transfer Details-----"
-            # Build the message for the email
-            message = 'The transfer you started on PresQT has finished.\n\n{}\nTransfer message: {}\n\nFailed Fixity: {}\n\nEnhanced Keywords: {}'.format(
-                header, self.process_info_obj['message'], self.process_info_obj['failed_fixity'], self.process_info_obj['enhanced_keywords'])
-            transfer_upload_email_blaster(self.email, self.action, message)
+            context = {
+                "transfer_url": self.func_dict["project_link"],
+                "transfer_message": self.process_info_obj['message'],
+                "enhanced_keywords": self.process_info_obj['enhanced_keywords'],
+                "failed_fixity": self.process_info_obj['failed_fixity'],
+                "fairshare_results_list": results
+            }
+     
+            email_blaster(self.email, "PresQT Transfer Complete", context, "emails/transfer_email.html")
 
         return
