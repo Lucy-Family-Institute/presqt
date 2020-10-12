@@ -830,9 +830,10 @@ class BaseResource(APIView):
                 "transfer_url": self.func_dict["project_link"],
                 "transfer_message": self.process_info_obj['message'],
                 "enhanced_keywords": self.process_info_obj['enhanced_keywords'],
-                "failed_fixity": self.process_info_obj['failed_fixity']
+                "failed_fixity": self.process_info_obj['failed_fixity'],
+                "results_list": results
             }
-            
+     
             email_blaster(self.email, "PresQT Transfer Complete", context, "emails/transfer_email.html")
 
         return
