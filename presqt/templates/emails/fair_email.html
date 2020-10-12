@@ -82,7 +82,7 @@
           <span class="italic tab">{{result.description}}</span>
           <br />
           {% if result.successes|length > 0 %}
-          <span class="italic tab">Success:</span>
+          <span class="italic tab"><strong>Success:</strong></span>
           <ul>
             {% for success in result.successes %}
             <li>{{ success }}</li>
@@ -90,7 +90,7 @@
           </ul>
           {% endif %}
           {% if result.failures|length > 0 %}
-          <span class="italic tab">Failures:</span>
+          <span class="italic tab"><strong>Failures:</strong></span>
           <ul>
             {% for failure in result.failures %}
             <li>{{ failure }}</li>
@@ -98,7 +98,7 @@
           </ul>
           {% endif %}
           {% if result.warnings|length > 0 %}
-          <span class="italic tab">Warnings:</span>
+          <span class="italic tab"><strong>Warnings:</strong></span>
           <ul>
             {% for warning in result.warnings %}
             <li>{{ warning }}</li>
