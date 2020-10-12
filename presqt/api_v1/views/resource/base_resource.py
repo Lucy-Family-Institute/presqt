@@ -812,7 +812,7 @@ class BaseResource(APIView):
                 headers={"Content-Type": "application/json", "Accept": "application/json"},
                 data=json.dumps(data))
             if response.status_code != 200:
-                results = []
+                results = [{"error": "FAIRshare returned an error trying to process your request."}]
             else:
                 results = fairshare_results(response.json(), [1, 2, 4, 5, 6, 7, 8, 10, 13, 17, 19, 22])
 
@@ -831,7 +831,7 @@ class BaseResource(APIView):
                 "transfer_message": self.process_info_obj['message'],
                 "enhanced_keywords": self.process_info_obj['enhanced_keywords'],
                 "failed_fixity": self.process_info_obj['failed_fixity'],
-                "results_list": results
+                "fairshare_results_list": results
             }
      
             email_blaster(self.email, "PresQT Transfer Complete", context, "emails/transfer_email.html")

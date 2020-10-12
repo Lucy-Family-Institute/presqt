@@ -110,13 +110,16 @@
           {% endif %}
         </p>
           <hr />
-          {% if results_list|length > 0 %}
           <p><span style="font-weight: 400;">
             <h4>FAIRshare Evaluator Details</h4>
             <hr />
-            {% for result in results_list%}
+            {% if fairshare_results_list|length == 1 %}
+            <span class="italic tab">FAIRshare evaluator experienced an error while processing your request.</span>
+            {% elif fairshare_results_list|length > 1 %}
+            {% for result in fairshare_results_list %}
             <h4>{{result.test_name}}</h4>
             <span class="italic tab">{{result.description}}</span>
+            <br />
             <br />
             {% if result.successes|length > 0 %}
             <span class="italic tab"><strong>Success:</strong></span>
@@ -142,7 +145,6 @@
               {% endfor %}
             </ul>
             {% endif %}
-            <hr />
             {% endfor %}
             {% endif %}
         </span></p>
