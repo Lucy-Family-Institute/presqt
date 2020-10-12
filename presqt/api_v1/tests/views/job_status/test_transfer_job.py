@@ -132,7 +132,7 @@ class TestTransferJobGET(SimpleTestCase):
         self.assertEqual(response.data['message'],
                          'Transfer successful but with fixity errors.')
         # Ensure we did not run the 12 FAIRshare tests
-        self.assertEqual(response.data['fairshare_evaluation_results'], [{"error": "FAIRshare returned an error trying to process your request."}])
+        self.assertEqual(response.data['fairshare_evaluation_results'], [])
 
         test_user_projects = requests.get('https://zenodo.org/api/deposit/depositions',
                                           params={'access_token': ZENODO_TEST_USER_TOKEN}).json()
