@@ -247,7 +247,7 @@ def osf_fetch_resource(token, resource_id):
             identifiers = requests.get(
                 'https://api.osf.io/v2/nodes/{}/identifiers/'.format(resource_id), headers=headers).json()['data']
             for entry in identifiers:
-                if entry['attributes']['category'] == 'doi' or entry['attributes']['category'] == 'ark':
+                if entry['attributes']['category'] == 'doi':
                     resource_object_obj['identifier'] = entry['attributes']['value']
                     break
             else:
