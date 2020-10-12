@@ -812,12 +812,12 @@ class BaseResource(APIView):
                 headers={"Content-Type": "application/json", "Accept": "application/json"},
                 data=json.dumps(data))
             if response.status_code != 200:
-                results = "FAIRshare errored during the Evaluator process."
+                results = []
             else:
                 results = fairshare_results(response.json(), [1, 2, 4, 5, 6, 7, 8, 10, 13, 17, 19, 22])
 
         else:
-            results = 'FAIRshare Evaluator service was not run by the user.'
+            results = []
 
         self.process_info_obj['message'] = get_action_message(
             self, 'Transfer', transfer_fixity, self.metadata_validation, self.action_metadata)
