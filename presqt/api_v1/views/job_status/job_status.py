@@ -235,6 +235,7 @@ class JobStatus(APIView):
             data['initial_keywords'] = transfer_process_data['initial_keywords']
             data['source_resource_id'] = transfer_process_data['source_resource_id']
             data['destination_resource_id'] = transfer_process_data['destination_resource_id']
+            data['fairshare_evaluation_results'] = transfer_process_data['fairshare_evaluation_results']
             data['job_percentage'] = 99
         else:
             if transfer_status == 'in_progress':

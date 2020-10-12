@@ -108,6 +108,45 @@
           <br />
           <span class="italic tab">All files passed fixity checks.</span>
           {% endif %}
+        </p>
+          <hr />
+          <p><span style="font-weight: 400;">
+            <h4>FAIRshare Evaluator Details</h4>
+            <hr />
+            {% if fairshare_results_list|length == 1 %}
+            <span class="italic tab">FAIRshare evaluator experienced an error while processing your request.</span>
+            {% elif fairshare_results_list|length > 1 %}
+            {% for result in fairshare_results_list %}
+            <h4>{{result.test_name}}</h4>
+            <span class="italic tab">{{result.description}}</span>
+            <br />
+            <br />
+            {% if result.successes|length > 0 %}
+            <span class="italic tab"><strong>Success:</strong></span>
+            <ul>
+              {% for success in result.successes %}
+              <li>{{ success }}</li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+            {% if result.failures|length > 0 %}
+            <span class="italic tab"><strong>Failures:</strong></span>
+            <ul>
+              {% for failure in result.failures %}
+              <li>{{ failure }}</li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+            {% if result.warnings|length > 0 %}
+            <span class="italic tab"><strong>Warnings:</strong></span>
+            <ul>
+              {% for warning in result.warnings %}
+              <li>{{ warning }}</li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+            {% endfor %}
+            {% endif %}
         </span></p>
     </td>
         </tr>
