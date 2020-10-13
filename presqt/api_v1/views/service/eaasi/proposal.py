@@ -6,7 +6,7 @@ import requests
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from rest_framework import status
+from rest_framework import status, renderers
 
 from presqt.api_v1.utilities import (get_process_info_data, get_source_token, hash_tokens,
                                      get_process_info_action)
@@ -20,6 +20,8 @@ class Proposals(APIView):
     * POST:
         - Send an EaaSI download URL to the EaaSI API to start a proposal task.
     """
+
+    renderer_classes = [renderers.JSONRenderer]
 
     def post(self, request):
         """
@@ -104,6 +106,9 @@ class Proposal(APIView):
     * GET:
         - Poll a proposal task
     """
+
+    renderer_classes = [renderers.JSONRenderer]
+
     def get(self, request, proposal_id):
         """
         200: OK

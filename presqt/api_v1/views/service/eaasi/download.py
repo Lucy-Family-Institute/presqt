@@ -2,7 +2,7 @@ import os
 
 from django.http import HttpResponse
 from django.utils.datastructures import MultiValueDictKeyError
-from rest_framework import status
+from rest_framework import status, renderers
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -20,6 +20,8 @@ class EaasiDownload(APIView):
           If the download is pending, failed, then return a JSON representation of the state. 
           Otherwise return the file contents.
     """
+
+    renderer_classes = [renderers.JSONRenderer]
 
     def get(self, request, ticket_number):
         """

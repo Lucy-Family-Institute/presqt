@@ -2,7 +2,7 @@ from uuid import uuid4
 
 from django.utils import timezone
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, renderers
 from rest_framework.views import APIView
 
 from presqt.api_v1.utilities import (
@@ -20,6 +20,8 @@ class ResourceKeywords(APIView):
     * POST
         -  Upload new keywords to a given resource.
     """
+
+    renderer_classes = [renderers.JSONRenderer]
 
     def get(self, request, target_name, resource_id):
         """

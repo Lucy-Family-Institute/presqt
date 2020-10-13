@@ -4,7 +4,7 @@ from uuid import uuid4
 
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
-from rest_framework import status
+from rest_framework import status, renderers
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
@@ -30,6 +30,8 @@ class Resource(BaseResource):
         or
         - Transfer resources from one Target to another.
     """
+
+    renderer_classes = [renderers.JSONRenderer]
 
     def get(self, request, target_name, resource_id, resource_format=None):
         """

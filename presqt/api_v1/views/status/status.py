@@ -1,4 +1,5 @@
 import requests
+from rest_framework import renderers
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -13,6 +14,7 @@ class StatusCollection(APIView):
     """
 
     required_scopes = ["read"]
+    renderer_classes = [renderers.JSONRenderer]
 
     def get(self, request):
         """
