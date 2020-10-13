@@ -8,7 +8,9 @@ from uuid import uuid4
 import bagit
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
-from rest_framework import status
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_protect
+from rest_framework import status, renderers
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
@@ -42,6 +44,7 @@ class BaseResource(APIView):
     """
     Base View for Resource views. Handles shared POSTs (upload and transfer) and download methods.
     """
+    renderer_classes = [renderers.JSONRenderer]
 
     def post(self, request, target_name, resource_id=None):
         """

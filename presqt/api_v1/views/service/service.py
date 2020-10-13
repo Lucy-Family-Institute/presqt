@@ -1,6 +1,6 @@
 import json
 
-from rest_framework import status
+from rest_framework import status, renderers
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -14,7 +14,9 @@ class ServiceCollection(APIView):
 
     * Get: Retrieve summary representations of all Services.
     """
+
     required_scopes = ['read']
+    renderer_classes = [renderers.JSONRenderer]
 
     def get(self, request):
         """
@@ -52,7 +54,9 @@ class Service(APIView):
 
     * Get: Retrieve summary representations of a specific Service.
     """
+
     required_scopes = ['read']
+    renderer_classes = [renderers.JSONRenderer]
 
     def get(self, request, service_name):
         """

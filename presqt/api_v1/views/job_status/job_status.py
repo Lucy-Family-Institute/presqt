@@ -6,14 +6,14 @@ from dateutil.relativedelta import relativedelta
 from django.utils.datastructures import MultiValueDictKeyError
 from django.http import HttpResponse
 from django.utils import timezone
-from rest_framework import status
+from rest_framework import status, renderers
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from presqt.api_v1.utilities import (get_source_token, get_process_info_data, hash_tokens,
                                      update_or_create_process_info, get_destination_token,
-                                     process_token_validation, calculate_job_percentage)
-from presqt.utilities import PresQTValidationError, write_file
+                                     calculate_job_percentage)
+from presqt.utilities import PresQTValidationError
 
 
 class JobStatus(APIView):
@@ -23,6 +23,8 @@ class JobStatus(APIView):
     * Get: Retrieve the status of a job
     * Patch: Cancel a job
     """
+
+    renderer_classes = [renderers.JSONRenderer]
 
     def get(self, request, action, response_format=None):
         """

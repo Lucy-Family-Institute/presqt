@@ -1,6 +1,6 @@
 import json
 
-from rest_framework import status
+from rest_framework import status, renderers
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -15,6 +15,7 @@ class TargetCollection(APIView):
     * Get: Retrieve summary representations of all Targets.
     """
     required_scopes = ['read']
+    renderer_classes = [renderers.JSONRenderer]
 
     def get(self, request):
         """
@@ -102,6 +103,7 @@ class Target(APIView):
     * Get: Retrieve summary representations of a specific Targets.
     """
     required_scopes = ['read']
+    renderer_classes = [renderers.JSONRenderer]
 
     def get(self, request, target_name):
         """

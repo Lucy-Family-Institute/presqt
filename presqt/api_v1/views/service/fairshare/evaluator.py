@@ -1,7 +1,7 @@
 import json
 
 import requests
-from rest_framework import status
+from rest_framework import status, renderers
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -14,6 +14,8 @@ from presqt.utilities import PresQTValidationError, read_file
 class FairshareEvaluator(APIView):
     """
     """
+
+    renderer_classes = [renderers.JSONRenderer]
 
     def get(self, request):
         """
