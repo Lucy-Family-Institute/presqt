@@ -39,5 +39,5 @@ def extra_metadata_helper(project_url, headers):
         "references": None,
         "notes": None
     }
-    print(extra_metadata)
+
     return extra_metadata

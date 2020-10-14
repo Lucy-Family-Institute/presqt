@@ -414,7 +414,8 @@ class BaseResource(APIView):
                 'created': self.new_fts_metadata_files,
                 'updated': [],
                 'ignored': []
-            }
+            },
+            'extra_metadata': func_dict['extra_metadata']
         }
 
         # TODO: Move this up to make it occur after we loop through func_dict['resources'] and write

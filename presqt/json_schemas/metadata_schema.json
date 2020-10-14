@@ -118,7 +118,7 @@
           "keywords",
           "files"
         ],
-        "additionalProperties": false
+        "additionalProperties": { "type": "object" }
       }
     }
   },
