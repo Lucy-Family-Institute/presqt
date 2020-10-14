@@ -6,7 +6,7 @@ import base64
 from rest_framework import status
 
 from presqt.targets.gitlab.utilities import (
-    validation_check, gitlab_paginated_data, download_content)
+    validation_check, gitlab_paginated_data, download_content, extra_metadata_helper)
 from presqt.utilities import (PresQTResponseException, get_dictionary_from_list,
                               update_process_info,
                               increment_process_info,
@@ -135,6 +135,9 @@ def gitlab_download_resource(token, resource_id, process_info_path, action):
             resource_id)
         data = gitlab_paginated_data(header, user_id, all_files_url)
         is_project = True
+        # Get extra metadata
+        extra_metadata = extra_metadata_helper(response.json(), header)
+        print(extra_metadata)
 
     elif ':' in resource_id and '%2E' not in resource_id:
         # This is for a directory
@@ -146,6 +149,7 @@ def gitlab_download_resource(token, resource_id, process_info_path, action):
                 'The resource with id, {}, does not exist for this user.'.format(resource_id),
                 status.HTTP_404_NOT_FOUND)
         is_project = False
+        extra_metadata = {}
 
     else:
         update_process_info_message(process_info_path, action, 'Downloading files from GitLab...')
@@ -172,7 +176,9 @@ def gitlab_download_resource(token, resource_id, process_info_path, action):
                 'source_path': data['file_path'],
                 'extra_metadata': {}}],
             'empty_containers': [],
-            'action_metadata': {'sourceUsername': username}}
+            'action_metadata': {'sourceUsername': username},
+            'extra_metadata': {}
+            }
 
     files, empty_containers, action_metadata = download_content(
         username, project_name, project_id, data, [], is_project)
@@ -198,5 +204,6 @@ def gitlab_download_resource(token, resource_id, process_info_path, action):
     return {
         'resources': files,
         'empty_containers': empty_containers,
-        'action_metadata': action_metadata
+        'action_metadata': action_metadata,
+        'extra_metadata': extra_metadata
     }
