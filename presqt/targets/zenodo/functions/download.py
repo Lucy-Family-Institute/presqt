@@ -4,7 +4,8 @@ import requests
 
 from rest_framework import status
 
-from presqt.targets.zenodo.utilities import zenodo_download_helper, zenodo_validation_check
+from presqt.targets.zenodo.utilities import (
+    zenodo_download_helper, zenodo_validation_check, extra_metadata_helper)
 from presqt.utilities import (PresQTResponseException, get_dictionary_from_list,
                               update_process_info,
                               increment_process_info, update_process_info_message)
@@ -110,6 +111,7 @@ def zenodo_download_resource(token, resource_id, process_info_path, action):
                                       status.HTTP_401_UNAUTHORIZED)
     files = []
     empty_containers = []
+    extra_metadata = {}
     base_url = None
 
     # If the resource_id is longer than 7 characters, the resource is an individual file
@@ -170,6 +172,7 @@ def zenodo_download_resource(token, resource_id, process_info_path, action):
                 "The resource with id, {}, does not exist for this user.".format(resource_id),
                 status.HTTP_404_NOT_FOUND)
 
+        extra_metadata = extra_metadata_helper(base_url, is_record, auth_parameter)
         file_urls = [file['file'] for file in files]
 
         update_process_info_message(process_info_path, action, 'Downloading files from Zenodo...')
@@ -190,5 +193,6 @@ def zenodo_download_resource(token, resource_id, process_info_path, action):
     return {
         'resources': files,
         'empty_containers': empty_containers,
-        'action_metadata': action_metadata
+        'action_metadata': action_metadata,
+        'extra_metadata': extra_metadata
     }
