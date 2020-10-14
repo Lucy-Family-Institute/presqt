@@ -4,7 +4,7 @@ import requests
 
 from rest_framework import status
 
-from presqt.targets.osf.utilities import get_osf_resource, osf_download_metadata
+from presqt.targets.osf.utilities import get_osf_resource, osf_download_metadata, extra_metadata_helper
 from presqt.utilities import (PresQTResponseException, PresQTInvalidTokenError,
                               get_dictionary_from_list, update_process_info, increment_process_info,
                               update_process_info_message)
@@ -136,14 +136,18 @@ def osf_download_resource(token, resource_id, process_info_path, action):
         })
         # Increment the number of files done in the process info file.
         increment_process_info(process_info_path, action, 'download')
+        extra_metadata = None
     else:
         if resource.kind_name == 'project':
+            extra_metadata = extra_metadata_helper(resource_id, {'Authorization': 'Bearer {}'.format(token)})
             resource.get_all_files('', files, empty_containers)
             project = resource
         elif resource.kind_name == 'storage':
+            extra_metadata = None
             resource.get_all_files('/{}'.format(resource.title), files, empty_containers)
             project = osf_instance.project(resource.node)
         else:
+            extra_metadata = None
             resource.get_all_files('', files, empty_containers)
             project = osf_instance.project(resource.parent_project_id)
             for file in files:
@@ -177,5 +181,6 @@ def osf_download_resource(token, resource_id, process_info_path, action):
     return {
         'resources': files,
         'empty_containers': empty_containers,
-        'action_metadata': action_metadata
+        'action_metadata': action_metadata,
+        'extra_metadata': extra_metadata
     }
