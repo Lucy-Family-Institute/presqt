@@ -6,7 +6,7 @@ import requests
 from rest_framework import status
 
 from presqt.targets.github.utilities import (
-    validation_check, download_content, download_directory, download_file)
+    validation_check, download_content, download_directory, download_file, extra_metadata_helper)
 from presqt.utilities import (PresQTResponseException, get_dictionary_from_list,
                               update_process_info, increment_process_info, update_process_info_message)
 
@@ -143,6 +143,8 @@ def github_download_resource(token, resource_id, process_info_path, action):
             file['file'] = get_dictionary_from_list(
                 download_data, 'url', file['file'])['binary_content']
 
+        extra_metadata = extra_metadata_helper(response.json(), repo_name, header)
+
     # If there is a colon in the resource id, the resource could be a directory or a file
     else:
         partitioned_id = resource_id.partition(':')
@@ -198,8 +200,12 @@ def github_download_resource(token, resource_id, process_info_path, action):
 
         empty_containers = []
         action_metadata = {"sourceUsername": username}
+        # No extra metadata for dirs or files
+        extra_metadata = {}
+    
     return {
         'resources': files,
         'empty_containers': empty_containers,
-        'action_metadata': action_metadata
+        'action_metadata': action_metadata,
+        'extra_metadata': extra_metadata
     }

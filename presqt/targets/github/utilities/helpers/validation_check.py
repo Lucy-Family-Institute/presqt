@@ -18,7 +18,7 @@ def validation_check(token):
     -------
     The requesting user's username and properly formatted GitHub Auth header.
     """
-    header = {"Authorization": "token {}".format(token)}
+    header = {"Authorization": "token {}".format(token), "Accept": "application/vnd.github.mercy-preview+json"}
     validation = requests.get("https://api.github.com/user", headers=header).json()
     try:
         username = validation['login']
