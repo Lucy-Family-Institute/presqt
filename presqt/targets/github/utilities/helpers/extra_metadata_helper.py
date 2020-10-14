@@ -49,7 +49,7 @@ def extra_metadata_helper(json_content, repo_name, header):
         "description": json_content['description'],
         "keywords": json_content['topics'],
         "license": license,
-        "related_identifiers": None,
+        "related_identifiers": [],
         "references": None,
         "notes": None
     }

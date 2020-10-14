@@ -42,7 +42,7 @@ def extra_metadata_helper(json_content, headers):
         "description": json_content['description'],
         "keywords": json_content['tag_list'],
         "license": license,
-        "related_identifiers": None,
+        "related_identifiers": [],
         "references": None,
         "notes": None
     }
