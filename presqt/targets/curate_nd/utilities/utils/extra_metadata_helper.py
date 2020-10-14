@@ -44,5 +44,5 @@ def extra_metadata_helper(resource_obj):
         "references": None,
         "notes": None
     }
-    print(extra_metadata)
+
     return extra_metadata
