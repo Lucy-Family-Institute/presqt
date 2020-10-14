@@ -118,6 +118,8 @@ def osf_download_resource(token, resource_id, process_info_path, action):
     # path should be the resource.
     files = []
     empty_containers = []
+    extra_metadata = {}
+
     if resource.kind_name == 'file':
         update_process_info_message(process_info_path, action, 'Downloading files from OSF...')
         # Add the total number of projects to the process info file.
@@ -136,18 +138,15 @@ def osf_download_resource(token, resource_id, process_info_path, action):
         })
         # Increment the number of files done in the process info file.
         increment_process_info(process_info_path, action, 'download')
-        extra_metadata = None
     else:
         if resource.kind_name == 'project':
             extra_metadata = extra_metadata_helper(resource_id, {'Authorization': 'Bearer {}'.format(token)})
             resource.get_all_files('', files, empty_containers)
             project = resource
         elif resource.kind_name == 'storage':
-            extra_metadata = None
             resource.get_all_files('/{}'.format(resource.title), files, empty_containers)
             project = osf_instance.project(resource.node)
         else:
-            extra_metadata = None
             resource.get_all_files('', files, empty_containers)
             project = osf_instance.project(resource.parent_project_id)
             for file in files:

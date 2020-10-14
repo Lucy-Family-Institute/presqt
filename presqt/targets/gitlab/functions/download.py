@@ -129,6 +129,7 @@ def gitlab_download_resource(token, resource_id, process_info_path, action):
             status.HTTP_404_NOT_FOUND)
 
     project_name = response.json()['name']
+    extra_metadata = {}
     if ':' not in resource_id:
         # This is for a project
         all_files_url = "https://gitlab.com/api/v4/projects/{}/repository/tree?recursive=1".format(
@@ -148,7 +149,6 @@ def gitlab_download_resource(token, resource_id, process_info_path, action):
                 'The resource with id, {}, does not exist for this user.'.format(resource_id),
                 status.HTTP_404_NOT_FOUND)
         is_project = False
-        extra_metadata = {}
 
     else:
         update_process_info_message(process_info_path, action, 'Downloading files from GitLab...')
@@ -176,13 +176,13 @@ def gitlab_download_resource(token, resource_id, process_info_path, action):
                 'extra_metadata': {}}],
             'empty_containers': [],
             'action_metadata': {'sourceUsername': username},
-            'extra_metadata': {}
-            }
+            'extra_metadata': extra_metadata
+        }
 
     files, empty_containers, action_metadata = download_content(
         username, project_name, project_id, data, [], is_project)
     file_urls = [file['file'] for file in files]
-    
+
     update_process_info_message(process_info_path, action, 'Downloading files from GitLab...')
     # Add the total number of projects to the process info file.
     # This is necessary to keep track of the progress of the request.
@@ -190,7 +190,8 @@ def gitlab_download_resource(token, resource_id, process_info_path, action):
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    download_data = loop.run_until_complete(async_main(file_urls, header, process_info_path, action))
+    download_data = loop.run_until_complete(
+        async_main(file_urls, header, process_info_path, action))
 
     # Go through the file dictionaries and replace the file path with the binary_content
     # and replace the hashes with the correct file hashes
