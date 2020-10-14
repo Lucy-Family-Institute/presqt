@@ -137,7 +137,6 @@ def gitlab_download_resource(token, resource_id, process_info_path, action):
         is_project = True
         # Get extra metadata
         extra_metadata = extra_metadata_helper(response.json(), header)
-        print(extra_metadata)
 
     elif ':' in resource_id and '%2E' not in resource_id:
         # This is for a directory
