@@ -53,5 +53,4 @@ def extra_metadata_helper(resource_id, headers):
         "notes": None
     }
 
-    print(extra_metadata)
     return extra_metadata
