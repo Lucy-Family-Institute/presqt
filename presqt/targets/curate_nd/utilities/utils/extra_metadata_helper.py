@@ -16,12 +16,10 @@ def extra_metadata_helper(resource_obj):
     # Get creator name
     if 'creator#author' in resource_obj.extra.keys():
         name_helper = resource_obj.extra['creator#author'].partition(' ')
-        first_name = name_helper[0]
-        last_name = name_helper[2]
     else:
         name_helper = resource_obj.extra['creator'].partition(' ')
-        first_name = name_helper[0]
-        last_name = name_helper[2]
+    first_name = name_helper[0]
+    last_name = name_helper[2]
 
     description = None
     if 'description#abstract' in resource_obj.extra.keys():
