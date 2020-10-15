@@ -118,8 +118,46 @@
           "keywords",
           "files"
         ],
-        "additionalProperties": { "type": "object" }
+        "additionalProperties": false
       }
+    },
+    "extra_metadata": {
+      "type": "object",
+      "properties": {
+        "title": { "type": ["string", "null"] },
+        "creators": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "first_name": { "type": ["string", "null"]},
+              "last_name": { "type": ["string", "null"] },
+              "ORCID": {"type": ["string", "null"] }
+            }
+          }
+        },
+        "publication_date": {"type": ["string", "null"]},
+        "description": {"type": ["string", "null"]},
+        "keywords": {
+          "type": "array",
+          "items": {"type": ["string", "null"]}
+        },
+        "license": {"type": ["string", "null"]},
+        "related_identifiers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {"type": ["string", "null"]},
+              "identifier": {"type": ["string", "null"]}
+            }
+          }
+        },
+        "references": {"type": ["string", "null"]},
+        "notes": {"type": ["string", "null"]}
+      },
+      "required": [],
+      "additionalProperties": false
     }
   },
   "required": ["allKeywords", "actions"],
