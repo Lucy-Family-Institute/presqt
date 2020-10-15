@@ -375,7 +375,23 @@ Resource Download Endpoint
                 ]
                 empty_containers = ['path/to/empty/container/', 'another/empty/']
                 action_metadata = {"sourceUsername": contributor_name}
-                return resources, empty_containers
+                extra_metadata = {
+                    "title": project_info['title'],
+                    "creators": creators,
+                    "publication_date": project_info['date_created'],
+                    "description": project_info['description'],
+                    "keywords": project_info['tags'],
+                    "license": license,
+                    "related_identifiers": identifiers,
+                    "references": None,
+                    "notes": None
+                }
+                return {
+                    'resources': files,
+                    'empty_containers': empty_containers,
+                    'action_metadata': action_metadata,
+                    'extra_metadata': extra_metadata
+                }
 
 3. Add the resource download function to ``presqt/api_v1/utilities/utils/function_router.py``
 
