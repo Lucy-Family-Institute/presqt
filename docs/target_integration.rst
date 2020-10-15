@@ -296,6 +296,7 @@ Resource Download Endpoint
 
                               They need to be specified separately because they are written separate from the file data
         action_metadata  dict Dictionary containing FTS metadata about the action occurring
+        extra_metadata   dict Dictionary containing extra metadata identified by partners
         ================ ==== ==========================================================================================
 
         **Resource Dictionary Details**
@@ -323,6 +324,20 @@ Resource Download Endpoint
             ============== === ============================================================
             sourceUsername str Username of the user making the request at the source target
             ============== === ============================================================
+        
+        **Extra Metadata Dictionary Details**
+
+            =================== ===== =============================================================================================
+            title               str   The title of the resource
+            creators            list  List of dictionaries containing creator info {"first_name": '', "last_name": '', "ORCID": ''}
+            publication_date    str   The date the resource was published
+            description         str   A brief description of the resource
+            keywords            list  A list of associated keywords
+            license             str   The resource's license
+            related_identifiers list  A list of dictionaries containing identifiers {"type": 'doi', "identifier": ''}
+            references          str   References related to the resource
+            notes               str   Notes related to the resource
+            =================== ===== =============================================================================================
     * If you want to keep track of the progress of the download there are two functions available
       to do so. ``update_process_info()`` is for updating the total number of resources in the download
       and ``increment_process_info()`` is for updating the number of resources gathered thus far.
