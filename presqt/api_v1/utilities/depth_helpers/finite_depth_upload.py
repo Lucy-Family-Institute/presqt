@@ -114,7 +114,8 @@ def update_bagit_with_metadata(instance, zip_title):
 
     final_fts_metadata_data = create_fts_metadata(instance.all_keywords,
                                                   instance.action_metadata,
-                                                  instance.source_fts_metadata_actions)
+                                                  instance.source_fts_metadata_actions,
+                                                  instance.extra_metadata)
     write_file(os.path.join(instance.data_directory, 'PRESQT_FTS_METADATA.json'),
                final_fts_metadata_data, True)
 
