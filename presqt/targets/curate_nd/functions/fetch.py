@@ -138,7 +138,11 @@ def curate_nd_fetch_resource(token, resource_id):
     # Get the resource
     resource = get_curate_nd_resource(resource_id, curate_instance)
     children = []
+    identifier = None
     if resource.kind == 'container':
+        # Try and get an identifier
+        if "identifier#doi" in resource.extra.keys():
+            identifier = resource.extra['identifier#doi'].partition("doi:")[2]
         # Get the children of this item
         for child in resource.extra['containedFiles']:
             children.append({
@@ -152,7 +156,7 @@ def curate_nd_fetch_resource(token, resource_id):
         "kind": resource.kind,
         "kind_name": resource.kind_name,
         "id": resource.id,
-        "doi": None,
+        "identifier": identifier,
         "title": resource.title,
         "date_created": resource.date_submitted,
         "date_modified": resource.modified,

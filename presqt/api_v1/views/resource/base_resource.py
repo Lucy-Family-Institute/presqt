@@ -1,12 +1,16 @@
 import os
 import shutil
 import zipfile
+import requests
+import json
 from uuid import uuid4
 
 import bagit
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
-from rest_framework import status
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_protect
+from rest_framework import status, renderers
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
@@ -23,7 +27,8 @@ from presqt.api_v1.utilities import (target_validation, transfer_target_validati
                                      keyword_action_validation,
                                      automatic_keywords, update_targets_keywords, manual_keywords,
                                      get_target_data, get_keyword_support,
-                                     update_or_create_process_info, get_user_email_opt)
+                                     update_or_create_process_info, get_user_email_opt,
+                                     fairshare_evaluator_validation, fairshare_results)
 from presqt.api_v1.utilities.utils.multiple_process_check import multiple_process_check
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.metadata.download_metadata import validate_metadata
@@ -39,6 +44,7 @@ class BaseResource(APIView):
     """
     Base View for Resource views. Handles shared POSTs (upload and transfer) and download methods.
     """
+    renderer_classes = [renderers.JSONRenderer]
 
     def post(self, request, target_name, resource_id=None):
         """
@@ -473,12 +479,12 @@ class BaseResource(APIView):
                     "response_format": "zip"})
                 download_url = self.request.build_absolute_uri(download_reverse)
                 final_download_url = "{}?ticket_number={}".format(download_url, self.ticket_number)
-                # BOLD HEADER
-                header = "-----Download Details-----"
-                # Make the message to add to the email body
-                message = 'The download you started on PresQT has finished. It can be retrieved here: {}\n\n{}\nDownload Message: {}\n\nFailed Fixity: {}'.format(
-                    final_download_url, header, self.process_info_obj['message'], self.process_info_obj['failed_fixity'])
-                email_blaster(self.email, "PresQT Download Complete", message)
+                context = {
+                    "download_url": final_download_url,
+                    "download_message": self.process_info_obj['message'],
+                    "failed_fixity": self.process_info_obj['failed_fixity']
+                }
+                email_blaster(self.email, "PresQT Download Complete", context, "emails/download_email.html")
 
         return True
 
@@ -648,12 +654,12 @@ class BaseResource(APIView):
             update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
 
             if self.email:
-                # BOLD HEADER
-                header = "-----Upload Details-----"
-                # Build the message for the email
-                message = 'The upload you started on PresQT has finished. It can be found here: {}\n\n{}\nUpload message: {}\n\nFailed Fixity: {}'.format(
-                    self.func_dict["project_link"], header, upload_message, self.upload_failed_fixity)
-                email_blaster(self.email, "PresQT Upload Complete", message)
+                context = {
+                    "upload_url": self.func_dict["project_link"],
+                    "upload_message": upload_message,
+                    "failed_fixity": self.upload_failed_fixity
+                }
+                email_blaster(self.email, "PresQT Upload Complete", context, "emails/upload_email.html")
 
         return True
 
@@ -671,6 +677,7 @@ class BaseResource(APIView):
             self.email = get_user_email_opt(self.request)
             self.file_duplicate_action = file_duplicate_action_validation(self.request)
             self.keyword_action = keyword_action_validation(self.request)
+            self.fairshare_evaluator_action = fairshare_evaluator_validation(self.request)
             self.source_target_name, self.source_resource_id, self.keywords = transfer_post_body_validation(
                 self.request)
             target_valid, self.infinite_depth = target_validation(
@@ -771,7 +778,6 @@ class BaseResource(APIView):
         ####### TRANSFER COMPLETE #######
         # Transfer was a success so update the server metadata file.
         self.process_info_obj['status_code'] = '200'
-        self.process_info_obj['status'] = 'finished'
         self.process_info_obj['failed_fixity'] = list(
             set(self.download_failed_fixity + self.upload_failed_fixity))
         self.process_info_obj['source_resource_id'] = self.source_resource_id
@@ -788,17 +794,49 @@ class BaseResource(APIView):
             self.process_info_obj['initial_keywords'] = []
 
         transfer_fixity = False if not self.download_fixity or not self.upload_fixity else True
-        self.process_info_obj['message'] = get_action_message(
-            self, 'Transfer', transfer_fixity, self.metadata_validation, self.action_metadata)
+        if self.fairshare_evaluator_action:
+            self.process_info_obj['message'] = "Running FAIRshare Evaluator Service, this may take several minutes..."
+        else:
+            self.process_info_obj['message'] = "Making final metadata updates..."
 
         update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
 
+        if self.fairshare_evaluator_action:
+            # Do the evaluation on the newly created project's url
+            data = {
+                'resource': self.func_dict["project_link"],
+                'executor': "PresQT",
+                'title': "PresQT Fair Evaluation"
+                }
+
+            # 16 is the id of the PresQT test collection
+            response = requests.post(
+                'https://w3id.org/FAIR_Evaluator/collections/16/evaluate',
+                headers={"Content-Type": "application/json", "Accept": "application/json"},
+                data=json.dumps(data))
+            if response.status_code != 200:
+                results = [{"error": "FAIRshare returned an error trying to process your request."}]
+            else:
+                results = fairshare_results(response.json(), [1, 2, 4, 5, 6, 7, 8, 10, 13, 17, 19, 22])
+
+        else:
+            results = []
+
+        self.process_info_obj['message'] = get_action_message(
+            self, 'Transfer', transfer_fixity, self.metadata_validation, self.action_metadata)
+        self.process_info_obj['status'] = 'finished'
+        self.process_info_obj['fairshare_evaluation_results'] = results
+        update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
+
         if self.email:
-            # BOLD HEADER
-            header = "-----Transfer Details-----"
-            # Build the message for the email
-            message = 'The transfer you started on PresQT has finished. It can be found here: {}\n\n{}\nTransfer message: {}\n\nFailed Fixity: {}\n\nEnhanced Keywords: {}'.format(
-                self.func_dict["project_link"], header, self.process_info_obj['message'], self.process_info_obj['failed_fixity'], self.process_info_obj['enhanced_keywords'])
-            email_blaster(self.email, "PresQT Transfer Complete", message)
+            context = {
+                "transfer_url": self.func_dict["project_link"],
+                "transfer_message": self.process_info_obj['message'],
+                "enhanced_keywords": self.process_info_obj['enhanced_keywords'],
+                "failed_fixity": self.process_info_obj['failed_fixity'],
+                "fairshare_results_list": results
+            }
+     
+            email_blaster(self.email, "PresQT Transfer Complete", context, "emails/transfer_email.html")
 
         return

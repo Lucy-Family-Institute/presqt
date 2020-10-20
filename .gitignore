@@ -28,3 +28,5 @@ config/ssl/private/
 
 #docs
 docs/_build*
+
+eggs.py

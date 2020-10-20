@@ -1,14 +1,11 @@
-import os
-import uuid
-
+from rest_framework import renderers
 from rest_framework.response import Response
 
 from presqt.api_v1.serializers.resource import ResourcesSerializer
 from presqt.api_v1.utilities import (
-    target_validation, FunctionRouter, get_source_token, query_validator, hash_tokens, page_links,
-    update_or_create_process_info)
+    target_validation, FunctionRouter, get_source_token, query_validator, page_links)
 from presqt.api_v1.views.resource.base_resource import BaseResource
-from presqt.utilities import PresQTValidationError, PresQTResponseException, write_file, read_file
+from presqt.utilities import PresQTValidationError, PresQTResponseException
 
 
 class ResourceCollection(BaseResource):
@@ -20,6 +17,8 @@ class ResourceCollection(BaseResource):
     * POST
         -  Upload a top level resource for a user.
     """
+
+    renderer_classes = [renderers.JSONRenderer]
 
     def get(self, request, target_name):
         """

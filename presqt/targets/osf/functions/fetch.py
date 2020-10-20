@@ -216,7 +216,7 @@ def osf_fetch_resource(token, resource_id):
             'kind': resource_object.kind,
             'kind_name': resource_object.kind_name,
             'id': resource_object.id,
-            'doi': None,
+            'identifier': None,
             'title': resource_object.title,
             'date_created': resource_object.date_created,
             'date_modified': resource_object.date_modified,
@@ -248,8 +248,10 @@ def osf_fetch_resource(token, resource_id):
                 'https://api.osf.io/v2/nodes/{}/identifiers/'.format(resource_id), headers=headers).json()['data']
             for entry in identifiers:
                 if entry['attributes']['category'] == 'doi':
-                    resource_object_obj['doi'] = entry['attributes']['value']
+                    resource_object_obj['identifier'] = entry['attributes']['value']
                     break
+            else:
+                resource_object_obj['identifier'] = "https://osf.io/{}/".format(resource_id)
 
             resource_object_obj['extra'] = {
                 'category': resource_object.category,

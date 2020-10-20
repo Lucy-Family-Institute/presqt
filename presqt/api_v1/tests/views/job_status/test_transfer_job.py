@@ -6,7 +6,7 @@ import requests
 import shutil
 from unittest.mock import patch
 
-from django.core import mailP
+from django.core import mail
 
 from django.test import SimpleTestCase
 from rest_framework.reverse import reverse
@@ -35,7 +35,8 @@ class TestTransferJobGET(SimpleTestCase):
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
                         'HTTP_PRESQT_KEYWORD_ACTION': 'manual',
-                        'HTTP_PRESQT_EMAIL_OPT_IN': ''}
+                        'HTTP_PRESQT_EMAIL_OPT_IN': '',
+                        'HTTP_PRESQT_FAIRSHARE_EVALUATOR_OPT_IN': 'no'}
         self.ticket_number = "{}_{}".format(hash_tokens(
             self.source_token), hash_tokens(self.destination_token))
         self.resource_id = '209373660'
@@ -51,6 +52,8 @@ class TestTransferJobGET(SimpleTestCase):
         """
         Make a POST request to `resource` to begin transferring a resource.
         """
+        self.headers['HTTP_PRESQT_FAIRSHARE_EVALUATOR_OPT_IN'] = 'yes'
+        
         response = self.client.post(self.url, {
             "source_target_name": "github",
             "source_resource_id": self.resource_id,
@@ -81,6 +84,8 @@ class TestTransferJobGET(SimpleTestCase):
         # Fixity errors because we're dealing with GitHub
         self.assertEqual(response.data['message'],
                          "Transfer successful. Fixity can't be determined because GitHub may not have provided a file checksum. See PRESQT_FTS_METADATA.json for more details.")
+        # Ensure we have results for the 12 FAIRshare tests
+        self.assertEqual(len(response.data['fairshare_evaluation_results']), 12)
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
@@ -97,7 +102,8 @@ class TestTransferJobGET(SimpleTestCase):
                         'HTTP_PRESQT_SOURCE_TOKEN': self.source_token,
                         'HTTP_PRESQT_FILE_DUPLICATE_ACTION': 'ignore',
                         'HTTP_PRESQT_KEYWORD_ACTION': 'automatic',
-                        'HTTP_PRESQT_EMAIL_OPT_IN': 'eggs@test.com'}
+                        'HTTP_PRESQT_EMAIL_OPT_IN': 'eggs@test.com',
+                        'HTTP_PRESQT_FAIRSHARE_EVALUATOR_OPT_IN': 'no'}
         self.ticket_number = "{}_{}".format(hash_tokens(
             self.source_token), hash_tokens(ZENODO_TEST_USER_TOKEN))
         response = self.client.post(self.url, {"source_target_name": "github",
@@ -125,6 +131,8 @@ class TestTransferJobGET(SimpleTestCase):
         # Fixity errors because we're dealing with GitHub
         self.assertEqual(response.data['message'],
                          'Transfer successful but with fixity errors.')
+        # Ensure we did not run the 12 FAIRshare tests
+        self.assertEqual(response.data['fairshare_evaluation_results'], [])
 
         test_user_projects = requests.get('https://zenodo.org/api/deposit/depositions',
                                           params={'access_token': ZENODO_TEST_USER_TOKEN}).json()

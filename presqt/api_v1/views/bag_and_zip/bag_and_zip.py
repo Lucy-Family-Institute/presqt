@@ -4,6 +4,7 @@ from uuid import uuid4
 
 import bagit
 from django.http import HttpResponse
+from rest_framework import renderers
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -18,6 +19,8 @@ class BagAndZip(APIView):
     * POST:
         - Take a provided file, make it BagIt format, and zip it up to return back to the user.
     """
+
+    renderer_classes = [renderers.JSONRenderer]
 
     def post(self, request):
         """

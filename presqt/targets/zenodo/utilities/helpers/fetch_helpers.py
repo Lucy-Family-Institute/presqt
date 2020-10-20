@@ -54,12 +54,12 @@ def zenodo_fetch_resource_helper(zenodo_project, resource_id, is_record=False, i
     -------
         PresQT Zenodo Resource (dict).
     """
-    doi = None
+    identifier = None
     if is_file is False:
         if is_record is True:
             kind_name = zenodo_project['metadata']['resource_type']['type']
             date_modified = zenodo_project['updated']
-            doi = zenodo_project['doi']
+            identifier = zenodo_project['doi']
         else:
             kind_name = zenodo_project['metadata']['upload_type']
             date_modified = zenodo_project['modified']
@@ -88,7 +88,7 @@ def zenodo_fetch_resource_helper(zenodo_project, resource_id, is_record=False, i
         "kind": kind,
         "kind_name": kind_name,
         "id": resource_id,
-        "doi": doi,
+        "identifier": identifier,
         "title": title,
         "date_created": zenodo_project['created'],
         "date_modified": date_modified,

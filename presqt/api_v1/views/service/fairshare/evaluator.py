@@ -1,7 +1,7 @@
 import json
 
 import requests
-from rest_framework import status
+from rest_framework import status, renderers
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -14,6 +14,8 @@ from presqt.utilities import PresQTValidationError, read_file
 class FairshareEvaluator(APIView):
     """
     """
+
+    renderer_classes = [renderers.JSONRenderer]
 
     def get(self, request):
         """
@@ -139,9 +141,12 @@ class FairshareEvaluator(APIView):
         results = fairshare_results(response_json, test_list)
 
         if email:
-            message = "The FAIRshare Evaluator process you started on PresQT for doi '{}' has finished.\n\n ----EVALUATION RESULTS----\n".format(resource_id)
-            details = "{}{}".format(message, json.dumps(results, indent=4))
+            message = "The FAIRshare Evaluator process you started on PresQT for identifier '{}' has finished.".format(resource_id)
+            context = {
+                "fairshare_message": message,
+                "results_list": results
+            }
             # Send the email
-            email_blaster(email, "PresQT FAIRshare Evaluator Results", details)
+            email_blaster(email, "PresQT FAIRshare Evaluator Results", context, "emails/fair_email.html")
 
         return Response(status=status.HTTP_200_OK, data=results)
