@@ -52,8 +52,7 @@ Here are some pre-made ZIP files that are in BagIt format that can be downloaded
 
 Known Bugs And Issues
 ---------------------
-* Resource Collection is running slow for large amount of projects.
-* Resource Collection may timeout if loading takes too long.
+* None as of this writing
 
 Testing Instructions
 --------------------
@@ -407,4 +406,37 @@ take into account the files contained within the project as development continue
     :align: center
     :scale: 30%
 
+FAIRshare Evaluator Service
++++++++++++++++++++++++++++
+1. To initiate a FAIRshare evaluation, first select the resource in the ``resource collection`` and then click
+the ``Services`` action button in the details section. A drop down menu will appear from where you can select
+``FAIRshare``.
 
+.. figure:: images/qa/fairshare/fairshare1.png
+    :align: center
+
+2. A modal will pop open with a ``FAIRshare Evaluator Service stepper``. First read the information and ensure the information is correct.
+Once you have verified that this is what you'd like to do, select the tests you would like to run.
+
+.. figure:: images/qa/fairshare/fairshare2.png
+    :align: center
+    :scale: 30%
+
+3. Once you have selected the tests you'd like to run, you can choose to opt in for email notifications. When you are ready to run the
+tests, press the ``Evaluate`` button.
+
+.. figure:: images/qa/fairshare/fairshare3.png
+    :align: center
+    :scale: 30%
+
+4. A spinner will let you know that FAIRshare is processing the request. This may take awhile.
+
+.. figure:: images/qa/fairshare/fairshare4.png
+    :align: center
+    :scale: 30%
+
+5. Once the process is complete, the results will be displayed in a drop down format to be reviewed.
+
+.. figure:: images/qa/fairshare/fairshare5.png
+    :align: center
+    :scale: 30%
