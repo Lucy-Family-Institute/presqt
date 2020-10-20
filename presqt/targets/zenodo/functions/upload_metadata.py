@@ -4,6 +4,7 @@ import requests
 
 from presqt.json_schemas.schema_handlers import schema_validator
 from presqt.targets.zenodo.utilities import zenodo_validation_check
+from presqt.targets.zenodo.utilities.upload_extra_metadata import upload_extra_metadata
 from presqt.utilities import PresQTError
 
 
@@ -72,6 +73,11 @@ def zenodo_upload_metadata(token, project_id, metadata_dict):
         raise PresQTError(
             "The request to create a metadata file has resulted in a {} error code from Zenodo.".format(
                 response_status))
+
+    # Add extra metadata to the top level resource
+    if 'extra_metadata' in metadata_dict.keys() and metadata_dict['extra_metadata']:
+        attribute_url = "https://zenodo.org/api/deposit/depositions/{}".format(project_id)
+        upload_extra_metadata(metadata_dict['extra_metadata'], auth_parameter, attribute_url)
 
 
 def metadata_post_request(file_name, metadata, auth_parameter, url):
