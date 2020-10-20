@@ -6,6 +6,7 @@ from presqt.targets.github.utilities.helpers.get_page_total import get_page_tota
 from presqt.targets.github.utilities.helpers.github_paginated_data import github_paginated_data
 from presqt.targets.github.utilities.helpers.validation_check import validation_check
 from presqt.targets.github.utilities.utils.delete_github_repo import delete_github_repo
+from presqt.targets.github.utilities.helpers.extra_metadata_helper import extra_metadata_helper
 
 all = [
     download_content,

@@ -6,6 +6,7 @@ from rest_framework import status
 
 from presqt.targets.figshare.utilities.validation_check import validation_check
 from presqt.targets.figshare.utilities.helpers.download_content import download_project, download_article
+from presqt.targets.figshare.utilities.helpers.extra_metadata_helper import extra_metadata_helper
 from presqt.utilities import (PresQTResponseException, get_dictionary_from_list,
                               update_process_info,
                               increment_process_info, update_process_info_message)
@@ -106,6 +107,7 @@ def figshare_download_resource(token, resource_id, process_info_path, action):
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
     split_id = str(resource_id).split(":")
+    extra_metadata = {}
 
     # But first we need to see whether it is a public project, or a private project.
     project_url = "https://api.figshare.com/v2/account/projects/{}".format(split_id[0])
@@ -131,6 +133,7 @@ def figshare_download_resource(token, resource_id, process_info_path, action):
         files, empty_containers, action_metadata = download_project(
             username, articles_url, headers, project_name, [])
         file_urls = [file['file'] for file in files]
+        extra_metadata = extra_metadata_helper(project_url, headers)
 
     elif len(split_id) == 2 or len(split_id) == 3:
         # We have an article or a file so we need to get the article url
@@ -200,5 +203,6 @@ def figshare_download_resource(token, resource_id, process_info_path, action):
     return {
         'resources': files,
         'empty_containers': empty_containers,
-        'action_metadata': action_metadata
+        'action_metadata': action_metadata,
+        'extra_metadata': extra_metadata
     }

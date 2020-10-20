@@ -217,7 +217,7 @@ class BaseResource(APIView):
         if user_has_process_running:
             return Response(data={'error': 'User currently has processes in progress.'},
                             status=status.HTTP_400_BAD_REQUEST)
-        
+
         self.ticket_path = os.path.join('mediafiles', 'jobs', str(self.ticket_number), 'upload')
 
         # Remove any resources that already exist in this user's job directory
@@ -310,7 +310,8 @@ class BaseResource(APIView):
         #       'action_metadata': action_metadata
         #   }
         try:
-            func_dict = func(self.source_token, self.source_resource_id, self.process_info_path, self.action)
+            func_dict = func(self.source_token, self.source_resource_id,
+                             self.process_info_path, self.action)
             # If the resource is being transferred, has only one file, and that file is the
             # PresQT metadata then raise an error.
             if self.action == 'resource_transfer_in' and \
@@ -343,6 +344,7 @@ class BaseResource(APIView):
         update_process_info_message(self.process_info_path, self.action,
                                     'Performing fixity checks and gathering metadata...')
 
+        self.extra_metadata = func_dict['extra_metadata']
         # For each resource, perform fixity check, gather metadata, and save it to disk.
         fixity_info = []
         self.download_fixity = True
@@ -443,7 +445,7 @@ class BaseResource(APIView):
         else:
             # Create Metadata file
             final_fts_metadata_data = create_fts_metadata(self.all_keywords, self.action_metadata,
-                                                          self.source_fts_metadata_actions)
+                                                          self.source_fts_metadata_actions, self.extra_metadata)
 
             # Validate the final metadata
             metadata_validation = schema_validator('presqt/json_schemas/metadata_schema.json',
@@ -460,7 +462,6 @@ class BaseResource(APIView):
 
             # Add the fixity file to the disk directory
             write_file(os.path.join(self.resource_main_dir, 'fixity_info.json'), fixity_info, True)
-
 
             # Zip the BagIt 'bag' to send forward.
             zip_directory(self.resource_main_dir, "{}.zip".format(self.resource_main_dir),
@@ -484,7 +485,8 @@ class BaseResource(APIView):
                     "download_message": self.process_info_obj['message'],
                     "failed_fixity": self.process_info_obj['failed_fixity']
                 }
-                email_blaster(self.email, "PresQT Download Complete", context, "emails/download_email.html")
+                email_blaster(self.email, "PresQT Download Complete",
+                              context, "emails/download_email.html")
 
         return True
 
@@ -506,8 +508,10 @@ class BaseResource(APIView):
         # If we are uploading (not transferring) then create the initial metadata based on the
         # zipped bag provided.
         if self.action == 'resource_upload':
-            update_process_info_message(self.process_info_path, self.action, "Creating PRESQT_FTS_METADATA...")
+            update_process_info_message(self.process_info_path, self.action,
+                                        "Creating PRESQT_FTS_METADATA...")
             self.new_fts_metadata_files = []
+            self.extra_metadata = {}
             for path, subdirs, files in os.walk(self.data_directory):
                 for name in files:
                     self.new_fts_metadata_files.append({
@@ -573,8 +577,8 @@ class BaseResource(APIView):
         try:
             structure_validation(self)
             self.func_dict = func(self.destination_token, self.destination_resource_id,
-                             self.data_directory, self.hash_algorithm, self.file_duplicate_action,
-                             self.process_info_path, self.action)
+                                  self.data_directory, self.hash_algorithm, self.file_duplicate_action,
+                                  self.process_info_path, self.action)
         except PresQTResponseException as e:
             # Catch any errors that happen within the target fetch.
             # Update the server process_info file appropriately.
@@ -659,7 +663,8 @@ class BaseResource(APIView):
                     "upload_message": upload_message,
                     "failed_fixity": self.upload_failed_fixity
                 }
-                email_blaster(self.email, "PresQT Upload Complete", context, "emails/upload_email.html")
+                email_blaster(self.email, "PresQT Upload Complete",
+                              context, "emails/upload_email.html")
 
         return True
 
@@ -693,7 +698,7 @@ class BaseResource(APIView):
         self.ticket_number = '{}_{}'.format(hash_tokens(
             self.source_token), hash_tokens(self.destination_token))
         ticket_path = os.path.join("mediafiles", "jobs", str(self.ticket_number))
-        
+
         # Check if this user currently has any other process in progress
         user_has_process_running = multiple_process_check(ticket_path)
         if user_has_process_running:
@@ -789,7 +794,7 @@ class BaseResource(APIView):
         elif self.keyword_action == 'manual':
             self.process_info_obj['enhanced_keywords'] = self.keywords
             self.process_info_obj['initial_keywords'] = self.initial_keywords
-        else: # no enhancement
+        else:  # no enhancement
             self.process_info_obj['enhanced_keywords'] = []
             self.process_info_obj['initial_keywords'] = []
 
@@ -807,7 +812,7 @@ class BaseResource(APIView):
                 'resource': self.func_dict["project_link"],
                 'executor': "PresQT",
                 'title': "PresQT Fair Evaluation"
-                }
+            }
 
             # 16 is the id of the PresQT test collection
             response = requests.post(
@@ -817,7 +822,8 @@ class BaseResource(APIView):
             if response.status_code != 200:
                 results = [{"error": "FAIRshare returned an error trying to process your request."}]
             else:
-                results = fairshare_results(response.json(), [1, 2, 4, 5, 6, 7, 8, 10, 13, 17, 19, 22])
+                results = fairshare_results(
+                    response.json(), [1, 2, 4, 5, 6, 7, 8, 10, 13, 17, 19, 22])
 
         else:
             results = []
@@ -836,7 +842,8 @@ class BaseResource(APIView):
                 "failed_fixity": self.process_info_obj['failed_fixity'],
                 "fairshare_results_list": results
             }
-     
-            email_blaster(self.email, "PresQT Transfer Complete", context, "emails/transfer_email.html")
+
+            email_blaster(self.email, "PresQT Transfer Complete",
+                          context, "emails/transfer_email.html")
 
         return

@@ -6,7 +6,7 @@ import base64
 from rest_framework import status
 
 from presqt.targets.gitlab.utilities import (
-    validation_check, gitlab_paginated_data, download_content)
+    validation_check, gitlab_paginated_data, download_content, extra_metadata_helper)
 from presqt.utilities import (PresQTResponseException, get_dictionary_from_list,
                               update_process_info,
                               increment_process_info,
@@ -129,12 +129,15 @@ def gitlab_download_resource(token, resource_id, process_info_path, action):
             status.HTTP_404_NOT_FOUND)
 
     project_name = response.json()['name']
+    extra_metadata = {}
     if ':' not in resource_id:
         # This is for a project
         all_files_url = "https://gitlab.com/api/v4/projects/{}/repository/tree?recursive=1".format(
             resource_id)
         data = gitlab_paginated_data(header, user_id, all_files_url)
         is_project = True
+        # Get extra metadata
+        extra_metadata = extra_metadata_helper(response.json(), header)
 
     elif ':' in resource_id and '%2E' not in resource_id:
         # This is for a directory
@@ -172,12 +175,14 @@ def gitlab_download_resource(token, resource_id, process_info_path, action):
                 'source_path': data['file_path'],
                 'extra_metadata': {}}],
             'empty_containers': [],
-            'action_metadata': {'sourceUsername': username}}
+            'action_metadata': {'sourceUsername': username},
+            'extra_metadata': extra_metadata
+        }
 
     files, empty_containers, action_metadata = download_content(
         username, project_name, project_id, data, [], is_project)
     file_urls = [file['file'] for file in files]
-    
+
     update_process_info_message(process_info_path, action, 'Downloading files from GitLab...')
     # Add the total number of projects to the process info file.
     # This is necessary to keep track of the progress of the request.
@@ -185,7 +190,8 @@ def gitlab_download_resource(token, resource_id, process_info_path, action):
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    download_data = loop.run_until_complete(async_main(file_urls, header, process_info_path, action))
+    download_data = loop.run_until_complete(
+        async_main(file_urls, header, process_info_path, action))
 
     # Go through the file dictionaries and replace the file path with the binary_content
     # and replace the hashes with the correct file hashes
@@ -198,5 +204,6 @@ def gitlab_download_resource(token, resource_id, process_info_path, action):
     return {
         'resources': files,
         'empty_containers': empty_containers,
-        'action_metadata': action_metadata
+        'action_metadata': action_metadata,
+        'extra_metadata': extra_metadata
     }

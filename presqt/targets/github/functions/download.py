@@ -6,7 +6,7 @@ import requests
 from rest_framework import status
 
 from presqt.targets.github.utilities import (
-    validation_check, download_content, download_directory, download_file)
+    validation_check, download_content, download_directory, download_file, extra_metadata_helper)
 from presqt.utilities import (PresQTResponseException, get_dictionary_from_list,
                               update_process_info, increment_process_info, update_process_info_message)
 
@@ -107,6 +107,7 @@ def github_download_resource(token, resource_id, process_info_path, action):
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
 
+    extra_metadata = {}
     # Without a colon, we know this is a top level repo
     if ':' not in resource_id:
         project_url = 'https://api.github.com/repositories/{}'.format(resource_id)
@@ -142,6 +143,8 @@ def github_download_resource(token, resource_id, process_info_path, action):
         for file in files:
             file['file'] = get_dictionary_from_list(
                 download_data, 'url', file['file'])['binary_content']
+
+        extra_metadata = extra_metadata_helper(response.json(), repo_name, header)
 
     # If there is a colon in the resource id, the resource could be a directory or a file
     else:
@@ -188,18 +191,22 @@ def github_download_resource(token, resource_id, process_info_path, action):
 
         # If the resource to get is a folder
         if isinstance(resource_data, list):
-            update_process_info_message(process_info_path, action, 'Downloading files from GitHub...')
+            update_process_info_message(process_info_path, action,
+                                        'Downloading files from GitHub...')
             files = download_directory(header, path_to_file, repo_data, process_info_path, action)
         # If the resource to get is a file
         elif resource_data['type'] == 'file':
-            update_process_info_message(process_info_path, action, 'Downloading files from GitHub...')
+            update_process_info_message(process_info_path, action,
+                                        'Downloading files from GitHub...')
             update_process_info(process_info_path, 1, action, 'download')
             files = download_file(repo_data, resource_data, process_info_path, action)
 
         empty_containers = []
         action_metadata = {"sourceUsername": username}
+
     return {
         'resources': files,
         'empty_containers': empty_containers,
-        'action_metadata': action_metadata
+        'action_metadata': action_metadata,
+        'extra_metadata': extra_metadata
     }

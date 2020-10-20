@@ -5,7 +5,7 @@ import requests
 
 from rest_framework import status
 
-from presqt.targets.curate_nd.utilities import get_curate_nd_resource
+from presqt.targets.curate_nd.utilities import get_curate_nd_resource, extra_metadata_helper
 from presqt.targets.curate_nd.classes.main import CurateND
 from presqt.utilities import (PresQTInvalidTokenError, PresQTValidationError,
                               get_dictionary_from_list, update_process_info, increment_process_info,
@@ -110,6 +110,7 @@ def curate_nd_download_resource(token, resource_id, process_info_path, action):
     # Get the resource
     resource = get_curate_nd_resource(resource_id, curate_instance)
     action_metadata = {"sourceUsername": resource.extra['depositor']}
+    extra_metadata = {}
 
     # Get all the files for the provided resources.
     files = []
@@ -158,6 +159,8 @@ def curate_nd_download_resource(token, resource_id, process_info_path, action):
             file_urls = []
             project_title = resource.title
             file_metadata = []
+            extra_metadata = extra_metadata_helper(resource)
+
             for file in resource.extra['containedFiles']:
                 download_url = file['downloadUrl']
                 contained_file = get_curate_nd_resource(file['id'], curate_instance)
@@ -190,5 +193,6 @@ def curate_nd_download_resource(token, resource_id, process_info_path, action):
     return {
         'resources': files,
         'empty_containers': empty_containers,
-        'action_metadata': action_metadata
+        'action_metadata': action_metadata,
+        'extra_metadata': extra_metadata
     }

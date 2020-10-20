@@ -4,7 +4,7 @@ import requests
 
 from rest_framework import status
 
-from presqt.targets.osf.utilities import get_osf_resource, osf_download_metadata
+from presqt.targets.osf.utilities import get_osf_resource, osf_download_metadata, extra_metadata_helper
 from presqt.utilities import (PresQTResponseException, PresQTInvalidTokenError,
                               get_dictionary_from_list, update_process_info, increment_process_info,
                               update_process_info_message)
@@ -118,6 +118,8 @@ def osf_download_resource(token, resource_id, process_info_path, action):
     # path should be the resource.
     files = []
     empty_containers = []
+    extra_metadata = {}
+
     if resource.kind_name == 'file':
         update_process_info_message(process_info_path, action, 'Downloading files from OSF...')
         # Add the total number of projects to the process info file.
@@ -138,6 +140,7 @@ def osf_download_resource(token, resource_id, process_info_path, action):
         increment_process_info(process_info_path, action, 'download')
     else:
         if resource.kind_name == 'project':
+            extra_metadata = extra_metadata_helper(resource_id, {'Authorization': 'Bearer {}'.format(token)})
             resource.get_all_files('', files, empty_containers)
             project = resource
         elif resource.kind_name == 'storage':
@@ -177,5 +180,6 @@ def osf_download_resource(token, resource_id, process_info_path, action):
     return {
         'resources': files,
         'empty_containers': empty_containers,
-        'action_metadata': action_metadata
+        'action_metadata': action_metadata,
+        'extra_metadata': extra_metadata
     }
