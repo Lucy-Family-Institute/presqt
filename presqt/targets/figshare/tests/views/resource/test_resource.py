@@ -391,7 +391,7 @@ class TestResourcePost(SimpleTestCase):
         self.url = reverse('resource_collection', kwargs={'target_name': 'figshare'})
         response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **headers)
 
-        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(hash_tokens('eggyboi'))
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files

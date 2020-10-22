@@ -48,7 +48,7 @@ class TestDownload(SimpleTestCase):
         # Verify content type
         self.assertEqual(response._headers['content-type'][1], 'application/zip')
         # Verify the number of resources in the zip is correct
-        self.assertEqual(len(zip_file.namelist()), 14)
+        self.assertEqual(len(zip_file.namelist()), 15)
 
         # Verify the fixity file is empty as there was nothing to check.
         with zip_file.open('figshare_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
@@ -87,7 +87,7 @@ class TestDownload(SimpleTestCase):
         # Verify content type
         self.assertEqual(response._headers['content-type'][1], 'application/zip')
         # Verify the number of resources in the zip is correct
-        self.assertEqual(len(zip_file.namelist()), 71)
+        self.assertEqual(len(zip_file.namelist()), 72)
 
         # Verify the fixity file is empty as there was nothing to check.
         with zip_file.open('figshare_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
@@ -126,7 +126,7 @@ class TestDownload(SimpleTestCase):
         # Verify content type
         self.assertEqual(response._headers['content-type'][1], 'application/zip')
         # Verify the number of resources in the zip is correct
-        self.assertEqual(len(zip_file.namelist()), 13)
+        self.assertEqual(len(zip_file.namelist()), 14)
 
         # Verify the fixity file is empty as there was nothing to check.
         with zip_file.open('figshare_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
@@ -165,7 +165,7 @@ class TestDownload(SimpleTestCase):
         # Verify content type
         self.assertEqual(response._headers['content-type'][1], 'application/zip')
         # Verify the number of resources in the zip is correct
-        self.assertEqual(len(zip_file.namelist()), 14)
+        self.assertEqual(len(zip_file.namelist()), 15)
 
         # Verify the fixity file is empty as there was nothing to check.
         with zip_file.open('figshare_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
