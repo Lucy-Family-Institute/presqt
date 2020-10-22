@@ -41,7 +41,11 @@ def upload_extra_metadata(extra_metadata, auth_parameter, attribute_url):
             data["metadata"]['creators'].append(creator_dict)
 
     if extra_metadata['license']:
-        data["metadata"]["license"] = "MIT"
+        license_response = requests.get("https://zenodo.org/api/licenses/?q={}".format(extra_metadata['license']))
+        if license_response.status_code == 200:
+            for license_dict in license_response.json()['hits']['hits']:
+                if license_dict['metadata']['title'] == extra_metadata['license']:
+                    data["metadata"]["license"] = license_dict["id"]
 
     if extra_metadata['publication_date']:
         data["metadata"]["publication_date"] = extra_metadata['publication_date']
