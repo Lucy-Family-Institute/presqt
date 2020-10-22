@@ -56,7 +56,7 @@ class TestResourceCollection(SimpleTestCase):
             self.assertEqual(len(data['links']), 1)
             self.assertListEqual(keys, list(data.keys()))
         # Verify the count of resource objects is what we expect.
-        self.assertEqual(response.data['pages']['total_pages'], '1')
+        self.assertEqual(response.data['pages']['total_pages'], 1)
 
     def test_success_zenodo_with_search(self):
         """
@@ -581,7 +581,8 @@ class TestResourceCollectionPOST(SimpleTestCase):
                    'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **headers)
 
-        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
+        ticket_number = hash_tokens('eggyboi')
+        ticket_path = 'mediafiles/jobs/{}'.format(ticket_number)
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files

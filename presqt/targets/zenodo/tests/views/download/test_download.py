@@ -48,7 +48,7 @@ class TestDownload(SimpleTestCase):
         # Verify content type
         self.assertEqual(response._headers['content-type'][1], 'application/zip')
         # Verify the number of resources in the zip is correct
-        self.assertEqual(len(zip_file.namelist()), 14)
+        self.assertEqual(len(zip_file.namelist()), 15)
 
         # Verify the fixity file has the two file entries
         with zip_file.open('zenodo_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
@@ -94,7 +94,7 @@ class TestDownload(SimpleTestCase):
         # Verify content type
         self.assertEqual(response._headers['content-type'][1], 'application/zip')
         # Verify the number of resources in the zip is correct
-        self.assertEqual(len(zip_file.namelist()), 13)
+        self.assertEqual(len(zip_file.namelist()), 14)
 
         # Verify the fixity file has the one file entry
         with zip_file.open('zenodo_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
@@ -204,7 +204,7 @@ class TestDownload(SimpleTestCase):
         response = self.client.get(url, **{'HTTP_PRESQT_SOURCE_TOKEN': 'eggs', 'HTTP_PRESQT_EMAIL_OPT_IN': ''})
         ticket_number = hash_tokens('eggs')
         download_url = response.data['download_job_zip']
-        process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(ticket_number)
+        process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(ticket_number)
         process_info = read_file(process_info_path, True)
 
         while process_info['resource_download']['status'] == 'in_progress':
@@ -236,7 +236,7 @@ class TestDownload(SimpleTestCase):
         response = self.client.get(url, **self.header)
         ticket_number = hash_tokens(self.token)
         download_url = response.data['download_job_zip']
-        process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(ticket_number)
+        process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(ticket_number)
         process_info = read_file(process_info_path, True)
 
         while process_info['resource_download']['status'] == 'in_progress':
@@ -263,7 +263,7 @@ class TestDownload(SimpleTestCase):
 
         response = self.client.get(url, **self.header)
         download_url = response.data['download_job_zip']
-        process_info_path = 'mediafiles/downloads/{}/process_info.json'.format(ticket_number)
+        process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(ticket_number)
         process_info = read_file(process_info_path, True)
 
         while process_info['resource_download']['status'] == 'in_progress':
