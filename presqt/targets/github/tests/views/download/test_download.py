@@ -48,7 +48,7 @@ class TestDownload(SimpleTestCase):
         # Verify content type
         self.assertEqual(response._headers['content-type'][1], 'application/zip')
         # Verify the number of resources in the zip is correct
-        self.assertEqual(len(zip_file.namelist()), 13)
+        self.assertEqual(len(zip_file.namelist()), 14)
 
         # Verify the fixity file is empty as there was nothing to check.
         with zip_file.open('github_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
@@ -88,7 +88,7 @@ class TestDownload(SimpleTestCase):
         # Verify content type
         self.assertEqual(response._headers['content-type'][1], 'application/zip')
         # Verify the number of resources in the zip is correct
-        self.assertEqual(len(zip_file.namelist()), 13)
+        self.assertEqual(len(zip_file.namelist()), 14)
 
         # Verify the fixity file is empty as there was nothing to check.
         with zip_file.open('github_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
@@ -164,7 +164,7 @@ class TestDownload(SimpleTestCase):
         # Verify content type
         self.assertEqual(response._headers['content-type'][1], 'application/zip')
         # Verify the number of resources in the zip is correct
-        self.assertEqual(len(zip_file.namelist()), 83)
+        self.assertEqual(len(zip_file.namelist()), 84)
 
         # GitHub does not provide file hashes, and thus we can't properly check fixity.
         with zip_file.open('{}_download_{}/fixity_info.json'.format(self.target_name, resource_id)) as fixityfile:
@@ -198,7 +198,7 @@ class TestDownload(SimpleTestCase):
         # Verify content type
         self.assertEqual(response._headers['content-type'][1], 'application/zip')
         # Verify the number of resources in the zip is correct
-        self.assertEqual(len(zip_file.namelist()), 26)
+        self.assertEqual(len(zip_file.namelist()), 27)
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
@@ -297,7 +297,8 @@ class TestDownload(SimpleTestCase):
                                           'resource_id': '209373160',
                                           'resource_format': 'zip'})
 
-        response = self.client.get(url, **{'HTTP_PRESQT_SOURCE_TOKEN': 'eggs'})
+        response = self.client.get(url, **{'HTTP_PRESQT_SOURCE_TOKEN': 'eggs',
+                                           'HTTP_PRESQT_EMAIL_OPT_IN': ''})
         ticket_number = hash_tokens('eggs')
         download_url = response.data['download_job_zip']
         process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(ticket_number)

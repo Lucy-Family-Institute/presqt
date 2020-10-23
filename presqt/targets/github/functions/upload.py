@@ -137,6 +137,9 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
         # Get all repo resources so we can check if any files already exist
         repo_resources = requests.get(
             '{}/master?recursive=1'.format(repo_data['trees_url'][:-6]), headers=header).json()
+        if 'message' in repo_resources:
+            repo_resources = requests.get(
+                '{}/main?recursive=1'.format(repo_data['trees_url'][:-6]), headers=header).json()
         # current_file_paths = ['/' + resource['path'] for resource in repo_resources['tree'] if resource['type'] == 'blob']
         current_file_paths = []
         for resource in repo_resources['tree']:
