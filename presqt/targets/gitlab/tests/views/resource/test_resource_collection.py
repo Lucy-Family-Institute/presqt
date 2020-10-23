@@ -336,7 +336,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
                    'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **headers)
 
-        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(hash_tokens('eggyboi'))
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
