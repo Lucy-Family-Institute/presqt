@@ -369,6 +369,37 @@ class TestResourceCollectionPOST(SimpleTestCase):
         # Delete upload folder
         shutil.rmtree(self.ticket_path)
 
+    def test_presqt_fts_extra_metadata(self):
+        """
+        Check that extra metadata is added to the project.
+        """
+        self.file = 'presqt/api_v1/tests/resources/upload/Upload_Extra_Metadata.zip'
+        self.repo_title = 'Extra_Eggs'
+        self.failed_fixity = ['/Extra_Eggs/starfishjump.gif']
+        # 202 when uploading a new top level repo
+        shared_upload_function_github(self)
+        header = {"Authorization": "token {}".format(self.token)}
+        # Get the resource id of the project
+        url = reverse('resource_collection', kwargs={'target_name': 'github'})
+        response_json = self.client.get(
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
+
+        for repo in response_json['resources']:
+            if repo['title'] == self.repo_title:
+                resource_id = repo['id']
+                break
+        # Check that the description is added to the repo
+        project_info = requests.get('https://api.github.com/repositories/{}'.format(resource_id),
+                                    headers=header).json()
+        self.assertEqual(project_info['description'], "There's so many eggs in here.")
+
+        # DELETE THE REPO
+        delete_github_repo('presqt-test-user', self.repo_title,
+                           {'Authorization': 'token {}'.format(GITHUB_TEST_USER_TOKEN)})
+
+        # Delete upload folder
+        shutil.rmtree(self.ticket_path)
+
     def test_bad_metadata_request(self):
         """
         Ensure that the proper error is raised when we get a non-201 response from GitHub.

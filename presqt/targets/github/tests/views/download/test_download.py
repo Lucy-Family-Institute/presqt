@@ -95,6 +95,12 @@ class TestDownload(SimpleTestCase):
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 1)
 
+        with zip_file.open('github_download_{}/PRESQT_FTS_METADATA.json'.format(resource_id)) as metadatafile:
+            metadata = json.load(metadatafile)
+            self.assertEqual(metadata['extra_metadata']['description'],
+                             "Well, there's not much to describe.")
+            self.assertEqual(metadata['extra_metadata']['title'], 'ProjectEight')
+
         file_path = "{}_download_{}/data/ProjectEight/README.md".format(
             self.target_name, resource_id)
         # Verify that the file exists
