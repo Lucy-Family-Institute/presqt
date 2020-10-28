@@ -72,7 +72,7 @@ class TestResourceGETJSON(SimpleTestCase):
             if link['name'] == 'Upload':
                 self.assertEqual(link['method'], 'POST')
         self.assertEqual(len(response.data['links']), 4)
-        self.assertEqual(len(response.data['children']), 1)
+        self.assertEqual(len(response.data['children']), 3)
 
     def test_success_file(self):
         """
@@ -368,7 +368,7 @@ class TestResourceGETZip(SimpleTestCase):
         """
         self.resource_id = '5cd98b0af244ec0021e5f8dd'
         self.target_name = 'osf'
-        self.file_number = 15
+        self.file_number = 16
         self.file_name = 'Docs2/Docs3/CODE_OF_CONDUCT.md'
         final_process_info = shared_get_success_function_202(self)
 
@@ -381,7 +381,7 @@ class TestResourceGETZip(SimpleTestCase):
         """
         self.resource_id = 'cmn5z:googledrive'
         self.target_name = 'osf'
-        self.file_number = 16
+        self.file_number = 17
         self.file_name = 'googledrive/Google Images/IMG_4740.jpg'
         final_process_info = shared_get_success_function_202(self)
 
@@ -395,7 +395,7 @@ class TestResourceGETZip(SimpleTestCase):
         """
         self.resource_id = 'cmn5z'
         self.target_name = 'osf'
-        self.file_number = 77
+        self.file_number = 78
         self.file_name = 'Test Project/osfstorage/Docs/Docs2/Docs3/CODE_OF_CONDUCT.md'
         shared_get_success_function_202(self)
 
@@ -447,6 +447,7 @@ class TestResourceGETZip(SimpleTestCase):
         self.target_name = 'osf'
         self.header = {'HTTP_PRESQT_SOURCE_TOKEN': 'bad_token', 'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         self.status_code = 401
+        self.token = 'bad_token'
         self.status_message = "Token is invalid. Response returned a 401 status code."
         shared_get_success_function_202_with_error(self)
 
@@ -470,16 +471,16 @@ class TestResourceGETZip(SimpleTestCase):
         # Verify the status code and content
         self.assertEqual(response.status_code, 202)
         self.assertEqual(response.data['message'], 'The server is processing the request.')
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
+        ticket_number = hash_tokens(self.token)
+        ticket_path = 'mediafiles/jobs/{}'.format(ticket_number)
 
         # Verify process_info file status is 'in_progress' initially
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        self.assertEqual(process_info['status'], 'in_progress')
+        self.assertEqual(process_info['resource_download']['status'], 'in_progress')
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_download']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
@@ -488,10 +489,10 @@ class TestResourceGETZip(SimpleTestCase):
 
         # Verify the final status in the process_info file is 'finished'
         final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        self.assertEqual(final_process_info['status'], 'finished')
+        self.assertEqual(final_process_info['resource_download']['status'], 'finished')
         # Verify zip file exists and has the proper amount of resources in it.
         base_name = 'osf_download_{}'.format(resource_id)
-        zip_path = '{}/{}.zip'.format(ticket_path, base_name)
+        zip_path = '{}/download/{}.zip'.format(ticket_path, base_name)
         zip_file = zipfile.ZipFile(zip_path)
         # Verify that the zip file exists and it holds the correct number of files.
         self.assertEqual(os.path.isfile(zip_path), True)
@@ -501,7 +502,7 @@ class TestResourceGETZip(SimpleTestCase):
         # So we can get a failed fixity. This fixity variable will be used later in our Patch.
 
         resource_dict = {
-            "file": read_file('{}/{}/data/22776439564_7edbed7e10_o.jpg'.format(ticket_path, base_name)),
+            "file": read_file('{}/download/{}/data/22776439564_7edbed7e10_o.jpg'.format(ticket_path, base_name)),
             "hashes": hashes,
             "title": 'data/22776439564_7edbed7e10_o.jpg',
             "path": '{}/{}/data/22776439564_7edbed7e10_o.jpg'.format(ticket_path, base_name),
@@ -524,6 +525,7 @@ class TestResourceGETZip(SimpleTestCase):
             # Create an instance of the BaseResource and add all of the appropriate class attributes
             # needed for _download_resource()
             resource_instance = BaseResource()
+            resource_instance.ticket_number = ticket_number
             resource_instance.source_target_name = 'osf'
             resource_instance.action = 'resource_download'
             resource_instance.source_token = OSF_TEST_USER_TOKEN
@@ -532,16 +534,26 @@ class TestResourceGETZip(SimpleTestCase):
             resource_instance.resource_main_dir = '{}/{}'.format(ticket_path, base_name)
             resource_instance.process_info_path = process_info_path
             resource_instance.process_state = process_state
-            resource_instance.process_info_obj = {}
+            resource_instance.process_info_obj = {
+                'presqt-source-token': ticket_number,
+                'status': 'in_progress',
+                'expiration': str(timezone.now() + relativedelta(hours=5)),
+                'message': 'Download is being processed on the server',
+                'status_code': None,
+                'function_process_id': None,
+                'download_total_files': 0,
+                'download_files_finished': 0
+            }
             resource_instance.base_directory_name = base_name
             resource_instance.function_process = multiprocessing.Process()
+            resource_instance.email = ""
             resource_instance._download_resource()
 
         final_process_info = read_file('{}/process_info.json'.format(ticket_path), True)
         # Verify the final status in the process_info file is 'finished'
-        self.assertEqual(final_process_info['status'], 'finished')
+        self.assertEqual(final_process_info['resource_download']['status'], 'finished')
         # Verify that the message is what is expected if fixity has failed.
-        self.assertEqual(final_process_info['message'],
+        self.assertEqual(final_process_info['resource_download']['message'],
                          'Download successful but with fixity errors.')
         # Verify zip file exists and has the proper amount of resources in it.
         base_name = 'osf_download_{}'.format(resource_id)
@@ -580,13 +592,13 @@ class TestResourceGETZip(SimpleTestCase):
         # Verify the status code and content
         self.assertEqual(response.status_code, 202)
 
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
+        ticket_number = hash_tokens(self.token)
+        ticket_path = 'mediafiles/jobs/{}'.format(ticket_number)
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_download']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
@@ -594,7 +606,7 @@ class TestResourceGETZip(SimpleTestCase):
                 pass
 
         # Verify that the metadata file is there.
-        metadata_path = '{}/osf_download_5cd98b0af244ec0021e5f8dd/data/PRESQT_FTS_METADATA.json'.\
+        metadata_path = '{}/download/osf_download_5cd98b0af244ec0021e5f8dd/PRESQT_FTS_METADATA.json'.\
             format(ticket_path)
         self.assertEqual(os.path.isfile(metadata_path), True)
         metadata_json = read_file(metadata_path, True)
@@ -650,17 +662,25 @@ class TestResourceGETZip(SimpleTestCase):
         url = reverse('resource', kwargs={'target_name': 'osf',
                                           'resource_id': 'cmn5z:osfstorage',
                                           'resource_format': 'zip'})
-        response = self.client.get(url, **self.header)
+
         # Verify the status code and content
+        move_on = False
+        while not move_on:
+            response = self.client.get(url, **self.header)
+            if response.status_code == 400 and json.loads(response.content)['error'] == 'User currently has processes in progress.':
+                pass
+            else:
+                move_on = True
+
         self.assertEqual(response.status_code, 202)
 
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
+        ticket_number = hash_tokens(self.token)
+        ticket_path = 'mediafiles/jobs/{}'.format(ticket_number)
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_download']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
@@ -668,20 +688,13 @@ class TestResourceGETZip(SimpleTestCase):
                 pass
 
         # Verify that the metadata file is there.
-        metadata_path = '{}/osf_download_cmn5z:osfstorage/data/PRESQT_FTS_METADATA.json'. \
-            format(ticket_path)
+        metadata_path = '{}/download/osf_download_cmn5z:osfstorage/PRESQT_FTS_METADATA.json'.format(ticket_path)
         self.assertEqual(os.path.isfile(metadata_path), True)
         metadata_json = read_file(metadata_path, True)
 
         self.assertEqual(True, schema_validator(
             'presqt/json_schemas/metadata_schema.json', metadata_json))
-        self.assertEqual(2, len(metadata_json['actions']))
-
-        for action in metadata_json['actions']:
-            if action['id'] == '2d5a7159-e03b-4931-99b9-8f8bddb490c2':
-                self.assertEqual({"created": [], "updated": [], "ignored": []}, action['files'])
-            else:
-                self.assertEqual(57, len(action['files']['created']))
+        self.assertGreater(len(metadata_json['actions']), 1)
 
         # Delete corresponding folder
         shutil.rmtree(ticket_path)
@@ -698,13 +711,13 @@ class TestResourceGETZip(SimpleTestCase):
         # Verify the status code and content
         self.assertEqual(response.status_code, 202)
 
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/downloads/{}'.format(ticket_number)
+        ticket_number = hash_tokens(self.token)
+        ticket_path = 'mediafiles/jobs/{}'.format(ticket_number)
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_download']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
@@ -712,14 +725,14 @@ class TestResourceGETZip(SimpleTestCase):
                 pass
 
         # Verify that the invalid metadata file has been renamed
-        metadata_path = '{}/osf_download_5cd988d3054f5b00185ca5e3/data/More Images/INVALID_PRESQT_FTS_METADATA.json'. \
+        metadata_path = '{}/download/osf_download_5cd988d3054f5b00185ca5e3/data/More Images/INVALID_PRESQT_FTS_METADATA.json'. \
             format(ticket_path)
         self.assertEqual(os.path.isfile(metadata_path), True)
         metadata_json = read_file(metadata_path, True)
         self.assertEqual([{"bad": "action"}], metadata_json['actions'])
 
         # Verify that the valid metadata file exists
-        metadata_path = '{}/osf_download_5cd988d3054f5b00185ca5e3/data/PRESQT_FTS_METADATA.json'. \
+        metadata_path = '{}/download/osf_download_5cd988d3054f5b00185ca5e3/PRESQT_FTS_METADATA.json'. \
             format(ticket_path)
         self.assertEqual(os.path.isfile(metadata_path), True)
         metadata_json = read_file(metadata_path, True)
@@ -735,8 +748,14 @@ class TestResourceGETZip(SimpleTestCase):
         url = reverse('resource', kwargs={'target_name': 'osf',
                                           'resource_id': '5cd988d3054f5b00185ca5e3',
                                           'resource_format': 'zip'})
-        response = self.client.get(url, **self.header)
         # Verify the status code and content
+        move_on = False
+        while not move_on:
+            response = self.client.get(url, **self.header)
+            if response.status_code == 400 and json.loads(response.content)['error'] == 'User currently has processes in progress.':
+                pass
+            else:
+                move_on = True
         self.assertEqual(response.status_code, 202)
 
         response = self.client.get(url, **self.header)
@@ -802,6 +821,7 @@ class TestResourcePOST(SimpleTestCase):
                 file_data = requests.get(
                     folder_data['data'][0]['relationships']['files']['links']['related']['href'], headers=headers).json()
                 break
+
         self.assertEqual(folder_data['links']['meta']['total'], 2)
         self.assertEqual(folder_data['data'][0]['attributes']['name'], 'funnyfunnyimages')
         self.assertEqual(file_data['links']['meta']['total'], 1)
@@ -822,13 +842,11 @@ class TestResourcePOST(SimpleTestCase):
 
         ######## 202 when uploading to an existing container with duplicate files ignored ########
         self.resource_id = '{}:osfstorage'.format(node_id)
-        self.duplicate_action = 'ignore'
         self.url = reverse('resource', kwargs={
                            'target_name': 'osf', 'resource_id': self.resource_id})
         self.file = 'presqt/api_v1/tests/resources/upload/FolderBagItToUpload.zip'
         self.resources_ignored = ['/funnyfunnyimages/Screen Shot 2019-07-15 at 3.26.49 PM.png']
         self.resources_updated = []
-        self.hash_algorithm = 'sha256'
         shared_upload_function_osf(self)
 
         # Verify files exist in OSF
