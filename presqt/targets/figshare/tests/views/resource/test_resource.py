@@ -381,6 +381,53 @@ class TestResourcePost(SimpleTestCase):
         self.assertEqual(process_info['resource_upload']['resources_updated'], [])
         self.assertEqual(process_info['resource_upload']['hash_algorithm'], 'md5')
 
+    def test_success_202_upload_extra_metadata(self):
+        """
+        This test is more of an integration test rather than a unit test.
+
+        Return a 200 when uploading a new top level container and check extra metadata.
+
+        """
+        ##### UPLOAD A NEW PROJECT #####
+        self.url = reverse('resource_collection', kwargs={'target_name': 'figshare'})
+
+        response = self.client.post(
+            self.url, {'presqt-file': open('presqt/api_v1/tests/resources/upload/Upload_Extra_Metadata.zip', 'rb')}, **self.headers)
+
+        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
+
+        # Verify status code and message
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(response.data['message'], 'The server is processing the request.')
+
+        # Verify process_info file status is 'in_progress' initially
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        self.assertEqual(process_info['resource_upload']['status'], 'in_progress')
+
+        # Wait until the spawned off process finishes in the background to do further validation
+        process_wait(process_info, ticket_path)
+
+        # Verify process_info.json file data
+        process_info = read_file('{}/process_info.json'.format(ticket_path), True)
+        self.assertEqual(process_info['resource_upload']['status'], 'finished')
+        self.assertEqual(process_info['resource_upload']['message'], 'Upload successful.')
+        self.assertEqual(process_info['resource_upload']['status_code'], '200')
+        self.assertEqual(process_info['resource_upload']['failed_fixity'], [])
+        self.assertEqual(process_info['resource_upload']['resources_ignored'], [])
+        self.assertEqual(process_info['resource_upload']['resources_updated'], [])
+        self.assertEqual(process_info['resource_upload']['hash_algorithm'], 'md5')
+
+        # Check the extra metadata - only description for FigShare
+        figshare_headers = {'Authorization': 'token {}'.format(self.token)}
+        response_data = requests.get(
+            "https://api.figshare.com/v2/account/projects", headers=figshare_headers).json()
+        for project_data in response_data:
+            if project_data['title'] == 'Extra_Eggs':
+                project_url = project_data['url']
+                break
+        project_info = requests.get(project_url, headers=figshare_headers).json()
+        self.assertEqual(project_info['description'], "There's so many eggs in here.")
+
     def test_401_unauthorized_user(self):
         """
         If a user does not have a valid FigShare API token, we should return a 401 unauthorized status.

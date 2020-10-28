@@ -55,6 +55,15 @@ class TestDownload(SimpleTestCase):
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 1)
 
+        with zip_file.open('figshare_download_{}/PRESQT_FTS_METADATA.json'.format(resource_id)) as metadatafile:
+            metadata = json.load(metadatafile)
+        # Make sure the results of extra are what we expect
+        self.assertEqual(metadata['extra_metadata']['description'],
+                         "This is actually just eggs.")
+        self.assertEqual(metadata['extra_metadata']['title'], 'Hello World')
+        self.assertEqual(metadata['extra_metadata']['creators'],
+                         [{'first_name': 'Prometheus', 'last_name': 'Test', 'ORCID': None}])
+
         file_path = "{}_download_{}/data/Hello World/Ecoute/ecoute.png".format(
             self.target_name, resource_id)
         # Verify that the folder exists
@@ -261,7 +270,8 @@ class TestDownload(SimpleTestCase):
                                           'resource_id': '209373160',
                                           'resource_format': 'zip'})
 
-        response = self.client.get(url, **{'HTTP_PRESQT_SOURCE_TOKEN': 'eggs', 'HTTP_PRESQT_EMAIL_OPT_IN': ''})
+        response = self.client.get(
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': 'eggs', 'HTTP_PRESQT_EMAIL_OPT_IN': ''})
         download_url = response.data['download_job_zip']
         process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(hash_tokens('eggs'))
         process_info = read_file(process_info_path, True)
