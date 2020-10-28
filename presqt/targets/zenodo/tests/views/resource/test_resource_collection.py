@@ -416,6 +416,32 @@ class TestResourceCollectionPOST(SimpleTestCase):
 
         # Delete upload folder
         shutil.rmtree(self.ticket_path)
+    
+    def test_presqt_fts_metadata_extra(self):
+        """
+        Check that the extra metadata is added to the deposition
+        """
+        self.file = 'presqt/api_v1/tests/resources/upload/Upload_Extra_Metadata.zip'
+        self.project_title = 'Extra Eggs'
+        # 202 when uploading a new top level repo
+        shared_upload_function_osf(self)
+
+        # On the project that was just created, we need to get the contents of the metadata file.
+        metadata_helper = requests.get('https://zenodo.org/api/deposit/depositions',
+                                       params=self.auth_params).json()
+        for project in metadata_helper:
+            if project['title'] == self.project_title:
+                url = project['links']['self']
+                get_info = requests.get(url, params=self.auth_params).json()
+                break
+        self.assertEqual(get_info['metadata']['description'], "There's so many eggs in here.")
+        self.assertEqual(get_info['metadata']['creators'][0]['name'], "Egg Eggs")
+        self.assertEqual(get_info['metadata']['title'], "Extra Eggs")
+
+        requests.delete(url, params=self.auth_params)
+
+        # Delete upload folder
+        shutil.rmtree(self.ticket_path)
 
     def test_upload_with_invalid_metadata_file_and_valid_metadata(self):
         """
