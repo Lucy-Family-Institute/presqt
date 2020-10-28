@@ -511,7 +511,6 @@ class BaseResource(APIView):
             update_process_info_message(self.process_info_path, self.action,
                                         "Creating PRESQT_FTS_METADATA...")
             self.new_fts_metadata_files = []
-            self.extra_metadata = {}
             for path, subdirs, files in os.walk(self.data_directory):
                 for name in files:
                     self.new_fts_metadata_files.append({

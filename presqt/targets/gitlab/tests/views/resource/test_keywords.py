@@ -53,7 +53,7 @@ class TestResourceKeywords(SimpleTestCase):
         keywords_url = reverse('keywords', kwargs={'target_name': 'gitlab',
                                                    'resource_id': resource_id})
         keywords_response = self.client.get(keywords_url, **self.header)
-        self.assertGreater(keywords_response.data['keywords'], response.data['extra']['tag_list'])
+        self.assertEqual(keywords_response.data['error'], 'There are no keywords to enhance for this resource.')
 
     def test_error_project_keywords(self):
         """
