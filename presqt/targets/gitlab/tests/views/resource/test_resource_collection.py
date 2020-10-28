@@ -212,6 +212,28 @@ class TestResourceCollectionPOST(SimpleTestCase):
         shutil.rmtree(self.ticket_path)
         delete_gitlab_project(response_json['resources'][0]['id'], GITLAB_UPLOAD_TEST_USER_TOKEN)
 
+    def test_success_202_upload_extra_metadata(self):
+        """
+        Return a 202 when a file is uploading.
+        """
+        self.file = 'presqt/api_v1/tests/resources/upload/Upload_Extra_Metadata.zip'
+        # 202 when uploading a new top level repo
+        shared_upload_function_gitlab(self)
+
+        # Verify the new repo exists on the PresQT Resource Collection endpoint.
+        url = reverse('resource_collection', kwargs={'target_name': 'gitlab'})
+        response_json = self.client.get(
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITLAB_UPLOAD_TEST_USER_TOKEN}).json()
+
+        # Check that the description was added to the project
+        project_info = requests.get('https://gitlab.com/api/v4/projects/{}'.format(
+            response_json['resources'][0]['id'])).json()
+        self.assertEqual(project_info['description'], "There's so many eggs in here.")
+
+        # Delete upload folder and project
+        shutil.rmtree(self.ticket_path)
+        delete_gitlab_project(response_json['resources'][0]['id'], GITLAB_UPLOAD_TEST_USER_TOKEN)
+
     def test_presqt_fts_metadata(self):
         """
         Check that the PRESQT_FTS_METADATA is created and what we expect.

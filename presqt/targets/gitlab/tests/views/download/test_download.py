@@ -54,6 +54,12 @@ class TestDownload(SimpleTestCase):
         with zip_file.open('gitlab_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 2)
+        
+        with zip_file.open('gitlab_download_{}/PRESQT_FTS_METADATA.json'.format(resource_id)) as metadatafile:
+            metadata = json.load(metadatafile)
+            self.assertEqual(metadata['extra_metadata']['description'],
+                             "Welcome to the show, kid.")
+            self.assertEqual(metadata['extra_metadata']['title'], 'Test Project')
 
         file_path = "{}_download_{}/data/Test Project/README.md".format(
             self.target_name, resource_id)
