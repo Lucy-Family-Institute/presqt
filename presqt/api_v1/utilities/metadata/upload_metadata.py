@@ -18,6 +18,7 @@ def get_upload_source_metadata(instance, bag):
     """
     instance.source_fts_metadata_actions = []
     instance.all_keywords = []
+    instance.extra_metadata = {}
     for bag_file in bag.payload_files():
         if os.path.split(bag_file)[-1] == 'PRESQT_FTS_METADATA.json':
             metadata_path = os.path.join(instance.resource_main_dir, bag_file)
@@ -29,6 +30,8 @@ def get_upload_source_metadata(instance, bag):
                                                        source_metadata_content['actions']
                 instance.all_keywords = instance.all_keywords + \
                                         source_metadata_content['allKeywords']
+                if 'extra_metadata' in source_metadata_content.keys():
+                    instance.extra_metadata = source_metadata_content['extra_metadata']
                 os.remove(os.path.join(instance.resource_main_dir, bag_file))
                 bag.save(manifests=True)
             # If the FTS metadata is invalid then rename the file in the bag.
