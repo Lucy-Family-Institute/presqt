@@ -2,7 +2,6 @@ import json
 import multiprocessing
 import os
 import shutil
-import uuid
 import zipfile
 from unittest import mock
 from unittest.mock import patch
@@ -17,7 +16,6 @@ from rest_framework.test import APIClient
 from config.settings.base import OSF_TEST_USER_TOKEN, OSF_UPLOAD_TEST_USER_TOKEN
 
 from presqt.api_v1.utilities.fixity.download_fixity_checker import download_fixity_checker
-from presqt.api_v1.utilities.multiprocess.watchdog import process_watchdog
 from presqt.api_v1.views.resource.base_resource import BaseResource
 from presqt.json_schemas.schema_handlers import schema_validator
 from presqt.targets.osf.functions.upload_metadata import osf_upload_metadata
@@ -27,7 +25,7 @@ from presqt.targets.utilities import (shared_get_success_function_202,
                                       shared_upload_function_osf)
 from presqt.api_v1.utilities import hash_tokens
 from presqt.utilities import (
-    write_file, read_file, get_dictionary_from_list, remove_path_contents, PresQTError)
+    read_file, get_dictionary_from_list, remove_path_contents, PresQTError)
 
 
 class TestResourceGETJSON(SimpleTestCase):
@@ -664,13 +662,7 @@ class TestResourceGETZip(SimpleTestCase):
                                           'resource_format': 'zip'})
 
         # Verify the status code and content
-        move_on = False
-        while not move_on:
-            response = self.client.get(url, **self.header)
-            if response.status_code == 400 and json.loads(response.content)['error'] == 'User currently has processes in progress.':
-                pass
-            else:
-                move_on = True
+        response = self.client.get(url, **self.header)
 
         self.assertEqual(response.status_code, 202)
 
@@ -749,13 +741,7 @@ class TestResourceGETZip(SimpleTestCase):
                                           'resource_id': '5cd988d3054f5b00185ca5e3',
                                           'resource_format': 'zip'})
         # Verify the status code and content
-        move_on = False
-        while not move_on:
-            response = self.client.get(url, **self.header)
-            if response.status_code == 400 and json.loads(response.content)['error'] == 'User currently has processes in progress.':
-                pass
-            else:
-                move_on = True
+        response = self.client.get(url, **self.header)
         self.assertEqual(response.status_code, 202)
 
         response = self.client.get(url, **self.header)

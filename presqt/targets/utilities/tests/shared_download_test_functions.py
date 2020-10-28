@@ -86,15 +86,7 @@ def shared_get_success_function_202_with_error(test_case_instance):
                                       'resource_format': 'zip'})
 
     # Verify the status code and content
-    move_on = False
-    while not move_on:
-        response = test_case_instance.client.get(url, **test_case_instance.header)
-        if response.status_code == 400 and json.loads(response.content)['error'] == 'User currently has processes in progress.':
-            pass
-        else:
-            move_on = True
-
-    # Verify the status code and content
+    response = test_case_instance.client.get(url, **test_case_instance.header)
     test_case_instance.assertEqual(response.status_code, 202)
     test_case_instance.assertEqual(
         response.data['message'], 'The server is processing the request.')
