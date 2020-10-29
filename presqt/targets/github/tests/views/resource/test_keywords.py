@@ -200,7 +200,6 @@ class TestResourceKeywordsPOST(SimpleTestCase):
         # Set the poject back to having zero keywords
         data = {'names': []}
         put_response = requests.put(get_url, headers=headers, data=json.dumps(data))
-
         self.assertEqual(put_response.status_code, 200)
 
     def test_update_project_keywords_more_than_20_keywords(self):
@@ -226,11 +225,9 @@ class TestResourceKeywordsPOST(SimpleTestCase):
 
         # Check the project again and ensure it has the new keywords, and length is only 20
         response = requests.get(get_url, headers=headers).json()
-        self.assertEqual(response['names'], func_dict['updated_keywords'])
         self.assertEqual(len(response['names']), 20)
 
         # Set the poject back to having zero keywords
         data = {'names': []}
         put_response = requests.put(get_url, headers=headers, data=json.dumps(data))
-
         self.assertEqual(put_response.status_code, 200)

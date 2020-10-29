@@ -5,6 +5,7 @@ import requests
 
 from presqt.json_schemas.schema_handlers import schema_validator
 from presqt.targets.github.utilities import validation_check
+from presqt.targets.github.utilities.utils.upload_extra_metadata import upload_extra_metadata
 from presqt.utilities import PresQTError
 
 
@@ -114,3 +115,8 @@ def github_upload_metadata(token, project_id, metadata_dict):
         raise PresQTError(
             "The request to create a metadata file has resulted in a {} error code from GitHub.".format(
                 response.status_code))
+
+    # Add extra metadata to the top level resource
+    if 'extra_metadata' in metadata_dict.keys() and metadata_dict['extra_metadata']:
+        attribute_url =  "https://api.github.com/repos/{}/{}".format(username, project_name)
+        upload_extra_metadata(metadata_dict['extra_metadata'], header, attribute_url)

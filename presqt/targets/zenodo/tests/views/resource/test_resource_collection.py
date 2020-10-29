@@ -56,7 +56,7 @@ class TestResourceCollection(SimpleTestCase):
             self.assertEqual(len(data['links']), 1)
             self.assertListEqual(keys, list(data.keys()))
         # Verify the count of resource objects is what we expect.
-        self.assertEqual(response.data['pages']['total_pages'], '1')
+        self.assertEqual(response.data['pages']['total_pages'], 1)
 
     def test_success_zenodo_with_search(self):
         """
@@ -416,6 +416,32 @@ class TestResourceCollectionPOST(SimpleTestCase):
 
         # Delete upload folder
         shutil.rmtree(self.ticket_path)
+    
+    def test_presqt_fts_metadata_extra(self):
+        """
+        Check that the extra metadata is added to the deposition
+        """
+        self.file = 'presqt/api_v1/tests/resources/upload/Upload_Extra_Metadata.zip'
+        self.project_title = 'Extra Eggs'
+        # 202 when uploading a new top level repo
+        shared_upload_function_osf(self)
+
+        # On the project that was just created, we need to get the contents of the metadata file.
+        metadata_helper = requests.get('https://zenodo.org/api/deposit/depositions',
+                                       params=self.auth_params).json()
+        for project in metadata_helper:
+            if project['title'] == self.project_title:
+                url = project['links']['self']
+                get_info = requests.get(url, params=self.auth_params).json()
+                break
+        self.assertEqual(get_info['metadata']['description'], "There's so many eggs in here.")
+        self.assertEqual(get_info['metadata']['creators'][0]['name'], "Egg Eggs")
+        self.assertEqual(get_info['metadata']['title'], "Extra Eggs")
+
+        requests.delete(url, params=self.auth_params)
+
+        # Delete upload folder
+        shutil.rmtree(self.ticket_path)
 
     def test_upload_with_invalid_metadata_file_and_valid_metadata(self):
         """
@@ -581,7 +607,8 @@ class TestResourceCollectionPOST(SimpleTestCase):
                    'HTTP_PRESQT_EMAIL_OPT_IN': ''}
         response = self.client.post(self.url, {'presqt-file': open(self.file, 'rb')}, **headers)
 
-        ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
+        ticket_number = hash_tokens('eggyboi')
+        ticket_path = 'mediafiles/jobs/{}'.format(ticket_number)
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files

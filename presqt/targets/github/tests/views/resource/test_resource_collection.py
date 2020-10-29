@@ -279,13 +279,13 @@ class TestResourceCollectionPOST(SimpleTestCase):
         response = self.client.post(
             self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
 
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_number = hash_tokens(GITHUB_TEST_USER_TOKEN)
+        ticket_path = 'mediafiles/jobs/{}'.format(ticket_number)
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_upload']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
@@ -307,13 +307,12 @@ class TestResourceCollectionPOST(SimpleTestCase):
         response = self.client.post(
             self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
 
-        ticket_number = response.data['ticket_number']
-        ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
+        ticket_path = 'mediafiles/jobs/{}'.format(ticket_number)
 
         # Wait until the spawned off process finishes in the background
         # to do validation on the resulting files
         process_info = read_file('{}/process_info.json'.format(ticket_path), True)
-        while process_info['status'] == 'in_progress':
+        while process_info['resource_upload']['status'] == 'in_progress':
             try:
                 process_info = read_file('{}/process_info.json'.format(ticket_path), True)
             except json.decoder.JSONDecodeError:
@@ -344,7 +343,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
         header = {"Authorization": "token {}".format(self.token)}
 
         # On the project that was just created, we need to get the contents of the metadata file.
-        metadata_link = 'https://raw.githubusercontent.com/presqt-test-user/{}/master/PRESQT_FTS_METADATA.json'.format(
+        metadata_link = 'https://raw.githubusercontent.com/presqt-test-user/{}/main/PRESQT_FTS_METADATA.json'.format(
             self.repo_title)
 
         # Get the metadata json
@@ -366,6 +365,37 @@ class TestResourceCollectionPOST(SimpleTestCase):
                          '/NewProject/funnyfunnyimages/Screen_Shot_2019-07-15_at_3.26.49_PM.png')
         self.assertEqual(metadata_file['actions'][0]['files']['created'][0]['destinationHashes'],
                          {})
+
+        # Delete upload folder
+        shutil.rmtree(self.ticket_path)
+
+    def test_presqt_fts_extra_metadata(self):
+        """
+        Check that extra metadata is added to the project.
+        """
+        self.file = 'presqt/api_v1/tests/resources/upload/Upload_Extra_Metadata.zip'
+        self.repo_title = 'Extra_Eggs'
+        self.failed_fixity = ['/Extra_Eggs/starfishjump.gif']
+        # 202 when uploading a new top level repo
+        shared_upload_function_github(self)
+        header = {"Authorization": "token {}".format(self.token)}
+        # Get the resource id of the project
+        url = reverse('resource_collection', kwargs={'target_name': 'github'})
+        response_json = self.client.get(
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': GITHUB_TEST_USER_TOKEN}).json()
+
+        for repo in response_json['resources']:
+            if repo['title'] == self.repo_title:
+                resource_id = repo['id']
+                break
+        # Check that the description is added to the repo
+        project_info = requests.get('https://api.github.com/repositories/{}'.format(resource_id),
+                                    headers=header).json()
+        self.assertEqual(project_info['description'], "There's so many eggs in here.")
+
+        # DELETE THE REPO
+        delete_github_repo('presqt-test-user', self.repo_title,
+                           {'Authorization': 'token {}'.format(GITHUB_TEST_USER_TOKEN)})
 
         # Delete upload folder
         shutil.rmtree(self.ticket_path)
@@ -402,7 +432,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
                 pass
 
         # On the project that was just created, we need to get the contents of the metadata file.
-        invalid_metadata_link = 'https://raw.githubusercontent.com/presqt-test-user/Bad_Egg/master/INVALID_PRESQT_FTS_METADATA.json'
+        invalid_metadata_link = 'https://raw.githubusercontent.com/presqt-test-user/Bad_Egg/main/INVALID_PRESQT_FTS_METADATA.json'
         # Get the invalid metadata json
         response = requests.get(invalid_metadata_link, headers=header)
         invalid_metadata_file = json.loads(response.content)
@@ -430,7 +460,7 @@ class TestResourceCollectionPOST(SimpleTestCase):
                 # Pass while the process_info file is being written to
                 pass
         # On the project that was just created, we need to get the contents of the metadata file.
-        valid_metadata_link = 'https://raw.githubusercontent.com/presqt-test-user/Good_Egg/master/PRESQT_FTS_METADATA.json'
+        valid_metadata_link = 'https://raw.githubusercontent.com/presqt-test-user/Good_Egg/main/PRESQT_FTS_METADATA.json'
         # Get the invalid metadata json
         response = requests.get(valid_metadata_link, headers=header)
         valid_metadata_file = json.loads(response.content)

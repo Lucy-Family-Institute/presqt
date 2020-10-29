@@ -15,13 +15,17 @@ def process_wait(process_info, ticket_path):
 
 def shared_upload_function_osf(test_case_instance):
     test_case_instance.headers['HTTP_PRESQT_FILE_DUPLICATE_ACTION'] = test_case_instance.duplicate_action
+
+    # Verify the status code and content
     response = test_case_instance.client.post(test_case_instance.url, {
-                                              'presqt-file': open(test_case_instance.file, 'rb')}, **test_case_instance.headers)
+        'presqt-file': open(test_case_instance.file, 'rb')}, **test_case_instance.headers)
 
     test_case_instance.ticket_path = 'mediafiles/jobs/{}'.format(test_case_instance.ticket_number)
 
+
     # Verify status code and message
     test_case_instance.assertEqual(response.status_code, 202)
+
     test_case_instance.assertEqual(
         response.data['message'], 'The server is processing the request.')
 

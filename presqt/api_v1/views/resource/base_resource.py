@@ -250,6 +250,12 @@ class BaseResource(APIView):
             try:
                 self.base_directory_name = next(os.walk(self.ticket_path))[1][0]
             except IndexError:
+                self.process_info_obj['status'] = 'failure'
+                self.process_info_obj['expiration'] = str(timezone.now())
+                self.process_info_obj['status_code'] = 400
+                self.process_info_obj['message'] = 'PresQT Error: Bag is not formatted properly.'
+                self.process_info_path = update_or_create_process_info(
+                    self.process_info_obj, self.action, self.ticket_number)
                 return Response(data={'error': 'PresQT Error: Bag is not formatted properly.'}, status=status.HTTP_400_BAD_REQUEST)
 
             self.resource_main_dir = os.path.join(self.ticket_path, self.base_directory_name)
@@ -511,7 +517,6 @@ class BaseResource(APIView):
             update_process_info_message(self.process_info_path, self.action,
                                         "Creating PRESQT_FTS_METADATA...")
             self.new_fts_metadata_files = []
-            self.extra_metadata = {}
             for path, subdirs, files in os.walk(self.data_directory):
                 for name in files:
                     self.new_fts_metadata_files.append({

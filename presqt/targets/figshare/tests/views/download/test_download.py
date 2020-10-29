@@ -48,12 +48,21 @@ class TestDownload(SimpleTestCase):
         # Verify content type
         self.assertEqual(response._headers['content-type'][1], 'application/zip')
         # Verify the number of resources in the zip is correct
-        self.assertEqual(len(zip_file.namelist()), 14)
+        self.assertEqual(len(zip_file.namelist()), 15)
 
         # Verify the fixity file is empty as there was nothing to check.
         with zip_file.open('figshare_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
             zip_json = json.load(fixityfile)
             self.assertEqual(len(zip_json), 1)
+
+        with zip_file.open('figshare_download_{}/PRESQT_FTS_METADATA.json'.format(resource_id)) as metadatafile:
+            metadata = json.load(metadatafile)
+        # Make sure the results of extra are what we expect
+        self.assertEqual(metadata['extra_metadata']['description'],
+                         "This is actually just eggs.")
+        self.assertEqual(metadata['extra_metadata']['title'], 'Hello World')
+        self.assertEqual(metadata['extra_metadata']['creators'],
+                         [{'first_name': 'Prometheus', 'last_name': 'Test', 'ORCID': None}])
 
         file_path = "{}_download_{}/data/Hello World/Ecoute/ecoute.png".format(
             self.target_name, resource_id)
@@ -87,7 +96,7 @@ class TestDownload(SimpleTestCase):
         # Verify content type
         self.assertEqual(response._headers['content-type'][1], 'application/zip')
         # Verify the number of resources in the zip is correct
-        self.assertEqual(len(zip_file.namelist()), 71)
+        self.assertEqual(len(zip_file.namelist()), 72)
 
         # Verify the fixity file is empty as there was nothing to check.
         with zip_file.open('figshare_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
@@ -126,7 +135,7 @@ class TestDownload(SimpleTestCase):
         # Verify content type
         self.assertEqual(response._headers['content-type'][1], 'application/zip')
         # Verify the number of resources in the zip is correct
-        self.assertEqual(len(zip_file.namelist()), 13)
+        self.assertEqual(len(zip_file.namelist()), 14)
 
         # Verify the fixity file is empty as there was nothing to check.
         with zip_file.open('figshare_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
@@ -165,7 +174,7 @@ class TestDownload(SimpleTestCase):
         # Verify content type
         self.assertEqual(response._headers['content-type'][1], 'application/zip')
         # Verify the number of resources in the zip is correct
-        self.assertEqual(len(zip_file.namelist()), 14)
+        self.assertEqual(len(zip_file.namelist()), 15)
 
         # Verify the fixity file is empty as there was nothing to check.
         with zip_file.open('figshare_download_{}/fixity_info.json'.format(resource_id)) as fixityfile:
@@ -261,7 +270,8 @@ class TestDownload(SimpleTestCase):
                                           'resource_id': '209373160',
                                           'resource_format': 'zip'})
 
-        response = self.client.get(url, **{'HTTP_PRESQT_SOURCE_TOKEN': 'eggs', 'HTTP_PRESQT_EMAIL_OPT_IN': ''})
+        response = self.client.get(
+            url, **{'HTTP_PRESQT_SOURCE_TOKEN': 'eggs', 'HTTP_PRESQT_EMAIL_OPT_IN': ''})
         download_url = response.data['download_job_zip']
         process_info_path = 'mediafiles/jobs/{}/process_info.json'.format(hash_tokens('eggs'))
         process_info = read_file(process_info_path, True)

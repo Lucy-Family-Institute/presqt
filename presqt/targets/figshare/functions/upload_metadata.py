@@ -5,6 +5,7 @@ from rest_framework import status
 
 from presqt.json_schemas.schema_handlers import schema_validator
 from presqt.targets.figshare.utilities.helpers.upload_helpers import figshare_file_upload_process
+from presqt.targets.figshare.utilities.upload_extra_metadata import upload_extra_metadata
 from presqt.targets.figshare.utilities.validation_check import validation_check
 from presqt.targets.figshare.utilities.helpers.create_article import create_article
 from presqt.utilities import PresQTResponseException
@@ -76,3 +77,8 @@ def figshare_upload_metadata(token, article_id, metadata_dict):
 
     # New Metadata file
     figshare_file_upload_process(metadata_dict, headers, file_name, article_id)
+
+    # Add extra metadata to the top level resource
+    if 'extra_metadata' in metadata_dict.keys() and metadata_dict['extra_metadata']:
+        attribute_url = "https://api.figshare.com/v2/account/projects/{}".format(split_id[0])
+        upload_extra_metadata(metadata_dict['extra_metadata'], headers, attribute_url)
