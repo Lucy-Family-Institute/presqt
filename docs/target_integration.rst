@@ -496,10 +496,10 @@ Resource Upload Endpoint
 
         ============= ==== ======================================================
         token         str  User's token for the target
+        project_id    str  The id of the parent project for the resource uploaded
         metadata_dict dict The FTS metadata dictionary to upload
 
                            At this point it will be a Python dict
-        project_id    str  The id of the parent project for the resource uploaded
         ============= ==== ======================================================
 
     * The function doesn't return anything
@@ -508,8 +508,12 @@ Resource Upload Endpoint
 
         .. code-block:: python
 
-            def <your_target_name>_upload_metadata(token, metadata_dict, project_id):
+            def <your_target_name>_upload_metadata(token, project_id, metadata_dict):
                 # Process to upload metadata goes here.
+
+                # If you want to upload the extra metadata to fields supported by your API
+                # you will have to add that functionality as well. IE:
+                update_project_with_metadata(url, metadata_dict['extra_metadata'])
 
 3. Add the resource upload and upload metadata functions to  ``presqt/api_v1/utilities/utils/function_router.py``
 
