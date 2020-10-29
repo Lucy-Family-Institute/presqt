@@ -1,3 +1,4 @@
+import io
 import json
 import multiprocessing
 import os
@@ -26,6 +27,7 @@ from presqt.targets.utilities import (shared_get_success_function_202,
 from presqt.api_v1.utilities import hash_tokens
 from presqt.utilities import (
     read_file, get_dictionary_from_list, remove_path_contents, PresQTError)
+from presqt.utilities.io import zip_file
 
 
 class TestResourceGETJSON(SimpleTestCase):
@@ -402,6 +404,14 @@ class TestResourceGETZip(SimpleTestCase):
                                  'osf_download_cmn5z/data/Test Project/Sub Test Project/osfstorage/']
         for empty_folder in list_of_empty_folders:
             self.assertIn(empty_folder, self.zip_file.namelist())
+
+        with self.zip_file.open('osf_download_{}/PRESQT_FTS_METADATA.json'.format(self.resource_id)) as metadatafile:
+            metadata = json.load(metadatafile)
+            self.assertEqual(metadata['extra_metadata']['description'],
+                             "Test Project for PresQT Testing")
+            self.assertEqual(metadata['extra_metadata']['publication_date'],
+                             "2019-05-13T14:15:48.271327")
+            self.assertEqual(metadata['extra_metadata']['title'], 'Test Project')
 
     def test_202_downloadresource_fails_file_id_doesnt_exist(self):
         """
@@ -973,6 +983,30 @@ class TestResourcePOST(SimpleTestCase):
         process_info_path = '{}/process_info.json'.format(ticket_path)
         process_info = read_file(process_info_path, True)
         process_wait(process_info, ticket_path)
+
+    def test_presqt_fts_extra_metadata(self):
+        """
+        Check that extra metadata is added to the project.
+        """
+        self.file = 'presqt/api_v1/tests/resources/upload/Upload_Extra_Metadata.zip'
+        self.project_title = 'Extra_Eggs'
+        self.duplicate_action = 'ignore'
+        self.url = reverse('resource_collection', kwargs={'target_name': 'osf'})
+        self.failed_fixity = ['/Extra_Eggs/osf_storage/starfishjump.gif']
+        self.resources_updated = []
+        self.resources_ignored = []
+        self.hash_algorithm = 'md5'
+        # 202 when uploading a new top level project
+        shared_upload_function_osf(self)
+
+        headers = {'Authorization': 'Bearer {}'.format(OSF_UPLOAD_TEST_USER_TOKEN)}
+        for node in requests.get('http://api.osf.io/v2/users/me/nodes', headers=headers).json()['data']:
+            if node['attributes']['title'] == self.project_title:
+                self.assertEqual(node['attributes']['description'], "There's so many eggs in here.")
+                break
+
+        # Delete upload folder
+        shutil.rmtree(self.ticket_path)
 
     def test_bad_metadata_request(self):
         """

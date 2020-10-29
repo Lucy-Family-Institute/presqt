@@ -81,11 +81,19 @@ class TestTransferJobGET(SimpleTestCase):
         # Check that transfer was successful
         response = self.client.get(self.transfer_job, **self.headers)
         self.assertEqual(response.data['status_code'], '200')
+
         # Fixity errors because we're dealing with GitHub
         self.assertEqual(response.data['message'],
                          "Transfer successful. Fixity can't be determined because GitHub may not have provided a file checksum. See PRESQT_FTS_METADATA.json for more details.")
         # Ensure we have results for the 12 FAIRshare tests
         self.assertEqual(len(response.data['fairshare_evaluation_results']), 12)
+
+        # Check that extra metadata was uploaded correctly
+        headers = {'Authorization': 'Bearer {}'.format(OSF_UPLOAD_TEST_USER_TOKEN)}
+        for node in requests.get('http://api.osf.io/v2/users/me/nodes', headers=headers).json()['data']:
+            if node['attributes']['title'] == 'Project Twelve':
+                self.assertEqual(node['attributes']['description'], "A test project for PresQT ")
+                break
 
         # Delete corresponding folder
         shutil.rmtree('mediafiles/jobs/{}'.format(self.ticket_number))
