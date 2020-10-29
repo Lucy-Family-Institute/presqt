@@ -1034,7 +1034,6 @@ class TestResourcePOST(SimpleTestCase):
         self.resources_updated = []
         self.hash_algorithm = 'sha256'
         shared_upload_function_osf(self)
-
         # Verify files exist in OSF
         headers = {'Authorization': 'Bearer {}'.format(OSF_UPLOAD_TEST_USER_TOKEN)}
         for node in requests.get('http://api.osf.io/v2/users/me/nodes', headers=headers).json()['data']:
@@ -1135,3 +1134,8 @@ class TestResourcePOST(SimpleTestCase):
         # Verify the status code and content
         self.assertEqual(error_response.status_code, 400)
         self.assertEqual(error_response.data['error'], "User currently has processes in progress.")
+
+        # WE NEED TO WAIT FOR THE INITIAL POST TO FINISH
+        self.ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
+        process_info = read_file('{}/process_info.json'.format(self.ticket_path), True)
+        process_wait(process_info, self.ticket_path)
