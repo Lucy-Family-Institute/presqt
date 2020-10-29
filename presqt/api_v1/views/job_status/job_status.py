@@ -186,6 +186,7 @@ class JobStatus(APIView):
             data['failed_fixity'] = upload_process_data['failed_fixity']
             data['resources_ignored'] = upload_process_data['resources_ignored']
             data['resources_updated'] = upload_process_data['resources_updated']
+            data['link_to_resource'] = upload_process_data['link_to_resource']
             data['job_percentage'] = 99
         else:
             if upload_status == 'in_progress':
@@ -238,6 +239,7 @@ class JobStatus(APIView):
             data['source_resource_id'] = transfer_process_data['source_resource_id']
             data['destination_resource_id'] = transfer_process_data['destination_resource_id']
             data['fairshare_evaluation_results'] = transfer_process_data['fairshare_evaluation_results']
+            data['link_to_resource'] = transfer_process_data['link_to_resource']
             data['job_percentage'] = 99
         else:
             if transfer_status == 'in_progress':

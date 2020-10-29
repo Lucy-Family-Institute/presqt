@@ -660,6 +660,7 @@ class BaseResource(APIView):
             self.process_info_obj['hash_algorithm'] = self.hash_algorithm
             self.process_info_obj['failed_fixity'] = self.upload_failed_fixity
             self.process_info_obj['upload_status'] = upload_message
+            self.process_info_obj['link_to_resource'] = self.func_dict["project_link"]
             update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
 
             if self.email:
@@ -837,6 +838,7 @@ class BaseResource(APIView):
             self, 'Transfer', transfer_fixity, self.metadata_validation, self.action_metadata)
         self.process_info_obj['status'] = 'finished'
         self.process_info_obj['fairshare_evaluation_results'] = results
+        self.process_info_obj['link_to_resource'] = self.func_dict["project_link"]
         update_or_create_process_info(self.process_info_obj, self.action, self.ticket_number)
 
         if self.email:
