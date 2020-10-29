@@ -67,6 +67,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
 ]
 
+# nginx will handle this
+SECURE_CONTENT_TYPE_NOSNIFF = False
+
 ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
