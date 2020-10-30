@@ -106,7 +106,7 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
 
                 file_response = requests.put(put_url, headers=header, data=json.dumps(data))
                 if file_response.status_code != 201:
-                    raise PresQTResponseException(str(file_response.json()), status.HTTP_418_IM_A_TEAPOT)
+                    raise PresQTResponseException("Github returned the following error: '{}'".format(str(file_response.json()['message'])), status.HTTP_400_BAD_REQUEST)
 
                 # Increment the file counter
                 increment_process_info(process_info_path, action, 'upload')
