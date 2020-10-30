@@ -63,7 +63,6 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
     except PresQTResponseException:
         raise PresQTResponseException("Token is invalid. Response returned a 401 status code.",
                                       status.HTTP_401_UNAUTHORIZED)
-
     os_path = next(os.walk(resource_main_dir))
     # Get total amount of files
     total_files = upload_total_files(resource_main_dir)
@@ -74,9 +73,8 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
     if not resource_id:
         # Create a new repository with the name being the top level directory's name.
         # Note: GitHub doesn't allow spaces, or circlebois in repo_names
-        repo_title = os_path[1][0].replace(' ', '_').replace("(", "-").replace(")", "-")
+        repo_title = os_path[1][0].replace(' ', '_').replace("(", "-").replace(")", "-").replace(":", "-")
         repo_name, repo_id, repo_url = create_repository(repo_title, token)
-
         resources_ignored = []
         resources_updated = []
         action_metadata = {"destinationUsername": username}
@@ -97,7 +95,6 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                     "destinationPath": finished_path,
                     "title": name,
                     "destinationHash": None})
-
                 put_url = "https://api.github.com/repos/{}/{}/contents/{}".format(
                     username, repo_name, path_to_add_to_url)
                 data = {
@@ -107,7 +104,10 @@ def github_upload_resource(token, resource_id, resource_main_dir, hash_algorithm
                         "email": "N/A"},
                     "content": encoded_file}
 
-                requests.put(put_url, headers=header, data=json.dumps(data))
+                file_response = requests.put(put_url, headers=header, data=json.dumps(data))
+                if file_response.status_code != 201:
+                    raise PresQTResponseException("Github returned the following error: '{}'".format(str(file_response.json()['message'])), status.HTTP_400_BAD_REQUEST)
+
                 # Increment the file counter
                 increment_process_info(process_info_path, action, 'upload')
     else:
