@@ -10,3 +10,5 @@ ENV APPLICATION_PASSWORD = ${APPLICATION_PASSWORD:-NA}
 USER postgres
 RUN mkdir /var/lib/postgresql/.ssh
 RUN mkdir /var/lib/postgresql/downloaded_backup
+
+COPY docker/postgres_1_setup_db.sh /docker-entrypoint-initdb.d/postgres_1_setup_db.sh

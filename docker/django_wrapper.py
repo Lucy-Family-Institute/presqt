@@ -16,6 +16,8 @@ import sys
 
 import psycopg2
 
+print(os.environ)
+
 try:
     postgres = psycopg2.connect(
         host='postgres_db',
