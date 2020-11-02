@@ -16,11 +16,9 @@ import sys
 
 import psycopg2
 
-print(os.environ)
-
 try:
     postgres = psycopg2.connect(
-        host='wellbeing_postgres_db',
+        host='postgres_db',
         user=os.environ['APPLICATION_USER'],
         database=os.environ['APPLICATION_DB'],
         password=os.environ['APPLICATION_PASSWORD']
