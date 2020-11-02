@@ -16,6 +16,7 @@ networks:
       driver: default
       config:
         - subnet: 192.168.1.0/24
+
 services:
   presqt_nginx:
     depends_on:
@@ -71,6 +72,8 @@ services:
       DJANGO_SETTINGS_MODULE: config.settings.${ENVIRONMENT:-production}
       EMAIL_HOST_USER: ${EMAIL_HOST_USER:-NA}
     restart: always
+    depends_on: 
+      - postgres_db
     volumes:
       - .:/usr/src/app
       - presqt_static_volume:/usr/src/app/staticfiles
@@ -131,7 +134,29 @@ services:
       - .:/usr/src/app
       - nginx_logs_volume:/var/log/nginx/
 
-
+  # This will create a Postgres container with persistent
+  # storage on the host. It's important to note that unless
+  # you delete the persistant storage volume, the password
+  # set via environment variable at the first run of docker-compose
+  # will also persist, even if you change the environment
+  # variable value in between docker-compose invocations.
+  postgres_db:
+    build:
+      context: .
+      dockerfile: postgres.dockerfile
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      APPLICATION_USER: $APPLICATION_USER
+      APPLICATION_PASSWORD: $APPLICATION_PASSWORD
+      APPLICATION_DB: $APPLICATION_DB
+    networks:
+      - backend
+    ports:
+      - 127.0.0.1:5432:5432
+    restart: always
+    volumes:
+      - postgres_volume:/var/lib/postgresql/data
 
 # We create two top-level networks to provide some isolation
 # of concerns / greater security. In our case, we use this to
@@ -146,3 +171,4 @@ volumes:
   presqt_media_volume:
   presqt_ui_volume:
   nginx_logs_volume:
+  postgres_volume:        # Store the postgres database data. Only linked with postgres.

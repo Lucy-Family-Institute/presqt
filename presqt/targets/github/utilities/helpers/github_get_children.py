@@ -26,6 +26,7 @@ def github_get_children(data, header, parent_id, repo_id):
     if isinstance(data, dict):
         # Get the contents of the top level repo
         # Partition is to strip the extra from GitHub API links
+        print(data['contents_url'])
         data = requests.get(data['contents_url'].partition('{+path}')[0], headers=header).json()
 
     for child in data:
