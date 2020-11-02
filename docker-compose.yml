@@ -110,6 +110,10 @@ services:
       ENVIRONMENT: ${ENVIRONMENT:-production}
       DJANGO_SETTINGS_MODULE: config.settings.${ENVIRONMENT:-production}
       EMAIL_HOST_USER: ${EMAIL_HOST_USER:-NA}
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      APPLICATION_USER: $APPLICATION_USER
+      APPLICATION_PASSWORD: $APPLICATION_PASSWORD
+      APPLICATION_DB: $APPLICATION_DB
     volumes:
       - .:/usr/src/app
       - presqt_static_volume:/usr/src/app/staticfiles
