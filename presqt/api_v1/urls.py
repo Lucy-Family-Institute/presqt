@@ -2,6 +2,7 @@ from django.urls import path
 
 from presqt.api_v1.views.job_status.job_status import JobStatus
 from presqt.api_v1.views.bag_and_zip.bag_and_zip import BagAndZip
+from presqt.api_v1.views.authenticate.authenticate import Authenticate
 from presqt.api_v1.views.service.fairshare.evaluator import FairshareEvaluator
 from presqt.api_v1.views.status.status import StatusCollection
 from presqt.api_v1 import api_root
@@ -15,6 +16,9 @@ from presqt.api_v1.views.service.eaasi.download import EaasiDownload
 
 api_v1_endpoints = [
     path('', api_root, name='api_root'),
+
+    # Authenticate
+    path('authenticate/<str:method>/', Authenticate.as_view(), name="authenticate"),
 
     # Targets
     path('targets/', TargetCollection.as_view(), name="target_collection"),
