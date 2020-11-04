@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'presqt',
     'rest_framework',
+    'authentication'
 ]
 
 MIDDLEWARE = [
@@ -95,7 +96,23 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
-DATABASES = {}
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.environ['APPLICATION_DB'],
+        'USER': os.environ['APPLICATION_USER'],
+        'PASSWORD': os.environ['APPLICATION_PASSWORD'],
+        'HOST': 'postgres_db',
+        'PORT': '5432',
+    }
+}
+
+# Absolute filesystem path to the directory that will hold user-uploaded files.
+MEDIA_ROOT = '/var/mediafiles'
+
+# Database manager configuration
+DATABASE_MANAGER_DIR = os.path.join(MEDIA_ROOT, "databases")
+DATABASE_BACKUP_DIR = "/var/db_backups"
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [],
@@ -163,3 +180,6 @@ GITHUB_TEST_USER_TOKEN = os.environ['GITHUB_TEST_USER_TOKEN']
 GITLAB_TEST_USER_TOKEN = os.environ['GITLAB_TEST_USER_TOKEN']
 GITLAB_UPLOAD_TEST_USER_TOKEN = os.environ['GITLAB_UPLOAD_TEST_USER_TOKEN']
 FIGSHARE_TEST_USER_TOKEN = os.environ['FIGSHARE_TEST_USER_TOKEN']
+
+ORCID_CLIENT_ID = os.environ['ORCID_CLIENT_ID']
+ORCID_CLIENT_SECRET = os.environ['ORCID_CLIENT_SECRET']

@@ -20,3 +20,4 @@ Markdown==3.1                       # Markdown support for browsable API
 coreapi==2.3.3                      # Schema generation support for API
 
 html2text==2020.1.16
+psycopg2==2.8.4
