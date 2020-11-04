@@ -11,7 +11,7 @@ class Authenticate(APIView):
 
     def get(self, request, method):
         # TODO: Validate method and auth_code
-        auth_code = request.query_params['auth_code']
+        auth_code = request.query_params['code']
 
         data = {
             "client_id": "APP-3L910G6J1YJGTK6H",
@@ -20,12 +20,8 @@ class Authenticate(APIView):
             "code": auth_code,
             "redirect_uri": "https://developers.google.com/oauthplayground"
         }
-
-        headers = {"Accept": "application/json"}
-
         response = requests.post('https://orcid.org/oauth/token',
-                                data=json.dumps(data),
-                                headers=headers)
+                                headers={"Accept": "application/json"},
+                                data=data)
 
-        print(response)
         return Response(data=response.json())
