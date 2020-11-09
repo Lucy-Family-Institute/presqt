@@ -18,6 +18,7 @@ def get_upload_source_metadata(instance, bag):
     """
     instance.source_fts_metadata_actions = []
     instance.all_keywords = []
+    instance.extra_metadata = {}
     for bag_file in bag.payload_files():
         if os.path.split(bag_file)[-1] == 'PRESQT_FTS_METADATA.json':
             metadata_path = os.path.join(instance.resource_main_dir, bag_file)
@@ -29,6 +30,8 @@ def get_upload_source_metadata(instance, bag):
                                                        source_metadata_content['actions']
                 instance.all_keywords = instance.all_keywords + \
                                         source_metadata_content['allKeywords']
+                if 'extra_metadata' in source_metadata_content.keys():
+                    instance.extra_metadata = source_metadata_content['extra_metadata']
                 os.remove(os.path.join(instance.resource_main_dir, bag_file))
                 bag.save(manifests=True)
             # If the FTS metadata is invalid then rename the file in the bag.
@@ -87,7 +90,7 @@ def create_upload_metadata(instance, file_metadata_list, action_metadata, projec
     # Create FTS metadata object
     from presqt.api_v1.utilities import create_fts_metadata
     instance.fts_metadata_data = create_fts_metadata(instance.all_keywords, instance.action_metadata,
-                                            instance.source_fts_metadata_actions)
+                                            instance.source_fts_metadata_actions, instance.extra_metadata)
     # Write the metadata file to the destination target and validate the metadata file
     metadata_validation = write_and_validate_metadata(instance, project_id, instance.fts_metadata_data)
     return metadata_validation

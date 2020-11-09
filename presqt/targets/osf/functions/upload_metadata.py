@@ -4,6 +4,7 @@ import requests
 
 from presqt.json_schemas.schema_handlers import schema_validator
 from presqt.targets.osf.classes.main import OSF
+from presqt.targets.osf.utilities.upload_extra_metadata import upload_extra_metadata
 from presqt.utilities import PresQTError
 
 
@@ -79,3 +80,8 @@ def osf_upload_metadata(token, project_id, metadata_dict):
         raise PresQTError(
             "The request to create a metadata file has resulted in a {} error code from OSF".format(
                 response.status_code))
+
+    # Add extra metadata to the top level resource
+    if 'extra_metadata' in metadata_dict.keys() and metadata_dict['extra_metadata']:
+        attribute_url = "https://api.osf.io/v2/nodes/{}/".format(project_id)
+        upload_extra_metadata(metadata_dict['extra_metadata'], header, attribute_url, project_id)

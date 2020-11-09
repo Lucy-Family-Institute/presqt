@@ -296,6 +296,7 @@ Resource Download Endpoint
 
                               They need to be specified separately because they are written separate from the file data
         action_metadata  dict Dictionary containing FTS metadata about the action occurring
+        extra_metadata   dict Dictionary containing extra metadata identified by partners
         ================ ==== ==========================================================================================
 
         **Resource Dictionary Details**
@@ -323,6 +324,20 @@ Resource Download Endpoint
             ============== === ============================================================
             sourceUsername str Username of the user making the request at the source target
             ============== === ============================================================
+        
+        **Extra Metadata Dictionary Details**
+
+            =================== ===== =============================================================================================
+            title               str   The title of the resource
+            creators            list  List of dictionaries containing creator info {"first_name": '', "last_name": '', "ORCID": ''}
+            publication_date    str   The date the resource was published
+            description         str   A brief description of the resource
+            keywords            list  A list of associated keywords
+            license             str   The resource's license
+            related_identifiers list  A list of dictionaries containing identifiers {"type": 'doi', "identifier": ''}
+            references          str   References related to the resource
+            notes               str   Notes related to the resource
+            =================== ===== =============================================================================================
     * If you want to keep track of the progress of the download there are two functions available
       to do so. ``update_process_info()`` is for updating the total number of resources in the download
       and ``increment_process_info()`` is for updating the number of resources gathered thus far.
@@ -360,7 +375,23 @@ Resource Download Endpoint
                 ]
                 empty_containers = ['path/to/empty/container/', 'another/empty/']
                 action_metadata = {"sourceUsername": contributor_name}
-                return resources, empty_containers
+                extra_metadata = {
+                    "title": project_info['title'],
+                    "creators": creators,
+                    "publication_date": project_info['date_created'],
+                    "description": project_info['description'],
+                    "keywords": project_info['tags'],
+                    "license": license,
+                    "related_identifiers": identifiers,
+                    "references": None,
+                    "notes": None
+                }
+                return {
+                    'resources': files,
+                    'empty_containers': empty_containers,
+                    'action_metadata': action_metadata,
+                    'extra_metadata': extra_metadata
+                }
 
 3. Add the resource download function to ``presqt/api_v1/utilities/utils/function_router.py``
 
@@ -465,10 +496,10 @@ Resource Upload Endpoint
 
         ============= ==== ======================================================
         token         str  User's token for the target
+        project_id    str  The id of the parent project for the resource uploaded
         metadata_dict dict The FTS metadata dictionary to upload
 
                            At this point it will be a Python dict
-        project_id    str  The id of the parent project for the resource uploaded
         ============= ==== ======================================================
 
     * The function doesn't return anything
@@ -477,8 +508,13 @@ Resource Upload Endpoint
 
         .. code-block:: python
 
-            def <your_target_name>_upload_metadata(token, metadata_dict, project_id):
+            def <your_target_name>_upload_metadata(token, project_id, metadata_dict):
                 # Process to upload metadata goes here.
+
+                # If you want to upload the extra metadata to fields supported by your API
+                # you will have to add that functionality as well. The extra valuees are stored
+                in metadata_dict['extra_metadata]. IE:
+                update_project_with_metadata(url, metadata_dict['extra_metadata'])
 
 3. Add the resource upload and upload metadata functions to  ``presqt/api_v1/utilities/utils/function_router.py``
 

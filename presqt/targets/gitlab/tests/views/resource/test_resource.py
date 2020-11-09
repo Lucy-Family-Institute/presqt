@@ -268,7 +268,7 @@ class TestResourcePOST(SimpleTestCase):
         response = self.client.post(self.url, {'presqt-file': open(
             self.file, 'rb')}, **self.headers)
 
-        ticket_number = response.data['ticket_number']
+        ticket_number = hash_tokens(self.token)
         self.ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
         # Verify status code and message
@@ -326,7 +326,7 @@ class TestResourcePOST(SimpleTestCase):
         response = self.client.post(
             self.url, {'presqt-file': open(self.file, 'rb')}, **self.headers)
 
-        self.ticket_path = 'mediafiles/uploads/{}'.format(self.ticket_number)
+        self.ticket_path = 'mediafiles/jobs/{}'.format(self.ticket_number)
 
         # Verify status code and message
         self.assertEqual(response.status_code, 202)
@@ -549,7 +549,7 @@ class TestResourcePOST(SimpleTestCase):
             response = self.client.post(self.url, {'presqt-file': open(
                 self.file, 'rb')}, **self.headers)
 
-            ticket_number = response.data['ticket_number']
+            ticket_number = hash_tokens(self.token)
             self.ticket_path = 'mediafiles/uploads/{}'.format(ticket_number)
 
             # Verify status code and message
