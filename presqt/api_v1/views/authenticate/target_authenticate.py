@@ -19,8 +19,8 @@ class TargetAuthenticate(APIView):
         # Validate request body
         # Body should be {'authorization': <token>}
         try:
-            auth_token = get_auth_token(request)
             target_name = simple_target_validation(target)
+            auth_token = get_auth_token(request)
             authorization = auth_body_validation(request)
         except PresQTValidationError as e:
             return Response(data={'error': e.data}, status=e.status_code)
