@@ -22,6 +22,7 @@ def auth_body_validation(request):
         authorization = request_data['authorization']
     except KeyError:
         raise PresQTValidationError(
-            "PresQT Error: authorization was not found in the request body.", status.HTTP_400_BAD_REQUEST)
+            "PresQT Error: authorization was not found in the request body.",
+            status.HTTP_400_BAD_REQUEST)
 
     return authorization
