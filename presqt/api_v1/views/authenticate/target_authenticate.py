@@ -38,4 +38,4 @@ class TargetAuthenticate(APIView):
 
         return Response(
             data={'message': 'Token successfully added to auth_user'},
-            status=status.HTTP_200_OK)
+            status=status.HTTP_201_CREATED)
