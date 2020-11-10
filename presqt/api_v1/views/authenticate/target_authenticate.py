@@ -1,4 +1,3 @@
-import requests
 
 from rest_framework import renderers, status
 from rest_framework.response import Response
@@ -29,10 +28,14 @@ class TargetAuthenticate(APIView):
         try:
             auth_user = UserAuthentication.objects.get(auth_token=auth_token)
         except UserAuthentication.DoesNotExist:
-            return Response(data={'error': 'No user found with provided auth token.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                data={'error': 'No user found with provided auth token.'},
+                status=status.HTTP_400_BAD_REQUEST)
 
         # Post users token for target to appropriate field in model
         setattr(auth_user, "{}_token".format(target_name), authorization)
         auth_user.save()
 
-        return Response(data={'message': 'Token successfully added to auth_user'}, status=status.HTTP_200_OK)
+        return Response(
+            data={'message': 'Token successfully added to auth_user'},
+            status=status.HTTP_200_OK)
