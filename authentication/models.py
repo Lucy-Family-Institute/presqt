@@ -31,4 +31,4 @@ class UserAuthentication(models.Model):
         verbose_name_plural = "UserAuthentication"
 
     def __str__(self):
-        return self.orcid_id
+        return self.auth_id

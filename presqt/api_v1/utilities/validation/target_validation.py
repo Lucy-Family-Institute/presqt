@@ -25,7 +25,8 @@ def target_validation(target_name, action):
         if data['name'] == target_name:
             if data["supported_actions"][action] is False:
                 raise PresQTValidationError(
-                    "PresQT Error: '{}' does not support the action '{}'.".format(target_name, action),
+                    "PresQT Error: '{}' does not support the action '{}'.".format(
+                        target_name, action),
                     status.HTTP_400_BAD_REQUEST)
             return True, data['infinite_depth']
     else:
@@ -70,3 +71,27 @@ def transfer_target_validation(source_target, destination_target):
                     status.HTTP_400_BAD_REQUEST)
 
     return True
+
+
+def simple_target_validation(target_name):
+    """
+    Given a Target name, determine if the target_name is a valid target in target.json.
+
+    Parameters
+    ----------
+    target_name : str
+        Name of the Target.
+
+    Returns
+    -------
+    True if the validation passes.
+    Raises a custom ValidationException error if validation fails.
+    """
+    json_data = read_file('presqt/specs/targets.json', True)
+    for data in json_data:
+        if data['name'] == target_name:
+            return target_name
+    else:
+        raise PresQTValidationError(
+            "PresQT Error: '{}' is not a valid Target name.".format(target_name),
+            status.HTTP_404_NOT_FOUND)
