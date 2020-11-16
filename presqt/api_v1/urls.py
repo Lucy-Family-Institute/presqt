@@ -3,7 +3,6 @@ from django.urls import path
 from presqt.api_v1.views.job_status.job_status import JobStatus
 from presqt.api_v1.views.bag_and_zip.bag_and_zip import BagAndZip
 from presqt.api_v1.views.authenticate.authenticate import Authenticate
-from presqt.api_v1.views.authenticate.target_authenticate import TargetAuthenticate
 from presqt.api_v1.views.service.fairshare.evaluator import FairshareEvaluator
 from presqt.api_v1.views.status.status import StatusCollection
 from presqt.api_v1 import api_root
@@ -20,7 +19,7 @@ api_v1_endpoints = [
 
     # Authenticate
     path('authenticate/<str:method>/', Authenticate.as_view(), name="authenticate"),
-    path('target_authenticate/<str:target>/', TargetAuthenticate.as_view(), name='target_authenticate'),
+    #     path('target_authenticate/<str:target>/', TargetAuthenticate.as_view(), name='target_authenticate'),
 
     # Targets
     path('targets/', TargetCollection.as_view(), name="target_collection"),
@@ -46,7 +45,8 @@ api_v1_endpoints = [
     # EaaSI specific
     path('services/eaasi/proposals/', Proposals.as_view(), name='proposals'),
     path('services/eaasi/proposals/<str:proposal_id>/', Proposal.as_view(), name='proposal'),
-    path('services/eaasi/download/<str:ticket_number>/', EaasiDownload.as_view(), name='eaasi_download'),
+    path('services/eaasi/download/<str:ticket_number>/',
+         EaasiDownload.as_view(), name='eaasi_download'),
 
     # BagIt and Zip Tool
     path('bag_and_zip/', BagAndZip.as_view(), name='bag_and_zip'),
