@@ -23,7 +23,7 @@ COPY requirements requirements
 RUN apk update && apk add libpq make
 
 # Installing build dependencies
-RUN apk add --virtual .build-deps gcc python-dev musl-dev postgresql-dev tzdata
+RUN apk add --virtual .build-deps gcc python-dev musl-dev postgresql-dev tzdata build-base libffi-dev libgcc
 
 RUN cp /usr/share/zoneinfo/America/Indianapolis /etc/localtime
 RUN echo "America/Indianapolis" > /etc/timezone

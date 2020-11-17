@@ -76,6 +76,7 @@ services:
       APPLICATION_DB: $APPLICATION_DB
       ORCID_CLIENT_ID: $ORCID_CLIENT_ID
       ORCID_CLIENT_SECRET: $ORCID_CLIENT_SECRET
+      TOKEN_KEY: $TOKEN_KEY
     restart: always
     depends_on: 
       - postgres_db
@@ -121,6 +122,7 @@ services:
       APPLICATION_DB: $APPLICATION_DB
       ORCID_CLIENT_ID: $ORCID_CLIENT_ID
       ORCID_CLIENT_SECRET: $ORCID_CLIENT_SECRET
+      TOKEN_KEY: $TOKEN_KEY
     volumes:
       - .:/usr/src/app
       - presqt_static_volume:/usr/src/app/staticfiles

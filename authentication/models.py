@@ -16,15 +16,15 @@ class UserAuthentication(models.Model):
     refresh_token : str
         The oAuth service authentication refresh token. Used to get a user a new auth_token.
     """
-    auth_id = models.CharField(primary_key=True, editable=False, max_length=100)
-    auth_token = models.CharField(null=True, blank=True, max_length=100)
-    refresh_token = models.CharField(null=True, blank=True, max_length=100)
-    curate_nd_token = models.CharField(null=True, blank=True, max_length=100)
-    figshare_token = models.CharField(null=True, blank=True, max_length=100)
-    github_token = models.CharField(null=True, blank=True, max_length=100)
-    gitlab_token = models.CharField(null=True, blank=True, max_length=100)
-    osf_token = models.CharField(null=True, blank=True, max_length=100)
-    zenodo_token = models.CharField(null=True, blank=True, max_length=100)
+    auth_id = models.CharField(primary_key=True, editable=False, max_length=300)
+    auth_token = models.CharField(null=True, blank=True, max_length=300)
+    refresh_token = models.CharField(null=True, blank=True, max_length=300)
+    curate_nd_token = models.CharField(null=True, blank=True, max_length=300)
+    figshare_token = models.CharField(null=True, blank=True, max_length=300)
+    github_token = models.CharField(null=True, blank=True, max_length=300)
+    gitlab_token = models.CharField(null=True, blank=True, max_length=300)
+    osf_token = models.CharField(null=True, blank=True, max_length=300)
+    zenodo_token = models.CharField(null=True, blank=True, max_length=300)
 
     class Meta:
         db_table = "user_authentication"
