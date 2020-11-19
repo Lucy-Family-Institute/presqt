@@ -10,11 +10,12 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         api_key = 'd9fb202a16298dfc4fa098be452c49e23861d160'
         project_id = 116
+
         client = coreapi.Client(auth=coreapi.auth.TokenAuthentication(
             token=api_key, scheme='token'))
         schema = client.get('https://fairshake.cloud/coreapi/')
 
-        ### THIS CREATES THE DIGITAL_OBJECT ###
+        # ### THIS CREATES THE DIGITAL_OBJECT ###
         obj = client.action(schema, ['digital_object', 'create'], params=dict(
             url='https://github.com/ndlib/presqt-ui',
             title='presqt-ui',
@@ -23,6 +24,8 @@ class Command(BaseCommand):
         ))
         ### DIGITAL_OBJECT ID ###
         obj_id = obj['id']
+        print(obj_id)
+        print(json.dumps(obj))
 
         # obj at this point =
         # {
@@ -38,12 +41,21 @@ class Command(BaseCommand):
         #   "rubrics": []
         # }
         # print(obj_id)
+        # Get assessments
 
         # TODO: ADD CODE TO RUN ASSESSMENTS HERE
+        tool_rubric = 7
+        dataset_rubric = 8
+        repository_rubric = 9
 
         # This should be the call to get scores
         # Replace target with obj_id
         score = client.action(schema, ['score', 'list'], params=dict(
-            target=obj_id
+            target=358
         ))
-        print(score)
+        print(json.dumps(score))
+
+        # DELETE DIGITAL OBJECT AFTER TESTING
+        client.action(schema, ['digital_object', 'remove'], params=dict(
+            id=obj_id
+        ))
