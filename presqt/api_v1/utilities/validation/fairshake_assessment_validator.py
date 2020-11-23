@@ -5,6 +5,17 @@ from presqt.utilities import PresQTValidationError, read_file
 
 def fairshake_assessment_validator(request, rubric_id):
     """
+    Perform fairshake validation for required fields.
+
+    Parameters
+    ----------
+    request : HTTP request object
+    rubric_id: str
+        The ID of the rubric the requesting user would like to use
+
+    Returns
+    -------
+    Returns the answers to the rubric.
     """
     try:
         rubric_answers = request.data['rubric_answers']
