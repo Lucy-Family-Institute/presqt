@@ -405,3 +405,4 @@ POST FAIRshake Assessment
     :statuscode 400: 'rubric_answers' must be an object with the metric id's as the keys and answer values as the values.
     :statuscode 400: Missing response for metric '30'. Required metrics are: ['30', '31', '32']
     :statuscode 400: 'egg' is not a valid answer. Options are: ['0.0', '0.25', '0.5', '0.75', '1.0']
+    :statuscode 400: 'egg' is not a valid metric. Required metrics are: ['30', '31', '32']

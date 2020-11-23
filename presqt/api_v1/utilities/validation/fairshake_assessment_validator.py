@@ -36,5 +36,9 @@ def fairshake_assessment_validator(request, rubric_id):
             raise PresQTValidationError(
                 f"'{value}' is not a valid answer. Options are: {list(score_translator.keys())}",
                 status.HTTP_400_BAD_REQUEST)
+        if key not in test_translator.keys():
+            raise PresQTValidationError(
+                f"'{key}' is not a valid metric. Required metrics are: {list(test_translator.keys())}",
+                status.HTTP_400_BAD_REQUEST)
 
     return rubric_answers

@@ -115,6 +115,10 @@ class FairshakeAssessment(APIView):
         {
             "error": "'egg' is not a valid answer. Options are: ['0.0', '0.25', '0.5', '0.75', '1.0']"
         }
+        or
+        {
+            "error": "'egg' is not a valid metric. Required metrics are: ['30', '31', '32']"
+        }
         """
         try:
             rubric_id, digital_object_type, project_url, project_title = fairshake_request_validator(
