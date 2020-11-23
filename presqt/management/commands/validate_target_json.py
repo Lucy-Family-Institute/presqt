@@ -10,7 +10,10 @@ class Command(BaseCommand):
         """
         Verify that the Target JSON file is valid against our JSON Schema
         """
-        keys_to_validate = ['resource_collection']
+        keys_to_validate = [
+            'resource_collection', 'resource_detail', 'resource_download',
+            'resource_upload', 'keywords', 'keywords_upload'
+        ]
 
         validation = schema_validator(
             'presqt/json_schemas/target_schema.json',
@@ -38,13 +41,13 @@ class Command(BaseCommand):
                     break
                 # Verify that all actions for this target which are 'true' have a corresponding
                 # function in FunctionRouter for it.
-                for key, value in data.items():
+                for key, value in data['supported_actions'].items():
                     if key in keys_to_validate and value is True:
                         try:
-                            getattr(FunctionRouter, '{}_{}'.format(data['name'], key))
+                            getattr(FunctionRouter, f"{data['name']}_{key}")
                         except AttributeError:
-                            print('{} does not have a corresponding function in FunctionRouter for '
-                                  'the attribute {}'.format(data['name'], key))
+                            print(f"{data['name']} does not have a corresponding function in FunctionRouter for "
+                                  f"the attribute {key}")
                             exit(2)
                 else:
                     name_list.append(data['name'])

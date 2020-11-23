@@ -41,6 +41,7 @@ FAIRshare Evaluator  Evaluate the FAIR-ness of a resource
 FAIRshake Assessment Manually assess the FAIRness of a resource
 ==================== ==============================================================================
 
+
 .. toctree::
    :caption: Contents
    :maxdepth: 2
