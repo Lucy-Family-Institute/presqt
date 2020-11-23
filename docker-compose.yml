@@ -70,6 +70,7 @@ services:
       ENVIRONMENT: ${ENVIRONMENT:-production}
       DJANGO_SETTINGS_MODULE: config.settings.${ENVIRONMENT:-production}
       EMAIL_HOST_USER: ${EMAIL_HOST_USER:-NA}
+      FAIRSHAKE_TOKEN: ${FAIRSHAKE_TOKEN}
     restart: always
     volumes:
       - .:/usr/src/app
@@ -107,6 +108,7 @@ services:
       ENVIRONMENT: ${ENVIRONMENT:-production}
       DJANGO_SETTINGS_MODULE: config.settings.${ENVIRONMENT:-production}
       EMAIL_HOST_USER: ${EMAIL_HOST_USER:-NA}
+      FAIRRSHAKE_TOKEN: ${FAIRSHAKE_TOKEN}
     volumes:
       - .:/usr/src/app
       - presqt_static_volume:/usr/src/app/staticfiles

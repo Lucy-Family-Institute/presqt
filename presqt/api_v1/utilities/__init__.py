@@ -41,3 +41,5 @@ from presqt.api_v1.utilities.keyword_enhancement.fetch_ontologies import fetch_o
 from presqt.api_v1.utilities.service_helpers.fairshare_results import fairshare_results
 from presqt.api_v1.utilities.validation.fairshare_validation import fairshare_request_validator, fairshare_test_validator
 from presqt.api_v1.utilities.validation.fairshare_evaluator_validation import fairshare_evaluator_validation
+from presqt.api_v1.utilities.validation.fairshake_request_validator import fairshake_request_validator
+from presqt.api_v1.utilities.validation.fairshake_assessment_validator import fairshake_assessment_validator
