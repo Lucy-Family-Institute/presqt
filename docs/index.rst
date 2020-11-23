@@ -33,11 +33,13 @@ FigShare    ✅             ✅         ✅         ✅           ✅          �
 
 **Current Service Integrations**:
 
-=================== ==============================================================================
-**Service**         **Functionality**
-EaaSI               Send resources from a PresQT server to EaaSI to generate an emulation proposal
-Keyword Enhancement Suggest/add keywords to existing keywords
-=================== ==============================================================================
+==================== ==============================================================================
+**Service**          **Functionality**
+EaaSI                Send resources from a PresQT server to EaaSI to generate an emulation proposal
+Keyword Enhancement  Suggest/add keywords to existing keywords
+FAIRshare Evaluator  Evaluate the FAIR-ness of a resource
+FAIRshake Assessment Manually assess the FAIRness of a resource
+==================== ==============================================================================
 
 .. toctree::
    :caption: Contents
