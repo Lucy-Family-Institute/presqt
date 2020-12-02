@@ -63,13 +63,13 @@ class FairshakeAssessment(APIView):
             'presqt/specs/services/fairshake/fairshake_score_translator.json', True)
         # Make these dicts for FE ease
         new_metrics = []
-        for key, value in metrics:
+        for key, value in metrics.items():
             new_metrics.append({
                 key: value
             })
 
         new_answer_options = []
-        for key, value in answer_options:
+        for key, value in answer_options.items():
             new_answer_options.append({
                 key: value
             })
