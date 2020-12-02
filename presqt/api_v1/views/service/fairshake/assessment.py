@@ -65,13 +65,15 @@ class FairshakeAssessment(APIView):
         new_metrics = []
         for key, value in metrics.items():
             new_metrics.append({
-                key: value
+                'id': key,
+                'metric_value': value
             })
 
         new_answer_options = []
         for key, value in answer_options.items():
             new_answer_options.append({
-                key: value
+                'value': key,
+                'value_text': value
             })
 
         payload = {
