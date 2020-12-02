@@ -61,9 +61,22 @@ class FairshakeAssessment(APIView):
             'presqt/specs/services/fairshake/fairshake_test_fetch.json', True)[rubric_id]
         answer_options = read_file(
             'presqt/specs/services/fairshake/fairshake_score_translator.json', True)
+        # Make these dicts for FE ease
+        new_metrics = []
+        for key, value in metrics:
+            new_metrics.append({
+                key: value
+            })
+
+        new_answer_options = []
+        for key, value in answer_options:
+            new_answer_options.append({
+                key: value
+            })
+
         payload = {
-            "metrics": metrics,
-            "answer_options": answer_options
+            "metrics": new_metrics,
+            "answer_options": new_answer_options
         }
 
         return Response(data=payload, status=status.HTTP_200_OK)
