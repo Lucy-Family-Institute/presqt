@@ -172,7 +172,8 @@ class FairshakeAssessment(APIView):
             target=digital_object_id,
             rubric=int(rubric_id),
             methodology="self",
-            answers=assessment_answers))
+            answers=assessment_answers,
+            published=True))
 
         # Bring in our translation files...
         test_translator = read_file(
