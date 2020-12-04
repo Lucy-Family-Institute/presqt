@@ -8,7 +8,7 @@
         "17": "Previous versions of the tool are made available.",
         "18": "Contact information is provided for the creator(s) of the tool and information describing how to cite the tool is provided.",
         "19": "The tool can be accessed programmatically through an API and follows community standards for open APIs.",
-        "20": "Licensing information is provided on the tools homepage."
+        "20": "Licensing information is provided on the tool's homepage."
     },
     "8": {
         "21": "A standardized ID or accession number is used to identify the dataset.",
@@ -19,7 +19,7 @@
         "26": "Version information is provided for the dataset.",
         "27": "Contact information is provided for the creator(s) of the dataset.",
         "28": "Information is provided describing how to cite the dataset.",
-        "29": "Licensing information is provided on the datasets landing page."
+        "29": "Licensing information is provided on the dataset's landing page."
     },
     "9": {
         "30": "The structure of the repository permits efficient discovery of data and metadata by end users.",
