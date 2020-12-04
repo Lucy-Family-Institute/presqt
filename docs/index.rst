@@ -10,8 +10,8 @@ improve Preservation and Re-use of Research Data and Software.
 
 .. note::
 
-   Development is underway by the development team in the Center for Research Computer at Notre Dame.
-   This documentation will grow/changed throughout the life of the PresQT project.
+   Development is underway by the development team in the Center for Research Computing at Notre Dame.
+   This documentation will grow/be changed throughout the life of the PresQT project.
    Readers should expect that pages will often be incomplete and/or move as features are actively
    being developed and implemented.
    Please send any **feedback** to the content presented here to Noel Recla **nrecla@nd.edu**
