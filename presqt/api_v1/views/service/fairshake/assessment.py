@@ -155,8 +155,8 @@ class FairshakeAssessment(APIView):
         try:
             digital_object = client.action(schema, ['digital_object', 'create'], params=dict(
                 url=project_url,
-                title=project_id,
-                projects=[780],
+                title=project_title,
+                projects=[project_id],
                 type=digital_object_type,
                 rubrics=[int(rubric_id)]
             ))
