@@ -145,18 +145,25 @@ class FairshakeAssessment(APIView):
         # First we need to register our new `digital_object` using this information
         # The PresQT project id on FAIRshake is 116
         project_id = 116
-        client = coreapi.Client(auth=coreapi.auth.TokenAuthentication(
-            token=FAIRSHAKE_TOKEN, scheme='token'))
-        schema = client.get('https://fairshake.cloud/coreapi/')
-
-        digital_object = client.action(schema, ['digital_object', 'create'], params=dict(
-            url=project_url,
-            title=project_title,
-            projects=[project_id],
-            type=digital_object_type,
-            rubrics=[int(rubric_id)]
-        ))
-        digital_object_id = digital_object['id']
+        try:
+            client = coreapi.Client(auth=coreapi.auth.TokenAuthentication(
+                token=FAIRSHAKE_TOKEN, scheme='token'))
+            schema = client.get('https://fairshake.cloud/coreapi/')
+        except coreapi.exceptions.ErrorMessage:
+            return Response(data={'error': "FAIRshake Error: Invalid token provided in code."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        try:
+            digital_object = client.action(schema, ['digital_object', 'create'], params=dict(
+                url=project_url,
+                title=project_title,
+                projects=[780],
+                type=digital_object_type,
+                rubrics=[int(rubric_id)]
+            ))
+            digital_object_id = digital_object['id']
+        except coreapi.exceptions.ErrorMessage:
+            return Response(data={'error': "FAIRshake Error: Returned an error trying to register digital object."},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         # Do the assessment here
         assessment_answers = []
@@ -167,13 +174,17 @@ class FairshakeAssessment(APIView):
                 'answer': float(value)
             })
 
-        assessment = client.action(schema, ['assessment', 'create'], params=dict(
-            project=project_id,
-            target=digital_object_id,
-            rubric=int(rubric_id),
-            methodology="self",
-            answers=assessment_answers,
-            published=True))
+        try:
+            assessment = client.action(schema, ['assessment', 'create'], params=dict(
+                project=project_id,
+                target=digital_object_id,
+                rubric=int(rubric_id),
+                methodology="self",
+                answers=assessment_answers,
+                published=True))
+        except coreapi.exceptions.ErrorMessage:
+            return Response(data={'error': "FAIRshake Error: Returned an error trying to post manual assessment."},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         # Bring in our translation files...
         test_translator = read_file(
