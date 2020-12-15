@@ -48,10 +48,10 @@ class FairshakeAssessment(APIView):
 
         400: Bad Request
         {
-            "error": "PresQT Error: 'egg' is not a valid rubric id. Choices are: ['7', '8', '9']"
+            "error": "PresQT Error: 'egg' is not a valid rubric id. Choices are: ['93', '94', '95']"
         }
         """
-        rubrics = ['7', '8', '9']
+        rubrics = ['93', '94', '95']
         if rubric_id not in rubrics:
             return Response(data={
                 'error': f"PresQT Error: '{rubric_id}' is not a valid rubric id. Choices are: {rubrics}"},
@@ -104,7 +104,7 @@ class FairshakeAssessment(APIView):
 
         400: Bad Request
         {
-            "error": "PresQT Error: 'eggs' is not a valid rubric id. Options are: ['7', '8', '9']"
+            "error": "PresQT Error: 'eggs' is not a valid rubric id. Options are: ['93', '94', '95']"
         }
         or
         {
