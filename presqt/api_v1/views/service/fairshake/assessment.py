@@ -1,13 +1,14 @@
 import coreapi
 import json
-import time
+import requests
 
 from rest_framework import status, renderers
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from config.settings.base import FAIRSHAKE_TOKEN
-from presqt.api_v1.utilities import fairshake_request_validator, fairshake_assessment_validator
+from presqt.api_v1.utilities import (
+    fairshake_request_validator, fairshake_assessment_validator, fairshare_results)
 from presqt.utilities import PresQTValidationError, read_file
 
 
@@ -48,10 +49,10 @@ class FairshakeAssessment(APIView):
 
         400: Bad Request
         {
-            "error": "PresQT Error: 'egg' is not a valid rubric id. Choices are: ['93', '94', '95']"
+            "error": "PresQT Error: 'egg' is not a valid rubric id. Choices are: ['93', '94', '95', '96']"
         }
         """
-        rubrics = ['93', '94', '95']
+        rubrics = ['93', '94', '95', '96']
         if rubric_id not in rubrics:
             return Response(data={
                 'error': f"PresQT Error: '{rubric_id}' is not a valid rubric id. Choices are: {rubrics}"},
@@ -104,7 +105,7 @@ class FairshakeAssessment(APIView):
 
         400: Bad Request
         {
-            "error": "PresQT Error: 'eggs' is not a valid rubric id. Options are: ['93', '94', '95']"
+            "error": "PresQT Error: 'eggs' is not a valid rubric id. Options are: ['93', '94', '95', '96']"
         }
         or
         {
@@ -165,16 +166,54 @@ class FairshakeAssessment(APIView):
             return Response(data={'error': "FAIRshake Error: Returned an error trying to register digital object."},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        # Do the assessment here
-        assessment_answers = []
-        # Need to translate the JSON strings to ints and floats
-        for key, value in rubric_answers.items():
-            assessment_answers.append({
-                'metric': int(key),
-                'answer': float(value)
-            })
+        if rubric_id != '96':
+            # Do the manual assessment here
+            assessment_answers = []
+            # Need to translate the JSON strings to ints and floats
+            for key, value in rubric_answers.items():
+                assessment_answers.append({
+                    'metric': int(key),
+                    'answer': float(value)
+                })
+        else:
+            # We gonna try and do automatic stuff
+            data = {
+                'resource': project_url,
+                'executor': 'PresQT',
+                'title': f"{project_title} FAIR Evaluation"
+            }
+            # Send the data to FAIRshare to run automatic tests
+            response = requests.post(
+                'https://w3id.org/FAIR_Evaluator/collections/16/evaluate',
+                headers={"Content-Type": "application/json", "Accept": "application/json"},
+                data=json.dumps(data))
+            if response.status_code != 200:
+                return Response(data={'error': "FAIRshare returned a {} error trying to process the request".format(response.status_code)},
+                                status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
+            response_json = response.json()
+            results = fairshare_results(response_json, [1, 5, 8, 10, 17, 22])
+
+            rubric_translator = read_file(
+                'presqt/specs/services/fairshake/fairshare_fairshake_helper.json', True)
+            assessment_answers = []
+            for result in results:
+                # We need to build a dict for the assessment.
+                # Translate test to rubric number
+                metric = rubric_translator[result['metric_link']]
+                # Translate successes and failures to yes's and no's
+                if result['successes']:
+                    answer = 1.0
+                elif result['failures']:
+                    answer = 0.0
+                else:
+                    answer = 0.5
+                assessment_answers.append({
+                    'metric': metric,
+                    'answer': answer
+                })
         try:
+            # Do the assessment
             assessment = client.action(schema, ['assessment', 'create'], params=dict(
                 project=project_id,
                 target=digital_object_id,
@@ -197,9 +236,7 @@ class FairshakeAssessment(APIView):
             metric = test_translator[str(score['metric'])]
             score_number = str(score['answer'])
             score_words = 'not applicable'
-            # Adding the != because 0.0 also returns False
-            if value != None:
-                score_words = score_translator[score_number]
+            score_words = score_translator[score_number]
             results.append({
                 "metric": metric,
                 "score": score_number,
