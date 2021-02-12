@@ -4,7 +4,7 @@ Under Development
 SuAVE Integration
 -----------------
 SuAVE (http://suave.sdsc.edu/) is a platform for managing surveys. Surveys include data files,
-associated images/icons, and annotations. The surveys can be visualized using several SuAVE data
+associated images/icons, and annotations. The survey can be visualized using several SuAVE data
 views, which can be shared and annotated.
 
 SuAVE's survey visualization is an excellent partner for PresQT adding the visualization of
