@@ -1,6 +1,10 @@
 QA Testing
 ==========
 
+Be sure to use the table of contents shown here to help navigate the instructions
+.. figure:: images/qa/QA_table_of_contents.png
+    :align: center
+
 |qa_location_link| to go to the testing site.
 
 .. |qa_location_link| raw:: html
@@ -38,7 +42,7 @@ You can |auth_location_link| for instructions on how to get authorization tokens
 
    <a href="https://presqt.readthedocs.io/en/latest/authentication_authorization.html#taget-token-instructions" target="_blank">click here</a>
 
-Downloadable Bags
+Test Files
 -----------------
 Here are some pre-made ZIP files that are in BagIt format that can be downloaded for use with PresQT.
 
