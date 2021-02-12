@@ -2,6 +2,7 @@ QA Testing
 ==========
 
 Be sure to use the table of contents shown here to help navigate the instructions
+
 .. figure:: images/qa/QA_table_of_contents.png
     :align: center
 
