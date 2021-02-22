@@ -4,6 +4,7 @@ from presqt.api_v1.views.job_status.job_status import JobStatus
 from presqt.api_v1.views.bag_and_zip.bag_and_zip import BagAndZip
 from presqt.api_v1.views.service.fairshare.evaluator import FairshareEvaluator
 from presqt.api_v1.views.service.fairshake.assessment import FairshakeAssessment
+from presqt.api_v1.views.service.keywords.keyword_enhancement import KeywordEnhancement
 from presqt.api_v1.views.status.status import StatusCollection
 from presqt.api_v1 import api_root
 from presqt.api_v1.views.resource.resource import Resource
@@ -56,5 +57,9 @@ api_v1_endpoints = [
 
     # FAIRshake Assessment
     path('services/fairshake/rubric/<str:rubric_id>/', FairshakeAssessment.as_view(),
-         name="fairshake")
+         name="fairshake"),
+
+    # Keyword Enhancement
+    path('services/presqt/keyword_enhancement/', KeywordEnhancement.as_view(), name="keyword_enhancement"),
+
 ]
