@@ -79,6 +79,72 @@ Service Details
     :statuscode 200: ``Service`` successfully retrieved
     :statuscode 404: Invalid ``Service`` name
 
+Keyword Enhancement
+-------------------
+Get Keyword Enhancements From A List Of Keywords
+++++++++++++++++++++++++++++++++++++++++++++++++
+
+.. http:get:: /api_v1/services/presqt/keyword_enhancement/
+
+    Take a list of keywords and run them through the keyword enhancement service.
+    The returned payload will contain both the new keywords added and the final full list of
+    keywords.
+
+    There are separate endpoints for keyword enhancements through Targets.
+    See the API Endpoint documentation to learn more.
+
+    **Example request**:
+
+    .. sourcecode:: http
+
+        POST /api_v1/services/presqt/keyword_enhancement/ HTTP/1.1
+        Host: presqt-prod.crc.nd.edu
+        Accept: application/json
+
+        Example body json:
+            {
+                "keywords": ["cat", "water"]
+            }
+
+    **Example response**:
+
+    ..  sourcecode:: http
+
+        HTTP/1.1 202 Accepted
+        Content-Type: application/json
+
+        {
+            "keywords_added": [
+                "feline",
+                "aqua",
+                "dihydrogen oxide",
+                "DISORDERED SOLVENT",
+                "EGG",
+                "Electrostatic Gravity Gradiometer",
+                "oxidane",
+                "OXYGEN ATOM",
+                "Wasser",
+                "Water"
+            ],
+            "final_keywords": [
+                "feline",
+                "aqua",
+                "dihydrogen oxide",
+                "DISORDERED SOLVENT",
+                "EGG",
+                "eggs",
+                "Electrostatic Gravity Gradiometer",
+                "oxidane",
+                "OXYGEN ATOM",
+                "Wasser",
+                "water",
+                "Water"
+            ]
+        }
+
+    :jsonparam array keywords: An array of the ``keywords`` to upload
+    :statuscode 202: ``Keywords successfully uploaded``
+
 EaaSI Endpoints
 ---------------
 

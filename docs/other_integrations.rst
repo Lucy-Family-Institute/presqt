@@ -1,8 +1,8 @@
 Other Integrations
 ==================
 
-Whole Tale Integration 
-++++++++++++++++++++++
+Whole Tale Integration Proposal
++++++++++++++++++++++++++++++++
 
 Whole Tale (http://www.wholetale.org) is a platform for the creation, publication, and 
 re-execution of reproducible computational artifacts.  Researchers can create new *tales* 
@@ -113,3 +113,35 @@ The notes field is important as it provides a way for us to embed a link in the
 record that allows users to easily re-import and run the published tale.
 
 For more information, see https://github.com/whole-tale/serialization-format/
+
+Whole Tale Integration Implementation
++++++++++++++++++++++++++++++++++++++
+An 'extra_metadata' field has been added to the PRESQT_FTS_METADATA.json. To get these extra
+metadata fields to the new resource being created, the uploaded resources must have a
+PRESQT_FTS_METADATA.json file at the highest level.
+
+The following is an example:
+
+.. code-block:: json
+
+    {
+        "allKeyword": [],
+        "actions": [],
+        "extra_metadata": {
+            "title": "str",
+            "creators": [
+                {
+                    "first_name": "Example",
+                    "last_name": "User",
+                    "ORCID": "0931234123"
+                }
+            ],
+            "publication_date": "2021-02-19",
+            "description": "This is it.",
+            "keywords": [],
+            "license": "MIT",
+            "related_identifiers": [],
+            "references": "Nothing here.",
+            "notes": "Nope."
+        }
+    }
