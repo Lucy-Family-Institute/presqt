@@ -18,13 +18,14 @@ def fairshake_request_validator(request, rubric_id):
     Returns the rubric id, the digital object type, project url and project title
     """
     supported_rubrics = {
-        "7": "tool",
-        "8": "data",
-        "9": "repo"
+        "93": "repo",
+        "94": "data",
+        "95": "tool",
+        "96": "repo"
     }
     if rubric_id not in supported_rubrics.keys():
         raise PresQTValidationError(
-            f"PresQT Error: '{rubric_id}' is not a valid rubric id. Options are: {list_of_supported_rubrics}",
+            f"PresQT Error: '{rubric_id}' is not a valid rubric id. Options are: ['93', '94', '95', '96']",
             status.HTTP_400_BAD_REQUEST)
 
     request_data = request.data

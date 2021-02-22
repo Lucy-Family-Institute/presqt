@@ -1,19 +1,17 @@
 {
-    "7": {
-        "12": "The tool has a unique name and an informative description.",
-        "13": "The tool can be freely downloaded or accessed from a webpage.",
-        "14": "The tool utilizes a community-accepted ontology.",
-        "15": "Tutorials for the tool are available on the tool's homepage.",
-        "16": "Source code is shared in a public repository and is documented.",
-        "17": "Previous versions of the tool are made available.",
-        "18": "Contact information is provided for the creator(s) of the tool and information describing how to cite the tool is provided.",
-        "19": "The tool can be accessed programmatically through an API and follows community standards for open APIs.",
-        "20": "Licensing information is provided on the tool's homepage."
+    "93": {
+        "30": "The structure of the repository permits efficient discovery of data and metadata by end users.",
+        "31": "The repository uses a standardized protocol to permit access by users.",
+        "32": "The repository provides contact information for staff to enable users with questions or suggestions to interact with repository experts.",
+        "34": "The repository maintains licenses to manage data access and use.",
+        "35": "The repository hosts data and metadata according to a set of defined criteria to ensure that the resources provided are consistent with the intent of the repository.",
+        "36": "The repository provides documentation for each resource to permit its complete and accurate citation.",
+        "37": "A description of the methods used to acquire the data is provided.",
+        "38": "Version information is provided for each resource, where available."
     },
-    "8": {
+    "94": {
         "21": "A standardized ID or accession number is used to identify the dataset.",
         "22": "The dataset is described with metadata using a formal, broadly applicable vocabulary.",
-        "23": "Information is provided on the experimental methods used to generate the data.",
         "24": "The dataset is hosted in an established data repository, if a relevant repository exists.",
         "25": "The dataset can be downloaded for free from the repository.",
         "26": "Version information is provided for the dataset.",
@@ -21,15 +19,18 @@
         "28": "Information is provided describing how to cite the dataset.",
         "29": "Licensing information is provided on the dataset's landing page."
     },
-    "9": {
+    "95": {
+        "12": "The tool has a unique name and an informative description.",
+        "15": "Tutorials for the tool are available on the tool's homepage.",
+        "17": "Previous versions of the tool are made available.",
+        "20": "Licensing information is provided on the tool's homepage."
+    },
+    "96": {
+        "90": "The metadata document contains the globally unique and persistent identifier for the digital resource.",
         "30": "The structure of the repository permits efficient discovery of data and metadata by end users.",
-        "31": "The repository uses a standardized protocol to permit access by users.",
-        "32": "The repository provides contact information for staff to enable users with questions or suggestions to interact with repository experts.",
-        "33": "Tools that can be used to analyze each dataset are listed on the corresponding dataset pages.",
-        "34": "The repository maintains licenses to manage data access and use.",
-        "35": "The repository hosts data and metadata according to a set of defined criteria to ensure that the resources provided are consistent with the intent of the repository.",
-        "36": "The repository provides documentation for each resource to permit its complete and accurate citation.",
-        "37": "A description of the methods used to acquire the data is provided.",
-        "38": "Version information is provided for each resource, where available."
+        "109": "Resource discovery through web search.",
+        "110": "Open, Free, Standardized Access protocol.",
+        "113": "Resources uses formal language.",
+        "117": "Metadata contains license information."
     }
 }
