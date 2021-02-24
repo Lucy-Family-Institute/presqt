@@ -10,8 +10,8 @@ improve Preservation and Re-use of Research Data and Software.
 
 .. note::
 
-   Development is underway by the development team in the Center for Research Computer at Notre Dame.
-   This documentation will grow/changed throughout the life of the PresQT project.
+   Development is underway by the development team in the Center for Research Computing at Notre Dame.
+   This documentation will grow/be changed throughout the life of the PresQT project.
    Readers should expect that pages will often be incomplete and/or move as features are actively
    being developed and implemented.
    Please send any **feedback** to the content presented here to Noel Recla **nrecla@nd.edu**
@@ -33,11 +33,14 @@ FigShare    ✅             ✅         ✅         ✅           ✅          �
 
 **Current Service Integrations**:
 
-=================== ==============================================================================
-**Service**         **Functionality**
-EaaSI               Send resources from a PresQT server to EaaSI to generate an emulation proposal
-Keyword Enhancement Suggest/add keywords to existing keywords
-=================== ==============================================================================
+==================== ==============================================================================
+**Service**          **Functionality**
+EaaSI                Send resources from a PresQT server to EaaSI to generate an emulation proposal
+Keyword Enhancement  Suggest/add keywords to existing keywords
+FAIRshare Evaluator  Evaluate the FAIR-ness of a resource
+FAIRshake Assessment Manually assess the FAIRness of a resource
+==================== ==============================================================================
+
 
 .. toctree::
    :caption: Contents

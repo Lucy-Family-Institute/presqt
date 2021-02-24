@@ -513,7 +513,7 @@ Resource Upload Endpoint
 
                 # If you want to upload the extra metadata to fields supported by your API
                 # you will have to add that functionality as well. The extra valuees are stored
-                in metadata_dict['extra_metadata]. IE:
+                # in metadata_dict['extra_metadata]. IE:
                 update_project_with_metadata(url, metadata_dict['extra_metadata'])
 
 3. Add the resource upload and upload metadata functions to  ``presqt/api_v1/utilities/utils/function_router.py``
