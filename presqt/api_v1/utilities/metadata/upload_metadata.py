@@ -1,7 +1,10 @@
 import os
+from json.decoder import JSONDecodeError
+
+from rest_framework import status
 
 from presqt.json_schemas.schema_handlers import schema_validator
-from presqt.utilities import get_dictionary_from_list, PresQTError, read_file
+from presqt.utilities import get_dictionary_from_list, PresQTError, read_file, PresQTValidationError
 
 
 def get_upload_source_metadata(instance, bag):
@@ -22,7 +25,12 @@ def get_upload_source_metadata(instance, bag):
     for bag_file in bag.payload_files():
         if os.path.split(bag_file)[-1] == 'PRESQT_FTS_METADATA.json':
             metadata_path = os.path.join(instance.resource_main_dir, bag_file)
-            source_metadata_content = read_file(metadata_path, True)
+            try:
+                source_metadata_content = read_file(metadata_path, True)
+            except JSONDecodeError:
+                print('error!!!')
+                raise PresQTValidationError("PRESQT_FTS_METADATA.json is not valid JSON",
+                                  status.HTTP_400_BAD_REQUEST)
             # If the FTS metadata is valid then remove it from the bag and save the actions.
             if schema_validator('presqt/json_schemas/metadata_schema.json',
                                 source_metadata_content) is True:
