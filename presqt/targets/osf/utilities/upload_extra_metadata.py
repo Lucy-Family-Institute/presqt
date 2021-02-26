@@ -4,7 +4,7 @@ import requests
 
 def upload_extra_metadata(extra_metadata, headers, attribute_url, project_id):
     """
-    Add attributes found in the 'extra_metadata' in PRESQT_FTS_METADATA to the project in OSf.
+    Add attributes found in the 'extra_metadata' in PRESQT_FTS_METADATA to the project in OSF.
 
     OSF only supports updating the 'description' attribute.
 

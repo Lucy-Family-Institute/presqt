@@ -110,9 +110,14 @@ def zenodo_upload_keywords(token, resource_id, keywords):
     headers = {"access_token": token}
     put_url = 'https://zenodo.org/api/deposit/depositions/{}'.format(project_id)
 
+    try:
+        upload_type = resource['extra']['upload_type']
+    except KeyError:
+        upload_type = "other"
+
     data = {'metadata': {
         "title": resource['title'],
-        "upload_type": resource['extra']['upload_type'],
+        "upload_type": upload_type,
         "description": resource['extra']['description'],
         "creators": resource['extra']['creators'],
         "keywords": list(set(keywords))
