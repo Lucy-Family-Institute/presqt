@@ -1,6 +1,5 @@
 import os
 import shutil
-from uuid import uuid4
 
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
@@ -12,7 +11,6 @@ from presqt.api_v1.serializers.resource import ResourceSerializer
 from presqt.api_v1.utilities import (get_source_token, target_validation, FunctionRouter,
                                      spawn_action_process, hash_tokens,
                                      update_or_create_process_info, get_user_email_opt)
-from presqt.api_v1.utilities.utils.multiple_process_check import multiple_process_check
 from presqt.api_v1.views.resource.base_resource import BaseResource
 from presqt.utilities import PresQTValidationError, PresQTResponseException
 
@@ -210,12 +208,6 @@ class Resource(BaseResource):
         # Generate ticket number
         self.ticket_number = hash_tokens(self.source_token)
         ticket_path = os.path.join('mediafiles', 'jobs', str(self.ticket_number))
-
-        # Check if this user currently has any other process in progress
-        user_has_process_running = multiple_process_check(ticket_path)
-        if user_has_process_running:
-            return Response(data={'error': 'User currently has processes in progress.'},
-                            status=status.HTTP_400_BAD_REQUEST)
 
         self.ticket_path = os.path.join('mediafiles', 'jobs', str(self.ticket_number), 'download')
 

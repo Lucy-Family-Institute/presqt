@@ -4,7 +4,7 @@ import requests
 
 def upload_extra_metadata(extra_metadata, auth_parameter, attribute_url):
     """
-    Add attributes found in the 'extra_metadata' in PRESQT_FTS_METADATA to the project in OSf.
+    Add attributes found in the 'extra_metadata' in PRESQT_FTS_METADATA to the project in Zenodo.
 
     OSF only supports updating the 'description' attribute.
 

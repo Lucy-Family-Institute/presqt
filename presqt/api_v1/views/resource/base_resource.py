@@ -29,7 +29,6 @@ from presqt.api_v1.utilities import (target_validation, transfer_target_validati
                                      get_target_data, get_keyword_support,
                                      update_or_create_process_info, get_user_email_opt,
                                      fairshare_evaluator_validation, fairshare_results)
-from presqt.api_v1.utilities.utils.multiple_process_check import multiple_process_check
 from presqt.api_v1.utilities.fixity import download_fixity_checker
 from presqt.api_v1.utilities.metadata.download_metadata import validate_metadata
 from presqt.api_v1.utilities.validation.bagit_validation import validate_bag
@@ -37,7 +36,8 @@ from presqt.api_v1.utilities.validation.file_validation import file_validation
 from presqt.api_v1.utilities.utils.send_email import email_blaster
 from presqt.json_schemas.schema_handlers import schema_validator
 from presqt.utilities import (PresQTValidationError, PresQTResponseException, write_file,
-                              zip_directory, read_file, update_process_info_message, increment_process_info)
+                              zip_directory, read_file, update_process_info_message,
+                              increment_process_info, PresQTError)
 
 
 class BaseResource(APIView):
@@ -212,11 +212,6 @@ class BaseResource(APIView):
 
         self.ticket_number = hash_tokens(self.destination_token)
         ticket_path = os.path.join('mediafiles', 'jobs', str(self.ticket_number))
-        # Check if this user currently has any other process in progress
-        user_has_process_running = multiple_process_check(ticket_path)
-        if user_has_process_running:
-            return Response(data={'error': 'User currently has processes in progress.'},
-                            status=status.HTTP_400_BAD_REQUEST)
 
         self.ticket_path = os.path.join('mediafiles', 'jobs', str(self.ticket_number), 'upload')
 
@@ -276,7 +271,10 @@ class BaseResource(APIView):
                     return Response(data={'error': 'PresQT Error: {}'.format(e.args[0])}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 # Collect and remove any existing source metadata
-                get_upload_source_metadata(self, self.bag)
+                try:
+                    get_upload_source_metadata(self, self.bag)
+                except PresQTValidationError as e:
+                    return Response(data={'error': e.data}, status=e.status_code)
                 # If the bag validated successfully then break from the loop
                 break
 
@@ -704,12 +702,6 @@ class BaseResource(APIView):
         self.ticket_number = '{}_{}'.format(hash_tokens(
             self.source_token), hash_tokens(self.destination_token))
         ticket_path = os.path.join("mediafiles", "jobs", str(self.ticket_number))
-
-        # Check if this user currently has any other process in progress
-        user_has_process_running = multiple_process_check(ticket_path)
-        if user_has_process_running:
-            return Response(data={'error': 'User currently has processes in progress.'},
-                            status=status.HTTP_400_BAD_REQUEST)
 
         self.ticket_path = os.path.join('mediafiles', 'jobs', str(self.ticket_number), 'transfer')
 

@@ -43,8 +43,6 @@ def zenodo_fetch_resource_helper(zenodo_project, resource_id, is_record=False, i
     ----------
     zenodo_project : dict
         The requested Zenodo project.
-    auth_parameter : dict
-        The user's Zenodo API token
     is_record : boolean
         Flag for if the resource is a published record
     is_file : boolean
