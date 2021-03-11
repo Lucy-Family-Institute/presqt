@@ -67,12 +67,13 @@ class CurateND(CurateNDBase):
         # Remove errors returned by CurateND
         good_data = []
         for item in data:
-            try:
-                item['status']
-            except KeyError:
-                good_data.append(item)
-            else:
-                pass
+            if item:
+                try:
+                    item['status']
+                except KeyError:
+                    good_data.append(item)
+                else:
+                    pass
 
         return [Item(item_json, self.session) for item_json in good_data]
 
