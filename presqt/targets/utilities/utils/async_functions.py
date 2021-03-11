@@ -77,7 +77,7 @@ async def async_get(self_instance, url, session):
             assert response.status == 200
             return await response.json()
         except AssertionError:
-            if response.status == 403: #TODO: doing this to avoid private file errors look into it
+            if response.status == 403 or response.status == 502: #TODO: doing this to avoid private file errors look into it
                 pass
             else:
                 raise PresQTValidationError("The source target API returned an error. Please try again.",

@@ -125,7 +125,7 @@ The following is an example:
 .. code-block:: json
 
     {
-        "allKeyword": [],
+        "allKeywords": [],
         "actions": [],
         "extra_metadata": {
             "title": "str",
@@ -138,7 +138,9 @@ The following is an example:
             ],
             "publication_date": "2021-02-19",
             "description": "This is it.",
-            "keywords": [],
+            "
+            
+            s": [],
             "license": "MIT",
             "related_identifiers": [],
             "references": "Nothing here.",
