@@ -14,12 +14,19 @@ def extra_metadata_helper(resource_obj):
         Extra metadata dictionary
     """
     # Get creator name
+    name_helper = None
     if 'creator#author' in resource_obj.extra.keys():
-        name_helper = resource_obj.extra['creator#author'].partition(' ')
+        if type(resource_obj.extra['creator#author']) is str:
+            name_helper = resource_obj.extra['creator#author'].partition(' ')
     else:
         name_helper = resource_obj.extra['creator'].partition(' ')
-    first_name = name_helper[0]
-    last_name = name_helper[2]
+
+    if name_helper:
+        first_name = name_helper[0]
+        last_name = name_helper[2]
+    else:
+        first_name = ''
+        last_name = ''
 
     description = None
     if 'description#abstract' in resource_obj.extra.keys():
