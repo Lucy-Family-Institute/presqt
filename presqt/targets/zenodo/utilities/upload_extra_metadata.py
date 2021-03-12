@@ -14,16 +14,16 @@ def upload_extra_metadata(extra_metadata, auth_parameter, attribute_url):
         Attributes to add to the project
     auth_parameter: dict
         Authentication parameters
-    attribute_url: str
+    attribute_url: strF
         The url for the request
     """
     data = {
             "metadata": {
                 "upload_type": "other",
-                "title": extra_metadata['title']
+                "title": extra_metadata['title'],
+                "keywords": extra_metadata['keywords']
             }
         }
-
     if extra_metadata['description']:
         data["metadata"]['description'] = extra_metadata['description']
 
