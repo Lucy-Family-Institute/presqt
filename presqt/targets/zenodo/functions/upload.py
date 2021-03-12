@@ -184,7 +184,7 @@ def zenodo_upload_loop(action_metadata, resource_id, resource_main_dir, post_url
                             raise PresQTResponseException(
                                 "Zenodo returned an error trying to update {}".format(name),
                                 status.HTTP_400_BAD_REQUEST)
-                        # Add this resouce to the updated list
+                        # Add this resource to the updated list
                         resources_updated.append(os.path.join(path, name))
             # Make the upload request....
             response = requests.post(post_url, params=auth_parameter,
