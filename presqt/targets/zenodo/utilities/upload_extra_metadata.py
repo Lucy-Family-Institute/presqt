@@ -14,7 +14,7 @@ def upload_extra_metadata(extra_metadata, auth_parameter, attribute_url):
         Attributes to add to the project
     auth_parameter: dict
         Authentication parameters
-    attribute_url: strF
+    attribute_url: str
         The url for the request
     """
     data = {
