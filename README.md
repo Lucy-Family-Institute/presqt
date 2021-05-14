@@ -25,8 +25,8 @@ To bring up a local version of PresQT, take the following steps:
 2. Export the following ENV_VARS:
    - ENVIRONMENT: Should be either `production` or `development`
    - SECRET_KEY: A Django "secret key" value.
-3. Execute `docker-compose up` within the repo's base folder.
-4. Navigate to http://127.0.0.1/api_v1/ or http://localhost/api_v1/ in your browser.
+3. Execute `docker-compose -f docker-compose-development.yml up` within the repo's base folder.
+4. Navigate to http://127.0.0.1:8000/api_v1/ or http://localhost:8000/api_v1/ in your browser or a service like [Postman][postman].
 
 
 [presqt-page]: https://presqt.crc.nd.edu
@@ -35,3 +35,4 @@ To bring up a local version of PresQT, take the following steps:
 [nd-site]: https://www.nd.edu/
 [imls-site]: https://www.imls.gov/
 [imls-logo]: https://i.imgur.com/iscE0JC.jpg
+[postman]: https://www.postman.com/
