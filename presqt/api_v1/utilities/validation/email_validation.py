@@ -19,6 +19,5 @@ def get_user_email_opt(request):
     try:
         return request.META['HTTP_PRESQT_EMAIL_OPT_IN']
     except KeyError:
-        raise PresQTValidationError(
-            "PresQT Error: 'presqt-email-opt-in' missing in the request headers.",
-            status.HTTP_400_BAD_REQUEST)
+        # If it's not in the headers, just don't send an email
+        return False
