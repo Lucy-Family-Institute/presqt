@@ -5,7 +5,7 @@ Transfer Details
 ----------------
 ========== ============================================= ==============================================================
 **Target** **As Source**                                 **As Destination**
-OSF<OSF>        Only provides checksums for OSF Storage files Writes PRESQT_FTS_METADATA.json file
+OSF        Only provides checksums for OSF Storage files Writes PRESQT_FTS_METADATA.json file
 
            Keywords written to 'Tags' attribute          Keywords written to 'Tags' attribute.
 
