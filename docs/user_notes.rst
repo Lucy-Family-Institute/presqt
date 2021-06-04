@@ -5,13 +5,13 @@ Transfer Details
 ----------------
 ========== ============================================= ==============================================================
 **Target** **As Source**                                 **As Destination**
-<a name ="OSF">OSF        Only provides checksums for OSF Storage files Writes PRESQT_FTS_METADATA.json file
+OSF        Only provides checksums for OSF Storage files Writes PRESQT_FTS_METADATA.json file
 
            Keywords written to 'Tags' attribute          Keywords written to 'Tags' attribute.
 
                                                          Stores all resources in OSF Storage
 
-<a name ="Fedora">curateND   Provides checksums for all files              N/A
+curateND   Provides checksums for all files              N/A
 
 Github     Does not provide checksums for files          Writes PRESQT_FTS_METADATA.json file
 
