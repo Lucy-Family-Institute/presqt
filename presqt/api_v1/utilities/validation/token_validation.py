@@ -17,12 +17,13 @@ def get_source_token(request):
     Raises a custom AuthorizationException error if the validation fails.
     """
     # Validate that the proper token exists in the request.
-    try:
-        return request.META['HTTP_PRESQT_SOURCE_TOKEN']
-    except KeyError:
-        raise PresQTValidationError(
-            "PresQT Error: 'presqt-source-token' missing in the request headers.",
-            status.HTTP_400_BAD_REQUEST)
+    # try:
+    return 'test'
+    #     return request.META['HTTP_PRESQT_SOURCE_TOKEN']
+    # except KeyError:
+    #     raise PresQTValidationError(
+    #         "PresQT Error: 'presqt-source-token' missing in the request headers.",
+    #         status.HTTP_400_BAD_REQUEST)
 
 def get_destination_token(request):
     """
