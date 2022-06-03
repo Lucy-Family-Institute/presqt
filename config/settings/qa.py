@@ -9,6 +9,7 @@ EMAIL_DEFAULT_FROM_EMAIL = 'noreply@presqt.crc.nd.edu'
 CORS_ORIGIN_ALLOW_ALL = False
 
 CORS_ORIGIN_WHITELIST = (
+    'http://localhost:3000',
     'https://presqt-qa.crc.nd.edu', )
 
 LOGGING = {

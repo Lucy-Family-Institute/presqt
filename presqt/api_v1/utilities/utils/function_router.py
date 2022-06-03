@@ -33,6 +33,9 @@ from presqt.targets.figshare.functions.upload import figshare_upload_resource
 from presqt.targets.figshare.functions.upload_metadata import figshare_upload_metadata
 from presqt.targets.figshare.functions.keywords import figshare_fetch_keywords, figshare_upload_keywords
 
+from presqt.targets.internet_archive.functions.fetch import (
+    internet_archive_fetch_resources, internet_archive_fetch_resource)
+
 
 class FunctionRouter(object):
     """
@@ -64,6 +67,9 @@ class FunctionRouter(object):
         is easier to work with.
         """
         return getattr(cls, '{}_{}'.format(target_name, action))
+
+    internet_archive_resource_collection = internet_archive_fetch_resources
+    internet_archive_resource_detail = internet_archive_fetch_resource
 
     osf_resource_collection = osf_fetch_resources
     osf_resource_detail = osf_fetch_resource
