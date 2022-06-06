@@ -104,6 +104,28 @@ def internet_archive_fetch_resources(token, query_parameter):
     #         pages = get_page_numbers(url, headers)
 
     # return get_gitlab_project_data(data, headers, []), pages
+    collection_id = "presqt-sandbox"
+    collection_url = "https://archive.org/advancedsearch.php?q=collection:presqt-sandbox&fl%5B%5D=identifier&fl%5B%5D=title&output=json&rows=10&page=1"
+
+# {"responseHeader":{"status":0,"QTime":8,"params":{"query":"( collection:presqt-sandbox )","qin":"collection:presqt-sandbox","fields":"identifier","wt":"json","rows":"10","start":0}},"response":
+# {
+#     "numFound":5,
+#     "start":0,
+#     "docs":[
+#         {"identifier":"osf-registrations-3cfkh-v1"},
+#         {"identifier":"osf-registrations-gkzv4-v1"},
+#         {"identifier":"osf-registrations-x8zgd-v1"},
+#         {"identifier":"osf-registrations-cg6up-v1"},
+#         {"identifier":"osf-registrations-emhct-v1"}
+#         ]
+#     }
+    response = requests.get(collection_url) #, headers=headers)
+    if response.status_code != 200:
+        raise PresQTResponseException("The collection could not be found by the requesting user.",
+                                        status.HTTP_404_NOT_FOUND)
+
+    data = response.json()
+    docs = data['response']['docs']
     top_level_resources = []
     pages = {
         "first_page": '1',
@@ -113,12 +135,13 @@ def internet_archive_fetch_resources(token, query_parameter):
         "total_pages": '1',
         "per_page": 10
     }
-    top_level_resources.append({
+    for value in docs:
+        top_level_resources.append({
                         "kind": "container",
                         "kind_name": "project",
-                        "id": "osf-registrations-gkzv4-v1",
+                        "id": value['identifier'],
                         "container": None,
-                        "title": "The Impact of Fully-Subsidized Transit Passes on Health and Well-Being for People with Low Incomes",
+                        "title": value['title'],
                     })
     return top_level_resources, pages
     # return [internet_archive_fetch_resource(token, "osf-registrations-gkzv4-v1")], pages
